@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>DG.XrmPluginSync.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<AssemblyName>DG.XrmPluginSync.$(MSBuildProjectName)</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
+		<PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" Version="1.2.9" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\Dataverse\Dataverse.csproj" />
+	  <ProjectReference Include="..\Model\Model.csproj" />
+	</ItemGroup>
+
+</Project>

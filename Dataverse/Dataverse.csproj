@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>DG.XrmPluginSync.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<AssemblyName>DG.XrmPluginSync.$(MSBuildProjectName)</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DataverseConnection" Version="1.1.1" />
+		<PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" Version="1.2.9" />
+	</ItemGroup>
+
+</Project>

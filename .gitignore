@@ -1,0 +1,53 @@
+# .NET build outputs
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio (Code) settings
+.vscode/
+.vs/
+
+# NuGet packages
+*.nupkg
+packages/
+.nuget/
+
+# Rider settings
+.idea/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Tooling
+*.vspscc
+*.vssscc
+
+# Publish outputs
+publish/
+
+# Test results
+TestResults/
+
+# Others
+*.dbmdl
+*.bak
+*.cache
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Local tools
+*.exe
+*.dll
+!tools/*.exe
+!tools/*.dll
