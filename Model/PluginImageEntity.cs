@@ -2,13 +2,13 @@
 
 namespace DG.XrmPluginSync.Model
 {
-    public class PluginImageEntity : EntityBase
+    public class PluginImageEntity() : EntityBase("")
     {
-        public string PluginStepName { get; set; }
-        public string EntityAlias { get; set; }
-        public string EventOperation { get; set; }
-        public int ImageType { get; set; }
-        public string Attributes { get; set; }
+        public required string PluginStepName { get; set; }
+        public required string EntityAlias { get; set; }
+        public required string EventOperation { get; set; }
+        public required int ImageType { get; set; }
+        public required string Attributes { get; set; }
 
         public class PluginImageDTOEqualityComparer<T> : IEqualityComparer<T> where T : PluginImageEntity
         {

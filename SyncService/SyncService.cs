@@ -8,79 +8,23 @@ using DG.XrmPluginSync.SyncService.Models.Requests;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using DG.XrmPluginSync.SyncService.AssemblyReader;
 
 namespace DG.XrmPluginSync.SyncService;
 
-public class SyncService(ILogger log, Solution solution/*, Plugin plugin, CrmDataHelper crmDataHelper*/)
+public class SyncService(ILogger log, Solution solution, IAssemblyReader assemblyReader/*, Plugin plugin, CrmDataHelper crmDataHelper*/)
 {
     public async Task SyncPlugins(SyncRequest request)
     {
-        // Determine the path to AssemblyAnalyzer.exe
-        string analyzerExePath;
-        string analyzerWorkingDir;
-        
-        // If running in debug, use the local path; otherwise, use the tool's directory
-        var debugPath = "..\\AssemblyAnalyzer\\bin\\Debug\\AssemblyAnalyzer.exe";
-        if (File.Exists(debugPath))
-        {
-            analyzerExePath = Path.GetFullPath(debugPath);
-            analyzerWorkingDir = Path.GetDirectoryName(analyzerExePath)!;
-        }
-        else
-        {
-            analyzerExePath = Path.Combine(AppContext.BaseDirectory, "AssemblyAnalyzer.exe");
-            analyzerWorkingDir = AppContext.BaseDirectory;
-        }
+        log.LogAndValidateRequest(request);
 
-        var psi = new ProcessStartInfo
-        {
-            FileName = analyzerExePath,
-            WorkingDirectory = analyzerWorkingDir,
-            Arguments = request.AssemblyPath,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        log.LogInformation("Comparing plugins registered in CRM versus those found in your local code");
 
-        using var process = Process.Start(psi);
+        log.LogInformation("Loading local assembly and its plugins");
+        var localAssembly = await assemblyReader.ReadAssemblyAsync(request.AssemblyPath);
+        log.LogInformation("Local assembly loaded, identified {0} plugins", localAssembly.PluginTypes.Count);
 
-        if (process == null)
-            throw new InvalidOperationException("Failed to start process.");
-
-        // Read output and error asynchronously
-        var outputTask = process.StandardOutput.ReadToEndAsync();
-        var errorTask = process.StandardError.ReadToEndAsync();
-
-        // Wait for process to exit and for output reading to complete
-        await process.WaitForExitAsync();
-        var output = await outputTask;
-        var error = await errorTask;
-
-        // Optionally, handle errors
-        if (process.ExitCode != 0)
-        {
-            // Log or throw with error
-            throw new Exception($"Process failed: {error}");
-        }
-
-        // Process the output
-        var assemblyInfo = JsonSerializer.Deserialize<PluginAssembly>(output);
-
-        var solutionId = solution.GetSolutionId(request.SolutionName);
-    }
-
-    public void SyncPlugins(SyncRequest request, bool notThis)
-    {
-        //log.LogAndValidateRequest(request);
-
-        //log.LogInformation("Comparing plugins registered in CRM versus those found in your local code");
-
-        //log.LogInformation("Loading local assembly and it's plugins");
-        //var localAssembly = plugin.GetAssemblyDTO(request.AssemblyPath);
-        //log.LogInformation("Local assembly loaded");
-
-        //log.LogInformation("Validating plugins to be registered");
+        log.LogInformation("Validating plugins to be registered");
         //plugin.ValidatePlugins(localAssembly.PluginTypes);
         //log.LogInformation("Plugins validated");
 
@@ -149,60 +93,60 @@ public class SyncService(ILogger log, Solution solution/*, Plugin plugin, CrmDat
 
         //log.LogInformation("Plugin synchronization was completed successfully");
     }
-    private List<DeleteRequest> GetDeleteRequests(List<PluginTypeEntity> pluginTypes, List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
-    {
-        var pluginTypeReqs = pluginTypes
-            .Select(x => new DeleteRequest
-            {
-                Target = new EntityReference("plugintype", x.Id)
-            });
-        var pluginStepReqs = pluginSteps
-            .Select(x => new DeleteRequest
-            {
-                Target = new EntityReference("sdkmessageprocessingstep", x.Id)
-            });
-        var pluginImageReqs = pluginImages
-            .Select(x => new DeleteRequest
-            {
-                Target = new EntityReference("sdkmessageprocessingstepimage", x.Id)
-            });
+    //private List<DeleteRequest> GetDeleteRequests(List<PluginTypeEntity> pluginTypes, List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
+    //{
+    //    var pluginTypeReqs = pluginTypes
+    //        .Select(x => new DeleteRequest
+    //        {
+    //            Target = new EntityReference("plugintype", x.Id)
+    //        });
+    //    var pluginStepReqs = pluginSteps
+    //        .Select(x => new DeleteRequest
+    //        {
+    //            Target = new EntityReference("sdkmessageprocessingstep", x.Id)
+    //        });
+    //    var pluginImageReqs = pluginImages
+    //        .Select(x => new DeleteRequest
+    //        {
+    //            Target = new EntityReference("sdkmessageprocessingstepimage", x.Id)
+    //        });
 
-        return pluginImageReqs.Concat(pluginStepReqs).Concat(pluginTypeReqs).ToList();
-    }
-    private List<UpdateRequest> GetUpdateRequests(List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
-    {
-        var pluginStepReqs = pluginSteps
-            .Select(x =>
-            {
-                var entity = new Entity("sdkmessageprocessingstep", x.Id);
-                entity.Attributes.Add("stage", new OptionSetValue(x.ExecutionStage));
-                entity.Attributes.Add("filteringattributes", x.FilteredAttributes);
-                entity.Attributes.Add("supporteddeployment", new OptionSetValue(x.Deployment));
-                entity.Attributes.Add("mode", new OptionSetValue(x.ExecutionMode));
-                entity.Attributes.Add("rank", x.ExecutionOrder);
-                entity.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
-                entity.Attributes.Add("impersonatinguserid", x.UserContext == Guid.Empty ? null : new EntityReference("systemuser", x.Id));
+    //    return pluginImageReqs.Concat(pluginStepReqs).Concat(pluginTypeReqs).ToList();
+    //}
+    //private List<UpdateRequest> GetUpdateRequests(List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
+    //{
+    //    var pluginStepReqs = pluginSteps
+    //        .Select(x =>
+    //        {
+    //            var entity = new Entity("sdkmessageprocessingstep", x.Id);
+    //            entity.Attributes.Add("stage", new OptionSetValue(x.ExecutionStage));
+    //            entity.Attributes.Add("filteringattributes", x.FilteredAttributes);
+    //            entity.Attributes.Add("supporteddeployment", new OptionSetValue(x.Deployment));
+    //            entity.Attributes.Add("mode", new OptionSetValue(x.ExecutionMode));
+    //            entity.Attributes.Add("rank", x.ExecutionOrder);
+    //            entity.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
+    //            entity.Attributes.Add("impersonatinguserid", x.UserContext == Guid.Empty ? null : new EntityReference("systemuser", x.Id));
 
-                return new UpdateRequest
-                {
-                    Target = entity
-                };
-            });
-        var pluginImageReqs = pluginImages
-            .Select(x =>
-            {
-                var entity = new Entity("sdkmessageprocessingstepimage", x.Id);
-                entity.Attributes.Add("name", x.Name);
-                entity.Attributes.Add("entityalias", x.EntityAlias);
-                entity.Attributes.Add("imagetype", new OptionSetValue(x.ImageType));
-                entity.Attributes.Add("attributes", x.ImageType);
+    //            return new UpdateRequest
+    //            {
+    //                Target = entity
+    //            };
+    //        });
+    //    var pluginImageReqs = pluginImages
+    //        .Select(x =>
+    //        {
+    //            var entity = new Entity("sdkmessageprocessingstepimage", x.Id);
+    //            entity.Attributes.Add("name", x.Name);
+    //            entity.Attributes.Add("entityalias", x.EntityAlias);
+    //            entity.Attributes.Add("imagetype", new OptionSetValue(x.ImageType));
+    //            entity.Attributes.Add("attributes", x.ImageType);
 
-                return new UpdateRequest
-                {
-                    Target = entity
-                };
-            });
+    //            return new UpdateRequest
+    //            {
+    //                Target = entity
+    //            };
+    //        });
 
-        return pluginImageReqs.Concat(pluginStepReqs).ToList();
-    }
+    //    return pluginImageReqs.Concat(pluginStepReqs).ToList();
+    //}
 }

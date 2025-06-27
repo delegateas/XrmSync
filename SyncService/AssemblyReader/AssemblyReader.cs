@@ -1,58 +1,47 @@
-﻿using System.Reflection;
-using System.Runtime.Loader;
+﻿using DG.XrmPluginSync.Model;
+using System.Diagnostics;
+using System.Text.Json;
 
 namespace DG.XrmPluginSync.SyncService.AssemblyReader;
 
-internal class AssemblyReader() : IAssemblyReader
+internal class AssemblyReader : IAssemblyReader
 {
-    private bool disposedValue;
-
-    private TestAssemblyLoadContext? Context { get; set; }
-
-    public Assembly ReadAssembly(string assemblyDllPath)
+    public async Task<PluginAssembly> ReadAssemblyAsync(string assemblyDllPath)
     {
-        if (Context == null)
+        var analyzerExePath = Path.Combine(AppContext.BaseDirectory, "AssemblyAnalyzer.exe");
+        var analyzerWorkingDir = AppContext.BaseDirectory;
+
+        var psi = new ProcessStartInfo
         {
-            Context = new TestAssemblyLoadContext(assemblyDllPath);
+            FileName = analyzerExePath,
+            WorkingDirectory = analyzerWorkingDir,
+            Arguments = assemblyDllPath,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start process.");
+
+        // Read output and error asynchronously
+        var outputTask = process.StandardOutput.ReadToEndAsync();
+        var errorTask = process.StandardError.ReadToEndAsync();
+
+        // Wait for process to exit and for output reading to complete
+        await process.WaitForExitAsync();
+        var output = await outputTask;
+        var error = await errorTask;
+
+        // Optionally, handle errors
+        if (process.ExitCode != 0)
+        {
+            // Log or throw with error
+            throw new Exception($"Process failed: {error}");
         }
 
-        return Context.LoadFromAssemblyPath(assemblyDllPath);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing && Context != null)
-            {
-                Context.Unload();
-                Context = null;
-            }
-
-            disposedValue = true;
-        }
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-
-    class TestAssemblyLoadContext(string mainAssemblyToLoadPath) : AssemblyLoadContext("PluginAssembly", isCollectible: true)
-    {
-        private AssemblyDependencyResolver _resolver = new AssemblyDependencyResolver(mainAssemblyToLoadPath);
-
-        protected override Assembly? Load(AssemblyName name)
-        {
-            string? assemblyPath = _resolver.ResolveAssemblyToPath(name);
-            if (assemblyPath != null)
-            {
-                return LoadFromAssemblyPath(assemblyPath);
-            }
-
-            return null;
-        }
+        // Process the output
+        var assemblyInfo = JsonSerializer.Deserialize<PluginAssembly>(output);
+        return assemblyInfo ?? throw new Exception("Failed to read plugin type information from assembly");
     }
 }

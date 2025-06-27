@@ -1,9 +1,8 @@
 ﻿using DG.XrmPluginSync.Model;
-using System.Reflection;
 
 namespace DG.XrmPluginSync.SyncService.AssemblyReader;
 
-public interface IAssemblyReader : IDisposable
+public interface IAssemblyReader
 {
-    Assembly ReadAssembly(string assemblyDllPath);
+    Task<PluginAssembly> ReadAssemblyAsync(string assemblyDllPath);
 }

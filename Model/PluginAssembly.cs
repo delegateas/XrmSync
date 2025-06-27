@@ -2,12 +2,12 @@
 
 namespace DG.XrmPluginSync.Model
 {
-    public class PluginAssembly : EntityBase
+    public class PluginAssembly() : EntityBase("")
     {
-        public string Version { get; set; }
-        public string DllPath { get; set; }
-        public string Hash { get; set; }
-        public List<PluginTypeEntity> PluginTypes { get; set; } = new List<PluginTypeEntity>();
+        public required string Version { get; set; }
+        public required string DllPath { get; set; }
+        public required string Hash { get; set; }
+        public List<PluginTypeEntity> PluginTypes { get; set; } = [];
 
         public override bool Equals(object obj)
         {
@@ -28,11 +28,11 @@ namespace DG.XrmPluginSync.Model
                 return false;
             }
 
-            var assembly = obj as PluginAssembly;
-            if (obj is null)
+            if (obj is not PluginAssembly assembly)
             {
                 return false;
             }
+
 
             return Hash == assembly.Hash;
         }

@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>DG.XrmPluginSync.$(MSBuildProjectName)</AssemblyName>
-    <RootNamespace>DG.XrmPluginSync.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8</TargetFramework>
+		<Nullable>enable</Nullable>
+		<AssemblyName>DG.XrmPluginSync.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>DG.XrmPluginSync.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+	</PropertyGroup>
 
 </Project>

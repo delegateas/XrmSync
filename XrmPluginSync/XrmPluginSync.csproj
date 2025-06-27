@@ -18,18 +18,11 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Dataverse\Dataverse.csproj" />
 		<ProjectReference Include="..\SyncService\SyncService.csproj" />
+		<ProjectReference Include="..\AssemblyAnalyzer\AssemblyAnalyzer.csproj"/>
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="..\AssemblyAnalyzer\bin\$(Configuration)\AssemblyAnalyzer.exe">
-			<Pack>true</Pack>
-			<PackagePath>tools/</PackagePath>
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 </Project>

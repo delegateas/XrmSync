@@ -2,9 +2,9 @@
 
 namespace DG.XrmPluginSync.Model
 {
-    public class PluginTypeEntity : EntityBase
+    public class PluginTypeEntity() : EntityBase("")
     {
-        public List<PluginStepEntity> PluginSteps { get; set; } = new List<PluginStepEntity>();
+        public required List<PluginStepEntity> PluginSteps { get; set; } = [];
 
         public class PluginTypeDTOEqualityComparer<T> : IEqualityComparer<T> where T : PluginTypeEntity
         {
