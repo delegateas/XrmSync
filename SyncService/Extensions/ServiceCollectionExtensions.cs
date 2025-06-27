@@ -8,10 +8,9 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddSyncService(this IServiceCollection services)
     {
-        return services.AddScoped<SyncService>()
-            .AddScoped<IAssemblyReader, AssemblyReader.AssemblyReader>()
-            .AddScoped<Message>()
-            //.AddScoped<Plugin>()
-            .AddScoped((_) => LoggerFactory.GetLogger<SyncService>());
+        return services.AddSingleton<SyncService>()
+            .AddSingleton<IAssemblyReader, AssemblyReader.AssemblyReader>()
+            //.AddSingleton<Plugin>()
+            .AddSingleton<Message>();
     }
 }

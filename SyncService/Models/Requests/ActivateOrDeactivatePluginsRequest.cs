@@ -1,33 +1,22 @@
-﻿using DG.XrmPluginSync.SyncService.Exceptions;
+﻿using DG.XrmPluginSync.SyncService.Common;
+using DG.XrmPluginSync.SyncService.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync.SyncService.Models.Requests;
 
-public class ActivateOrDeactivatePluginsRequest : IRequest
+public class ActivateOrDeactivatePluginsRequest : RequestBase
 {
-    public string SolutionPath { get; set; }
-    public string SolutionName { get; set; }
-    public bool Activate { get; set; }
-    public string GetName()
-    {
-        return "Activate or Deactivate Plugins";
-    }
-    public IList<(string key, string value)> GetArguments()
-    {
-        return [
-            ("Solution Path", SolutionPath),
-            ("Solution Name", SolutionPath),
-            ("Activate", Activate.ToString()),
-        ];
-    }
+    public ActivateOrDeactivatePluginsRequest(ILogger logger, Description description) : base(logger, description) { }
 
-    public void Validate()
-    {
-        var exceptions = new List<Exception>();
-        if (string.IsNullOrEmpty(SolutionPath) && string.IsNullOrEmpty(SolutionName))
-        {
-            exceptions.Add(new ValidationException("Either the solution name or path of the solution must be specified"));
-        }
-        if (exceptions.Count == 1) throw exceptions.First();
-        if (exceptions.Count > 0) throw new AggregateException("The inputs are invalid", exceptions);
-    }
+    public required string SolutionPath { get; set; }
+    public required string SolutionName { get; set; }
+    public bool Activate { get; set; }
+
+    public override string GetName() => "Activate or Deactivate Plugins";
+
+    public override IList<(string key, string value)> GetArguments() => [
+        ("Solution Path", SolutionPath),
+        ("Solution Name", SolutionName),
+        ("Activate", Activate.ToString()),
+    ];
 }

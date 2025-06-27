@@ -1,40 +1,22 @@
-﻿using DG.XrmPluginSync.SyncService.Exceptions;
+﻿using DG.XrmPluginSync.SyncService.Common;
+using DG.XrmPluginSync.SyncService.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync.SyncService.Models.Requests;
 
-public class SyncRequest : IRequest
+public class SyncRequest : RequestBase
 {
+    public SyncRequest(ILogger logger, Description description) : base(logger, description) { }
+
     public required string AssemblyPath { get; set; }
     public required string SolutionName { get; set; }
     public required bool DryRun { get; set; }
 
-    public string GetName()
-    {
-        return "Sync Plugins";
-    }
+    public override string GetName() => "Sync Plugins";
 
-    public IList<(string key, string value)> GetArguments()
-    {
-        return [
-            ("Assembly Path", AssemblyPath),
-            ("Solution Name", SolutionName),
-            ("Dry Run", DryRun.ToString())
-        ];
-    }
-
-    public void Validate()
-    {
-        var exceptions = new List<Exception>();
-        if (string.IsNullOrEmpty(AssemblyPath))
-        {
-            exceptions.Add(new ValidationException("Path to assembly must be specified"));
-        }
-        if (string.IsNullOrEmpty(SolutionName))
-        {
-            exceptions.Add(new ValidationException("Solution Name must be specified"));
-        }
-        
-        if (exceptions.Count == 1) throw exceptions.First();
-        if (exceptions.Count > 0) throw new AggregateException("The inputs are invalid", exceptions);
-    }
+    public override IList<(string key, string value)> GetArguments() => [
+        ("Assembly Path", AssemblyPath),
+        ("Solution Name", SolutionName),
+        ("Dry Run", DryRun.ToString())
+    ];
 }

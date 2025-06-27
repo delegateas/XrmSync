@@ -16,7 +16,7 @@ public class SyncService(ILogger log, Solution solution, IAssemblyReader assembl
 {
     public async Task SyncPlugins(SyncRequest request)
     {
-        log.LogAndValidateRequest(request);
+        request.LogAndValidateRequest();
 
         log.LogInformation("Comparing plugins registered in CRM versus those found in your local code");
 

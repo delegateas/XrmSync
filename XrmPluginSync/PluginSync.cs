@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.CommandLine;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync;
 
@@ -32,24 +33,28 @@ internal class PluginSync(SyncService.SyncService syncService)
             IsRequired = false
         };
 
+        var logLevelOption = new Option<LogLevel>(["--log-level", "-l"], () => LogLevel.Information, "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical)");
+
         var rootCommand = new RootCommand("XrmPluginSync - Synchronize your Dataverse plugins")
         {
             assemblyFileOption,
             solutionNameOption,
-            dryRunOption
+            dryRunOption,
+            logLevelOption
         };
 
-        rootCommand.SetHandler((solutionFile, solutionName, dryRun) =>
+        rootCommand.SetHandler((solutionFile, solutionName, dryRun, logLevel) =>
         {
-            var req = new SyncRequest
-            {
-                AssemblyPath = solutionFile.FullName,
-                SolutionName = solutionName,
-                DryRun = dryRun
-            };
+            LoggerFactory.MinimumLevel = logLevel;
+
+            var req = ActivatorUtilities.CreateInstance<SyncRequest>(host.Services);
+            req.AssemblyPath = solutionFile.FullName;
+            req.SolutionName = solutionName;
+            req.DryRun = dryRun;
+
             var program = ActivatorUtilities.CreateInstance<PluginSync>(host.Services);
             program.Run(req);
-        }, assemblyFileOption, solutionNameOption, dryRunOption);
+        }, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption);
 
         return await rootCommand.InvokeAsync(args);
     }
