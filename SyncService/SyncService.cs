@@ -12,7 +12,7 @@ using DG.XrmPluginSync.SyncService.AssemblyReader;
 
 namespace DG.XrmPluginSync.SyncService;
 
-public class SyncService(ILogger log, Solution solution, IAssemblyReader assemblyReader/*, Plugin plugin, CrmDataHelper crmDataHelper*/)
+public class SyncService(ILogger log, Solution solution, IAssemblyReader assemblyReader, Plugin plugin/*, CrmDataHelper crmDataHelper*/)
 {
     public async Task SyncPlugins(SyncRequest request)
     {
@@ -25,8 +25,8 @@ public class SyncService(ILogger log, Solution solution, IAssemblyReader assembl
         log.LogInformation("Local assembly loaded, identified {0} plugins", localAssembly.PluginTypes.Count);
 
         log.LogInformation("Validating plugins to be registered");
-        //plugin.ValidatePlugins(localAssembly.PluginTypes);
-        //log.LogInformation("Plugins validated");
+        plugin.ValidatePlugins(localAssembly.PluginTypes);
+        log.LogInformation("Plugins validated");
 
         log.LogInformation("Retrieving registered plugins from Dataverse");
         var solutionId = solution.GetSolutionId(request.SolutionName);
