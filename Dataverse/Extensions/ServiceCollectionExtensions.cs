@@ -6,7 +6,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDataverse(this IServiceCollection services)
     {
-        DataverseConnection.ServiceCollectionExtensions.AddDataverse(services, opts => opts.DataverseUrl = "https://aarsleff-udv.crm4.dynamics.com");
+        DataverseConnection.ServiceCollectionExtensions.AddDataverse(services);
         services.AddSingleton<CrmDataHelper>();
         services.AddSingleton<Solution>();
 

@@ -28,9 +28,9 @@ public class SyncService(ILogger log, Solution solution, IAssemblyReader assembl
         //plugin.ValidatePlugins(localAssembly.PluginTypes);
         //log.LogInformation("Plugins validated");
 
-        //log.LogInformation("Retriving registered plugins");
-        //var solutionId = solution.GetSolutionId(request.SolutionName);
-        //var crmAssembly = plugin.GetPluginAssemblyDTO(solutionId, localAssembly.DllName);
+        log.LogInformation("Retrieving registered plugins from Dataverse");
+        var solutionId = solution.GetSolutionId(request.SolutionName);
+        // var crmAssembly = plugin.GetPluginAssemblyDTO(solutionId, localAssembly.DllName);
 
         return;
         
