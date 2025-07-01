@@ -1,4 +1,4 @@
-﻿namespace DG.XrmPluginSync.SyncService.Models.Requests;
+﻿namespace DG.XrmPluginSync.SyncService.Requests;
 
 public interface IRequest
 {

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using DG.XrmPluginSync.SyncService.Common;
 using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.SyncService.Models.Requests;
 using DG.XrmPluginSync.SyncService.AssemblyReader;
 using DG.XrmPluginSync.SyncService.Extensions;
 using DG.XrmPluginSync.Dataverse.Interfaces;
+using DG.XrmPluginSync.SyncService.Requests;
 
 namespace DG.XrmPluginSync.SyncService;
 

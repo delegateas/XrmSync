@@ -2,7 +2,7 @@ using DG.XrmPluginSync.SyncService.Common;
 using DG.XrmPluginSync.SyncService.Exceptions;
 using Microsoft.Extensions.Logging;
 
-namespace DG.XrmPluginSync.SyncService.Models.Requests;
+namespace DG.XrmPluginSync.SyncService.Requests;
 
 public abstract class RequestBase(ILogger logger, Description description) : IRequest
 {

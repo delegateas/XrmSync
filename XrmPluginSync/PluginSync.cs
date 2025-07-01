@@ -1,5 +1,5 @@
 ﻿using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.SyncService.Models.Requests;
+using DG.XrmPluginSync.SyncService.Requests;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DG.XrmPluginSync;

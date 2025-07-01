@@ -2,6 +2,7 @@
 using DG.XrmPluginSync.Dataverse.Extensions;
 using DG.XrmPluginSync.Model;
 using DG.XrmPluginSync.SyncService.Extensions;
+using DG.XrmPluginSync.SyncService.Requests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -68,7 +69,7 @@ rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, data
             services.AddDataverse();
             services.AddSingleton((_) => DGLoggerFactory.GetLogger<PluginSync>());
             services.AddSingleton<DG.XrmPluginSync.SyncService.Common.Description>();
-            services.AddTransient<DG.XrmPluginSync.SyncService.Models.Requests.SyncRequest>();
+            services.AddTransient<SyncRequest>();
         })
         .Build();
 
