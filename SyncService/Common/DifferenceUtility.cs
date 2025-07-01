@@ -1,5 +1,4 @@
 ﻿using DG.XrmPluginSync.Model;
-using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync.SyncService.Common;
 
@@ -35,24 +34,15 @@ public static class DifferenceUtility
     public static Difference<PluginTypeEntity> GetDifference(List<PluginTypeEntity> list1, List<PluginTypeEntity> list2, IEqualityComparer<PluginTypeEntity> comparer)
     {
         var creates = list1
-            .Where(x => !list2.Any(y => x.Name.Equals(y.Name)))
+            .Where(x => !list2.Any(y => x.Name == y.Name))
             .ToList();
 
         var deletes = list2
-            .Where(x => !list1.Any(y => x.Name.Equals(y.Name)))
+            .Where(x => !list1.Any(y => x.Name == y.Name))
             .ToList();
 
-        var list1Intersection = list1
-            .Where(x =>
-            {
-                var element = list2.FirstOrDefault(y => x.Name.Equals(y.Name));
-                return element != null;
-            });
-
-        var list2Intersection = list2
-            .Where(x => list1.Any(y => x.Name.Equals(y.Name)));
-        var updates = list1Intersection
-            .Except(list2Intersection, comparer)
+        var updates = list1
+            .Where(x => list2.Any(y => x.Name == y.Name && !comparer.Equals(x, y)))
             .ToList();
 
         return new Difference<PluginTypeEntity>
@@ -66,24 +56,15 @@ public static class DifferenceUtility
     public static Difference<PluginStepEntity> GetDifference(List<PluginStepEntity> list1, List<PluginStepEntity> list2, IEqualityComparer<PluginStepEntity> comparer)
     {
         var creates = list1
-            .Where(x => !list2.Any(y => x.Name.Equals(y.Name)))
+            .Where(x => !list2.Any(y => x.Name == y.Name))
             .ToList();
 
         var deletes = list2
-            .Where(x => !list1.Any(y => x.Name.Equals(y.Name)))
+            .Where(x => !list1.Any(y => x.Name == y.Name))
             .ToList();
 
-        var list1Intersection = list1
-            .Where(x =>
-            {
-                var element = list2.FirstOrDefault(y => x.Name.Equals(y.Name));
-                return element != null;
-            });
-
-        var list2Intersection = list2
-            .Where(x => list1.Any(y => x.Name.Equals(y.Name)));
-        var updates = list1Intersection
-            .Except(list2Intersection, comparer)
+        var updates = list1
+            .Where(x => list2.Any(y => x.Name == y.Name && !comparer.Equals(x, y)))
             .ToList();
 
         return new Difference<PluginStepEntity>
@@ -104,17 +85,8 @@ public static class DifferenceUtility
             .Where(x => !list1.Any(y => x.Name == y.Name && x.PluginStepName == y.PluginStepName))
             .ToList();
 
-        var list1Intersection = list1
-            .Where(x =>
-            {
-                var element = list2.FirstOrDefault(y => y.Name == x.Name && x.PluginStepName == y.PluginStepName);
-                return element != null;
-            });
-
-        var list2Intersection = list2
-            .Where(x => list1.Any(y => x.Name == y.Name && x.PluginStepName == y.PluginStepName));
-        var updates = list1Intersection
-            .Except(list2Intersection, comparer)
+        var updates = list1
+            .Where(x => list2.Any(y => x.Name == y.Name && x.PluginStepName == y.PluginStepName && !comparer.Equals(x, y)))
             .ToList();
 
         return new Difference<PluginImageEntity>

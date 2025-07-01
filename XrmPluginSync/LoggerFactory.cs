@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Reflection;
-using DG.XrmPluginSync.SyncService.Models.Requests;
 
 namespace DG.XrmPluginSync;
 
