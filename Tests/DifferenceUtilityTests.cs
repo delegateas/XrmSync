@@ -1,5 +1,7 @@
 using DG.XrmPluginSync.Model;
 using DG.XrmPluginSync.SyncService.Common;
+using DG.XrmPluginSync.SyncService.Comparers;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -8,6 +10,17 @@ namespace Tests;
 
 public class DifferenceUtilityTests
 {
+    private readonly IServiceProvider _provider;
+
+    public DifferenceUtilityTests()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IEqualityComparer<PluginTypeEntity>, PluginTypeComparer>();
+        services.AddSingleton<IEqualityComparer<PluginStepEntity>, PluginStepComparer>();
+        services.AddSingleton<IEqualityComparer<PluginImageEntity>, PluginImageComparer>();
+        _provider = services.BuildServiceProvider();
+    }
+
     [Fact]
     public void GetDifference_Generic_ReturnsCorrectCreatesUpdatesDeletes()
     {
@@ -31,7 +44,7 @@ public class DifferenceUtilityTests
         var type3b = new PluginTypeEntity { Name = "Type3", PluginSteps = new List<PluginStepEntity>(), Id = Guid.NewGuid() };
         var list1 = new List<PluginTypeEntity> { type1, type3 };
         var list2 = new List<PluginTypeEntity> { type2, type3b };
-        var comparer = new PluginTypeEntity.PluginTypeDTOEqualityComparer<PluginTypeEntity>();
+        var comparer = _provider.GetRequiredService<IEqualityComparer<PluginTypeEntity>>();
 
         var diff = DifferenceUtility.GetDifference(list1, list2, comparer);
 
@@ -59,7 +72,7 @@ public class DifferenceUtilityTests
         };
         var list1 = new List<PluginStepEntity> { step1, step3 };
         var list2 = new List<PluginStepEntity> { step2, step3b };
-        var comparer = new PluginStepEntity.PluginStepDTOEqualityComparer<PluginStepEntity>();
+        var comparer = _provider.GetRequiredService<IEqualityComparer<PluginStepEntity>>();
 
         var diff = DifferenceUtility.GetDifference(list1, list2, comparer);
 
@@ -80,7 +93,7 @@ public class DifferenceUtilityTests
         var img3b = new PluginImageEntity { Name = "Img3", PluginStepName = "Step1", EntityAlias = "alias2", ImageType = 1, Attributes = "attr4" };
         var list1 = new List<PluginImageEntity> { img1, img3 };
         var list2 = new List<PluginImageEntity> { img2, img3b };
-        var comparer = new PluginImageEntity.PluginImageDTOEqualityComparer<PluginImageEntity>();
+        var comparer = _provider.GetRequiredService<IEqualityComparer<PluginImageEntity>>();
 
         var diff = DifferenceUtility.GetDifference(list1, list2, comparer);
 

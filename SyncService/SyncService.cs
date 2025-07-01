@@ -8,7 +8,10 @@ using DG.XrmPluginSync.Dataverse.Interfaces;
 
 namespace DG.XrmPluginSync.SyncService;
 
-public class SyncService(ILogger log, ISolutionReader solution, IAssemblyReader assemblyReader, Plugin plugin)
+public class SyncService(ILogger log, ISolutionReader solution, IAssemblyReader assemblyReader, Plugin plugin,
+    IEqualityComparer<PluginTypeEntity> pluginTypeComparer,
+    IEqualityComparer<PluginStepEntity> pluginStepComparer,
+    IEqualityComparer<PluginImageEntity> pluginImageComparer)
 {
     public async Task SyncPlugins(SyncRequest request)
     {
@@ -45,13 +48,13 @@ public class SyncService(ILogger log, ISolutionReader solution, IAssemblyReader 
         crmPluginImages.TransferIdsTo(localPluginImages, x => $"[{x.Name}] {x.PluginStepName}");
 
         // Get differences 
-        var pluginTypeDifference = DifferenceUtility.GetDifference(localAssembly.PluginTypes, crmAssembly.PluginTypes, new PluginTypeEntity.PluginTypeDTOEqualityComparer<PluginTypeEntity>());
+        var pluginTypeDifference = DifferenceUtility.GetDifference(localAssembly.PluginTypes, crmAssembly.PluginTypes, pluginTypeComparer);
         log.Print(pluginTypeDifference, "PluginTypes", x => x.Name);
 
-        var pluginStepsDifference = DifferenceUtility.GetDifference(localPluginSteps, crmPluginSteps, new PluginStepEntity.PluginStepDTOEqualityComparer<PluginStepEntity>());
+        var pluginStepsDifference = DifferenceUtility.GetDifference(localPluginSteps, crmPluginSteps, pluginStepComparer);
         log.Print(pluginStepsDifference, "PluginSteps", x => x.Name);
         
-        var pluginImagesDifference = DifferenceUtility.GetDifference(localPluginImages, crmPluginImages, new PluginImageEntity.PluginImageDTOEqualityComparer<PluginImageEntity>());
+        var pluginImagesDifference = DifferenceUtility.GetDifference(localPluginImages, crmPluginImages, pluginImageComparer);
         log.Print(pluginImagesDifference, "PluginImages", x => $"[{x.Name}] {x.PluginStepName}");
 
         // Delete

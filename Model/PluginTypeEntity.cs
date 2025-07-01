@@ -5,21 +5,4 @@ namespace DG.XrmPluginSync.Model;
 public record PluginTypeEntity : EntityBase
 {
     public required List<PluginStepEntity> PluginSteps { get; set; } = [];
-
-    public class PluginTypeDTOEqualityComparer<T> : IEqualityComparer<T> where T : PluginTypeEntity
-    {
-        public bool Equals(T x, T y)
-        {
-            if (ReferenceEquals(x, y)) return true;
-            if (ReferenceEquals(x, null)) return false;
-            if (ReferenceEquals(y, null)) return false;
-            if (x.GetType() != y.GetType()) return false;
-            return x.Name == y.Name;
-        }
-
-        public int GetHashCode(T obj)
-        {
-            return obj.Name != null ? obj.Name.GetHashCode() : 0;
-        }
-    }
 }
