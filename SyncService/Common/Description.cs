@@ -16,6 +16,7 @@ public class Description
             var version = assembly.GetName().Version?.ToString() ?? "unknown";
             return $"{toolName} v{version}";
         });
+
         _syncDescription = new Lazy<string>(() =>
             $"Synced with {ToolHeader} " +
             $"by '{Environment.UserName}' " +

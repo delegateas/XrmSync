@@ -1,20 +1,30 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace DG.XrmPluginSync.Model
+namespace DG.XrmPluginSync.Model;
+
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+public record EntityBase
 {
-    [DebuggerDisplay("{EntityTypeName} {Name} ({Id})")]
-    public abstract class EntityBase
+    public Guid Id { get; set; }
+
+    public required string Name { get; set; }
+
+    private string DebuggerDisplay => GetDebuggerDisplay();
+
+    protected string GetDebuggerDisplay()
     {
-        protected EntityBase(string? entityTypeName)
+        string display = GetType().Name;
+        if (!string.IsNullOrEmpty(Name))
         {
-            EntityTypeName = entityTypeName;
+            display += string.Format(" ({0})", Name);
         }
 
-        public Guid? Id { get; set; }
+        if (Id != Guid.Empty)
+        {
+            display += string.Format(" [{0}]", Id);
+        }
 
-        public required string Name { get; set; }
-
-        public string? EntityTypeName { get; set; }
+        return display;
     }
 }

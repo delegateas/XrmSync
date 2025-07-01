@@ -1,0 +1,181 @@
+﻿using DG.XrmPluginSync.Dataverse.Extensions;
+using DG.XrmPluginSync.Dataverse.Interfaces;
+using DG.XrmPluginSync.Model;
+using Microsoft.Extensions.Logging;
+using Microsoft.PowerPlatform.Dataverse.Client;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+
+namespace DG.XrmPluginSync.Dataverse;
+
+public class PluginWriter(MessageReader messageReader, ServiceClient serviceClient, XrmPluginSyncOptions options, ILogger logger) : DataverseWriter(serviceClient, logger, options), IPluginWriter
+{
+    public Guid CreatePluginAssembly(string pluginName, string solutionName, string dllPath, string sourceHash, string assemblyVersion, string description)
+    {
+        var entity = new Entity(EntityTypeNames.PluginAssembly);
+        entity.Attributes.Add("name", pluginName);
+        entity.Attributes.Add("content", GetBase64StringFromFile(dllPath));
+        entity.Attributes.Add("sourcehash", sourceHash);
+        entity.Attributes.Add("isolationmode", new OptionSetValue(2));
+        entity.Attributes.Add("version", assemblyVersion);
+        entity.Attributes.Add("description", description);
+
+        var parameters = new ParameterCollection
+    {
+        { "SolutionUniqueName", solutionName }
+    };
+
+        return Create(entity);
+    }
+
+    public void UpdatePluginAssembly(Guid assemblyId, string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
+    {
+        var entity = new Entity(EntityTypeNames.PluginAssembly, assemblyId);
+        entity.Attributes.Add("name", pluginName);
+        entity.Attributes.Add("content", GetBase64StringFromFile(dllPath));
+        entity.Attributes.Add("sourcehash", sourceHash);
+        entity.Attributes.Add("isolationmode", new OptionSetValue(2));
+        entity.Attributes.Add("version", assemblyVersion);
+        entity.Attributes.Add("description", description);
+
+        Update(entity);
+    }
+
+    public void DeletePlugins(IEnumerable<PluginTypeEntity> pluginTypes, IEnumerable<PluginStepEntity> pluginSteps, IEnumerable<PluginImageEntity> pluginImages)
+    {
+        var pluginTypeReqs = pluginTypes.ToDeleteRequests(EntityTypeNames.PluginType);
+        var pluginStepReqs = pluginSteps.ToDeleteRequests(EntityTypeNames.PluginStep);
+        var pluginImageReqs = pluginImages.ToDeleteRequests(EntityTypeNames.PluginStepImage);
+
+        List<DeleteRequest> deleteRequests = [.. pluginImageReqs, .. pluginStepReqs, .. pluginTypeReqs];
+
+        if (deleteRequests.Count > 0)
+        {
+            PerformAsBulkWithOutput(deleteRequests);
+        }
+    }
+
+    public void UpdatePlugins(IEnumerable<PluginStepEntity> pluginSteps, IEnumerable<PluginImageEntity> pluginImages, string description)
+    {
+        var pluginStepReqs = pluginSteps
+            .Select(x =>
+            {
+                var entity = new Entity(EntityTypeNames.PluginStep, x.Id);
+                entity.Attributes.Add("stage", new OptionSetValue(x.ExecutionStage));
+                entity.Attributes.Add("filteringattributes", x.FilteredAttributes);
+                entity.Attributes.Add("supporteddeployment", new OptionSetValue(x.Deployment));
+                entity.Attributes.Add("mode", new OptionSetValue(x.ExecutionMode));
+                entity.Attributes.Add("rank", x.ExecutionOrder);
+                entity.Attributes.Add("description", description);
+                entity.Attributes.Add("impersonatinguserid", x.UserContext == Guid.Empty ? null : new EntityReference(EntityTypeNames.SystemUser, x.Id));
+
+                return new UpdateRequest
+                {
+                    Target = entity
+                };
+            });
+
+        var pluginImageReqs = pluginImages
+            .Select(x =>
+            {
+                var entity = new Entity(EntityTypeNames.PluginStepImage, x.Id);
+                entity.Attributes.Add("name", x.Name);
+                entity.Attributes.Add("entityalias", x.EntityAlias);
+                entity.Attributes.Add("imagetype", new OptionSetValue(x.ImageType));
+                entity.Attributes.Add("attributes", x.ImageType);
+
+                return new UpdateRequest
+                {
+                    Target = entity
+                };
+            });
+
+        List<UpdateRequest> updateRequests = [.. pluginImageReqs, .. pluginStepReqs];
+
+        if (updateRequests.Count > 0)
+        {
+            PerformAsBulkWithOutput(updateRequests);
+        }
+    }
+
+    public List<PluginTypeEntity> CreatePluginTypes(List<PluginTypeEntity> pluginTypes, Guid assemblyId, string description)
+    {
+        return pluginTypes.ConvertAll(x =>
+        {
+            var entity = new Entity("plugintype");
+            entity.Attributes.Add("name", x.Name);
+            entity.Attributes.Add("typename", x.Name);
+            entity.Attributes.Add("friendlyname", Guid.NewGuid().ToString());
+            entity.Attributes.Add("pluginassemblyid", new EntityReference("pluginassembly", assemblyId));
+            entity.Attributes.Add("description", description);
+
+            x.Id = Create(entity);
+
+            return x;
+        });
+    }
+
+    public List<PluginStepEntity> CreatePluginSteps(List<PluginStepEntity> pluginSteps, List<PluginTypeEntity> pluginTypes, string solutionName, string description)
+    {
+        return pluginSteps.ConvertAll(step =>
+        {
+            var pluginType = pluginTypes.First(type => type.Name == step.PluginTypeName);
+            var message = messageReader.GetMessage(step.EventOperation);
+            var messageFilter = messageReader.GetMessageFilter(step.LogicalName, message.Id);
+
+            var entity = new Entity(EntityTypeNames.PluginStep);
+            entity.Attributes.Add("name", step.Name);
+            entity.Attributes.Add("asyncautodelete", false);
+            entity.Attributes.Add("rank", step.ExecutionOrder);
+            entity.Attributes.Add("mode", new OptionSetValue(step.ExecutionMode));
+            entity.Attributes.Add("plugintypeid", new EntityReference(EntityTypeNames.PluginType, pluginType.Id));
+            entity.Attributes.Add("sdkmessageid", new EntityReference(EntityTypeNames.Message, message.Id));
+            entity.Attributes.Add("stage", new OptionSetValue(step.ExecutionStage));
+            entity.Attributes.Add("filteringattributes", step.FilteredAttributes);
+            entity.Attributes.Add("supporteddeployment", new OptionSetValue(step.Deployment));
+            entity.Attributes.Add("description", description);
+            entity.Attributes.Add("impersonatinguserid", step.UserContext == Guid.Empty ? null : new EntityReference(EntityTypeNames.SystemUser, step.UserContext));
+            entity.Attributes.Add("sdkmessagefilterid", string.IsNullOrEmpty(step.LogicalName) ? null : new EntityReference(EntityTypeNames.MessageFilter, messageFilter.Id));
+
+            var parameters = new ParameterCollection
+            {
+                { "SolutionUniqueName", solutionName }
+            };
+
+            step.Id = Create(entity, parameters);
+            return step;
+        });
+    }
+
+    public List<PluginImageEntity> CreatePluginImages(List<PluginImageEntity> pluginImages, List<PluginStepEntity> pluginSteps)
+    {
+        return pluginImages.ConvertAll(image =>
+        {
+            var pluginStep = pluginSteps.First(step => step.Name == image.PluginStepName);
+            var messagePropertyName = MessageReader.GetMessagePropertyName(pluginStep.EventOperation);
+
+            var entity = new Entity(EntityTypeNames.PluginStepImage);
+            entity.Attributes.Add("name", image.Name);
+            entity.Attributes.Add("entityalias", image.EntityAlias);
+            entity.Attributes.Add("imagetype", new OptionSetValue(image.ImageType));
+            entity.Attributes.Add("attributes", image.Attributes);
+            entity.Attributes.Add("messagepropertyname", messagePropertyName);
+            entity.Attributes.Add("sdkmessageprocessingstepid", new EntityReference(EntityTypeNames.PluginStep, pluginStep.Id));
+
+            image.Id = Create(entity);
+            return image;
+        });
+    }
+
+    private static string GetBase64StringFromFile(string dllPath)
+    {
+        // Reads the file at dllPath and returns its contents as a Base64 string
+        if (string.IsNullOrWhiteSpace(dllPath))
+            throw new ArgumentException("DLL path must not be null or empty.", nameof(dllPath));
+        if (!File.Exists(dllPath))
+            throw new FileNotFoundException($"DLL file not found: {dllPath}", dllPath);
+
+        byte[] fileBytes = File.ReadAllBytes(dllPath);
+        return Convert.ToBase64String(fileBytes);
+    }
+}

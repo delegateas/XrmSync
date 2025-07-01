@@ -1,12 +1,13 @@
 ﻿using DG.XrmPluginSync.Model;
+using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync.SyncService.Common;
 
 public class Difference<T>
 {
-    public List<T> Creates { get; set; }
-    public List<T> Updates { get; set; }
-    public List<T> Deletes { get; set; }
+    public List<T> Creates { get; set; } = [];
+    public List<T> Updates { get; set; } = [];
+    public List<T> Deletes { get; set; } = [];
 }
 
 public static class DifferenceUtility

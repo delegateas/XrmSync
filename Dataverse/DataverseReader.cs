@@ -1,5 +1,5 @@
-﻿using Microsoft.Crm.Sdk.Messages;
-using Microsoft.Extensions.Logging;
+﻿using DG.XrmPluginSync.Dataverse.Interfaces;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -7,8 +7,20 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class CrmDataHelper(ServiceClient serviceClient)
+// TODO: IDataverseReader, IDataverseWriter interfaces could be created to abstract the data access layer.
+// This allows for enforcing the DRY-RUN mode on the IDataverseWriter interface methods, while the IDataverseReader methods can always be executed without DRY-RUN checks.
+public class DataverseReader(ServiceClient serviceClient) : IDataverseReader
 {
+    public Entity Retrieve(string logicalName, Guid id, ColumnSet columnSet)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new ArgumentException("The provided ID is empty.", nameof(id));
+        }
+
+        return serviceClient.Retrieve(logicalName, id, columnSet);
+    }
+
     public Entity RetrieveFirstMatch(QueryExpression query)
     {
         query.TopCount = 1;
@@ -35,24 +47,6 @@ public class CrmDataHelper(ServiceClient serviceClient)
             return null;
         }
         return entities.First();
-    }
-
-    private string ConvertQueryToString(QueryExpression query)
-    {
-        try
-        {
-            var conversionRequest = new QueryExpressionToFetchXmlRequest
-            {
-                Query = query
-            };
-            var conversionResponse = (QueryExpressionToFetchXmlResponse)serviceClient.Execute(conversionRequest);
-            var fetchXml = conversionResponse.FetchXml;
-            return fetchXml;
-        }
-        catch (Exception)
-        {
-            return "Unable to convert query to fetchXML";
-        }
     }
 
     public List<Entity> RetrieveMultiple(QueryExpression queryExpression)
@@ -109,39 +103,21 @@ public class CrmDataHelper(ServiceClient serviceClient)
         };
     }
 
-    public void PerformAsBulkWithOutput<T>(List<T> updates, ILogger log) where T : OrganizationRequest
+    private string ConvertQueryToString(QueryExpression query)
     {
-        var responses = PerformAsBulk(updates, log);
-        var failedReponses = responses.Where(x => x.Fault != null).ToList();
-        if (failedReponses.Count > 0)
+        try
         {
-            log.LogError($"Error when performing {failedReponses.Count} requests.");
-            throw new Exception("PerformAsBulkWithOutput encountered an error in one or more of the requests.");
-        } 
-        else
-        {
-            log.LogTrace($"Succesfully performed {updates.Count} actions.");
-        }
-    }
-
-    public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates, ILogger? log = null) where T : OrganizationRequest
-    {
-        var chunks = updates.Chunk(200);
-        var responses = new List<ExecuteMultipleResponseItem>();
-        foreach (var chunk in chunks)
-        {
-            log?.LogTrace($"Executing batch of {chunk.Length}");
-            var req = new ExecuteMultipleRequest();
-            req.Requests = new OrganizationRequestCollection();
-            req.Requests.AddRange(chunk);
-            req.Settings = new ExecuteMultipleSettings
+            var conversionRequest = new QueryExpressionToFetchXmlRequest
             {
-                ContinueOnError = true,
-                ReturnResponses = true,
+                Query = query
             };
-            var response = (ExecuteMultipleResponse)serviceClient.Execute(req);
-            responses.AddRange(response.Responses.ToList());
+            var conversionResponse = (QueryExpressionToFetchXmlResponse)serviceClient.Execute(conversionRequest);
+            var fetchXml = conversionResponse.FetchXml;
+            return fetchXml;
         }
-        return responses;
+        catch (Exception)
+        {
+            return "Unable to convert query to fetchXML";
+        }
     }
 }

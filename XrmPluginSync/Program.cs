@@ -1,5 +1,6 @@
 ﻿using DG.XrmPluginSync;
 using DG.XrmPluginSync.Dataverse.Extensions;
+using DG.XrmPluginSync.Model;
 using DG.XrmPluginSync.SyncService.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -55,19 +56,19 @@ rootCommand.SetHandler((assemblyPath, solutionName, dryRun, logLevel, dataverseU
         AssemblyPath = assemblyPath,
         SolutionName = solutionName,
         DryRun = dryRun,
-        LogLevel = logLevel,
+        LogLevel = logLevel.ToString(),
         DataverseUrl = dataverseUrl
     };
 
     var host = Host.CreateDefaultBuilder()
         .ConfigureServices((_, services) =>
         {
+            services.AddSingleton(options);
             services.AddSyncService();
             services.AddDataverse();
             services.AddSingleton((_) => DGLoggerFactory.GetLogger<PluginSync>());
             services.AddSingleton<DG.XrmPluginSync.SyncService.Common.Description>();
             services.AddTransient<DG.XrmPluginSync.SyncService.Models.Requests.SyncRequest>();
-            services.AddSingleton(options);
         })
         .Build();
 

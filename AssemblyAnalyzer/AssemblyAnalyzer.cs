@@ -78,8 +78,7 @@ internal static class AssemblyAnalyzer
                                 Name = iName,
                                 EntityAlias = iAlias,
                                 ImageType = iType,
-                                Attributes = iAttr,
-                                EventOperation = eventOp,
+                                Attributes = iAttr
                             };
                         }).ToList();
 

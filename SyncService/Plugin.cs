@@ -1,396 +1,118 @@
-﻿using DG.XrmPluginSync.Dataverse;
-using DG.XrmPluginSync.SyncService.Common;
-using DG.XrmPluginSync.SyncService.Models.Requests;
+﻿using DG.XrmPluginSync.SyncService.Common;
 using Microsoft.Extensions.Logging;
-using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
-using System.Reflection;
-
 using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.Dataverse.Interfaces;
 
 namespace DG.XrmPluginSync.SyncService;
 
-public class Plugin(ILogger log, CrmDataHelper crmDataHelper, ServiceClient service, Solution solution, Message messageUtility)
+public class Plugin(ILogger log, IPluginReader pluginReader, IPluginWriter pluginWriter, Description description)
 {
-	//    public List<Entity> GetPluginAssemblies(Guid solutionId)
-	//    {
-	//        LinkEntity link = new()
-	//        {
-	//            JoinOperator = JoinOperator.Inner,
-	//            LinkFromAttributeName = "pluginassemblyid",
-	//            LinkFromEntityName = "pluginassembly",
-	//            LinkToAttributeName = "objectid",
-	//            LinkToEntityName = "solutioncomponent"
-	//        };
-	//        link.LinkCriteria.Conditions.Add(new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId));
-	//        FilterExpression filter = new();
-	//        QueryExpression query = new("pluginassembly")
-	//        {
-	//            ColumnSet = new ColumnSet(allColumns: true)
-	//        };
-	//        query.LinkEntities.Add(link);
-	//        query.Criteria = filter;
+	public PluginAssembly? GetPluginAssembly(Guid solutionId, string assemblyName)
+	{
+		var assemblyEntity = pluginReader.GetPluginAssembly(solutionId, assemblyName);
+		if (assemblyEntity == null) return null;
 
-	//        return crmDataHelper.RetrieveMultiple(query);
-	//    }
+        return new()
+		{
+			Id = assemblyEntity.Id,
+			Name = assemblyEntity.GetAttributeValue<string>("name"),
+			Version = assemblyEntity.GetAttributeValue<string>("version"),
+			Hash = assemblyEntity.GetAttributeValue<string>("sourcehash"),
+            PluginTypes = GetPluginTypes(solutionId, assemblyEntity.Id),
+            DllPath = string.Empty,
+		};
+    }
 
-	//    public Entity GetPluginAssembly(Guid id)
-	//    {
-	//        return service.Retrieve("pluginassembly", id, new ColumnSet(true));
-	//    }
+    private List<PluginTypeEntity> GetPluginTypes(Guid solutionId, Guid pluginAssemblyId)
+    {
+        var pluginTypes = pluginReader.GetPluginTypes(pluginAssemblyId);
+        return pluginTypes
+            .ConvertAll(type =>
+            {
+                var pluginSteps = pluginReader.GetPluginSteps(solutionId, type.Id);
+                var pluginStepDtos = pluginSteps.ConvertAll(step =>
+                {
+                    var pluginImages = GetPluginImages(step);
 
-	//    public Entity GetPluginAssembly(string name, string version)
-	//    {
-	//        LinkEntity link = new()
-	//        {
-	//            JoinOperator = JoinOperator.Inner,
-	//            LinkFromAttributeName = "pluginassemblyid",
-	//            LinkFromEntityName = "pluginassembly",
-	//            LinkToAttributeName = "objectid",
-	//            LinkToEntityName = "solutioncomponent"
-	//        };
+                    return new PluginStepEntity
+                    {
+                        Id = step.Id,
+                        LogicalName = string.Empty, // TODO step.GetAttributeValue<string>(),
+                        EventOperation = string.Empty, // TODO step.GetAttributeValue<string>("eventoperation"),
+                        ExecutionStage = step.GetAttributeValue<OptionSetValue>("stage").Value,
+                        Deployment = step.GetAttributeValue<OptionSetValue>("supporteddeployment").Value,
+                        ExecutionMode = step.GetAttributeValue<OptionSetValue>("mode").Value,
+                        ExecutionOrder = step.GetAttributeValue<int>("rank"),
+                        FilteredAttributes = step.GetAttributeValue<string>("filteringattributes"),
+                        UserContext = step.GetAttributeValue<EntityReference>("impersonatinguserid")?.Id ?? Guid.Empty,
+                        PluginTypeName = type.GetAttributeValue<string>("name"),
+                        Name = step.GetAttributeValue<string>("name"),
+                        PluginImages = pluginImages
+                    };
+                });
 
-	//        link.Columns.AddColumn("solutionid");
+                return new PluginTypeEntity
+                {
+                    Name = type.GetAttributeValue<string>("name"),
+                    PluginSteps = pluginStepDtos,
+                    Id = type.Id
+                };
+            });
+    }
 
-	//        FilterExpression filter = new();
-	//        filter.AddCondition(new ConditionExpression("name", ConditionOperator.Equal, name));
-	//        filter.AddCondition(new ConditionExpression("version", ConditionOperator.Equal, version));
+    private List<PluginImageEntity> GetPluginImages(Entity step)
+    {
+        return pluginReader.GetPluginImages(step.Id)
+                            .ConvertAll(image => new PluginImageEntity
+                            {
+                                Id = image.Id,
+                                PluginStepName = step.GetAttributeValue<string>("name"),
+                                Name = image.GetAttributeValue<string>("name"),
+                                EntityAlias = image.GetAttributeValue<string>("entityalias"),
+                                ImageType = image.GetAttributeValue<OptionSetValue>("imagetype").Value,
+                                Attributes = image.GetAttributeValue<string>("attributes"),
+                            });
+    }
 
-	//        QueryExpression query = new("pluginassembly")
-	//        {
-	//            ColumnSet = new ColumnSet(allColumns: true)
-	//        };
-	//        query.LinkEntities.Add(link);
-	//        query.Criteria = filter;
+    public PluginAssembly CreatePluginAssembly(PluginAssembly localAssembly, string solutionName)
+    {
+        log.LogInformation($"Creating assembly {localAssembly.Name}");
+        var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, solutionName, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
 
-	//        return crmDataHelper.RetrieveFirstOrDefault(query);
-	//    }
+        return localAssembly with { Id = assemblyId };
+    }
 
-	//    public Entity GetPluginAssembly(Guid solutionId, string assemblyName)
-	//    {
-	//        LinkEntity link = new()
-	//        {
-	//            JoinOperator = JoinOperator.Inner,
-	//            LinkFromAttributeName = "pluginassemblyid",
-	//            LinkFromEntityName = "pluginassembly",
-	//            LinkToAttributeName = "objectid",
-	//            LinkToEntityName = "solutioncomponent"
-	//        };
-	//        link.Columns.AddColumn("solutionid");
-	//        link.LinkCriteria.Conditions.Add(new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId));
+    public void UpdatePluginAssembly(Guid assemblyId, PluginAssembly localAssembly)
+    {
+        log.LogInformation($"Updating assembly {localAssembly.Name}");
+        pluginWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
+    }
 
-	//        FilterExpression filter = new();
-	//        filter.AddCondition(new ConditionExpression("name", ConditionOperator.Equal, assemblyName));
+    public void CreatePlugins(PluginAssembly crmAssembly, List<PluginStepEntity> crmPluginSteps, string solutionName, List<PluginTypeEntity> pluginTypes, List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
+    {
+        // Create - Doing it in the order type -> step -> image. Because there is a necessary relation. 
+        // Creating plugin types and appending them to existing crm plugintypes
+        var createdPluginTypes = pluginWriter.CreatePluginTypes(pluginTypes, crmAssembly.Id, description.SyncDescription);
+        crmAssembly.PluginTypes.AddRange(createdPluginTypes);
 
-	//        QueryExpression query = new("pluginassembly")
-	//        {
-	//            ColumnSet = new ColumnSet(allColumns: true)
-	//        };
-	//        query.LinkEntities.Add(link);
-	//        query.Criteria = filter;
-	//        return crmDataHelper.RetrieveFirstOrDefault(query);
-	//    }
+        var createdPluginSteps = pluginWriter.CreatePluginSteps(pluginSteps, crmAssembly.PluginTypes, solutionName, description.SyncDescription);
+        crmPluginSteps.AddRange(createdPluginSteps);
 
-	//    public PluginAssembly GetPluginAssemblyDTO(Guid solutionId, string assemblyName)
-	//    {
-	//        var assemblyEntity = GetPluginAssembly(solutionId, assemblyName);
-	//        if (assemblyEntity == null) return null;
+        pluginWriter.CreatePluginImages(pluginImages, crmPluginSteps);
+    }
 
-	//        var assemblyDTO = new PluginAssembly
-	//        {
-	//            AssemblyId = assemblyEntity.Id
-	//        };
-	//        //assemblyDTO.Hash = (string)assemblyEntity.Attributes["sourcehash"]; TODO: does this field even exist?
+    public void DeletePlugins(List<PluginTypeEntity> pluginTypes, List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
+    {
+        pluginWriter.DeletePlugins(pluginTypes, pluginSteps, pluginImages);
+    }
 
-	//        var pluginTypes = GetPluginTypes(assemblyDTO.AssemblyId);
-	//        var pluginTypeDtos = pluginTypes
-	//            .Select(type =>
-	//            {
-	//                var pluginSteps = GetPluginSteps(solutionId, type.Id);
-	//                var pluginStepDtos = pluginSteps.Select(step =>
-	//                {
-	//                    var pluginImages = GetPluginImages(step.Id)
-	//                    .Select(image => new PluginImageEntity
-	//                    {
-	//                        PluginStepName = (string)step.Attributes["name"],
-	//                        Name = (string)image.Attributes["name"],
-	//                        EntityAlias = (string)image.Attributes["entityalias"],
-	//                        ImageType = ((OptionSetValue)image.Attributes["imagetype"]).Value,
-	//                        Attributes = (string)image.Attributes["attributes"],
-	//                        Id = image.Id
-	//                    }).ToList();
+    public void UpdatePlugins(List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
+    {
+        pluginWriter.UpdatePlugins(pluginSteps, pluginImages, description.SyncDescription);
+    }
 
-	//                    return new PluginStepEntity
-	//                    {
-	//                        ExecutionStage = ((OptionSetValue)step.Attributes["stage"]).Value,
-	//                        Deployment = ((OptionSetValue)step.Attributes["supporteddeployment"]).Value,
-	//                        ExecutionMode = ((OptionSetValue)step.Attributes["mode"]).Value,
-	//                        ExecutionOrder = (int)step.Attributes["rank"],
-	//                        FilteredAttributes = (string)step.Attributes["filteringattributes"],
-	//                        UserContext = ((EntityReference)step.Attributes["impersonatinguserid"]).Id,
-	//                        PluginTypeName = (string)type.Attributes["name"],
-	//                        Name = (string)step.Attributes["name"],
-	//                        PluginImages = pluginImages,
-
-	//                        Id = step.Id
-	//                    };
-	//                }).ToList();
-	//                return new PluginTypeEntity
-	//                {
-	//                    Name = (string)type.Attributes["name"],
-	//                    PluginSteps = pluginStepDtos,
-	//                    Id = type.Id
-	//                };
-	//            }).ToList();
-
-	//        assemblyDTO.PluginTypes = pluginTypeDtos;
-
-	//        return assemblyDTO;
-	//    }
-	//    public void UpdatePluginAssembly(string path, string version, Entity assembly)
-	//    {
-	//        Entity newAssembly = new("pluginassembly", assembly.Id);
-	//        newAssembly.Attributes.Add("content", FileUtility.GetBase64StringFromFile(path));
-	//        newAssembly.Attributes.Add("version", version);
-	//        newAssembly.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
-	//        service.Update(newAssembly);
-	//        log.LogInformation($"{newAssembly.LogicalName}: {assembly.Attributes["name"]} was updated with version {version}");
-	//    }
-	//    public void UpdatePluginAssembly(Guid assemblyId, PluginAssembly localAssembly)
-	//    {
-	//        var entity = new Entity("pluginassembly", assemblyId);
-	//        entity.Attributes.Add("name", localAssembly.DllName);
-	//        entity.Attributes.Add("content", FileUtility.GetBase64StringFromFile(localAssembly.DllPath));
-	//        entity.Attributes.Add("sourcehash", localAssembly.Hash);
-	//        entity.Attributes.Add("isolationmode", new OptionSetValue(2));
-	//        entity.Attributes.Add("version", localAssembly.AssemblyVersion.ToString());
-	//        entity.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
-
-	//        service.Update(entity);
-	//    }
-	//    public Entity CreatePluginAssembly(string solutionName, string name, string path, string version)
-	//    {
-	//        var newAssembly = new Entity("pluginassembly");
-	//        newAssembly.Attributes.Add("name", name);
-	//        //newAssembly.Attributes.Add("sourcehash", "DEBUG")
-	//        newAssembly.Attributes.Add("content", FileUtility.GetBase64StringFromFile(path));
-	//        newAssembly.Attributes.Add("isolationmode", new OptionSetValue(2)); // 2 is sandbox
-	//        newAssembly.Attributes.Add("version", version);
-	//        newAssembly.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
-
-	//        var parameters = new ParameterCollection();
-	//        parameters.Add("SolutionUniqueName", solutionName);
-
-	//        var req = new CreateRequest
-	//        {
-	//            Target = newAssembly
-	//        };
-	//        req.Parameters.AddRange(parameters);
-
-	//        newAssembly.Id = ((CreateResponse)service.Execute(req)).id;
-	//        return newAssembly;
-	//    }
-	//    public PluginAssembly CreatePluginAssembly(PluginAssembly localAssembly, string solutionName)
-	//    {
-	//        var entity = new Entity("pluginassembly");
-	//        entity.Attributes.Add("name", localAssembly.DllName);
-	//        entity.Attributes.Add("content", FileUtility.GetBase64StringFromFile(localAssembly.DllPath));
-	//        entity.Attributes.Add("sourcehash", localAssembly.Hash);
-	//        entity.Attributes.Add("isolationmode", new OptionSetValue(2));
-	//        entity.Attributes.Add("version", localAssembly.AssemblyVersion.ToString());
-	//        entity.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
-
-	//        var parameters = new ParameterCollection();
-	//        parameters.Add("SolutionUniqueName", solutionName);
-
-	//        var req = new CreateRequest
-	//        {
-	//            Target = entity
-	//        };
-	//        req.Parameters.AddRange(parameters);
-	//        var assemblyId = ((CreateResponse)service.Execute(req)).id;
-
-	//        return new PluginAssembly
-	//        {
-	//            AssemblyId = assemblyId,
-	//            DllName = localAssembly.DllName,
-	//            Hash = localAssembly.Hash,
-	//        };
-	//    }
-	//    public List<PluginTypeEntity> CreatePluginTypes(List<PluginTypeEntity> pluginTypes, Guid assemblyId)
-	//    {
-	//        return pluginTypes.Select(x =>
-	//        {
-	//            var entity = new Entity("plugintype");
-	//            entity.Attributes.Add("name", x.Name);
-	//            entity.Attributes.Add("typename", x.Name);
-	//            entity.Attributes.Add("friendlyname", Guid.NewGuid().ToString());
-	//            entity.Attributes.Add("pluginassemblyid", new EntityReference("pluginassembly", assemblyId));
-	//            entity.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
-
-	//            x.Id = service.Create(entity);
-	//            return x;
-	//        }).ToList();
-	//    }
-	//    public List<PluginStepEntity> CreatePluginSteps(List<PluginStepEntity> pluginSteps, List<PluginTypeEntity> pluginTypes, string solutionName)
-	//    {
-	//        return pluginSteps.Select(step =>
-	//        {
-	//            var pluginType = pluginTypes.First(type => type.Name == step.PluginTypeName);
-	//            var message = messageUtility.GetMessage(step.EventOperation);
-	//            var messageFilter = messageUtility.GetMessageFilter(step.LogicalName, message.Id);
-
-	//            var entity = new Entity("sdkmessageprocessingstep");
-	//            entity.Attributes.Add("name", step.Name);
-	//            entity.Attributes.Add("asyncautodelete", false);
-	//            entity.Attributes.Add("rank", step.ExecutionOrder);
-	//            entity.Attributes.Add("mode", new OptionSetValue(step.ExecutionMode));
-	//            entity.Attributes.Add("plugintypeid", new EntityReference("plugintype", pluginType.Id));
-	//            entity.Attributes.Add("sdkmessageid", new EntityReference("sdkmessage", message.Id));
-	//            entity.Attributes.Add("stage", new OptionSetValue(step.ExecutionStage));
-	//            entity.Attributes.Add("filteringattributes", step.FilteredAttributes);
-	//            entity.Attributes.Add("supporteddeployment", new OptionSetValue(step.Deployment));
-	//            entity.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
-	//            entity.Attributes.Add("impersonatinguserid", step.UserContext == Guid.Empty ? null : new EntityReference("systemuser", step.UserContext));
-	//            entity.Attributes.Add("sdkmessagefilterid", string.IsNullOrEmpty(step.LogicalName) ? null : new EntityReference("sdkmessagefilter", messageFilter.Id));
-
-	//            var parameters = new ParameterCollection();
-	//            parameters.Add("SolutionUniqueName", solutionName);
-
-	//            var req = new CreateRequest
-	//            {
-	//                Target = entity
-	//            };
-	//            req.Parameters.AddRange(parameters);
-	//            step.Id = ((CreateResponse)service.Execute(req)).id;
-
-	//            return step;
-	//        }).ToList();
-	//    }
-	//    public List<PluginImageEntity> CreatePluginImages(List<PluginImageEntity> pluginImages, List<PluginStepEntity> pluginSteps)
-	//    {
-	//        return pluginImages.Select(image =>
-	//        {
-	//            var pluginStep = pluginSteps.First(step => step.Name == image.PluginStepName);
-	//            var messagePropertyName = Message.GetMessagePropertyName(image.EventOperation);
-
-	//            var entity = new Entity("sdkmessageprocessingstepimage");
-	//            entity.Attributes.Add("name", image.Name);
-	//            entity.Attributes.Add("entityalias", image.EntityAlias);
-	//            entity.Attributes.Add("imagetype", new OptionSetValue(image.ImageType));
-	//            entity.Attributes.Add("attributes", image.Attributes);
-	//            entity.Attributes.Add("messagepropertyname", messagePropertyName);
-	//            entity.Attributes.Add("sdkmessageprocessingstepid", new EntityReference("sdkmessageprocessingstep", pluginStep.Id));
-
-	//            image.Id = service.Create(entity);
-	//            return image;
-	//        }).ToList();
-	//    }
-	//    public List<Entity> GetPluginTypes(Guid assemblyId)
-	//    {
-	//        FilterExpression filter = new();
-	//        filter.AddCondition(new ConditionExpression("pluginassemblyid", ConditionOperator.Equal, assemblyId));
-	//        QueryExpression query = new("plugintype")
-	//        {
-	//            ColumnSet = new ColumnSet(allColumns: true),
-	//            Criteria = filter
-	//        };
-	//        return crmDataHelper.RetrieveMultiple(query);
-	//    }
-	//    public List<Entity> GetPluginSteps(Guid solutionId)
-	//    {
-	//        LinkEntity link = new()
-	//        {
-	//            JoinOperator = JoinOperator.Inner,
-	//            LinkFromAttributeName = "sdkmessageprocessingstepid",
-	//            LinkFromEntityName = "sdkmessageprocessingstep",
-	//            LinkToAttributeName = "objectid",
-	//            LinkToEntityName = "solutioncomponent"
-	//        };
-	//        link.LinkCriteria.Conditions.Add(new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId));
-
-	//        FilterExpression filter = new();
-	//        QueryExpression query = new("sdkmessageprocessingstep")
-	//        {
-	//            ColumnSet = new ColumnSet(allColumns: true)
-	//        };
-	//        query.LinkEntities.Add(link);
-	//        query.Criteria = filter;
-
-	//        return crmDataHelper.RetrieveMultiple(query);
-	//    }
-	//    public List<Entity> GetPluginSteps(Guid solutionId, Guid pluginTypeId)
-	//    {
-	//        LinkEntity link = new()
-	//        {
-	//            JoinOperator = JoinOperator.Inner,
-	//            LinkFromAttributeName = "sdkmessageprocessingstepid",
-	//            LinkFromEntityName = "sdkmessageprocessingstep",
-	//            LinkToAttributeName = "objectid",
-	//            LinkToEntityName = "solutioncomponent"
-	//        };
-	//        link.LinkCriteria.Conditions.Add(new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId));
-
-	//        FilterExpression filter = new();
-	//        filter.AddCondition(new ConditionExpression("plugintypeid", ConditionOperator.Equal, pluginTypeId));
-	//        QueryExpression query = new("sdkmessageprocessingstep")
-	//        {
-	//            ColumnSet = new ColumnSet(allColumns: true)
-	//        };
-	//        query.LinkEntities.Add(link);
-	//        query.Criteria = filter;
-
-	//        return crmDataHelper.RetrieveMultiple(query);
-	//    }
-	//    public List<Entity> GetPluginImages(Guid stepId)
-	//    {
-	//        FilterExpression filter = new();
-	//        filter.AddCondition(new ConditionExpression("sdkmessageprocessingstepid", ConditionOperator.Equal, stepId));
-	//        QueryExpression query = new("sdkmessageprocessingstepimage")
-	//        {
-	//            ColumnSet = new ColumnSet(allColumns: true),
-	//            Criteria = filter
-	//        };
-	//        return crmDataHelper.RetrieveMultiple(query);
-	//    }
-	//    public void ActivateOrDeactivatePluginSteps(ActivateOrDeactivatePluginsRequest request)
-	//    {
-	//        log.LogAndValidateRequest(request);
-
-	//        Guid solutionId;
-	//        if (!string.IsNullOrEmpty(request.SolutionName))
-	//        {
-	//            solutionId = solution.GetSolutionId(request.SolutionName);
-	//        }
-	//        else
-	//        {
-	//            var solutionInformation = SolutionFileUtility.GetSolutionInformationFromFile(request.SolutionPath);
-	//            solutionId = solution.GetSolutionId(solutionInformation.SolutionName);
-	//        }
-
-	//        var pluginSteps = GetPluginSteps(solutionId);
-
-	//        var updateStateReqs = pluginSteps.Select(x =>
-	//        {
-	//            var newPluginStep = new Entity(x.LogicalName, x.Id);
-	//            // Plugin: stateCode = 1 and statusCode = 2 (inactive), 
-	//            //         stateCode = 0 and statusCode = 1 (active) 
-	//            // Remark: statusCode = -1, will default the statuscode for the given statecode
-	//            newPluginStep.Attributes.Add("statecode", new OptionSetValue(request.Activate ? 0 : 1));
-	//            newPluginStep.Attributes.Add("statuscode", new OptionSetValue(-1));
-
-	//            return new UpdateRequest
-	//            {
-	//                Target = newPluginStep
-	//            };
-	//        }).ToList();
-
-	//        crmDataHelper.PerformAsBulkWithOutput(updateStateReqs, log);
-	//    }
-
-	public void ValidatePlugins(List<PluginTypeEntity> pluginTypes)
+    public void ValidatePlugins(List<PluginTypeEntity> pluginTypes)
 	{
 		List<Exception> exceptions = [];
 		var pluginSteps = pluginTypes.SelectMany(x => x.PluginSteps);
@@ -443,19 +165,7 @@ public class Plugin(ILogger log, CrmDataHelper crmDataHelper, ServiceClient serv
 			});
 		exceptions.AddRange(deleteWithPostImagesPLugins.Select(x => new Exception($"Plugin {x.Name}: Delete events does not support post-images")));
 
-		var userContextDoesNotExistPlugins = pluginSteps
-			.Where(x => x.UserContext != Guid.Empty)
-			.Where(x =>
-			{
-				var query = new QueryExpression("systemuser");
-				var filter = new FilterExpression();
-				filter.AddCondition(new ConditionExpression("systemuserid", ConditionOperator.Equal, x.UserContext));
-				query.Criteria = filter;
-				query.ColumnSet = new ColumnSet(null);
-
-				var user = crmDataHelper.RetrieveFirstOrDefault(query);
-				return user == null;
-			});
+        var userContextDoesNotExistPlugins = pluginReader.GetMissingUserContexts(pluginSteps);
 		exceptions.AddRange(userContextDoesNotExistPlugins.Select(x => new Exception($"Plugin {x.Name}: Defined user context is not in the system")));
 
 		if (exceptions.Count == 1) throw exceptions.First();

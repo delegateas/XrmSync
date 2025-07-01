@@ -1,6 +1,6 @@
-﻿using DG.XrmPluginSync.SyncService.Models.Requests;
+﻿using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.SyncService.Models.Requests;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync;
 

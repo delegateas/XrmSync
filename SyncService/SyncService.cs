@@ -1,22 +1,23 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using DG.XrmPluginSync.Dataverse;
 using DG.XrmPluginSync.SyncService.Common;
 using DG.XrmPluginSync.Model;
 using DG.XrmPluginSync.SyncService.Models.Requests;
-using System.Diagnostics;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using DG.XrmPluginSync.SyncService.AssemblyReader;
+using DG.XrmPluginSync.SyncService.Extensions;
+using DG.XrmPluginSync.Dataverse.Interfaces;
 
 namespace DG.XrmPluginSync.SyncService;
 
-public class SyncService(ILogger log, Solution solution, IAssemblyReader assemblyReader, Plugin plugin/*, CrmDataHelper crmDataHelper*/)
+public class SyncService(ILogger log, ISolutionReader solution, IAssemblyReader assemblyReader, Plugin plugin)
 {
     public async Task SyncPlugins(SyncRequest request)
     {
         request.LogAndValidateRequest();
+
+        if (request.DryRun)
+        {
+            log.LogInformation("!!! Dry run mode is enabled. No changes will be made to the CRM.");
+        }
 
         log.LogInformation("Comparing plugins registered in CRM versus those found in your local code");
 
@@ -30,123 +31,52 @@ public class SyncService(ILogger log, Solution solution, IAssemblyReader assembl
 
         log.LogInformation("Retrieving registered plugins from Dataverse");
         var solutionId = solution.GetSolutionId(request.SolutionName);
-        // var crmAssembly = plugin.GetPluginAssemblyDTO(solutionId, localAssembly.DllName);
+        var crmAssembly = plugin.GetPluginAssembly(solutionId, localAssembly.Name);
+        crmAssembly = UpsertAssembly(request.SolutionName, localAssembly, crmAssembly);
 
-        return;
+        // Concat all local and steps and images
+        var localPluginSteps = localAssembly.PluginTypes.SelectMany(x => x.PluginSteps).ToList();
+        var crmPluginSteps = crmAssembly.PluginTypes.SelectMany(x => x.PluginSteps).ToList();
+        var localPluginImages = localPluginSteps.SelectMany(x => x.PluginImages).ToList();
+        var crmPluginImages = crmPluginSteps.SelectMany(x => x.PluginImages).ToList();
+
+        // Set IDs on steps and images if they exist in crm
+        crmPluginSteps.TransferIdsTo(localPluginSteps, x => x.Name);
+        crmPluginImages.TransferIdsTo(localPluginImages, x => $"[{x.Name}] {x.PluginStepName}");
+
+        // Get differences 
+        var pluginTypeDifference = DifferenceUtility.GetDifference(localAssembly.PluginTypes, crmAssembly.PluginTypes, new PluginTypeEntity.PluginTypeDTOEqualityComparer<PluginTypeEntity>());
+        log.Print(pluginTypeDifference, "PluginTypes", x => x.Name);
+
+        var pluginStepsDifference = DifferenceUtility.GetDifference(localPluginSteps, crmPluginSteps, new PluginStepEntity.PluginStepDTOEqualityComparer<PluginStepEntity>());
+        log.Print(pluginStepsDifference, "PluginSteps", x => x.Name);
         
-        //if (crmAssembly == null)
-        //{
-        //    log.LogInformation($"Creating assembly");
-        //    crmAssembly = plugin.CreatePluginAssembly(localAssembly, request.SolutionName);
-        //}
-            
-        //if (!crmAssembly.Equals(localAssembly))
-        //{
-        //    log.LogInformation($"Updating assembly");
-        //    plugin.UpdatePluginAssembly(crmAssembly.AssemblyId, localAssembly);
-        //}
-        
-        //// Concat all local and steps and images
-        //var localPluginSteps = localAssembly.PluginTypes.SelectMany(x => x.PluginSteps).ToList();
-        //var crmPluginSteps = crmAssembly.PluginTypes.SelectMany(x => x.PluginSteps).ToList();
-        //var localPluginImages = localPluginSteps.SelectMany(x => x.PluginImages).ToList();
-        //var crmPluginImages = crmPluginSteps.SelectMany(x => x.PluginImages).ToList();
+        var pluginImagesDifference = DifferenceUtility.GetDifference(localPluginImages, crmPluginImages, new PluginImageEntity.PluginImageDTOEqualityComparer<PluginImageEntity>());
+        log.Print(pluginImagesDifference, "PluginImages", x => $"[{x.Name}] {x.PluginStepName}");
 
-        //// Set id´s on steps and images if they exist in crm
-        //localPluginSteps.ForEach(x =>
-        //{
-        //    var crmStep = crmPluginSteps.FirstOrDefault(y => x.Name == y.Name);
-        //    x.Id = crmStep == null ? Guid.Empty : crmStep.Id;
-        //});
-        //localPluginImages.ForEach(x =>
-        //{
-        //    var crmImage = crmPluginImages.FirstOrDefault(y => x.Name == y.Name);
-        //    x.Id = crmImage == null ? Guid.Empty : crmImage.Id;
-        //});
+        // Delete
+        plugin.DeletePlugins(pluginTypeDifference.Deletes, pluginStepsDifference.Deletes, pluginImagesDifference.Deletes);
 
-        //// Get differences 
-        //log.LogInformation("Finding differences");
-        //var pluginTypeDifference = DifferenceUtility.GetDifference(localAssembly.PluginTypes, crmAssembly.PluginTypes, new PluginTypeEntity.PluginTypeDTOEqualityComparer<PluginTypeEntity>());
-        //var pluginStepsDifference = DifferenceUtility.GetDifference(localPluginSteps, crmPluginSteps, new PluginStepEntity.PluginStepDTOEqualityComparer<PluginStepEntity>());
-        //var pluginImagesDifference = DifferenceUtility.GetDifference(localPluginImages, crmPluginImages, new PluginImageEntity.PluginImageDTOEqualityComparer<PluginImageEntity>());
-        //log.LogInformation($"pluginTypes  - create: {pluginTypeDifference.Creates.Count()}, update: {pluginTypeDifference.Updates.Count()}, delete: {pluginTypeDifference.Deletes.Count()}");
-        //log.LogInformation($"pluginSteps  - create: {pluginStepsDifference.Creates.Count()}, update: {pluginStepsDifference.Updates.Count()}, delete: {pluginStepsDifference.Deletes.Count()}");
-        //log.LogInformation($"pluginImages - create: {pluginImagesDifference.Creates.Count()}, update: {pluginImagesDifference.Updates.Count()}, delete: {pluginImagesDifference.Deletes.Count()}");
-        
-        //// Delete
-        //var deleteReqs = GetDeleteRequests(pluginTypeDifference.Deletes, pluginStepsDifference.Deletes, pluginImagesDifference.Deletes);
-        //crmDataHelper.PerformAsBulkWithOutput(deleteReqs, log);
+        // Update 
+        plugin.UpdatePlugins(pluginStepsDifference.Updates, pluginImagesDifference.Updates);
 
-        //// Update 
-        //var updateReqs = GetUpdateRequests(pluginStepsDifference.Updates, pluginImagesDifference.Updates);
-        //crmDataHelper.PerformAsBulkWithOutput(updateReqs, log);
+        // Create
+        plugin.CreatePlugins(crmAssembly, crmPluginSteps, request.SolutionName, pluginTypeDifference.Creates, pluginStepsDifference.Creates, pluginImagesDifference.Creates);
 
-        //// Create - Doing it in the order type -> step -> image. Because there is a necessary relation. 
-        //// Creating plugin types and appending them to existing crm plugintypes
-        //var createdPluginTypes = plugin.CreatePluginTypes(pluginTypeDifference.Creates, crmAssembly.AssemblyId);
-        //crmAssembly.PluginTypes.AddRange(createdPluginTypes);
-
-        //var createdPluginSteps = plugin.CreatePluginSteps(pluginStepsDifference.Creates, crmAssembly.PluginTypes, request.SolutionName);
-        //crmPluginSteps.AddRange(createdPluginSteps);
-
-        //var createdPluginImages = plugin.CreatePluginImages(pluginImagesDifference.Creates, crmPluginSteps);
-
-        //log.LogInformation("Plugin synchronization was completed successfully");
+        log.LogInformation("Plugin synchronization was completed successfully");
     }
-    //private List<DeleteRequest> GetDeleteRequests(List<PluginTypeEntity> pluginTypes, List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
-    //{
-    //    var pluginTypeReqs = pluginTypes
-    //        .Select(x => new DeleteRequest
-    //        {
-    //            Target = new EntityReference("plugintype", x.Id)
-    //        });
-    //    var pluginStepReqs = pluginSteps
-    //        .Select(x => new DeleteRequest
-    //        {
-    //            Target = new EntityReference("sdkmessageprocessingstep", x.Id)
-    //        });
-    //    var pluginImageReqs = pluginImages
-    //        .Select(x => new DeleteRequest
-    //        {
-    //            Target = new EntityReference("sdkmessageprocessingstepimage", x.Id)
-    //        });
 
-    //    return pluginImageReqs.Concat(pluginStepReqs).Concat(pluginTypeReqs).ToList();
-    //}
-    //private List<UpdateRequest> GetUpdateRequests(List<PluginStepEntity> pluginSteps, List<PluginImageEntity> pluginImages)
-    //{
-    //    var pluginStepReqs = pluginSteps
-    //        .Select(x =>
-    //        {
-    //            var entity = new Entity("sdkmessageprocessingstep", x.Id);
-    //            entity.Attributes.Add("stage", new OptionSetValue(x.ExecutionStage));
-    //            entity.Attributes.Add("filteringattributes", x.FilteredAttributes);
-    //            entity.Attributes.Add("supporteddeployment", new OptionSetValue(x.Deployment));
-    //            entity.Attributes.Add("mode", new OptionSetValue(x.ExecutionMode));
-    //            entity.Attributes.Add("rank", x.ExecutionOrder);
-    //            entity.Attributes.Add("description", Common.LoggerFactory.GetSyncDescription());
-    //            entity.Attributes.Add("impersonatinguserid", x.UserContext == Guid.Empty ? null : new EntityReference("systemuser", x.Id));
+    private PluginAssembly UpsertAssembly(string solutionName, PluginAssembly localAssembly, PluginAssembly? remoteAssembly)
+    {
+        if (remoteAssembly == null)
+        {
+            remoteAssembly = plugin.CreatePluginAssembly(localAssembly, solutionName);
+        }
+        else if (remoteAssembly.Hash != localAssembly.Hash)
+        {
+            plugin.UpdatePluginAssembly(remoteAssembly.Id, localAssembly);
+        }
 
-    //            return new UpdateRequest
-    //            {
-    //                Target = entity
-    //            };
-    //        });
-    //    var pluginImageReqs = pluginImages
-    //        .Select(x =>
-    //        {
-    //            var entity = new Entity("sdkmessageprocessingstepimage", x.Id);
-    //            entity.Attributes.Add("name", x.Name);
-    //            entity.Attributes.Add("entityalias", x.EntityAlias);
-    //            entity.Attributes.Add("imagetype", new OptionSetValue(x.ImageType));
-    //            entity.Attributes.Add("attributes", x.ImageType);
-
-    //            return new UpdateRequest
-    //            {
-    //                Target = entity
-    //            };
-    //        });
-
-    //    return pluginImageReqs.Concat(pluginStepReqs).ToList();
-    //}
+        return remoteAssembly;
+    }
 }

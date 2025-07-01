@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
     {
         return services.AddSingleton<SyncService>()
             .AddSingleton<IAssemblyReader, AssemblyReader.AssemblyReader>()
-            .AddSingleton<Plugin>()
-            .AddSingleton<Message>();
+            .AddSingleton<Plugin>();
+            //.AddSingleton<Message>();
     }
 }
