@@ -6,12 +6,12 @@ namespace DG.XrmPluginSync;
 
 internal class PluginSync(SyncService.SyncService syncService)
 {
-    public void Run(SyncRequest req)
+    public async Task Run(SyncRequest req)
     {
-        syncService.SyncPlugins(req).Wait();
+        await syncService.SyncPlugins(req);
     }
 
-    public static void RunCli(IServiceProvider services)
+    public static async Task RunCli(IServiceProvider services)
     {
         var options = services.GetRequiredService<XrmPluginSyncOptions>();
         var req = ActivatorUtilities.CreateInstance<SyncRequest>(services);
@@ -20,6 +20,6 @@ internal class PluginSync(SyncService.SyncService syncService)
         req.DryRun = options.DryRun;
 
         var program = ActivatorUtilities.CreateInstance<PluginSync>(services);
-        program.Run(req);
+        await program.Run(req);
     }
 }

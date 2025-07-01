@@ -16,7 +16,7 @@ public class SyncService(ILogger log, ISolutionReader solution, IAssemblyReader 
 
         if (request.DryRun)
         {
-            log.LogInformation("!!! Dry run mode is enabled. No changes will be made to the CRM.");
+            log.LogInformation("!!! Dry run mode is enabled. No changes will be made to Dataverse !!!");
         }
 
         log.LogInformation("Comparing plugins registered in CRM versus those found in your local code");

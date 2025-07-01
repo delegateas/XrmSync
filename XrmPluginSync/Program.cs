@@ -42,7 +42,7 @@ var rootCommand = new RootCommand("XrmPluginSync - Synchronize your Dataverse pl
     dataverseOption
 };
 
-rootCommand.SetHandler((assemblyPath, solutionName, dryRun, logLevel, dataverseUrl) =>
+rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, dataverseUrl) =>
 {
     DGLoggerFactory.MinimumLevel = logLevel;
 
@@ -72,7 +72,7 @@ rootCommand.SetHandler((assemblyPath, solutionName, dryRun, logLevel, dataverseU
         })
         .Build();
 
-    PluginSync.RunCli(host.Services);
+    await PluginSync.RunCli(host.Services);
 }, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption, dataverseOption);
 
 return await rootCommand.InvokeAsync(args);
