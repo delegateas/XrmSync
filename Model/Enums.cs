@@ -1,19 +1,19 @@
-﻿namespace DG.XrmPluginSync.AssemblyAnalyzer;
+﻿namespace DG.XrmPluginSync.Model;
 
-internal enum ExecutionMode
+public enum ExecutionMode
 {
     Synchronous,
     Asynchronous
 }
 
-internal enum ExecutionStage
+public enum ExecutionStage
 {
     PreValidation = 10,
     Pre = 20,
     Post = 40
 }
 
-internal enum ImageType
+public enum ImageType
 {
     PreImage = 0,
     PostImage = 1,
