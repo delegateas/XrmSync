@@ -1,17 +1,15 @@
 ﻿using DG.XrmPluginSync.Dataverse.Interfaces;
 using DG.XrmPluginSync.Model;
-using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class PluginReader(ServiceClient serviceClient) : DataverseReader(serviceClient), IPluginReader
+public class PluginReader(IDataverseReader reader) : IPluginReader
 {
-
     public Entity GetPluginAssembly(Guid id)
     {
-        return Retrieve(EntityTypeNames.PluginAssembly, id, new ColumnSet(true));
+        return reader.Retrieve(EntityTypeNames.PluginAssembly, id, new ColumnSet(true));
     }
 
     public Entity GetPluginAssembly(string name, string version)
@@ -38,7 +36,7 @@ public class PluginReader(ServiceClient serviceClient) : DataverseReader(service
         query.LinkEntities.Add(link);
         query.Criteria = filter;
 
-        return RetrieveFirstOrDefault(query);
+        return reader.RetrieveFirstOrDefault(query);
     }
 
     public Entity GetPluginAssembly(Guid solutionId, string assemblyName)
@@ -63,7 +61,7 @@ public class PluginReader(ServiceClient serviceClient) : DataverseReader(service
         };
         query.LinkEntities.Add(link);
         query.Criteria = filter;
-        return RetrieveFirstOrDefault(query);
+        return reader.RetrieveFirstOrDefault(query);
     }
 
     public List<Entity> GetPluginTypes(Guid assemblyId)
@@ -75,7 +73,7 @@ public class PluginReader(ServiceClient serviceClient) : DataverseReader(service
             ColumnSet = new ColumnSet(allColumns: true),
             Criteria = filter
         };
-        return RetrieveMultiple(query);
+        return reader.RetrieveMultiple(query);
     }
 
     public List<Entity> GetPluginSteps(Guid solutionId)
@@ -98,7 +96,7 @@ public class PluginReader(ServiceClient serviceClient) : DataverseReader(service
         query.LinkEntities.Add(link);
         query.Criteria = filter;
 
-        return RetrieveMultiple(query);
+        return reader.RetrieveMultiple(query);
     }
 
     public List<Entity> GetPluginSteps(Guid solutionId, Guid pluginTypeId)
@@ -122,7 +120,7 @@ public class PluginReader(ServiceClient serviceClient) : DataverseReader(service
         query.LinkEntities.Add(link);
         query.Criteria = filter;
 
-        return RetrieveMultiple(query);
+        return reader.RetrieveMultiple(query);
     }
 
     public List<Entity> GetPluginImages(Guid stepId)
@@ -134,7 +132,7 @@ public class PluginReader(ServiceClient serviceClient) : DataverseReader(service
             ColumnSet = new ColumnSet(allColumns: true),
             Criteria = filter
         };
-        return RetrieveMultiple(query);
+        return reader.RetrieveMultiple(query);
     }
 
     public IEnumerable<PluginStepEntity> GetMissingUserContexts(IEnumerable<PluginStepEntity> pluginSteps)
@@ -150,7 +148,7 @@ public class PluginReader(ServiceClient serviceClient) : DataverseReader(service
             return [];
         }
 
-        var existingUserContexts = RetrieveMultiple(new QueryExpression("systemuser")
+        var existingUserContexts = reader.RetrieveMultiple(new QueryExpression("systemuser")
         {
             ColumnSet = new ColumnSet("systemuserid"),
             Criteria = new FilterExpression

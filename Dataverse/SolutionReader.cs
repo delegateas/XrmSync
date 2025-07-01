@@ -1,11 +1,10 @@
 ﻿using DG.XrmPluginSync.Dataverse.Interfaces;
-using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class SolutionReader(ServiceClient serviceClient) : DataverseReader(serviceClient), ISolutionReader
+public class SolutionReader(IDataverseReader reader) : ISolutionReader
 {
     public const string EntityTypeName = "solution";
 
@@ -22,6 +21,6 @@ public class SolutionReader(ServiceClient serviceClient) : DataverseReader(servi
             Criteria = f
         };
 
-        return RetrieveFirstMatch(q);
+        return reader.RetrieveFirstMatch(q);
     }
 }

@@ -4,24 +4,30 @@ using Microsoft.Extensions.Logging;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
-using System.Runtime.CompilerServices;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class DataverseWriter(ServiceClient serviceClient, ILogger logger, XrmPluginSyncOptions options) : IDataverseWriter
+public sealed class DataverseWriter : IDataverseWriter
 {
+    private readonly ServiceClient serviceClient;
+    private readonly ILogger logger;
+
+    public DataverseWriter(ServiceClient serviceClient, ILogger logger, XrmPluginSyncOptions options)
+    {
+        if (options.DryRun)
+        {
+            throw new InvalidOperationException("Cannot perform write operations in dry run mode. Please disable dry run to proceed with writing to Dataverse.");
+        }
+
+        this.serviceClient = serviceClient;
+        this.logger = logger;
+    }
+
     public Guid Create(Entity entity)
     {
         if (entity == null)
         {
             throw new ArgumentNullException(nameof(entity), "The provided entity cannot be null.");
-        }
-
-        if (options.DryRun)
-        {
-            LogOperation(entity);
-
-            return Guid.NewGuid(); // In dry run mode, we do not actually create the entity.
         }
 
         return serviceClient.Create(entity);
@@ -32,12 +38,6 @@ public class DataverseWriter(ServiceClient serviceClient, ILogger logger, XrmPlu
         if (entity == null)
         {
             throw new ArgumentNullException(nameof(entity), "The provided entity cannot be null.");
-        }
-
-        if (options.DryRun)
-        {
-            LogOperation(entity, parameters);
-            return Guid.NewGuid(); // In dry run mode, we do not actually create the entity.
         }
 
         var req = new CreateRequest
@@ -56,12 +56,6 @@ public class DataverseWriter(ServiceClient serviceClient, ILogger logger, XrmPlu
         if (entity == null)
         {
             throw new ArgumentNullException(nameof(entity), "The provided entity cannot be null.");
-        }
-
-        if (options.DryRun)
-        {
-            LogOperation(entity);
-            return; // In dry run mode, we do not actually update the entity.
         }
 
         serviceClient.Update(entity);
@@ -84,12 +78,6 @@ public class DataverseWriter(ServiceClient serviceClient, ILogger logger, XrmPlu
 
     public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest
     {
-        if (options.DryRun)
-        {
-            logger.LogDebug("DRY RUN: Would execute {0} {1} requests", updates.Count, typeof(T).Name);
-            return []; // In dry run mode, we do not actually perform the requests.
-        }
-
         var chunks = updates.Chunk(200);
         var responses = new List<ExecuteMultipleResponseItem>();
         foreach (var chunk in chunks)
@@ -108,30 +96,5 @@ public class DataverseWriter(ServiceClient serviceClient, ILogger logger, XrmPlu
         }
 
         return responses;
-    }
-
-    private void LogOperation(Entity entity, ParameterCollection? parameters = null, [CallerMemberName] string operation = "")
-    {
-        logger.LogDebug("DRY RUN: {Operation} operation would be performed for entity of type '{EntityType}'.",
-                        operation, entity.LogicalName);
-
-        logger.LogTrace("{attrs}", string.Join("\n", entity.Attributes.Select(kvp => $" - {kvp.Key}: {TruncateValue(kvp.Value)}")));
-
-        if (parameters != null && parameters.Count > 0)
-        {
-            logger.LogTrace("Parameters: {params}", string.Join(", ", parameters.Select(kvp => $"{kvp.Key}: {TruncateValue(kvp.Value)}")));
-        }
-    }
-
-    // Helper method to truncate long values for logging
-    private static string TruncateValue(object value)
-    {
-        if (value == null) return "<null>";
-        string str = value.ToString() ?? "<null>";
-        const int maxLen = 120;
-        if (str.Length <= maxLen)
-            return str;
-        int extraBytes = System.Text.Encoding.UTF8.GetByteCount(str) - System.Text.Encoding.UTF8.GetByteCount(str.Substring(0, maxLen));
-        return $"{str.Substring(0, maxLen)}... (+{extraBytes} bytes more)";
     }
 }

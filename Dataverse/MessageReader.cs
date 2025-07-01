@@ -1,11 +1,10 @@
 ﻿using DG.XrmPluginSync.Dataverse.Interfaces;
-using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class MessageReader(ServiceClient serviceClient) : DataverseReader(serviceClient), IMessageReader
+public class MessageReader(IDataverseReader reader) : IMessageReader
 {
     public static string? GetMessagePropertyName(string eventOperation) => eventOperation switch
     {
@@ -34,7 +33,7 @@ public class MessageReader(ServiceClient serviceClient) : DataverseReader(servic
         filter.AddCondition(new ConditionExpression("name", ConditionOperator.In, [.. names]));
         query.Criteria = filter;
 
-        return RetrieveMultiple(query)
+        return reader.RetrieveMultiple(query)
             .ToDictionary(e => e.GetAttributeValue<string>("name"), e => e.GetAttributeValue<Guid>("sdkmessageid"));
     }
 
@@ -52,6 +51,6 @@ public class MessageReader(ServiceClient serviceClient) : DataverseReader(servic
         if (!string.IsNullOrEmpty(primaryObjectType))
             filter.AddCondition(new ConditionExpression("primaryobjecttypecode", ConditionOperator.Equal, primaryObjectType));
 
-        return RetrieveFirstOrDefault(query);
+        return reader.RetrieveFirstOrDefault(query);
     }
 }

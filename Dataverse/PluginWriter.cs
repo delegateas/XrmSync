@@ -1,14 +1,12 @@
 ﻿using DG.XrmPluginSync.Dataverse.Extensions;
 using DG.XrmPluginSync.Dataverse.Interfaces;
 using DG.XrmPluginSync.Model;
-using Microsoft.Extensions.Logging;
-using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class PluginWriter(IMessageReader messageReader, ServiceClient serviceClient, XrmPluginSyncOptions options, ILogger logger) : DataverseWriter(serviceClient, logger, options), IPluginWriter
+public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer) : IPluginWriter
 {
     public Guid CreatePluginAssembly(string pluginName, string solutionName, string dllPath, string sourceHash, string assemblyVersion, string description)
     {
@@ -25,7 +23,7 @@ public class PluginWriter(IMessageReader messageReader, ServiceClient serviceCli
         { "SolutionUniqueName", solutionName }
     };
 
-        return Create(entity);
+        return writer.Create(entity);
     }
 
     public void UpdatePluginAssembly(Guid assemblyId, string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
@@ -38,7 +36,7 @@ public class PluginWriter(IMessageReader messageReader, ServiceClient serviceCli
         entity.Attributes.Add("version", assemblyVersion);
         entity.Attributes.Add("description", description);
 
-        Update(entity);
+        writer.Update(entity);
     }
 
     public void DeletePlugins(IEnumerable<PluginTypeEntity> pluginTypes, IEnumerable<PluginStepEntity> pluginSteps, IEnumerable<PluginImageEntity> pluginImages)
@@ -51,7 +49,7 @@ public class PluginWriter(IMessageReader messageReader, ServiceClient serviceCli
 
         if (deleteRequests.Count > 0)
         {
-            PerformAsBulkWithOutput(deleteRequests);
+            writer.PerformAsBulkWithOutput(deleteRequests);
         }
     }
 
@@ -94,7 +92,7 @@ public class PluginWriter(IMessageReader messageReader, ServiceClient serviceCli
 
         if (updateRequests.Count > 0)
         {
-            PerformAsBulkWithOutput(updateRequests);
+            writer.PerformAsBulkWithOutput(updateRequests);
         }
     }
 
@@ -109,7 +107,7 @@ public class PluginWriter(IMessageReader messageReader, ServiceClient serviceCli
             entity.Attributes.Add("pluginassemblyid", new EntityReference("pluginassembly", assemblyId));
             entity.Attributes.Add("description", description);
 
-            x.Id = Create(entity);
+            x.Id = writer.Create(entity);
 
             return x;
         });
@@ -150,7 +148,7 @@ public class PluginWriter(IMessageReader messageReader, ServiceClient serviceCli
                 { "SolutionUniqueName", solutionName }
             };
 
-            step.Id = Create(entity, parameters);
+            step.Id = writer.Create(entity, parameters);
             return step;
         });
     }
@@ -170,7 +168,7 @@ public class PluginWriter(IMessageReader messageReader, ServiceClient serviceCli
             entity.Attributes.Add("messagepropertyname", messagePropertyName);
             entity.Attributes.Add("sdkmessageprocessingstepid", new EntityReference(EntityTypeNames.PluginStep, pluginStep.Id));
 
-            image.Id = Create(entity);
+            image.Id = writer.Create(entity);
             return image;
         });
     }

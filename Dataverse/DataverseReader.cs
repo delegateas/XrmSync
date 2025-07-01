@@ -7,9 +7,7 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-// TODO: IDataverseReader, IDataverseWriter interfaces could be created to abstract the data access layer.
-// This allows for enforcing the DRY-RUN mode on the IDataverseWriter interface methods, while the IDataverseReader methods can always be executed without DRY-RUN checks.
-public class DataverseReader(ServiceClient serviceClient) : IDataverseReader
+public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseReader
 {
     public Entity Retrieve(string logicalName, Guid id, ColumnSet columnSet)
     {
