@@ -1,0 +1,30 @@
+name: CI Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore dependencies
+        run: dotnet restore XrmPluginSync.sln
+      - name: Build
+        run: dotnet build XrmPluginSync.sln --no-restore --configuration Release
+      - name: Test
+        run: dotnet test XrmPluginSync.sln --no-build --configuration Release --verbosity normal
+      - name: Pack NuGet package
+        run: dotnet pack XrmPluginSync/XrmPluginSync.csproj --no-build --configuration Release --output XrmPluginSync/nupkg
+      - name: Upload NuGet package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: XrmPluginSync/nupkg/*.nupkg
