@@ -14,7 +14,7 @@ internal static class AssemblyAnalyzer
 
         var dllTempPath = dllPath;
         var dllname = Path.GetFileNameWithoutExtension(dllPath);
-        var hash = CryptographyUtility.Sha1Checksum(File.ReadAllBytes(dllTempPath));
+        var hash = File.ReadAllBytes(dllTempPath).Sha1Checksum();
 
         var assembly = Assembly.LoadFrom(dllTempPath);
         var assemblyVersion = assembly.GetName()?.Version?.ToString() ?? throw new InvalidOperationException("Could not determine assembly version");

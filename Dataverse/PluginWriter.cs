@@ -8,7 +8,7 @@ using Microsoft.Xrm.Sdk.Messages;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class PluginWriter(MessageReader messageReader, ServiceClient serviceClient, XrmPluginSyncOptions options, ILogger logger) : DataverseWriter(serviceClient, logger, options), IPluginWriter
+public class PluginWriter(IMessageReader messageReader, ServiceClient serviceClient, XrmPluginSyncOptions options, ILogger logger) : DataverseWriter(serviceClient, logger, options), IPluginWriter
 {
     public Guid CreatePluginAssembly(string pluginName, string solutionName, string dllPath, string sourceHash, string assemblyVersion, string description)
     {

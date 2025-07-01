@@ -1,10 +1,11 @@
-﻿using Microsoft.PowerPlatform.Dataverse.Client;
+﻿using DG.XrmPluginSync.Dataverse.Interfaces;
+using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class MessageReader(ServiceClient serviceClient) : DataverseReader(serviceClient)
+public class MessageReader(ServiceClient serviceClient) : DataverseReader(serviceClient), IMessageReader
 {
     public static string? GetMessagePropertyName(string eventOperation) => eventOperation switch
     {

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Security.Cryptography;
 
 namespace DG.XrmPluginSync.AssemblyAnalyzer;
 
@@ -14,5 +15,11 @@ internal static class Extensions
         {
             return e.Types.Where(t => t != null).Select(t => t!);
         }
+    }
+
+    public static string Sha1Checksum(this byte[] bytes)
+    {
+        return BitConverter.ToString(SHA1.HashData(bytes))
+            .Replace("-", string.Empty);
     }
 }

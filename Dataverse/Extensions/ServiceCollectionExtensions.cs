@@ -8,7 +8,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddDataverse(this IServiceCollection services)
     {
         DataverseConnection.ServiceCollectionExtensions.AddDataverse(services);
-        services.AddSingleton<MessageReader>();
+        services.AddSingleton<IMessageReader, MessageReader>();
         services.AddSingleton<ISolutionReader, SolutionReader>();
         services.AddSingleton<IPluginReader, PluginReader>();
         services.AddSingleton<IPluginWriter, PluginWriter>();

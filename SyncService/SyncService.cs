@@ -12,12 +12,12 @@ public class SyncService(ILogger log, ISolutionReader solution, IAssemblyReader 
 {
     public async Task SyncPlugins(SyncRequest request)
     {
-        request.LogAndValidateRequest();
-
         if (request.DryRun)
         {
             log.LogInformation("!!! Dry run mode is enabled. No changes will be made to Dataverse !!!");
         }
+
+        request.LogAndValidateRequest();
 
         log.LogInformation("Comparing plugins registered in CRM versus those found in your local code");
 
