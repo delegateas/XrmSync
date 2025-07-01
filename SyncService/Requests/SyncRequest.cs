@@ -3,10 +3,8 @@ using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync.SyncService.Requests;
 
-public class SyncRequest : RequestBase
+public class SyncRequest(ILogger logger, Description description) : RequestBase(logger, description)
 {
-    public SyncRequest(ILogger logger, Description description) : base(logger, description) { }
-
     public required string AssemblyPath { get; set; }
     public required string SolutionName { get; set; }
     public required bool DryRun { get; set; }
