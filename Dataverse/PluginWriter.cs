@@ -117,11 +117,19 @@ public class PluginWriter(MessageReader messageReader, ServiceClient serviceClie
 
     public List<PluginStepEntity> CreatePluginSteps(List<PluginStepEntity> pluginSteps, List<PluginTypeEntity> pluginTypes, string solutionName, string description)
     {
+        var eventOperations = pluginSteps.Select(step => step.EventOperation).Distinct();
+        var messageIds = messageReader.GetMessages(eventOperations);
+
         return pluginSteps.ConvertAll(step =>
         {
             var pluginType = pluginTypes.First(type => type.Name == step.PluginTypeName);
-            var message = messageReader.GetMessage(step.EventOperation);
-            var messageFilter = messageReader.GetMessageFilter(step.LogicalName, message.Id);
+
+            if (!messageIds.TryGetValue(step.EventOperation, out var messageId))
+            {
+                throw new InvalidOperationException($"Message operation '{step.EventOperation}' not found in Dataverse.");
+            }
+            
+            var messageFilter = messageReader.GetMessageFilter(step.LogicalName, messageId);
 
             var entity = new Entity(EntityTypeNames.PluginStep);
             entity.Attributes.Add("name", step.Name);
@@ -129,7 +137,7 @@ public class PluginWriter(MessageReader messageReader, ServiceClient serviceClie
             entity.Attributes.Add("rank", step.ExecutionOrder);
             entity.Attributes.Add("mode", new OptionSetValue(step.ExecutionMode));
             entity.Attributes.Add("plugintypeid", new EntityReference(EntityTypeNames.PluginType, pluginType.Id));
-            entity.Attributes.Add("sdkmessageid", new EntityReference(EntityTypeNames.Message, message.Id));
+            entity.Attributes.Add("sdkmessageid", new EntityReference(EntityTypeNames.Message, messageId));
             entity.Attributes.Add("stage", new OptionSetValue(step.ExecutionStage));
             entity.Attributes.Add("filteringattributes", step.FilteredAttributes);
             entity.Attributes.Add("supporteddeployment", new OptionSetValue(step.Deployment));

@@ -6,43 +6,43 @@ namespace DG.XrmPluginSync.Dataverse;
 
 public class MessageReader(ServiceClient serviceClient) : DataverseReader(serviceClient)
 {
-    public static string? GetMessagePropertyName(string eventOperation)
+    public static string? GetMessagePropertyName(string eventOperation) => eventOperation switch
     {
-        switch (eventOperation)
-        {
-            case "Assign": return "Target";
-            case "Create": return "id";
-            case "Delete": return "Target";
-            case "DeliverIncoming": return "emailid";
-            case "DeliverPromote": return "emailid";
-            case "Merge": return "Target";
-            case "Route": return "Target";
-            case "Send": return "emailid";
-            case "SetState": return "entityMoniker";
-            case "SetStateDynamicEntity": return "entityMoniker";
-            case "Update": return "Target";
-            default:
-                return null;
-        }
-    }
+        "Assign" => "Target",
+        "Create" => "id",
+        "Delete" => "Target",
+        "DeliverIncoming" => "emailid",
+        "DeliverPromote" => "emailid",
+        "Merge" => "Target",
+        "Route" => "Target",
+        "Send" => "emailid",
+        "SetState" => "entityMoniker",
+        "SetStateDynamicEntity" => "entityMoniker",
+        "Update" => "Target",
+        _ => null,
+    };
 
-    public Entity GetMessage(string eventOperation)
+    public Dictionary<string, Guid> GetMessages(IEnumerable<string> names)
     {
-        var query = new QueryExpression("sdkmessage");
-        query.ColumnSet = new ColumnSet("sdkmessageid", "name");
-        query.TopCount = 1;
+        var query = new QueryExpression(EntityTypeNames.Message)
+        {
+            ColumnSet = new ColumnSet("sdkmessageid", "name")
+        };
 
         var filter = new FilterExpression();
-        filter.AddCondition(new ConditionExpression("name", ConditionOperator.Equal, eventOperation));
+        filter.AddCondition(new ConditionExpression("name", ConditionOperator.In, [.. names]));
         query.Criteria = filter;
 
-        return RetrieveFirstOrDefault(query);
+        return RetrieveMultiple(query)
+            .ToDictionary(e => e.GetAttributeValue<string>("name"), e => e.GetAttributeValue<Guid>("sdkmessageid"));
     }
 
     public Entity GetMessageFilter(string primaryObjectType, Guid sdkMessageId)
     {
-        var query = new QueryExpression("sdkmessagefilter");
-        query.ColumnSet = new ColumnSet("sdkmessagefilterid");
+        var query = new QueryExpression(EntityTypeNames.MessageFilter)
+        {
+            ColumnSet = new ColumnSet("sdkmessagefilterid")
+        };
 
         var filter = new FilterExpression();
         filter.AddCondition(new ConditionExpression("sdkmessageid", ConditionOperator.Equal, sdkMessageId));
