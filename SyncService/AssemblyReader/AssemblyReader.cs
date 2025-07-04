@@ -1,13 +1,37 @@
 ﻿using DG.XrmPluginSync.Model;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 
 namespace DG.XrmPluginSync.SyncService.AssemblyReader;
 
-internal class AssemblyReader : IAssemblyReader
+internal class AssemblyReader(ILogger logger) : IAssemblyReader
 {
-    public async Task<PluginAssembly> ReadAssemblyAsync(string assemblyDllPath)
+    private Dictionary<string, AssemblyInfo> assemblyCache = new();
+
+    public async Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath)
     {
+        if (string.IsNullOrWhiteSpace(assemblyDllPath))
+        {
+            throw new ArgumentException("Assembly DLL path cannot be null or empty.", nameof(assemblyDllPath));
+        }
+
+        if (assemblyCache.TryGetValue(assemblyDllPath, out var cachedAssemblyInfo))
+        {
+            logger.LogTrace("Returning cached assembly info for {AssemblyName}", cachedAssemblyInfo.Name);
+            return cachedAssemblyInfo;
+        }
+
+        logger.LogDebug("Reading assembly from {AssemblyDllPath}", assemblyDllPath);
+        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath);
+        
+        // Cache the assembly info
+        assemblyCache[assemblyDllPath] = assemblyInfo;
+        
+        return assemblyInfo;
+    }
+
+    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath) {
         var analyzerExePath = Path.Combine(AppContext.BaseDirectory, "AssemblyAnalyzer.exe");
         var analyzerWorkingDir = AppContext.BaseDirectory;
 
@@ -41,7 +65,10 @@ internal class AssemblyReader : IAssemblyReader
         }
 
         // Process the output
-        var assemblyInfo = JsonSerializer.Deserialize<PluginAssembly>(output);
+        var assemblyInfo = JsonSerializer.Deserialize<AssemblyInfo>(output);
+
+        logger.LogInformation("Local assembly read successfully: {AssemblyName} version {Version}", assemblyInfo?.Name, assemblyInfo?.Version);
+
         return assemblyInfo ?? throw new Exception("Failed to read plugin type information from assembly");
     }
 }

@@ -2,8 +2,12 @@ using DG.XrmPluginSync.Model;
 using DG.XrmPluginSync.SyncService;
 using DG.XrmPluginSync.SyncService.Common;
 using DG.XrmPluginSync.Dataverse.Interfaces;
+using DG.XrmPluginSync.SyncService.Comparers;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using DG.XrmPluginSync.Model.Plugin;
+using DG.XrmPluginSync.SyncService.AssemblyReader;
+using DG.XrmPluginSync.Model.CustomApi;
 
 namespace Tests;
 
@@ -12,24 +16,30 @@ public class PluginServiceTests
     private readonly ILogger _logger = Substitute.For<ILogger>();
     private readonly IPluginReader _pluginReader = Substitute.For<IPluginReader>();
     private readonly IPluginWriter _pluginWriter = Substitute.For<IPluginWriter>();
+    private readonly IAssemblyReader _assemblyReader = Substitute.For<IAssemblyReader>();
+    private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
     private readonly Description _description = new();
-    private readonly Plugin _plugin;
+    private readonly XrmPluginSyncOptions _options = new();
+    private readonly PluginTypeComparer _typeComparer = new();
+    private readonly PluginStepComparer _stepComparer = new();
+    private readonly PluginImageComparer _imageComparer = new();
+    private readonly PluginSyncService _plugin;
 
     public PluginServiceTests()
     {
-        _plugin = new Plugin(_logger, _pluginReader, _pluginWriter, _description);
+        _plugin = new PluginSyncService(_pluginReader, _pluginWriter, _assemblyReader, _solutionReader, _description, _options, _typeComparer, _stepComparer, _imageComparer, _logger);
     }
 
     [Fact]
     public void CreatePluginAssembly_CallsWriterAndReturnsAssemblyWithId()
     {
         // Arrange
-        var assembly = new PluginAssembly {
+        var assembly = new AssemblyInfo {
             Name = "TestAssembly",
             DllPath = "path",
             Hash = "hash",
             Version = "1.0.0.0",
-            PluginTypes = new List<PluginTypeEntity>()
+            Plugins = []
         };
         var solutionName = "solution";
         var expectedId = Guid.NewGuid();
@@ -49,12 +59,12 @@ public class PluginServiceTests
     {
         // Arrange
         var assemblyId = Guid.NewGuid();
-        var assembly = new PluginAssembly {
+        var assembly = new AssemblyInfo {
             Name = "TestAssembly",
             DllPath = "path",
             Hash = "hash",
             Version = "1.0.0.0",
-            PluginTypes = new List<PluginTypeEntity>()
+            Plugins = []
         };
 
         // Act
@@ -68,24 +78,24 @@ public class PluginServiceTests
     public void CreatePlugins_CallsWriterForTypesStepsImages()
     {
         // Arrange
-        var crmAssembly = new PluginAssembly {
+        var crmAssembly = new AssemblyInfo {
             Id = Guid.NewGuid(),
             Name = "TestAssembly",
             DllPath = "path",
             Hash = "hash",
             Version = "1.0.0.0",
-            PluginTypes = new List<PluginTypeEntity>()
+            Plugins = []
         };
-        var crmPluginSteps = new List<PluginStepEntity>();
+        var crmPluginSteps = new List<Step>();
         var solutionName = "solution";
-        var pluginTypes = new List<PluginTypeEntity> {
+        var pluginTypes = new List<PluginDefinition> {
             new() {
                 Name = "Type1",
-                PluginSteps = new List<PluginStepEntity>(),
+                PluginSteps = [],
                 Id = Guid.NewGuid()
             }
         };
-        var pluginSteps = new List<PluginStepEntity> {
+        var pluginSteps = new List<Step> {
             new() {
                 Name = "Step1",
                 PluginTypeName = "Type1",
@@ -97,10 +107,10 @@ public class PluginServiceTests
                 ExecutionOrder = 1,
                 FilteredAttributes = string.Empty,
                 UserContext = Guid.NewGuid(),
-                PluginImages = new List<PluginImageEntity>()
+                PluginImages = []
             }
         };
-        var pluginImages = new List<PluginImageEntity> {
+        var pluginImages = new List<Image> {
             new() {
                 Name = "Image1",
                 PluginStepName = "Step1",
@@ -109,14 +119,14 @@ public class PluginServiceTests
                 Attributes = string.Empty
             }
         };
-        var createdTypes = new List<PluginTypeEntity> {
+        var createdTypes = new List<PluginDefinition> {
             new() {
                 Name = "CreatedType",
-                PluginSteps = new List<PluginStepEntity>(),
+                PluginSteps = [],
                 Id = Guid.NewGuid()
             }
         };
-        var createdSteps = new List<PluginStepEntity> {
+        var createdSteps = new List<Step> {
             new() {
                 Name = "CreatedStep",
                 PluginTypeName = "Type1",
@@ -128,20 +138,20 @@ public class PluginServiceTests
                 ExecutionOrder = 1,
                 FilteredAttributes = string.Empty,
                 UserContext = Guid.NewGuid(),
-                PluginImages = new List<PluginImageEntity>()
+                PluginImages = []
             }
         };
         _pluginWriter.CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription).Returns(createdTypes);
-        _pluginWriter.CreatePluginSteps(pluginSteps, Arg.Any<List<PluginTypeEntity>>(), solutionName, _description.SyncDescription).Returns(createdSteps);
+        _pluginWriter.CreatePluginSteps(pluginSteps, Arg.Any<List<PluginDefinition>>(), solutionName, _description.SyncDescription).Returns(createdSteps);
 
         // Act
         _plugin.CreatePlugins(crmAssembly, crmPluginSteps, solutionName, pluginTypes, pluginSteps, pluginImages);
 
         // Assert
         _pluginWriter.Received(1).CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription);
-        _pluginWriter.Received(1).CreatePluginSteps(pluginSteps, crmAssembly.PluginTypes, solutionName, _description.SyncDescription);
+        _pluginWriter.Received(1).CreatePluginSteps(pluginSteps, crmAssembly.Plugins, solutionName, _description.SyncDescription);
         _pluginWriter.Received(1).CreatePluginImages(pluginImages, crmPluginSteps);
-        Assert.Contains(createdTypes[0], crmAssembly.PluginTypes);
+        Assert.Contains(createdTypes[0], crmAssembly.Plugins);
         Assert.Contains(createdSteps[0], crmPluginSteps);
     }
 
@@ -149,23 +159,26 @@ public class PluginServiceTests
     public void DeletePlugins_CallsWriter()
     {
         // Arrange
-        var types = new List<PluginTypeEntity>();
-        var steps = new List<PluginStepEntity>();
-        var images = new List<PluginImageEntity>();
+        var types = new List<PluginType>();
+        var steps = new List<Step>();
+        var images = new List<Image>();
+        var apis = new List<ApiDefinition>();
+        var reqs = new List<RequestParameter>();
+        var resps = new List<ResponseProperty>();
 
         // Act
-        _plugin.DeletePlugins(types, steps, images);
+        _plugin.DeletePlugins(new CompiledData(types, steps, images, apis, reqs, resps));
 
         // Assert
-        _pluginWriter.Received(1).DeletePlugins(types, steps, images);
+        _pluginWriter.Received(1).DeletePlugins(types, steps, images, apis, reqs, resps);
     }
 
     [Fact]
     public void UpdatePlugins_CallsWriter()
     {
         // Arrange
-        var steps = new List<PluginStepEntity>();
-        var images = new List<PluginImageEntity>();
+        var steps = new List<Step>();
+        var images = new List<Image>();
 
         // Act
         _plugin.UpdatePlugins(steps, images);

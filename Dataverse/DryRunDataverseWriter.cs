@@ -34,15 +34,16 @@ public class DryRunDataverseWriter : IDataverseWriter
         return Guid.NewGuid(); // In dry run mode, we do not actually create the entity.
     }
 
-    public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest
+    public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
     {
-        logger.LogDebug("DRY RUN: Would execute {0} {1} requests", updates.Count, typeof(T).Name);
+        var targetTypes = updates.Select(targetSelector).Distinct().ToList();
+        logger.LogDebug("DRY RUN: Would execute {count} {type} requests targeting entities of type {target}", updates.Count, typeof(T).Name, string.Join(", ", targetTypes));
         return [];
     }
 
-    public void PerformAsBulkWithOutput<T>(List<T> updates) where T : OrganizationRequest
+    public void PerformAsBulkWithOutput<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
     {
-        logger.LogDebug("DRY RUN: Would execute {0} {1} requests", updates.Count, typeof(T).Name);
+        PerformAsBulk(updates, targetSelector);
     }
 
     public void Update(Entity entity)

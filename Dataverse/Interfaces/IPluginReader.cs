@@ -1,4 +1,4 @@
-﻿using DG.XrmPluginSync.Model;
+﻿using DG.XrmPluginSync.Model.Plugin;
 using Microsoft.Xrm.Sdk;
 
 namespace DG.XrmPluginSync.Dataverse.Interfaces;
@@ -12,5 +12,5 @@ public interface IPluginReader
     List<Entity> GetPluginSteps(Guid solutionId);
     List<Entity> GetPluginSteps(Guid solutionId, Guid pluginTypeId);
     List<Entity> GetPluginTypes(Guid assemblyId);
-    IEnumerable<PluginStepEntity> GetMissingUserContexts(IEnumerable<PluginStepEntity> pluginSteps);
+    IEnumerable<Step> GetMissingUserContexts(IEnumerable<Step> pluginSteps);
 }

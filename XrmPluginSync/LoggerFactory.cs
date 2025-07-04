@@ -4,7 +4,7 @@ namespace DG.XrmPluginSync;
 
 internal static class LoggerFactory
 {
-    public static LogLevel MinimumLevel { get; set; } = LogLevel.Trace;
+    public static LogLevel MinimumLevel { get; set; } = LogLevel.Information;
 
     public static ILogger GetLogger<T>()
     {
@@ -20,6 +20,7 @@ internal static class LoggerFactory
                        options.TimestampFormat = "hh:mm:ss ";
                    });
         });
+
         return loggerFactory.CreateLogger<T>();
     }
 }

@@ -1,25 +1,32 @@
 ﻿using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.SyncService.Requests;
+using DG.XrmPluginSync.SyncService;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync;
 
-internal class PluginSync(SyncService.SyncService syncService)
+internal static class PluginSync
 {
-    public async Task Run(SyncRequest req)
-    {
-        await syncService.SyncPlugins(req);
-    }
-
-    public static async Task RunCli(IServiceProvider services)
+    public static async Task RunSync(IServiceProvider services)
     {
         var options = services.GetRequiredService<XrmPluginSyncOptions>();
-        var req = ActivatorUtilities.CreateInstance<SyncRequest>(services);
-        req.AssemblyPath = options.AssemblyPath;
-        req.SolutionName = options.SolutionName;
-        req.DryRun = options.DryRun;
+        var description = services.GetRequiredService<SyncService.Common.Description>();
 
-        var program = ActivatorUtilities.CreateInstance<PluginSync>(services);
-        await program.Run(req);
+        var log = services.GetRequiredService<ILogger>();
+        log.LogInformation("{header}", description.ToolHeader);
+
+        if (options.DryRun)
+        {
+            log.LogInformation("***** DRY RUN *****");
+            log.LogInformation("No changes will be made to Dataverse.");
+        }
+
+        if (options.DataverseUrl is not null)
+        {
+            log.LogInformation("Connecting to Dataverse at {dataverseUrl}", options.DataverseUrl);
+        }
+
+        var pluginSyncService = ActivatorUtilities.CreateInstance<PluginSyncService>(services);
+        await pluginSyncService.Sync();
     }
 }

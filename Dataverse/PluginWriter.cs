@@ -1,6 +1,7 @@
 ﻿using DG.XrmPluginSync.Dataverse.Extensions;
 using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.Model.CustomApi;
+using DG.XrmPluginSync.Model.Plugin;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 
@@ -39,21 +40,24 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
         writer.Update(entity);
     }
 
-    public void DeletePlugins(IEnumerable<PluginTypeEntity> pluginTypes, IEnumerable<PluginStepEntity> pluginSteps, IEnumerable<PluginImageEntity> pluginImages)
+    public void DeletePlugins(IEnumerable<PluginType> pluginTypes, IEnumerable<Step> pluginSteps, IEnumerable<Image> pluginImages, IEnumerable<ApiDefinition> customApis, IEnumerable<RequestParameter> requestParameters, IEnumerable<ResponseProperty> responseProperties)
     {
         var pluginTypeReqs = pluginTypes.ToDeleteRequests(EntityTypeNames.PluginType);
         var pluginStepReqs = pluginSteps.ToDeleteRequests(EntityTypeNames.PluginStep);
         var pluginImageReqs = pluginImages.ToDeleteRequests(EntityTypeNames.PluginStepImage);
+        var customApiReqs = customApis.ToDeleteRequests(EntityTypeNames.CustomApi);
+        var paramReqs = requestParameters.ToDeleteRequests(EntityTypeNames.RequestParameter);
+        var responseReqs = responseProperties.ToDeleteRequests(EntityTypeNames.ResponseProperty);
 
-        List<DeleteRequest> deleteRequests = [.. pluginImageReqs, .. pluginStepReqs, .. pluginTypeReqs];
+        List<DeleteRequest> deleteRequests = [..pluginImageReqs, ..pluginStepReqs, ..pluginTypeReqs, ..customApiReqs, ..paramReqs, ..responseReqs];
 
         if (deleteRequests.Count > 0)
         {
-            writer.PerformAsBulkWithOutput(deleteRequests);
+            writer.PerformAsBulkWithOutput(deleteRequests, r => r.Target.LogicalName);
         }
     }
 
-    public void UpdatePlugins(IEnumerable<PluginStepEntity> pluginSteps, IEnumerable<PluginImageEntity> pluginImages, string description)
+    public void UpdatePlugins(IEnumerable<Step> pluginSteps, IEnumerable<Image> pluginImages, string description)
     {
         var pluginStepReqs = pluginSteps
             .Select(x =>
@@ -92,11 +96,11 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
 
         if (updateRequests.Count > 0)
         {
-            writer.PerformAsBulkWithOutput(updateRequests);
+            writer.PerformAsBulkWithOutput(updateRequests, r => r.Target.LogicalName);
         }
     }
 
-    public List<PluginTypeEntity> CreatePluginTypes(List<PluginTypeEntity> pluginTypes, Guid assemblyId, string description)
+    public List<PluginType> CreatePluginTypes(List<PluginType> pluginTypes, Guid assemblyId, string description)
     {
         return pluginTypes.ConvertAll(x =>
         {
@@ -113,7 +117,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
         });
     }
 
-    public List<PluginStepEntity> CreatePluginSteps(List<PluginStepEntity> pluginSteps, List<PluginTypeEntity> pluginTypes, string solutionName, string description)
+    public List<Step> CreatePluginSteps(List<Step> pluginSteps, List<PluginType> pluginTypes, string solutionName, string description)
     {
         var eventOperations = pluginSteps.Select(step => step.EventOperation).Distinct();
         var messageIds = messageReader.GetMessages(eventOperations);
@@ -153,7 +157,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
         });
     }
 
-    public List<PluginImageEntity> CreatePluginImages(List<PluginImageEntity> pluginImages, List<PluginStepEntity> pluginSteps)
+    public List<Image> CreatePluginImages(List<Image> pluginImages, List<Step> pluginSteps)
     {
         return pluginImages.ConvertAll(image =>
         {

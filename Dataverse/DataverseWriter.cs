@@ -61,9 +61,9 @@ public sealed class DataverseWriter : IDataverseWriter
         serviceClient.Update(entity);
     }
 
-    public void PerformAsBulkWithOutput<T>(List<T> updates) where T : OrganizationRequest
+    public void PerformAsBulkWithOutput<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
     {
-        var responses = PerformAsBulk(updates);
+        var responses = PerformAsBulk(updates, targetSelector);
         var failedReponses = responses.Where(x => x.Fault != null).ToList();
         if (failedReponses.Count > 0)
         {
@@ -76,7 +76,7 @@ public sealed class DataverseWriter : IDataverseWriter
         }
     }
 
-    public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest
+    public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
     {
         var chunks = updates.Chunk(200);
         var responses = new List<ExecuteMultipleResponseItem>();

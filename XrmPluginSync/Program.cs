@@ -1,13 +1,14 @@
 ﻿using DG.XrmPluginSync;
 using DG.XrmPluginSync.Dataverse.Extensions;
 using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.SyncService;
 using DG.XrmPluginSync.SyncService.Extensions;
-using DG.XrmPluginSync.SyncService.Requests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
 using DGLoggerFactory = DG.XrmPluginSync.LoggerFactory;
+
 
 // Define CLI options
 Option<string> assemblyFileOption = new(["--assembly", "-a", "--assembly-file", "--af"], "Path to the plugin assembly (*.dll)")
@@ -28,11 +29,7 @@ var dryRunOption = new Option<bool>(["--dry-run", "--dryrun"], "Perform a dry ru
 };
 
 var logLevelOption = new Option<LogLevel>(["--log-level", "-l"], () => LogLevel.Information, "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical)");
-
-var dataverseOption = new Option<string?>(["--dataverse"], "The Dataverse URL to connect to")
-{
-    IsRequired = false
-};
+var dataverseOption = new Option<string?>(["--dataverse"], "The Dataverse URL to connect to");
 
 var rootCommand = new RootCommand("XrmPluginSync - Synchronize your Dataverse plugins")
 {
@@ -65,15 +62,13 @@ rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, data
         .ConfigureServices((_, services) =>
         {
             services.AddSingleton(options);
+            services.AddSingleton((_) => DGLoggerFactory.GetLogger<ISyncService>());
             services.AddSyncService();
             services.AddDataverse();
-            services.AddSingleton((_) => DGLoggerFactory.GetLogger<PluginSync>());
-            services.AddSingleton<DG.XrmPluginSync.SyncService.Common.Description>();
-            services.AddTransient<SyncRequest>();
         })
         .Build();
 
-    await PluginSync.RunCli(host.Services);
+    await PluginSync.RunSync(host.Services);
 }, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption, dataverseOption);
 
 return await rootCommand.InvokeAsync(args);

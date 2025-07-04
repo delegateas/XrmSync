@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DG.XrmPluginSync.Model;
+namespace DG.XrmPluginSync.Model.Plugin;
 
-public record PluginStepEntity : EntityBase
+public record Step : EntityBase
 {
     public required string PluginTypeName { get; set; }
     public required int ExecutionStage { get; set; }
@@ -14,5 +14,5 @@ public record PluginStepEntity : EntityBase
     public required int ExecutionOrder { get; set; }
     public required string FilteredAttributes { get; set; }
     public required Guid UserContext { get; set; }
-    public required List<PluginImageEntity> PluginImages { get; set; } = [];
+    public required List<Image> PluginImages { get; set; } = [];
 }

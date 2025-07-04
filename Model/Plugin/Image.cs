@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
+﻿namespace DG.XrmPluginSync.Model.Plugin;
 
-namespace DG.XrmPluginSync.Model;
-
-public record PluginImageEntity : EntityBase
+public record Image : EntityBase
 {
     public required string PluginStepName { get; set; }
     public required string EntityAlias { get; set; }

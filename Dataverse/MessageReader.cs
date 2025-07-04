@@ -24,6 +24,9 @@ public class MessageReader(IDataverseReader reader) : IMessageReader
 
     public Dictionary<string, Guid> GetMessages(IEnumerable<string> names)
     {
+        if (!names.Any())
+            return [];
+
         var query = new QueryExpression(EntityTypeNames.Message)
         {
             ColumnSet = new ColumnSet("sdkmessageid", "name")

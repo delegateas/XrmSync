@@ -1,15 +1,11 @@
-using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.Model.Plugin;
 
 namespace DG.XrmPluginSync.SyncService.Comparers;
 
-public class PluginStepComparer : IEqualityComparer<PluginStepEntity>
+public class PluginStepComparer : BaseComparer<Step>
 {
-    public bool Equals(PluginStepEntity? x, PluginStepEntity? y)
+    protected override bool EqualsInternal(Step x, Step y)
     {
-        if (ReferenceEquals(x, y)) return true;
-        if (x is null) return false;
-        if (y is null) return false;
-        if (x.GetType() != y.GetType()) return false;
         return
             x.Name == y.Name &&
             x.ExecutionStage == y.ExecutionStage &&
@@ -18,10 +14,5 @@ public class PluginStepComparer : IEqualityComparer<PluginStepEntity>
             x.ExecutionOrder == y.ExecutionOrder &&
             x.FilteredAttributes == y.FilteredAttributes &&
             x.UserContext == y.UserContext;
-    }
-
-    public int GetHashCode(PluginStepEntity obj)
-    {
-        return (obj.Name?.GetHashCode()) ?? 0;
     }
 }

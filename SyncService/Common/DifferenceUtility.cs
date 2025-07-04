@@ -1,4 +1,9 @@
 ﻿using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.Model.CustomApi;
+using DG.XrmPluginSync.Model.Plugin;
+using DG.XrmPluginSync.SyncService.Comparers;
+using DG.XrmPluginSync.SyncService.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace DG.XrmPluginSync.SyncService.Common;
 
@@ -9,18 +14,32 @@ public class Difference<T>
     public List<T> Deletes { get; set; } = [];
 }
 
-public static class DifferenceUtility
+public record Differences(Difference<PluginType> Types,
+    Difference<Step> PluginSteps, Difference<Image> PluginImages,
+    Difference<ApiDefinition> CustomApis, Difference<RequestParameter> RequestParameters, Difference<ResponseProperty> ResponseProperties);
+
+public class DifferenceUtility(ILogger log,
+    IEqualityComparer<PluginType> pluginTypeComparer,
+    IEqualityComparer<Step> pluginStepComparer,
+    IEqualityComparer<Image> pluginImageComparer,
+    IEqualityComparer<ApiDefinition> customApiComparer,
+    IEqualityComparer<RequestParameter> requestComparer,
+    IEqualityComparer<ResponseProperty> responseComparer) : IDifferenceUtility
 {
-    public static Difference<T> GetDifference<T>(List<T> list1, List<T> list2, IEqualityComparer<T> comparer)
+    private static Difference<T> GetDifference<T>(List<T> list1, List<T> list2, IEqualityComparer<T> comparer, Func<T, string>? nameSelector = null) where T : EntityBase
     {
+        nameSelector ??= (x) => x.Name;
+
         var creates = list1
-            .Except(list2, comparer)
+            .Where(x => !list2.Any(y => nameSelector(x) == nameSelector(y)))
             .ToList();
+
         var deletes = list2
-            .Except(list1, comparer)
+            .Where(x => !list1.Any(y => nameSelector(x) == nameSelector(y)))
             .ToList();
+
         var updates = list1
-            .Intersect(list2, comparer)
+            .Where(x => list2.Any(y => nameSelector(x) == nameSelector(y) && !comparer.Equals(x, y)))
             .ToList();
 
         return new Difference<T>
@@ -31,69 +50,28 @@ public static class DifferenceUtility
         };
     }
 
-    public static Difference<PluginTypeEntity> GetDifference(List<PluginTypeEntity> list1, List<PluginTypeEntity> list2, IEqualityComparer<PluginTypeEntity> comparer)
+    public Differences CalculateDifferences(CompiledData localData, CompiledData remoteData)
     {
-        var creates = list1
-            .Where(x => !list2.Any(y => x.Name == y.Name))
-            .ToList();
+        var pluginTypeDifference = GetDifference(localData.Types, remoteData.Types, pluginTypeComparer);
+        log.Print(pluginTypeDifference, "Types", x => x.Name);
 
-        var deletes = list2
-            .Where(x => !list1.Any(y => x.Name == y.Name))
-            .ToList();
+        var pluginStepsDifference = GetDifference(localData.Steps, remoteData.Steps, pluginStepComparer);
+        log.Print(pluginStepsDifference, "Plugin Steps", x => x.Name);
 
-        var updates = list1
-            .Where(x => list2.Any(y => x.Name == y.Name && !comparer.Equals(x, y)))
-            .ToList();
+        var pluginImagesDifference = GetDifference(localData.Images, remoteData.Images, pluginImageComparer, x => $"[{x.Name}] {x.PluginStepName}");
+        log.Print(pluginImagesDifference, "Plugin Images", x => $"[{x.Name}] {x.PluginStepName}");
 
-        return new Difference<PluginTypeEntity>
-        {
-            Creates = creates,
-            Deletes = deletes,
-            Updates = updates
-        };
-    }
+        var customApiDifference = GetDifference(localData.CustomApis, remoteData.CustomApis, customApiComparer);
+        log.Print(customApiDifference, "Custom APIs", x => x.Name);
 
-    public static Difference<PluginStepEntity> GetDifference(List<PluginStepEntity> list1, List<PluginStepEntity> list2, IEqualityComparer<PluginStepEntity> comparer)
-    {
-        var creates = list1
-            .Where(x => !list2.Any(y => x.Name == y.Name))
-            .ToList();
+        var requestDifference = GetDifference(localData.RequestParameters, remoteData.RequestParameters, requestComparer);
+        log.Print(requestDifference, "Custom API Request Parameters", x => x.Name);
 
-        var deletes = list2
-            .Where(x => !list1.Any(y => x.Name == y.Name))
-            .ToList();
+        var responseDifference = GetDifference(localData.ResponseProperties, remoteData.ResponseProperties, responseComparer);
+        log.Print(responseDifference, "Custom API Response Properties", x => x.Name);
 
-        var updates = list1
-            .Where(x => list2.Any(y => x.Name == y.Name && !comparer.Equals(x, y)))
-            .ToList();
-
-        return new Difference<PluginStepEntity>
-        {
-            Creates = creates,
-            Deletes = deletes,
-            Updates = updates
-        };
-    }
-
-    public static Difference<PluginImageEntity> GetDifference(List<PluginImageEntity> list1, List<PluginImageEntity> list2, IEqualityComparer<PluginImageEntity> comparer)
-    {
-        var creates = list1
-            .Where(x => !list2.Any(y => x.Name == y.Name && x.PluginStepName == y.PluginStepName))
-            .ToList();
-
-        var deletes = list2
-            .Where(x => !list1.Any(y => x.Name == y.Name && x.PluginStepName == y.PluginStepName))
-            .ToList();
-
-        var updates = list1
-            .Where(x => list2.Any(y => x.Name == y.Name && x.PluginStepName == y.PluginStepName && !comparer.Equals(x, y)))
-            .ToList();
-
-        return new Difference<PluginImageEntity>
-        {
-            Creates = creates,
-            Deletes = deletes,
-            Updates = updates
-        };
+        return new(pluginTypeDifference,
+            pluginStepsDifference, pluginImagesDifference,
+            customApiDifference, requestDifference, responseDifference);
     }
 }

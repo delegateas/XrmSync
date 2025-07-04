@@ -1,14 +1,29 @@
 ﻿using DG.XrmPluginSync.Model;
 using System.Reflection;
-using ExtendedStepConfig = System.Tuple<int, int, string, int, string, string>;
-using ImageTuple = System.Tuple<string, string, int, string>;
+
+// StepConfig           : className, ExecutionStage, EventOperation, LogicalName
 using StepConfig = System.Tuple<string, int, string, string>;
+// ExtendedStepConfig   : Deployment, ExecutionMode, Name, ExecutionOrder, FilteredAttributes, UserContext
+using ExtendedStepConfig = System.Tuple<int, int, string, int, string, string>;
+// ImageTuple           : Name, EntityAlias, ImageType, Attributes
+using ImageTuple = System.Tuple<string, string, int, string>;
+
+// MainCustomAPIConfig      : UniqueName, IsFunction, EnabledForWorkflow, AllowedCustomProcessingStepType, BindingType, BoundEntityLogicalName
+using MainCustomAPIConfig = System.Tuple<string, bool, int, int, int, string>;
+// ExtendedCustomAPIConfig  : PluginType, OwnerId, OwnerType, IsCustomizable, IsPrivate, ExecutePrivilegeName, Description
+using ExtendedCustomAPIConfig = System.Tuple<string, string, string, bool, bool, string, string>;
+// RequestParameterConfig   : Name, UniqueName, DisplayName, IsCustomizable, IsOptional, LogicalEntityName, Type
+using RequestParameterConfig = System.Tuple<string, string, string, bool, bool, string, int>; // TODO: Add description maybe
+// ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
+using ResponsePropertyConfig = System.Tuple<string, string, string, bool, string, int>;
+using DG.XrmPluginSync.Model.Plugin;
+using DG.XrmPluginSync.Model.CustomApi; // TODO
 
 namespace DG.XrmPluginSync.AssemblyAnalyzer;
 
 internal static class AssemblyAnalyzer
 {
-    public static PluginAssembly GetPluginAssembly(string dllPath)
+    public static AssemblyInfo GetPluginAssembly(string dllPath)
     {
         var dllFullPath = Path.GetFullPath(dllPath);
 
@@ -18,19 +33,95 @@ internal static class AssemblyAnalyzer
 
         var assembly = Assembly.LoadFrom(dllTempPath);
         var assemblyVersion = assembly.GetName()?.Version?.ToString() ?? throw new InvalidOperationException("Could not determine assembly version");
-        var pluginTypes = GetPluginTypesFromAssembly(assembly);
+        var pluginDefinitions = GetPluginTypesFromAssembly(assembly);
+        var customApis = GetCustomApisFromAssembly(assembly);
 
-        return new PluginAssembly
+        return new AssemblyInfo
         {
             Name = dllname,
             Version = assemblyVersion,
             Hash = hash,
             DllPath = dllFullPath,
-            PluginTypes = pluginTypes,
+            Plugins = pluginDefinitions,
+            CustomApis = customApis,
         };
     }
 
-    private static List<PluginTypeEntity> GetPluginTypesFromAssembly(Assembly assembly)
+    private static List<ApiDefinition> GetCustomApisFromAssembly(Assembly assembly)
+    {
+        var types = assembly.GetLoadableTypes();
+        var customApiType = types.FirstOrDefault(x => x.Name == "CustomAPI");
+        if (customApiType == null)
+            return [];
+
+        var customApiEntities = new List<ApiDefinition>();
+
+        foreach (var x in types.Where(x => x.IsSubclassOf(customApiType) && !x.IsAbstract && x.GetConstructor(Type.EmptyTypes) != null))
+        {
+            var instance = Activator.CreateInstance(x);
+            var methodInfo = x.GetMethod("GetCustomAPIConfig") ?? throw new InvalidOperationException($"CustomAPI type '{x.Name}' does not have a GetCustomAPIConfig method.");
+            var result = methodInfo.Invoke(instance, null) ?? throw new InvalidOperationException($"GetCustomAPIConfig returned null for type '{x.Name}'.");
+
+            var tuple = (Tuple<
+				MainCustomAPIConfig,
+				ExtendedCustomAPIConfig,
+                IEnumerable<RequestParameterConfig>,
+                IEnumerable<ResponsePropertyConfig>
+            >)result;
+
+            var apiDef = tuple.Item1;
+            var apiMeta = tuple.Item2;
+            var reqParams = tuple.Item3;
+            var resProps = tuple.Item4;
+
+            var entity = new ApiDefinition
+            {
+                UniqueName = apiDef.Item1,
+                Name = apiDef.Item1,
+                IsFunction = apiDef.Item2,
+                EnabledForWorkflow = apiDef.Item3 == 1,
+                AllowedCustomProcessingStepType = apiDef.Item4,
+                BindingType = apiDef.Item5,
+                BoundEntityLogicalName = apiDef.Item6,
+
+                PluginTypeName = apiMeta.Item1,
+                OwnerId = Guid.TryParse(apiMeta.Item2, out var ownerId) ? ownerId : Guid.Empty,
+                IsCustomizable = apiMeta.Item4,
+                IsPrivate = apiMeta.Item5,
+                ExecutePrivilegeName = apiMeta.Item6,
+                Description = apiMeta.Item7,
+                DisplayName = apiDef.Item1, // No explicit display name in tuple, fallback to name
+
+                RequestParameters = reqParams?.Select(p => new RequestParameter
+                {
+                    Name = p.Item1,
+                    UniqueName = p.Item2,
+                    DisplayName = p.Item3,
+                    IsCustomizable = p.Item4,
+                    IsOptional = p.Item5,
+                    LogicalEntityName = p.Item6,
+                    Type = p.Item7,
+                    CustomApiName = apiDef.Item1
+                }).ToList() ?? [],
+
+                ResponseProperties = resProps?.Select(r => new ResponseProperty
+                {
+                    Name = r.Item1,
+                    UniqueName = r.Item2,
+                    DisplayName = r.Item3,
+                    IsCustomizable = r.Item4,
+                    LogicalEntityName = r.Item5,
+                    Type = r.Item6,
+                    CustomApiName = apiDef.Item1
+                }).ToList() ?? []
+            };
+
+            customApiEntities.Add(entity);
+        }
+        return customApiEntities;
+    }
+
+    private static List<PluginDefinition> GetPluginTypesFromAssembly(Assembly assembly)
     {
         var types = assembly.GetLoadableTypes();
         var pluginType = types.First(x => x.Name == "Plugin");
@@ -51,8 +142,15 @@ internal static class AssemblyAnalyzer
         .SelectMany(x =>
         {
             var instance = Activator.CreateInstance(x);
-            var methodInfo = x.GetMethod(@"PluginProcessingStepConfigs");
-            var pluginTuples = (IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>)methodInfo.Invoke(instance, null);
+            var methodInfo = x.GetMethod("PluginProcessingStepConfigs");
+            if (methodInfo == null)
+                throw new InvalidOperationException($"Plugin type '{x.Name}' does not have a PluginProcessingStepConfigs method.");
+
+            var result = methodInfo.Invoke(instance, null);
+            if (result == null)
+                throw new InvalidOperationException($"PluginProcessingStepConfigs returned null for type '{x.Name}'.");
+
+            var pluginTuples = (IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>)result;
             return pluginTuples
                 .Select(tuple =>
                 {
@@ -72,7 +170,7 @@ internal static class AssemblyAnalyzer
                             var iType = image.Item3;
                             var iAttr = image.Item4;
 
-                            return new PluginImageEntity
+                            return new Image
                             {
                                 PluginStepName = stepName,
                                 Name = iName,
@@ -82,7 +180,7 @@ internal static class AssemblyAnalyzer
                             };
                         }).ToList();
 
-                    var step = new PluginStepEntity
+                    var step = new Step
                     {
                         ExecutionStage = stage,
                         Deployment = deployment,
@@ -98,7 +196,7 @@ internal static class AssemblyAnalyzer
                         LogicalName = logicalName,
                     };
 
-                    return new PluginTypeEntity
+                    return new PluginDefinition
                     {
                         Name = className,
                         PluginSteps = [step],

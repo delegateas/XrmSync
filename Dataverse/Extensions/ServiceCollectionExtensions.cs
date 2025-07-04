@@ -23,8 +23,12 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IMessageReader, MessageReader>();
         services.AddSingleton<ISolutionReader, SolutionReader>();
+
         services.AddSingleton<IPluginReader, PluginReader>();
         services.AddSingleton<IPluginWriter, PluginWriter>();
+
+        services.AddSingleton<ICustomApiReader, CustomApiReader>();
+        services.AddSingleton<ICustomApiWriter, CustomApiWriter>();
 
         return services;
     }

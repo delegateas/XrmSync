@@ -1,5 +1,5 @@
 ﻿using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.Model.Plugin;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
@@ -135,7 +135,7 @@ public class PluginReader(IDataverseReader reader) : IPluginReader
         return reader.RetrieveMultiple(query);
     }
 
-    public IEnumerable<PluginStepEntity> GetMissingUserContexts(IEnumerable<PluginStepEntity> pluginSteps)
+    public IEnumerable<Step> GetMissingUserContexts(IEnumerable<Step> pluginSteps)
     {
         var userContextIds = pluginSteps
             .Select(x => x.UserContext)

@@ -1,4 +1,5 @@
 ﻿using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.Model.Plugin;
 
 namespace DG.XrmPluginSync.SyncService.Extensions;
 
@@ -26,5 +27,16 @@ internal static class EntityExtensions
                 dest.Id = Guid.Empty;
             }
         });
+    }
+
+    public static PluginType ToPluginType<TEntity>(this TEntity entity, List<PluginType> knownTypes, Func<TEntity, string> nameSelector) where TEntity : EntityBase
+    {
+        var knownPluginType = knownTypes.FirstOrDefault(p => p.Name == nameSelector(entity));
+
+        return new PluginType
+        {
+            Id = knownPluginType?.Id ?? Guid.Empty,
+            Name = nameSelector(entity)
+        };
     }
 }

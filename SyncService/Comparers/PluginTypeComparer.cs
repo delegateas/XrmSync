@@ -1,21 +1,11 @@
-using DG.XrmPluginSync.Model;
+using DG.XrmPluginSync.Model.Plugin;
 
 namespace DG.XrmPluginSync.SyncService.Comparers;
 
-public class PluginTypeComparer : IEqualityComparer<PluginTypeEntity>
+public class PluginTypeComparer : BaseComparer<PluginType>
 {
-    public bool Equals(PluginTypeEntity? x, PluginTypeEntity? y)
+    protected override bool EqualsInternal(PluginType x, PluginType y)
     {
-        if (ReferenceEquals(x, y)) return true;
-        if (x is null) return false;
-        if (y is null) return false;
-        if (x.GetType() != y.GetType()) return false;
-
         return x.Name == y.Name;
-    }
-
-    public int GetHashCode(PluginTypeEntity obj)
-    {
-        return (obj.Name?.GetHashCode()) ?? 0;
     }
 }
