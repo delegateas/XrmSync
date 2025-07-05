@@ -6,7 +6,6 @@ using DG.XrmPluginSync.SyncService.AssemblyReader;
 using DG.XrmPluginSync.SyncService.Common;
 using DG.XrmPluginSync.SyncService.Extensions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Xrm.Sdk;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Tests")]
@@ -133,20 +132,12 @@ public class PluginSyncService(
 
     internal (AssemblyInfo? assemblyInfo, List<PluginType> pluginTypes) GetPluginAssembly(Guid solutionId, string assemblyName)
     {
-        var assemblyEntity = pluginReader.GetPluginAssembly(solutionId, assemblyName);
-        if (assemblyEntity == null) return (null, []);
+        var assemblyInfo = pluginReader.GetPluginAssembly(solutionId, assemblyName);
+        var pluginDefinitions = GetPluginTypes(solutionId, assemblyInfo.Id);
 
-        var pluginDefinitions = GetPluginTypes(solutionId, assemblyEntity.Id);
-
-        var assemblyInfo = new AssemblyInfo()
-        {
-            Id = assemblyEntity.Id,
-            Name = assemblyEntity.GetAttributeValue<string>("name"),
-            Version = assemblyEntity.GetAttributeValue<string>("version"),
-            Hash = assemblyEntity.GetAttributeValue<string>("sourcehash"),
+        assemblyInfo = assemblyInfo with {
             Plugins = [.. pluginDefinitions.Where(p => p.PluginSteps.Count > 0)],
-            CustomApis = GetCustomApis(pluginDefinitions, solutionId),
-            DllPath = string.Empty,
+            CustomApis = customApiReader.GetCustomApis(solutionId),
         };
 
         return (assemblyInfo, pluginDefinitions.ConvertAll(p => new PluginType { Id = p.Id, Name = p.Name }));
@@ -156,125 +147,16 @@ public class PluginSyncService(
     {
         var pluginAssemblyTypes = pluginReader.GetPluginTypes(assemblyId);
 
+        var typeIds = pluginAssemblyTypes.ConvertAll(t => t.Id);
+        var pluginStepsLookup = pluginReader.GetPluginSteps(solutionId, typeIds);
+
         return pluginAssemblyTypes
-            .ConvertAll(type =>
+            .ConvertAll(type => new PluginDefinition
             {
-                var pluginSteps = pluginReader.GetPluginSteps(solutionId, type.Id);
-                var pluginStepDtos = pluginSteps.ConvertAll(step =>
-                {
-                    var pluginImages = GetPluginImages(step);
-
-                    return new Step
-                    {
-                        Id = step.Id,
-                        LogicalName = string.Empty, // TODO step.GetAttributeValue<string>(),
-                        EventOperation = string.Empty, // TODO step.GetAttributeValue<string>("eventoperation"),
-                        ExecutionStage = step.GetAttributeValue<OptionSetValue>("stage").Value,
-                        Deployment = step.GetAttributeValue<OptionSetValue>("supporteddeployment").Value,
-                        ExecutionMode = step.GetAttributeValue<OptionSetValue>("mode").Value,
-                        ExecutionOrder = step.GetAttributeValue<int>("rank"),
-                        FilteredAttributes = step.GetAttributeValue<string>("filteringattributes"),
-                        UserContext = step.GetAttributeValue<EntityReference>("impersonatinguserid")?.Id ?? Guid.Empty,
-                        PluginTypeName = type.GetAttributeValue<string>("name"),
-                        Name = step.GetAttributeValue<string>("name"),
-                        PluginImages = pluginImages
-                    };
-                });
-
-                return new PluginDefinition
-                {
-                    Id = type.Id,
-                    Name = type.GetAttributeValue<string>("name"),
-                    PluginSteps = pluginStepDtos
-                };
+                Id = type.Id,
+                Name = type.Name,
+                PluginSteps = [.. pluginStepsLookup[type.Id]]
             });
-    }
-
-    private List<ApiDefinition> GetCustomApis(List<PluginDefinition> pluginDefinitions, Guid solutionId)
-    {
-        var customApis = customApiReader.GetCustomApis(solutionId);
-
-        return [.. customApis.Select(api =>
-        {
-            var name = api.GetAttributeValue<string>("name");
-            var pluginTypeId = api.GetAttributeValue<EntityReference>("plugintypeid")?.Id ?? Guid.Empty;
-
-            if (pluginTypeId == default)
-            {
-                return null;
-            }
-
-            var pluginDefinition = pluginDefinitions.FirstOrDefault(p => p.Id == pluginTypeId);
-            if (pluginDefinition is null) {
-                return null;
-            }
-            
-            var requestParameters =
-                customApiReader.GetCustomApiRequestParameters(api.Id)
-                .ConvertAll(p => new RequestParameter
-                {
-                    Id = p.Id,
-                    CustomApiName = name,
-                    DisplayName = p.GetAttributeValue<string>("displayname"),
-                    UniqueName = p.GetAttributeValue<string>("uniquename"),
-                    Name = p.GetAttributeValue<string>("name"),
-                    IsCustomizable = p.GetAttributeValue<BooleanManagedProperty>("iscustomizable").Value,
-                    LogicalEntityName = p.GetAttributeValue<string>("logicalentityname"),
-                    IsOptional = p.GetAttributeValue<bool>("isoptional"),
-                    Type = p.GetAttributeValue<OptionSetValue>("type").Value
-                });
-
-            var responseProperties =
-                customApiReader.GetCustomApiResponseProperties(api.Id)
-                .ConvertAll(p => new ResponseProperty
-                {
-                    Id = p.Id,
-                    CustomApiName = name,
-                    DisplayName = p.GetAttributeValue<string>("displayname"),
-                    UniqueName = p.GetAttributeValue<string>("uniquename"),
-                    Name = p.GetAttributeValue<string>("name"),
-                    IsCustomizable = p.GetAttributeValue<BooleanManagedProperty>("iscustomizable").Value,
-                    LogicalEntityName = p.GetAttributeValue<string>("logicalentityname"),
-                    Type = p.GetAttributeValue<OptionSetValue>("type").Value
-                });
-
-            return new ApiDefinition
-            {
-                Id = api.Id,
-                Name = name,
-                PluginTypeName = pluginDefinition.Name,
-                UniqueName = api.GetAttributeValue<string>("uniquename"),
-                DisplayName = api.GetAttributeValue<string>("displayname"),
-                Description = api.GetAttributeValue<string>("description"),
-                IsFunction = api.GetAttributeValue<bool>("isfunction"),
-                EnabledForWorkflow = api.GetAttributeValue<bool>("workflowssdkstepenabled"),
-                BindingType = api.GetAttributeValue<OptionSetValue>("bindingtype").Value,
-                BoundEntityLogicalName = api.GetAttributeValue<string>("boundentitylogicalname"),
-                AllowedCustomProcessingStepType = api.GetAttributeValue<OptionSetValue>("allowedcustomprocessingsteptype").Value,
-                OwnerId = api.GetAttributeValue<EntityReference>("owninguser").Id,
-                IsCustomizable = api.GetAttributeValue<BooleanManagedProperty>("iscustomizable").Value,
-                IsPrivate = api.GetAttributeValue<bool>("isprivate"),
-                ExecutePrivilegeName = api.GetAttributeValue<string>("executeprivilegename"),
-
-                RequestParameters = requestParameters,
-                ResponseProperties = responseProperties
-            };
-        })
-        .Where(p => p != null).Select(p => p!)];
-    }
-
-    private List<Image> GetPluginImages(Entity step)
-    {
-        return pluginReader.GetPluginImages(step.Id)
-                            .ConvertAll(image => new Image
-                            {
-                                Id = image.Id,
-                                PluginStepName = step.GetAttributeValue<string>("name"),
-                                Name = image.GetAttributeValue<string>("name"),
-                                EntityAlias = image.GetAttributeValue<string>("entityalias"),
-                                ImageType = image.GetAttributeValue<OptionSetValue>("imagetype").Value,
-                                Attributes = image.GetAttributeValue<string>("attributes"),
-                            });
     }
 
     private AssemblyInfo UpsertAssembly(AssemblyInfo localAssembly, AssemblyInfo? remoteAssembly)

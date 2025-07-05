@@ -1,11 +1,12 @@
 using DG.XrmPluginSync.Model.Plugin;
+using System.Linq.Expressions;
 
 namespace DG.XrmPluginSync.SyncService.Comparers;
 
 public class PluginTypeComparer : BaseComparer<PluginType>
 {
-    protected override bool EqualsInternal(PluginType x, PluginType y)
+    public override IEnumerable<Expression<Func<PluginType, object>>> GetDifferentPropertyNames(PluginType x, PluginType y)
     {
-        return x.Name == y.Name;
+        if (x.Name != y.Name) yield return x => x.Name;
     }
 }

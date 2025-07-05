@@ -1,10 +1,13 @@
 ﻿using DG.XrmPluginSync.Model;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 
 namespace DG.XrmPluginSync.SyncService.Comparers;
 
-public abstract class BaseComparer<TEntity> : IEqualityComparer<TEntity> where TEntity : EntityBase
+public abstract class BaseComparer<TEntity> : IEntityComparer<TEntity> where TEntity : EntityBase
 {
+    public abstract IEnumerable<Expression<Func<TEntity, object>>> GetDifferentPropertyNames(TEntity x, TEntity y);
+
     public bool Equals(TEntity? x, TEntity? y)
     {
         if (ReferenceEquals(x, y)) return true;
@@ -12,10 +15,8 @@ public abstract class BaseComparer<TEntity> : IEqualityComparer<TEntity> where T
         if (y is null) return false;
         if (x.GetType() != y.GetType()) return false;
 
-        return EqualsInternal(x, y);
+        return !GetDifferentPropertyNames(x, y).Any();
     }
-
-    protected abstract bool EqualsInternal(TEntity x, TEntity y);
 
     public int GetHashCode([DisallowNull] TEntity obj)
     {

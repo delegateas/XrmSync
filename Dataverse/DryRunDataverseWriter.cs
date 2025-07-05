@@ -58,7 +58,7 @@ public class DryRunDataverseWriter : IDataverseWriter
 
         logger.LogTrace("{attrs}", string.Join("\n", entity.Attributes.Select(kvp => $" - {kvp.Key}: {TruncateValue(kvp.Value)}")));
 
-        if (parameters != null && parameters.Count > 0)
+        if (parameters?.Count > 0)
         {
             logger.LogTrace("Parameters: {params}", string.Join(", ", parameters.Select(kvp => $"{kvp.Key}: {TruncateValue(kvp.Value)}")));
         }

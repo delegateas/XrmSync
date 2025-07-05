@@ -1,15 +1,15 @@
 using DG.XrmPluginSync.Model.Plugin;
+using System.Linq.Expressions;
 
 namespace DG.XrmPluginSync.SyncService.Comparers;
 
 public class PluginImageComparer : BaseComparer<Image>
 {
-    protected override bool EqualsInternal(Image x, Image y)
+    public override IEnumerable<Expression<Func<Image, object>>> GetDifferentPropertyNames(Image x, Image y)
     {
-        return
-            x.Name == y.Name &&
-            x.EntityAlias == y.EntityAlias &&
-            x.ImageType == y.ImageType &&
-            x.Attributes == y.Attributes;
+        if (x.Name != y.Name) yield return x => x.Name;
+        if (x.EntityAlias != y.EntityAlias) yield return x => x.EntityAlias;
+        if (x.ImageType != y.ImageType) yield return x => x.ImageType;
+        if (x.Attributes != y.Attributes) yield return x => x.Attributes;
     }
 }

@@ -1,138 +1,135 @@
-﻿using DG.XrmPluginSync.Dataverse.Interfaces;
+﻿using DG.XrmPluginSync.Dataverse.Context;
+using DG.XrmPluginSync.Dataverse.Interfaces;
+using DG.XrmPluginSync.Model;
 using DG.XrmPluginSync.Model.Plugin;
+using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
 namespace DG.XrmPluginSync.Dataverse;
 
-public class PluginReader(IDataverseReader reader) : IPluginReader
+public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) : IPluginReader
 {
-    public Entity GetPluginAssembly(Guid id)
+    public AssemblyInfo GetPluginAssembly(Guid solutionId, string assemblyName)
     {
-        return reader.Retrieve(EntityTypeNames.PluginAssembly, id, new ColumnSet(true));
+        using var xrm = new DataverseContext(serviceClient);
+
+        return (from pa in xrm.PluginAssemblySet
+                join sc in xrm.SolutionComponentSet on pa.Id equals sc.ObjectId
+                where sc.SolutionId != null && sc.SolutionId.Id == solutionId && pa.Name == assemblyName
+                select new AssemblyInfo
+                {
+                    Id = pa.Id,
+                    Name = pa.Name ?? string.Empty,
+                    Version = pa.Version ?? string.Empty,
+                    Hash = pa.SourceHash ?? string.Empty
+                }).FirstOrDefault()
+                ?? throw new InvalidOperationException($"Plugin assembly with name '{assemblyName}' not found in solution with ID '{solutionId}'.");
     }
 
-    public Entity GetPluginAssembly(string name, string version)
+    public List<Model.Plugin.PluginType> GetPluginTypes(Guid assemblyId)
     {
-        LinkEntity link = new()
-        {
-            JoinOperator = JoinOperator.Inner,
-            LinkFromAttributeName = "pluginassemblyid",
-            LinkFromEntityName = EntityTypeNames.PluginAssembly,
-            LinkToAttributeName = "objectid",
-            LinkToEntityName = "solutioncomponent"
-        };
+        using var xrm = new DataverseContext(serviceClient);
 
-        link.Columns.AddColumn("solutionid");
-
-        FilterExpression filter = new();
-        filter.AddCondition(new ConditionExpression("name", ConditionOperator.Equal, name));
-        filter.AddCondition(new ConditionExpression("version", ConditionOperator.Equal, version));
-
-        QueryExpression query = new(EntityTypeNames.PluginAssembly)
-        {
-            ColumnSet = new ColumnSet(allColumns: true)
-        };
-        query.LinkEntities.Add(link);
-        query.Criteria = filter;
-
-        return reader.RetrieveFirstOrDefault(query);
+        return (from pt in xrm.PluginTypeSet
+                where pt.PluginAssemblyId != null && pt.PluginAssemblyId.Id == assemblyId
+                select new Model.Plugin.PluginType
+                {
+                    Id = pt.Id,
+                    Name = pt.Name ?? string.Empty
+                }).ToList();
     }
 
-    public Entity GetPluginAssembly(Guid solutionId, string assemblyName)
+    public ILookup<Guid, Step> GetPluginSteps(Guid solutionId, IEnumerable<Guid> pluginTypeIds)
     {
-        LinkEntity link = new()
+        // Create QueryExpression for SdkMessageProcessingStep
+        var query = new QueryExpression(SdkMessageProcessingStep.EntityLogicalName)
         {
-            JoinOperator = JoinOperator.Inner,
-            LinkFromAttributeName = "pluginassemblyid",
-            LinkFromEntityName = EntityTypeNames.PluginAssembly,
-            LinkToAttributeName = "objectid",
-            LinkToEntityName = "solutioncomponent"
+            ColumnSet = new ColumnSet(
+                SdkMessageProcessingStep.Fields.SdkMessageProcessingStepId,
+                SdkMessageProcessingStep.Fields.Name,
+                SdkMessageProcessingStep.Fields.Stage,
+                SdkMessageProcessingStep.Fields.Rank,
+                SdkMessageProcessingStep.Fields.Mode,
+                SdkMessageProcessingStep.Fields.SupportedDeployment,
+                SdkMessageProcessingStep.Fields.FilteringAttributes,
+                SdkMessageProcessingStep.Fields.ImpersonatingUserId,
+                SdkMessageProcessingStep.Fields.SdkMessageFilterId,
+                SdkMessageProcessingStep.Fields.PluginTypeId),
+            Criteria = new FilterExpression(LogicalOperator.And)
         };
-        link.Columns.AddColumn("solutionid");
-        link.LinkCriteria.Conditions.Add(new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId));
 
-        FilterExpression filter = new();
-        filter.AddCondition(new ConditionExpression("name", ConditionOperator.Equal, assemblyName));
+        // Add condition for pluginTypeIds
+        query.Criteria.AddCondition(SdkMessageProcessingStep.Fields.PluginTypeId, ConditionOperator.In, [.. pluginTypeIds]);
 
-        QueryExpression query = new(EntityTypeNames.PluginAssembly)
+        // Join with SolutionComponent
+        var solutionComponentLink = query.AddLink(SolutionComponent.EntityLogicalName, SdkMessageProcessingStep.Fields.SdkMessageProcessingStepId, SolutionComponent.Fields.ObjectId);
+        solutionComponentLink.LinkCriteria.AddCondition(SolutionComponent.Fields.SolutionId, ConditionOperator.Equal, solutionId);
+
+        // Join with PluginType
+        var pluginTypeLink = query.AddLink(Context.PluginType.EntityLogicalName, SdkMessageProcessingStep.Fields.PluginTypeId, Context.PluginType.Fields.PluginTypeId);
+        pluginTypeLink.Columns = new ColumnSet(Context.PluginType.Fields.Name);
+        pluginTypeLink.EntityAlias = "pt";
+
+        // Join with SdkMessage
+        var sdkMessageLink = query.AddLink(SdkMessage.EntityLogicalName, SdkMessageProcessingStep.Fields.SdkMessageId, SdkMessage.Fields.SdkMessageId);
+        sdkMessageLink.Columns = new ColumnSet(SdkMessage.Fields.Name);
+        sdkMessageLink.EntityAlias = "ms";
+
+        // Outer join with SdkMessageFilter to get LogicalName
+        var sdkMessageFilterLink = query.AddLink(SdkMessageFilter.EntityLogicalName, SdkMessageProcessingStep.Fields.SdkMessageFilterId, SdkMessageFilter.Fields.SdkMessageFilterId, JoinOperator.LeftOuter);
+        sdkMessageFilterLink.Columns = new ColumnSet(SdkMessageFilter.Fields.PrimaryObjectTypeCode);
+        sdkMessageFilterLink.EntityAlias = "mf";
+
+        // Outer join with SdkMessageProcessingStepImage to get PluginImages
+        var pluginImageLink = query.AddLink(SdkMessageProcessingStepImage.EntityLogicalName, SdkMessageProcessingStep.Fields.SdkMessageProcessingStepId, SdkMessageProcessingStepImage.Fields.SdkMessageProcessingStepId, JoinOperator.LeftOuter);
+        pluginImageLink.Columns = new ColumnSet(
+            SdkMessageProcessingStepImage.Fields.Id,
+            SdkMessageProcessingStepImage.Fields.Name,
+            SdkMessageProcessingStepImage.Fields.EntityAlias,
+            SdkMessageProcessingStepImage.Fields.Attributes1,
+            SdkMessageProcessingStepImage.Fields.ImageType
+        );
+        pluginImageLink.EntityAlias = "pi";
+
+        var results = reader.RetrieveMultiple(query);
+        var groupedSteps = results.GroupBy(entity => entity.Id);
+        return groupedSteps.Select(group =>
         {
-            ColumnSet = new ColumnSet(allColumns: true)
-        };
-        query.LinkEntities.Add(link);
-        query.Criteria = filter;
-        return reader.RetrieveFirstOrDefault(query);
-    }
+            var entity = group.FirstOrDefault()
+                ?? throw new InvalidOperationException("No steps found but ID returned: " + group.Key);
 
-    public List<Entity> GetPluginTypes(Guid assemblyId)
-    {
-        FilterExpression filter = new();
-        filter.AddCondition(new ConditionExpression("pluginassemblyid", ConditionOperator.Equal, assemblyId));
-        QueryExpression query = new(EntityTypeNames.PluginType)
-        {
-            ColumnSet = new ColumnSet(allColumns: true),
-            Criteria = filter
-        };
-        return reader.RetrieveMultiple(query);
-    }
+            var stepName = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.Name) ?? string.Empty;
 
-    public List<Entity> GetPluginSteps(Guid solutionId)
-    {
-        LinkEntity link = new()
-        {
-            JoinOperator = JoinOperator.Inner,
-            LinkFromAttributeName = "sdkmessageprocessingstepid",
-            LinkFromEntityName = EntityTypeNames.PluginStep,
-            LinkToAttributeName = "objectid",
-            LinkToEntityName = "solutioncomponent"
-        };
-        link.LinkCriteria.Conditions.Add(new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId));
+            var images = group
+                .Where(e => e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Id}") != null)
+                .Select(e => new Image
+                {
+                    Id = Guid.Parse(e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Id}")?.Value?.ToString() ?? string.Empty),
+                    Name = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
+                    EntityAlias = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.EntityAlias}")?.Value?.ToString() ?? string.Empty,
+                    Attributes = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Attributes1}")?.Value?.ToString() ?? string.Empty,
+                    ImageType = (e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.ImageType}")?.Value as OptionSetValue)?.Value ?? 0,
+                    PluginStepName = stepName
+                }).ToList();
 
-        FilterExpression filter = new();
-        QueryExpression query = new(EntityTypeNames.PluginStep)
-        {
-            ColumnSet = new ColumnSet(allColumns: true)
-        };
-        query.LinkEntities.Add(link);
-        query.Criteria = filter;
-
-        return reader.RetrieveMultiple(query);
-    }
-
-    public List<Entity> GetPluginSteps(Guid solutionId, Guid pluginTypeId)
-    {
-        LinkEntity link = new()
-        {
-            JoinOperator = JoinOperator.Inner,
-            LinkFromAttributeName = "sdkmessageprocessingstepid",
-            LinkFromEntityName = EntityTypeNames.PluginStep,
-            LinkToAttributeName = "objectid",
-            LinkToEntityName = "solutioncomponent"
-        };
-        link.LinkCriteria.Conditions.Add(new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId));
-
-        FilterExpression filter = new();
-        filter.AddCondition(new ConditionExpression("plugintypeid", ConditionOperator.Equal, pluginTypeId));
-        QueryExpression query = new(EntityTypeNames.PluginStep)
-        {
-            ColumnSet = new ColumnSet(allColumns: true)
-        };
-        query.LinkEntities.Add(link);
-        query.Criteria = filter;
-
-        return reader.RetrieveMultiple(query);
-    }
-
-    public List<Entity> GetPluginImages(Guid stepId)
-    {
-        FilterExpression filter = new();
-        filter.AddCondition(new ConditionExpression("sdkmessageprocessingstepid", ConditionOperator.Equal, stepId));
-        QueryExpression query = new(EntityTypeNames.PluginStepImage)
-        {
-            ColumnSet = new ColumnSet(allColumns: true),
-            Criteria = filter
-        };
-        return reader.RetrieveMultiple(query);
+            return (entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.PluginTypeId)?.Id ?? Guid.Empty, new Step
+            {
+                Id = entity.GetAttributeValue<Guid>(SdkMessageProcessingStep.Fields.Id),
+                Name = stepName,
+                PluginTypeName = entity.GetAttributeValue<AliasedValue>($"pt.{Context.PluginType.Fields.Name}")?.Value?.ToString() ?? string.Empty,
+                ExecutionStage = entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Stage)?.Value ?? 0,
+                EventOperation = entity.GetAttributeValue<AliasedValue>($"ms.{SdkMessage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
+                LogicalName = entity.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}")?.Value?.ToString() ?? string.Empty,
+                Deployment = entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.SupportedDeployment)?.Value ?? 0,
+                ExecutionMode = entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Mode)?.Value ?? 0,
+                ExecutionOrder = entity.GetAttributeValue<int>(SdkMessageProcessingStep.Fields.Rank),
+                FilteredAttributes = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.FilteringAttributes) ?? string.Empty,
+                UserContext = entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.ImpersonatingUserId)?.Id ?? Guid.Empty,
+                PluginImages = images
+            });
+        })
+        .ToLookup(step => step.Item1, step => step.Item2);
     }
 
     public IEnumerable<Step> GetMissingUserContexts(IEnumerable<Step> pluginSteps)
@@ -148,14 +145,14 @@ public class PluginReader(IDataverseReader reader) : IPluginReader
             return [];
         }
 
-        var existingUserContexts = reader.RetrieveMultiple(new QueryExpression("systemuser")
+        var existingUserContexts = reader.RetrieveMultiple(new QueryExpression(SystemUser.EntityLogicalName)
         {
-            ColumnSet = new ColumnSet("systemuserid"),
+            ColumnSet = new ColumnSet(SystemUser.PrimaryIdAttribute),
             Criteria = new FilterExpression
             {
-                Conditions = { new ConditionExpression("systemuserid", ConditionOperator.In, userContextIds) }
+                Conditions = { new ConditionExpression(SystemUser.PrimaryIdAttribute, ConditionOperator.In, userContextIds) }
             }
-        }).Select(x => x.GetAttributeValue<Guid>("systemuserid")).ToHashSet();
+        }).Select(x => x.GetAttributeValue<Guid>(SystemUser.PrimaryIdAttribute)).ToHashSet();
 
         var missingUserContextIds = userContextIds.Except(existingUserContexts).ToHashSet();
 

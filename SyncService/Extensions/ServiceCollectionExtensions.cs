@@ -16,11 +16,11 @@ public static class ServiceCollectionExtensions
             .AddSingleton<Description>()
             .AddSingleton<PluginSyncService>()
             .AddSingleton<IDifferenceUtility, DifferenceUtility>()
-            .AddSingleton<IEqualityComparer<PluginType>, PluginTypeComparer>()
-            .AddSingleton<IEqualityComparer<Step>, PluginStepComparer>()
-            .AddSingleton<IEqualityComparer<Image>, PluginImageComparer>()
-            .AddSingleton<IEqualityComparer<ApiDefinition>, CustomApiComparer>()
-            .AddSingleton<IEqualityComparer<RequestParameter>, RequestParameterComparer>()
-            .AddSingleton<IEqualityComparer<ResponseProperty>, ResponsePropertyComparer>();
+            .AddSingleton<IEntityComparer<PluginType>, PluginTypeComparer>()
+            .AddSingleton<IEntityComparer<Step>, PluginStepComparer>()
+            .AddSingleton<IEntityComparer<Image>, PluginImageComparer>()
+            .AddSingleton<IEntityComparer<ApiDefinition>, CustomApiComparer>()
+            .AddSingleton<IEntityComparer<RequestParameter>, RequestParameterComparer>()
+            .AddSingleton<IEntityComparer<ResponseProperty>, ResponsePropertyComparer>();
     }
 }

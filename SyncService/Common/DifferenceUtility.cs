@@ -4,13 +4,17 @@ using DG.XrmPluginSync.Model.Plugin;
 using DG.XrmPluginSync.SyncService.Comparers;
 using DG.XrmPluginSync.SyncService.Extensions;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace DG.XrmPluginSync.SyncService.Common;
 
-public class Difference<T>
+public record EntityDifference<TEntity>(TEntity LocalEntity, TEntity? RemoteEntity, IEnumerable<Expression<Func<TEntity, object>>> DifferentProperties) where TEntity : EntityBase;
+
+public class Difference<T> where T : EntityBase
 {
     public List<T> Creates { get; set; } = [];
-    public List<T> Updates { get; set; } = [];
+    public List<T> Updates => UpdatesWithDifferences.ConvertAll(x => x.LocalEntity);
+    public List<EntityDifference<T>> UpdatesWithDifferences { get; set; } = [];
     public List<T> Deletes { get; set; } = [];
 }
 
@@ -19,14 +23,14 @@ public record Differences(Difference<PluginType> Types,
     Difference<ApiDefinition> CustomApis, Difference<RequestParameter> RequestParameters, Difference<ResponseProperty> ResponseProperties);
 
 public class DifferenceUtility(ILogger log,
-    IEqualityComparer<PluginType> pluginTypeComparer,
-    IEqualityComparer<Step> pluginStepComparer,
-    IEqualityComparer<Image> pluginImageComparer,
-    IEqualityComparer<ApiDefinition> customApiComparer,
-    IEqualityComparer<RequestParameter> requestComparer,
-    IEqualityComparer<ResponseProperty> responseComparer) : IDifferenceUtility
+    IEntityComparer<PluginType> pluginTypeComparer,
+    IEntityComparer<Step> pluginStepComparer,
+    IEntityComparer<Image> pluginImageComparer,
+    IEntityComparer<ApiDefinition> customApiComparer,
+    IEntityComparer<RequestParameter> requestComparer,
+    IEntityComparer<ResponseProperty> responseComparer) : IDifferenceUtility
 {
-    private static Difference<T> GetDifference<T>(List<T> list1, List<T> list2, IEqualityComparer<T> comparer, Func<T, string>? nameSelector = null) where T : EntityBase
+    private static Difference<T> GetDifference<T>(List<T> list1, List<T> list2, IEntityComparer<T> comparer, Func<T, string>? nameSelector = null) where T : EntityBase
     {
         nameSelector ??= (x) => x.Name;
 
@@ -39,14 +43,24 @@ public class DifferenceUtility(ILogger log,
             .ToList();
 
         var updates = list1
-            .Where(x => list2.Any(y => nameSelector(x) == nameSelector(y) && !comparer.Equals(x, y)))
+            .Select(x =>
+            {
+                var matchingEntity = list2.FirstOrDefault(y => nameSelector(x) == nameSelector(y));
+                if (matchingEntity == null || comparer.Equals(x, matchingEntity))
+                {
+                    return new EntityDifference<T>(x, matchingEntity, []);
+                }
+                var differentProperties = comparer.GetDifferentPropertyNames(x, matchingEntity).ToList();
+                return new EntityDifference<T>(x, matchingEntity, differentProperties);
+            })
+            .Where(x => x.DifferentProperties.Any())
             .ToList();
 
         return new Difference<T>
         {
             Creates = creates,
             Deletes = deletes,
-            Updates = updates
+            UpdatesWithDifferences = updates
         };
     }
 

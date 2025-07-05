@@ -1,17 +1,18 @@
 ﻿using DG.XrmPluginSync.Model.CustomApi;
+using System.Linq.Expressions;
 
 namespace DG.XrmPluginSync.SyncService.Comparers;
 
 public class RequestParameterComparer : BaseComparer<RequestParameter>
 {
-    protected override bool EqualsInternal(RequestParameter x, RequestParameter y)
+    public override IEnumerable<Expression<Func<RequestParameter, object>>> GetDifferentPropertyNames(RequestParameter x, RequestParameter y)
     {
-        return x.Name == y.Name &&
-            x.DisplayName == y.DisplayName &&
-            x.UniqueName == y.UniqueName &&
-            x.IsCustomizable == y.IsCustomizable &&
-            x.Type == y.Type &&
-            x.IsOptional == y.IsOptional &&
-            x.LogicalEntityName == y.LogicalEntityName;
+        if (x.Name != y.Name) yield return x => x.Name;
+        if (x.DisplayName != y.DisplayName) yield return x => x.DisplayName;
+        if (x.UniqueName != y.UniqueName) yield return x => x.UniqueName;
+        if (x.IsCustomizable != y.IsCustomizable) yield return x => x.IsCustomizable;
+        if (x.Type != y.Type) yield return x => x.Type;
+        if (x.IsOptional != y.IsOptional) yield return x => x.IsOptional;
+        if (x.LogicalEntityName != y.LogicalEntityName) yield return x => x.LogicalEntityName;
     }
 }

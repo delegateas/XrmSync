@@ -2,20 +2,20 @@
 using System.Reflection;
 
 // StepConfig           : className, ExecutionStage, EventOperation, LogicalName
-using StepConfig = System.Tuple<string, int, string, string>;
+using StepConfig = System.Tuple<string?, int, string?, string?>;
 // ExtendedStepConfig   : Deployment, ExecutionMode, Name, ExecutionOrder, FilteredAttributes, UserContext
-using ExtendedStepConfig = System.Tuple<int, int, string, int, string, string>;
+using ExtendedStepConfig = System.Tuple<int, int, string?, int, string?, string?>;
 // ImageTuple           : Name, EntityAlias, ImageType, Attributes
-using ImageTuple = System.Tuple<string, string, int, string>;
+using ImageTuple = System.Tuple<string?, string?, int, string?>;
 
 // MainCustomAPIConfig      : UniqueName, IsFunction, EnabledForWorkflow, AllowedCustomProcessingStepType, BindingType, BoundEntityLogicalName
-using MainCustomAPIConfig = System.Tuple<string, bool, int, int, int, string>;
+using MainCustomAPIConfig = System.Tuple<string?, bool, int, int, int, string?>;
 // ExtendedCustomAPIConfig  : PluginType, OwnerId, OwnerType, IsCustomizable, IsPrivate, ExecutePrivilegeName, Description
-using ExtendedCustomAPIConfig = System.Tuple<string, string, string, bool, bool, string, string>;
+using ExtendedCustomAPIConfig = System.Tuple<string?, string?, string?, bool, bool, string?, string?>;
 // RequestParameterConfig   : Name, UniqueName, DisplayName, IsCustomizable, IsOptional, LogicalEntityName, Type
-using RequestParameterConfig = System.Tuple<string, string, string, bool, bool, string, int>; // TODO: Add description maybe
+using RequestParameterConfig = System.Tuple<string?, string?, string?, bool, bool, string?, int>; // TODO: Add description maybe
 // ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
-using ResponsePropertyConfig = System.Tuple<string, string, string, bool, string, int>;
+using ResponsePropertyConfig = System.Tuple<string?, string?, string?, bool, string?, int>;
 using DG.XrmPluginSync.Model.Plugin;
 using DG.XrmPluginSync.Model.CustomApi; // TODO
 
@@ -76,43 +76,43 @@ internal static class AssemblyAnalyzer
 
             var entity = new ApiDefinition
             {
-                UniqueName = apiDef.Item1,
-                Name = apiDef.Item1,
+                UniqueName = apiDef.Item1 ?? string.Empty,
+                Name = apiDef.Item1 ?? string.Empty,
                 IsFunction = apiDef.Item2,
                 EnabledForWorkflow = apiDef.Item3 == 1,
                 AllowedCustomProcessingStepType = apiDef.Item4,
                 BindingType = apiDef.Item5,
-                BoundEntityLogicalName = apiDef.Item6,
+                BoundEntityLogicalName = apiDef.Item6 ?? string.Empty,
 
-                PluginTypeName = apiMeta.Item1,
+                PluginTypeName = apiMeta.Item1 ?? string.Empty,
                 OwnerId = Guid.TryParse(apiMeta.Item2, out var ownerId) ? ownerId : Guid.Empty,
                 IsCustomizable = apiMeta.Item4,
                 IsPrivate = apiMeta.Item5,
-                ExecutePrivilegeName = apiMeta.Item6,
-                Description = apiMeta.Item7,
-                DisplayName = apiDef.Item1, // No explicit display name in tuple, fallback to name
+                ExecutePrivilegeName = apiMeta.Item6 ?? string.Empty,
+                Description = apiMeta.Item7 ?? string.Empty,
+                DisplayName = apiDef.Item1 ?? string.Empty, // No explicit display name in tuple, fallback to name
 
                 RequestParameters = reqParams?.Select(p => new RequestParameter
                 {
-                    Name = p.Item1,
-                    UniqueName = p.Item2,
-                    DisplayName = p.Item3,
+                    Name = p.Item1 ?? string.Empty,
+                    UniqueName = p.Item2 ?? string.Empty,
+                    DisplayName = p.Item3 ?? string.Empty,
                     IsCustomizable = p.Item4,
                     IsOptional = p.Item5,
-                    LogicalEntityName = p.Item6,
+                    LogicalEntityName = p.Item6 ?? string.Empty,
                     Type = p.Item7,
-                    CustomApiName = apiDef.Item1
+                    CustomApiName = apiDef.Item1 ?? string.Empty
                 }).ToList() ?? [],
 
                 ResponseProperties = resProps?.Select(r => new ResponseProperty
                 {
-                    Name = r.Item1,
-                    UniqueName = r.Item2,
-                    DisplayName = r.Item3,
+                    Name = r.Item1 ?? string.Empty,
+                    UniqueName = r.Item2 ?? string.Empty,
+                    DisplayName = r.Item3 ?? string.Empty,
                     IsCustomizable = r.Item4,
-                    LogicalEntityName = r.Item5,
+                    LogicalEntityName = r.Item5 ?? string.Empty,
                     Type = r.Item6,
-                    CustomApiName = apiDef.Item1
+                    CustomApiName = apiDef.Item1 ?? string.Empty
                 }).ToList() ?? []
             };
 
@@ -155,7 +155,7 @@ internal static class AssemblyAnalyzer
                 .Select(tuple =>
                 {
                     var (className, stage, eventOp, logicalName) = tuple.Item1;
-                    var (deployment, mode, notUsedStepname, executionOrder, filteredAttr, userId) = tuple.Item2;
+                    var (deployment, mode, notUsedStepname, executionOrder, filteredAttr, userIdStr) = tuple.Item2;
                     var imageTuples = tuple.Item3.ToList();
 
                     var entity = string.IsNullOrEmpty(logicalName) ? "any Entity" : logicalName;
@@ -173,10 +173,10 @@ internal static class AssemblyAnalyzer
                             return new Image
                             {
                                 PluginStepName = stepName,
-                                Name = iName,
-                                EntityAlias = iAlias,
+                                Name = iName ?? string.Empty,
+                                EntityAlias = iAlias ?? string.Empty,
                                 ImageType = iType,
-                                Attributes = iAttr
+                                Attributes = iAttr ?? string.Empty
                             };
                         }).ToList();
 
@@ -186,19 +186,19 @@ internal static class AssemblyAnalyzer
                         Deployment = deployment,
                         ExecutionMode = mode,
                         ExecutionOrder = executionOrder,
-                        FilteredAttributes = filteredAttr,
-                        UserContext = new Guid(userId),
-                        PluginTypeName = className,
+                        FilteredAttributes = filteredAttr ?? string.Empty,
+                        UserContext = Guid.TryParse(userIdStr, out var userId) ? userId : Guid.Empty,
+                        PluginTypeName = className ?? string.Empty,
                         Name = stepName,
                         PluginImages = images,
 
-                        EventOperation = eventOp,
-                        LogicalName = logicalName,
+                        EventOperation = eventOp ?? string.Empty,
+                        LogicalName = logicalName ?? string.Empty,
                     };
 
                     return new PluginDefinition
                     {
-                        Name = className,
+                        Name = className ?? string.Empty,
                         PluginSteps = [step],
                     };
                 });
