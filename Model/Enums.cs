@@ -9,8 +9,8 @@ public enum ExecutionMode
 public enum ExecutionStage
 {
     PreValidation = 10,
-    Pre = 20,
-    Post = 40
+    PreOperation = 20,
+    PostOperation = 40
 }
 
 public enum ImageType

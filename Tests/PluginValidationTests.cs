@@ -18,7 +18,7 @@ public class PluginValidationTests
         {
             Name = "TestStep",
             PluginTypeName = "TestType",
-            ExecutionStage = (int)ExecutionStage.Pre, // Pre
+            ExecutionStage = (int)ExecutionStage.PreOperation, // Pre
             ExecutionMode = (int)ExecutionMode.Asynchronous, // Async
             EventOperation = "Update",
             LogicalName = "account",
@@ -55,7 +55,7 @@ public class PluginValidationTests
         {
             Name = "Step1",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.Pre,
+            ExecutionStage = (int)ExecutionStage.PreOperation,
             ExecutionMode = (int)ExecutionMode.Asynchronous,
             EventOperation = "Update",
             LogicalName = "account",
@@ -69,7 +69,7 @@ public class PluginValidationTests
         {
             Name = "Step2",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.Pre,
+            ExecutionStage = (int)ExecutionStage.PreOperation,
             ExecutionMode = (int)ExecutionMode.Synchronous,
             EventOperation = "Associate",
             LogicalName = "notempty",

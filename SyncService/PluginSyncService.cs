@@ -229,7 +229,7 @@ public class PluginSyncService(
         var preOperationAsyncPlugins = pluginSteps
             .Where(x =>
             x.ExecutionMode == (int)ExecutionMode.Asynchronous &&
-            x.ExecutionStage != (int)ExecutionStage.Post)
+            x.ExecutionStage != (int)ExecutionStage.PostOperation)
             .ToList();
         exceptions.AddRange(preOperationAsyncPlugins.Select(x => new Exception($"Plugin {x.Name}: Pre execution stages does not support asynchronous execution mode")));
 
@@ -239,7 +239,7 @@ public class PluginSyncService(
                 var postImages = x.PluginImages.Where(image => image.ImageType == (int)ImageType.PostImage);
 
                 return
-                (x.ExecutionStage == (int)ExecutionStage.Pre ||
+                (x.ExecutionStage == (int)ExecutionStage.PreOperation ||
                  x.ExecutionStage == (int)ExecutionStage.PreValidation) && postImages.Any();
             });
         exceptions.AddRange(preOperationWithPostImagesPlugins.Select(x => new Exception($"Plugin {x.Name}: Pre execution stages does not support post-images")));

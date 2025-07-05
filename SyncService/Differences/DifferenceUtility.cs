@@ -31,7 +31,7 @@ public class DifferenceUtility(ILogger log,
     IEntityComparer<RequestParameter> requestComparer,
     IEntityComparer<ResponseProperty> responseComparer) : IDifferenceUtility
 {
-    private static Difference<T> GetDifference<T>(List<T> list1, List<T> list2, IEntityComparer<T> comparer, Func<T, string>? nameSelector = null) where T : EntityBase
+    internal static Difference<T> GetDifference<T>(List<T> list1, List<T> list2, IEntityComparer<T> comparer, Func<T, string>? nameSelector = null) where T : EntityBase
     {
         nameSelector ??= (x) => x.Name;
 
