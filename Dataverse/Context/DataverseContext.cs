@@ -12,7 +12,7 @@
 
 [assembly: Microsoft.Xrm.Sdk.Client.ProxyTypesAssemblyAttribute()]
 
-namespace DG.XrmPluginSync.Dataverse.Context
+namespace DG.XrmSync.Dataverse.Context
 {
 	
 	
@@ -31,123 +31,123 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.CustomApi"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.CustomApi"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.CustomApi> CustomApiSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.CustomApi> CustomApiSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.CustomApi>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.CustomApi>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.CustomApiRequestParameter"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.CustomApiRequestParameter"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.CustomApiRequestParameter> CustomApiRequestParameterSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter> CustomApiRequestParameterSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.CustomApiRequestParameter>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.CustomApiResponseProperty"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.CustomApiResponseProperty"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.CustomApiResponseProperty> CustomApiResponsePropertySet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty> CustomApiResponsePropertySet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.CustomApiResponseProperty>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.PluginAssembly"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.PluginAssembly"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.PluginAssembly> PluginAssemblySet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.PluginAssembly> PluginAssemblySet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.PluginAssembly>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.PluginAssembly>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.PluginType"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.PluginType"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.PluginType> PluginTypeSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.PluginType> PluginTypeSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.PluginType>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.PluginType>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.SdkMessage"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.SdkMessage"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.SdkMessage> SdkMessageSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.SdkMessage> SdkMessageSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.SdkMessage>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.SdkMessage>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.SdkMessageFilter"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.SdkMessageFilter"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.SdkMessageFilter> SdkMessageFilterSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.SdkMessageFilter> SdkMessageFilterSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.SdkMessageFilter>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.SdkMessageFilter>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep> SdkMessageProcessingStepSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep> SdkMessageProcessingStepSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStepImage"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStepImage> SdkMessageProcessingStepImageSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage> SdkMessageProcessingStepImageSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStepImage>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.SolutionComponent"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.SolutionComponent"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.SolutionComponent> SolutionComponentSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.SolutionComponent> SolutionComponentSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.SolutionComponent>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.SolutionComponent>();
 			}
 		}
 		
 		/// <summary>
-		/// Gets a binding to the set of all <see cref="DG.XrmPluginSync.Dataverse.Context.SystemUser"/> entities.
+		/// Gets a binding to the set of all <see cref="DG.XrmSync.Dataverse.Context.SystemUser"/> entities.
 		/// </summary>
-		public System.Linq.IQueryable<DG.XrmPluginSync.Dataverse.Context.SystemUser> SystemUserSet
+		public System.Linq.IQueryable<DG.XrmSync.Dataverse.Context.SystemUser> SystemUserSet
 		{
 			get
 			{
-				return this.CreateQuery<DG.XrmPluginSync.Dataverse.Context.SystemUser>();
+				return this.CreateQuery<DG.XrmSync.Dataverse.Context.SystemUser>();
 			}
 		}
 	}

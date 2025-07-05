@@ -1,4 +1,4 @@
-﻿using DG.XrmPluginSync.Model;
+﻿using DG.XrmSync.Model;
 using System.Reflection;
 
 // StepConfig           : className, ExecutionStage, EventOperation, LogicalName
@@ -16,10 +16,10 @@ using ExtendedCustomAPIConfig = System.Tuple<string?, string?, string?, bool, bo
 using RequestParameterConfig = System.Tuple<string?, string?, string?, bool, bool, string?, int>; // TODO: Add description maybe
 // ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
 using ResponsePropertyConfig = System.Tuple<string?, string?, string?, bool, string?, int>;
-using DG.XrmPluginSync.Model.Plugin;
-using DG.XrmPluginSync.Model.CustomApi; // TODO
+using DG.XrmSync.Model.Plugin;
+using DG.XrmSync.Model.CustomApi; // TODO
 
-namespace DG.XrmPluginSync.AssemblyAnalyzer;
+namespace DG.XrmSync.AssemblyAnalyzer;
 
 internal static class AssemblyAnalyzer
 {

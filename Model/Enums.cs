@@ -1,4 +1,4 @@
-﻿namespace DG.XrmPluginSync.Model;
+﻿namespace DG.XrmSync.Model;
 
 public enum ExecutionMode
 {
@@ -9,8 +9,8 @@ public enum ExecutionMode
 public enum ExecutionStage
 {
     PreValidation = 10,
-    PreOperation = 20,
-    PostOperation = 40
+    Pre = 20,
+    Post = 40
 }
 
 public enum ImageType

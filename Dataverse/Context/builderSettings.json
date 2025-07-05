@@ -111,7 +111,7 @@
   "generateGlobalOptionSets": false,
   "metadataProviderService": "DLaB.ModelBuilderExtensions.MetadataProviderService,DLaB.ModelBuilderExtensions",
   "metadataQueryProviderService": "DLaB.ModelBuilderExtensions.MetadataQueryProviderService,DLaB.ModelBuilderExtensions",
-  "namespace": "DG.XrmPluginSync.Dataverse.Context",
+  "namespace": "DG.XrmSync.Dataverse.Context",
   "namingService": "DLaB.ModelBuilderExtensions.NamingService,DLaB.ModelBuilderExtensions",
   "optionSetsTypesFolder": "OptionSets",
   "serviceContextName": "DataverseContext",

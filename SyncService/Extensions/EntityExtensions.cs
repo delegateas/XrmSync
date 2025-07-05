@@ -1,7 +1,7 @@
-﻿using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.Model.Plugin;
+﻿using DG.XrmSync.Model;
+using DG.XrmSync.Model.Plugin;
 
-namespace DG.XrmPluginSync.SyncService.Extensions;
+namespace DG.XrmSync.SyncService.Extensions;
 
 internal static class EntityExtensions
 {

@@ -1,12 +1,12 @@
-using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.SyncService;
-using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.SyncService.Comparers;
+using DG.XrmSync.Model;
+using DG.XrmSync.SyncService;
+using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.SyncService.Comparers;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using DG.XrmPluginSync.Model.Plugin;
-using DG.XrmPluginSync.SyncService.AssemblyReader;
-using DG.XrmPluginSync.Model.CustomApi;
+using DG.XrmSync.Model.Plugin;
+using DG.XrmSync.SyncService.AssemblyReader;
+using DG.XrmSync.Model.CustomApi;
 
 namespace Tests;
 
@@ -18,7 +18,7 @@ public class PluginServiceTests
     private readonly IAssemblyReader _assemblyReader = Substitute.For<IAssemblyReader>();
     private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
     private readonly Description _description = new();
-    private readonly XrmPluginSyncOptions _options = new();
+    private readonly XrmSyncOptions _options = new();
     private readonly PluginTypeComparer _typeComparer = new();
     private readonly PluginStepComparer _stepComparer = new();
     private readonly PluginImageComparer _imageComparer = new();

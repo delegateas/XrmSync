@@ -1,8 +1,8 @@
-﻿using DG.XrmPluginSync.Dataverse.Interfaces;
+﻿using DG.XrmSync.Dataverse.Interfaces;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
-namespace DG.XrmPluginSync.Dataverse;
+namespace DG.XrmSync.Dataverse;
 
 public class MessageReader(IDataverseReader reader) : IMessageReader
 {

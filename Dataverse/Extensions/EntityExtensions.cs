@@ -1,8 +1,8 @@
-﻿using DG.XrmPluginSync.Model;
+﻿using DG.XrmSync.Model;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 
-namespace DG.XrmPluginSync.Dataverse.Extensions;
+namespace DG.XrmSync.Dataverse.Extensions;
 
 public static class EntityExtensions
 {

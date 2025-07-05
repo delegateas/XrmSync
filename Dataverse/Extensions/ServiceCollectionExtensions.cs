@@ -1,8 +1,8 @@
-﻿using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model;
+﻿using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DG.XrmPluginSync.Dataverse.Extensions;
+namespace DG.XrmSync.Dataverse.Extensions;
 
 public static class ServiceCollectionExtensions
 {
@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IDataverseWriter>((sp) =>
         {
-            var options = sp.GetRequiredService<XrmPluginSyncOptions>();
+            var options = sp.GetRequiredService<XrmSyncOptions>();
 
             return options.DryRun
                 ? ActivatorUtilities.CreateInstance<DryRunDataverseWriter>(sp)

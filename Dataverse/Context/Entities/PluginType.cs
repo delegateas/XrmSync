@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmPluginSync.Dataverse.Context
+namespace DG.XrmSync.Dataverse.Context
 {
 	
 	
@@ -732,17 +732,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// 1:N plugintype_customapi
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("plugintype_customapi")]
-		public System.Collections.Generic.IEnumerable<DG.XrmPluginSync.Dataverse.Context.CustomApi>? PluginType_CustomApi
+		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApi>? PluginType_CustomApi
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.CustomApi>("plugintype_customapi", null);
+				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("plugintype_customapi", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.CustomApi>("plugintype_customapi", null, value);
+				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("plugintype_customapi", null, value);
 			}
 		}
 		
@@ -750,17 +750,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// 1:N plugintype_sdkmessageprocessingstep
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("plugintype_sdkmessageprocessingstep")]
-		public System.Collections.Generic.IEnumerable<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>? PluginType_SdkMessageProcessingStep
+		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>? PluginType_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>("plugintype_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("plugintype_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>("plugintype_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("plugintype_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -768,17 +768,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// 1:N plugintypeid_sdkmessageprocessingstep
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("plugintypeid_sdkmessageprocessingstep")]
-		public System.Collections.Generic.IEnumerable<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>? PluginTypeId_SdkMessageProcessingStep
+		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>? PluginTypeId_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>("plugintypeid_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("plugintypeid_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>("plugintypeid_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("plugintypeid_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -787,12 +787,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_plugintype")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? CreatedBy_PluginType
+		public DG.XrmSync.Dataverse.Context.SystemUser? CreatedBy_PluginType
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("createdby_plugintype", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("createdby_plugintype", null);
 			}
 		}
 		
@@ -801,17 +801,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_plugintype_createdonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_PluginType_CreatedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_PluginType_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_plugintype_createdonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_plugintype_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_plugintype_createdonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_plugintype_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -820,17 +820,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_plugintype_modifiedonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_PluginType_ModifiedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_PluginType_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_plugintype_modifiedonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_plugintype_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_plugintype_modifiedonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_plugintype_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -839,12 +839,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_plugintype")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? ModifiedBy_PluginType
+		public DG.XrmSync.Dataverse.Context.SystemUser? ModifiedBy_PluginType
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("modifiedby_plugintype", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("modifiedby_plugintype", null);
 			}
 		}
 		
@@ -853,17 +853,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("pluginassemblyid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("pluginassembly_plugintype")]
-		public DG.XrmPluginSync.Dataverse.Context.PluginAssembly? PluginAssembly_PluginType
+		public DG.XrmSync.Dataverse.Context.PluginAssembly? PluginAssembly_PluginType
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.PluginAssembly>("pluginassembly_plugintype", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.PluginAssembly>("pluginassembly_plugintype", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.PluginAssembly>("pluginassembly_plugintype", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.PluginAssembly>("pluginassembly_plugintype", null, value);
 			}
 		}
 		

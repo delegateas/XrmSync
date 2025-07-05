@@ -1,6 +1,6 @@
-﻿using DG.XrmPluginSync.Model;
+﻿using DG.XrmSync.Model;
 
-namespace DG.XrmPluginSync.SyncService.AssemblyReader;
+namespace DG.XrmSync.SyncService.AssemblyReader;
 
 public interface IAssemblyReader
 {

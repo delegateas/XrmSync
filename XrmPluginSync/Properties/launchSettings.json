@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "XrmPluginSync": {
-      "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\mho\\source\\repos\\Aarsleff\\PerAarsleff\\PerAarsleff.FunderingDaxif\\PipeProPlugins\\bin\\Debug\\ILMerged.PipeProPlugins.dll\""
-    }
-  }
-}

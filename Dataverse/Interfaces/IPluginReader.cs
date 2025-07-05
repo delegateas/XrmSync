@@ -1,8 +1,8 @@
-﻿using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.Model.Plugin;
+﻿using DG.XrmSync.Model;
+using DG.XrmSync.Model.Plugin;
 using Microsoft.Xrm.Sdk;
 
-namespace DG.XrmPluginSync.Dataverse.Interfaces;
+namespace DG.XrmSync.Dataverse.Interfaces;
 
 public interface IPluginReader
 {

@@ -1,16 +1,16 @@
-﻿using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model;
+﻿using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using System.Runtime.CompilerServices;
 
-namespace DG.XrmPluginSync.Dataverse;
+namespace DG.XrmSync.Dataverse;
 
 public class DryRunDataverseWriter : IDataverseWriter
 {
     private readonly ILogger logger;
 
-    public DryRunDataverseWriter(XrmPluginSyncOptions options, ILogger logger)
+    public DryRunDataverseWriter(XrmSyncOptions options, ILogger logger)
     {
         if (!options.DryRun)
         {

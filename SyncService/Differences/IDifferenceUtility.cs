@@ -1,4 +1,4 @@
-﻿namespace DG.XrmPluginSync.SyncService.Differences;
+﻿namespace DG.XrmSync.SyncService.Differences;
 
 public interface IDifferenceUtility
 {

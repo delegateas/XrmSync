@@ -1,4 +1,4 @@
-﻿namespace DG.XrmPluginSync.Dataverse;
+﻿namespace DG.XrmSync.Dataverse;
 
 public static class EntityTypeNames
 {

@@ -1,4 +1,4 @@
-namespace DG.XrmPluginSync.Model.CustomApi;
+namespace DG.XrmSync.Model.CustomApi;
 
 public record RequestParameter : EntityBase
 {

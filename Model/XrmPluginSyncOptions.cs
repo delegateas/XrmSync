@@ -1,6 +1,6 @@
-namespace DG.XrmPluginSync.Model;
+namespace DG.XrmSync.Model;
 
-public class XrmPluginSyncOptions
+public class XrmSyncOptions
 {
     public string? DataverseUrl { get; set; }
     public string AssemblyPath { get; set; } = string.Empty;

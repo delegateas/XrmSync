@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Security.Cryptography;
 
-namespace DG.XrmPluginSync.AssemblyAnalyzer;
+namespace DG.XrmSync.AssemblyAnalyzer;
 
 internal static class Extensions
 {

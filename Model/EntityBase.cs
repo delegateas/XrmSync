@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace DG.XrmPluginSync.Model;
+namespace DG.XrmSync.Model;
 
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public record EntityBase

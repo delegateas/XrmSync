@@ -1,9 +1,9 @@
-using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.Model.Plugin;
-using DG.XrmPluginSync.SyncService;
-using DG.XrmPluginSync.SyncService.Common;
-using DG.XrmPluginSync.SyncService.Comparers;
+using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model;
+using DG.XrmSync.Model.Plugin;
+using DG.XrmSync.SyncService;
+using DG.XrmSync.SyncService.Common;
+using DG.XrmSync.SyncService.Comparers;
 using NSubstitute;
 
 namespace Tests;
@@ -36,7 +36,7 @@ public class PluginValidationTests
             reader,
             Substitute.For<IPluginWriter>(),
             new Description(),
-            new XrmPluginSyncOptions(),
+            new XrmSyncOptions(),
             new PluginTypeComparer(),
             new PluginStepComparer(),
             new PluginImageComparer()
@@ -87,7 +87,7 @@ public class PluginValidationTests
             reader,
             Substitute.For<IPluginWriter>(),
             new Description(),
-            new XrmPluginSyncOptions(),
+            new XrmSyncOptions(),
             new PluginTypeComparer(),
             new PluginStepComparer(),
             new PluginImageComparer()

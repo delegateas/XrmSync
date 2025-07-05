@@ -1,9 +1,9 @@
-﻿using DG.XrmPluginSync.Model;
+﻿using DG.XrmSync.Model;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace DG.XrmPluginSync.SyncService.AssemblyReader;
+namespace DG.XrmSync.SyncService.AssemblyReader;
 
 internal class AssemblyReader(ILogger logger) : IAssemblyReader
 {

@@ -1,7 +1,7 @@
-﻿using DG.XrmPluginSync.Model;
+﻿using DG.XrmSync.Model;
 using System.Linq.Expressions;
 
-namespace DG.XrmPluginSync.SyncService.Comparers
+namespace DG.XrmSync.SyncService.Comparers
 {
     public interface IEntityComparer<TEntity> : IEqualityComparer<TEntity> where TEntity : EntityBase
     {

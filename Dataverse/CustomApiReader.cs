@@ -1,10 +1,10 @@
-using DG.XrmPluginSync.Dataverse.Context;
-using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model.CustomApi;
+using DG.XrmSync.Dataverse.Context;
+using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model.CustomApi;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
-namespace DG.XrmPluginSync.Dataverse;
+namespace DG.XrmSync.Dataverse;
 
 public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
 {

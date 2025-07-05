@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DG.XrmPluginSync.Model.Plugin;
+namespace DG.XrmSync.Model.Plugin;
 
 public record Step : EntityBase
 {

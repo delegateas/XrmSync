@@ -1,13 +1,13 @@
-﻿using DG.XrmPluginSync;
-using DG.XrmPluginSync.Dataverse.Extensions;
-using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.SyncService;
-using DG.XrmPluginSync.SyncService.Extensions;
+﻿using DG.XrmSync;
+using DG.XrmSync.Dataverse.Extensions;
+using DG.XrmSync.Model;
+using DG.XrmSync.SyncService;
+using DG.XrmSync.SyncService.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
-using DGLoggerFactory = DG.XrmPluginSync.LoggerFactory;
+using DGLoggerFactory = DG.XrmSync.LoggerFactory;
 
 
 // Define CLI options
@@ -31,7 +31,7 @@ var dryRunOption = new Option<bool>(["--dry-run", "--dryrun"], "Perform a dry ru
 var logLevelOption = new Option<LogLevel>(["--log-level", "-l"], () => LogLevel.Information, "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical)");
 var dataverseOption = new Option<string?>(["--dataverse"], "The Dataverse URL to connect to");
 
-var rootCommand = new RootCommand("XrmPluginSync - Synchronize your Dataverse plugins")
+var rootCommand = new RootCommand("XrmSync - Synchronize your Dataverse plugins")
 {
     assemblyFileOption,
     solutionNameOption,
@@ -49,7 +49,7 @@ rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, data
         Environment.SetEnvironmentVariable("DATAVERSE_URL", dataverseUrl);
     }
 
-    var options = new XrmPluginSyncOptions
+    var options = new XrmSyncOptions
     {
         AssemblyPath = assemblyPath,
         SolutionName = solutionName,

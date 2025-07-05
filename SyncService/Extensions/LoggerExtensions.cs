@@ -1,9 +1,9 @@
-﻿using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.SyncService.Differences;
+﻿using DG.XrmSync.Model;
+using DG.XrmSync.SyncService.Differences;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
-namespace DG.XrmPluginSync.SyncService.Extensions;
+namespace DG.XrmSync.SyncService.Extensions;
 
 internal static class LoggerExtensions
 {

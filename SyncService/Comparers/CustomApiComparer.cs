@@ -1,7 +1,7 @@
-﻿using DG.XrmPluginSync.Model.CustomApi;
+﻿using DG.XrmSync.Model.CustomApi;
 using System.Linq.Expressions;
 
-namespace DG.XrmPluginSync.SyncService.Comparers;
+namespace DG.XrmSync.SyncService.Comparers;
 
 public class CustomApiComparer(Description description) : BaseComparer<ApiDefinition>
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace DG.XrmPluginSync;
+namespace DG.XrmSync;
 
 internal static class LoggerFactory
 {

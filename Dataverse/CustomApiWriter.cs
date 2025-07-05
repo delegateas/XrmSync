@@ -1,9 +1,9 @@
-﻿using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model.CustomApi;
+﻿using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model.CustomApi;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 
-namespace DG.XrmPluginSync.Dataverse;
+namespace DG.XrmSync.Dataverse;
 
 public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
 {

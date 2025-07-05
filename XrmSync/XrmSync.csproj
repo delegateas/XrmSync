@@ -9,7 +9,7 @@
 
 	<PropertyGroup>
 		<PackAsTool>true</PackAsTool>
-		<ToolCommandName>xrmpluginsync</ToolCommandName>
+		<ToolCommandName>XrmSync</ToolCommandName>
 		<PackageOutputPath>./nupkg</PackageOutputPath>
 		<RootNamespace>DG.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<AssemblyName>DG.$(MSBuildProjectName)</AssemblyName>

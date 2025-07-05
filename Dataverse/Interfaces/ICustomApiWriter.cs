@@ -1,6 +1,6 @@
-﻿using DG.XrmPluginSync.Model.CustomApi;
+﻿using DG.XrmSync.Model.CustomApi;
 
-namespace DG.XrmPluginSync.Dataverse.Interfaces;
+namespace DG.XrmSync.Dataverse.Interfaces;
 
 public interface ICustomApiWriter
 {

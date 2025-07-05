@@ -1,8 +1,8 @@
-﻿using DG.XrmPluginSync.Model.CustomApi;
-using DG.XrmPluginSync.Model.Plugin;
+﻿using DG.XrmSync.Model.CustomApi;
+using DG.XrmSync.Model.Plugin;
 using System.Collections.Generic;
 
-namespace DG.XrmPluginSync.Model;
+namespace DG.XrmSync.Model;
 
 public record AssemblyInfo : EntityBase
 {

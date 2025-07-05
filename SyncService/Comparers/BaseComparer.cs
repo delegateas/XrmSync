@@ -1,8 +1,8 @@
-﻿using DG.XrmPluginSync.Model;
+﻿using DG.XrmSync.Model;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace DG.XrmPluginSync.SyncService.Comparers;
+namespace DG.XrmSync.SyncService.Comparers;
 
 public abstract class BaseComparer<TEntity> : IEntityComparer<TEntity> where TEntity : EntityBase
 {

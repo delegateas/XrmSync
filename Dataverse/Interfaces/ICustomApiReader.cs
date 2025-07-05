@@ -1,7 +1,7 @@
-﻿using DG.XrmPluginSync.Model.CustomApi;
+﻿using DG.XrmSync.Model.CustomApi;
 using Microsoft.Xrm.Sdk;
 
-namespace DG.XrmPluginSync.Dataverse.Interfaces;
+namespace DG.XrmSync.Dataverse.Interfaces;
 
 public interface ICustomApiReader
 {

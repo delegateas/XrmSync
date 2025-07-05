@@ -1,4 +1,4 @@
-﻿using DG.XrmPluginSync.AssemblyAnalyzer;
+﻿using DG.XrmSync.AssemblyAnalyzer;
 using System.Text.Json;
 
 var assemblyLocation = Path.GetFullPath(args[0]);

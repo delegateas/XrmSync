@@ -1,11 +1,11 @@
-﻿using DG.XrmPluginSync.Dataverse.Extensions;
-using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model.CustomApi;
-using DG.XrmPluginSync.Model.Plugin;
+﻿using DG.XrmSync.Dataverse.Extensions;
+using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model.CustomApi;
+using DG.XrmSync.Model.Plugin;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 
-namespace DG.XrmPluginSync.Dataverse;
+namespace DG.XrmSync.Dataverse;
 
 public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer) : IPluginWriter
 {

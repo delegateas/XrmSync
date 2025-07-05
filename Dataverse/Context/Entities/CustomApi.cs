@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmPluginSync.Dataverse.Context
+namespace DG.XrmSync.Dataverse.Context
 {
 	
 	
@@ -1284,17 +1284,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// 1:N customapi_customapirequestparameter
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("customapi_customapirequestparameter")]
-		public System.Collections.Generic.IEnumerable<DG.XrmPluginSync.Dataverse.Context.CustomApiRequestParameter>? CustomApi_CustomApiRequestParameter
+		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>? CustomApi_CustomApiRequestParameter
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.CustomApiRequestParameter>("customapi_customapirequestparameter", null);
+				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("customapi_customapirequestparameter", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.CustomApiRequestParameter>("customapi_customapirequestparameter", null, value);
+				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("customapi_customapirequestparameter", null, value);
 			}
 		}
 		
@@ -1302,17 +1302,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// 1:N customapi_customapiresponseproperty
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("customapi_customapiresponseproperty")]
-		public System.Collections.Generic.IEnumerable<DG.XrmPluginSync.Dataverse.Context.CustomApiResponseProperty>? CustomApi_CustomApiResponseProperty
+		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>? CustomApi_CustomApiResponseProperty
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.CustomApiResponseProperty>("customapi_customapiresponseproperty", null);
+				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("customapi_customapiresponseproperty", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.CustomApiResponseProperty>("customapi_customapiresponseproperty", null, value);
+				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("customapi_customapiresponseproperty", null, value);
 			}
 		}
 		
@@ -1321,12 +1321,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapi_createdby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_CustomApi_CreatedBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApi_CreatedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapi_createdby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapi_createdby", null);
 			}
 		}
 		
@@ -1335,17 +1335,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapi_createdonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_CustomApi_CreatedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApi_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapi_createdonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapi_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapi_createdonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapi_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -1354,12 +1354,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapi_modifiedby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_CustomApi_ModifiedBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApi_ModifiedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapi_modifiedby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapi_modifiedby", null);
 			}
 		}
 		
@@ -1368,17 +1368,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapi_modifiedonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_CustomApi_ModifiedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApi_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapi_modifiedonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapi_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapi_modifiedonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapi_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -1387,17 +1387,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("plugintypeid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("plugintype_customapi")]
-		public DG.XrmPluginSync.Dataverse.Context.PluginType? PluginType_CustomApi
+		public DG.XrmSync.Dataverse.Context.PluginType? PluginType_CustomApi
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.PluginType>("plugintype_customapi", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.PluginType>("plugintype_customapi", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.PluginType>("plugintype_customapi", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.PluginType>("plugintype_customapi", null, value);
 			}
 		}
 		
@@ -1406,17 +1406,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("sdkmessageid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("sdkmessage_customapi")]
-		public DG.XrmPluginSync.Dataverse.Context.SdkMessage? SdkMessage_CustomApi
+		public DG.XrmSync.Dataverse.Context.SdkMessage? SdkMessage_CustomApi
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SdkMessage>("sdkmessage_customapi", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SdkMessage>("sdkmessage_customapi", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SdkMessage>("sdkmessage_customapi", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SdkMessage>("sdkmessage_customapi", null, value);
 			}
 		}
 		
@@ -1425,12 +1425,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("owninguser")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("user_customapi")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? User_CustomApi
+		public DG.XrmSync.Dataverse.Context.SystemUser? User_CustomApi
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("user_customapi", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("user_customapi", null);
 			}
 		}
 		

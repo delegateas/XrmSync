@@ -1,15 +1,15 @@
-﻿using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.Model.CustomApi;
-using DG.XrmPluginSync.Model.Plugin;
-using DG.XrmPluginSync.SyncService.AssemblyReader;
-using DG.XrmPluginSync.SyncService.Differences;
-using DG.XrmPluginSync.SyncService.Extensions;
+﻿using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model;
+using DG.XrmSync.Model.CustomApi;
+using DG.XrmSync.Model.Plugin;
+using DG.XrmSync.SyncService.AssemblyReader;
+using DG.XrmSync.SyncService.Differences;
+using DG.XrmSync.SyncService.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Tests")]
-namespace DG.XrmPluginSync.SyncService;
+namespace DG.XrmSync.SyncService;
 
 public class PluginSyncService(
     IPluginReader pluginReader,
@@ -20,7 +20,7 @@ public class PluginSyncService(
     ISolutionReader solutionReader,
     IDifferenceUtility differenceUtility,
     Description description,
-    XrmPluginSyncOptions options,
+    XrmSyncOptions options,
     ILogger log) : ISyncService
 {
     public async Task Sync()
@@ -229,7 +229,7 @@ public class PluginSyncService(
         var preOperationAsyncPlugins = pluginSteps
             .Where(x =>
             x.ExecutionMode == (int)ExecutionMode.Asynchronous &&
-            x.ExecutionStage != (int)ExecutionStage.PostOperation)
+            x.ExecutionStage != (int)ExecutionStage.Post)
             .ToList();
         exceptions.AddRange(preOperationAsyncPlugins.Select(x => new Exception($"Plugin {x.Name}: Pre execution stages does not support asynchronous execution mode")));
 
@@ -239,7 +239,7 @@ public class PluginSyncService(
                 var postImages = x.PluginImages.Where(image => image.ImageType == (int)ImageType.PostImage);
 
                 return
-                (x.ExecutionStage == (int)ExecutionStage.PreOperation ||
+                (x.ExecutionStage == (int)ExecutionStage.Pre ||
                  x.ExecutionStage == (int)ExecutionStage.PreValidation) && postImages.Any();
             });
         exceptions.AddRange(preOperationWithPostImagesPlugins.Select(x => new Exception($"Plugin {x.Name}: Pre execution stages does not support post-images")));

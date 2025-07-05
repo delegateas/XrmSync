@@ -22,7 +22,7 @@
     <ProjectReference Include="..\Dataverse\Dataverse.csproj" />
     <ProjectReference Include="..\Model\Model.csproj" />
     <ProjectReference Include="..\SyncService\SyncService.csproj" />
-    <ProjectReference Include="..\XrmPluginSync\XrmPluginSync.csproj" />
+    <ProjectReference Include="..\XrmSync\XrmSync.csproj" />
   </ItemGroup>
 
   <ItemGroup>

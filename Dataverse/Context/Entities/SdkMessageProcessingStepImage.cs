@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmPluginSync.Dataverse.Context
+namespace DG.XrmSync.Dataverse.Context
 {
 	
 	
@@ -678,12 +678,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_sdkmessageprocessingstepimage")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? CreatedBy_SdkMessageProcessingStepImage
+		public DG.XrmSync.Dataverse.Context.SystemUser? CreatedBy_SdkMessageProcessingStepImage
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("createdby_sdkmessageprocessingstepimage", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("createdby_sdkmessageprocessingstepimage", null);
 			}
 		}
 		
@@ -692,17 +692,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessageprocessingstepimage_createdonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_SdkMessageProcessingStepImage_CreatedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_SdkMessageProcessingStepImage_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstepimage_createdonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstepimage_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstepimage_createdonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstepimage_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -711,17 +711,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessageprocessingstepimage_modifiedonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_SdkMessageProcessingStepImage_ModifiedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_SdkMessageProcessingStepImage_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -730,12 +730,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_sdkmessageprocessingstepimage")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? ModifiedBy_SdkMessageProcessingStepImage
+		public DG.XrmSync.Dataverse.Context.SystemUser? ModifiedBy_SdkMessageProcessingStepImage
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("modifiedby_sdkmessageprocessingstepimage", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("modifiedby_sdkmessageprocessingstepimage", null);
 			}
 		}
 		
@@ -744,17 +744,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("sdkmessageprocessingstepid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("sdkmessageprocessingstepid_sdkmessageprocessingstepimage")]
-		public DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep? SdkMessageProcessingStepId_SdkMessageProcessingStepImage
+		public DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep? SdkMessageProcessingStepId_SdkMessageProcessingStepImage
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>("sdkmessageprocessingstepid_sdkmessageprocessingstepimage", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("sdkmessageprocessingstepid_sdkmessageprocessingstepimage", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SdkMessageProcessingStep>("sdkmessageprocessingstepid_sdkmessageprocessingstepimage", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("sdkmessageprocessingstepid_sdkmessageprocessingstepimage", null, value);
 			}
 		}
 		

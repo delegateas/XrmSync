@@ -1,12 +1,12 @@
-﻿using DG.XrmPluginSync.Dataverse.Context;
-using DG.XrmPluginSync.Dataverse.Interfaces;
-using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.Model.Plugin;
+﻿using DG.XrmSync.Dataverse.Context;
+using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model;
+using DG.XrmSync.Model.Plugin;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
-namespace DG.XrmPluginSync.Dataverse;
+namespace DG.XrmSync.Dataverse;
 
 public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) : IPluginReader
 {

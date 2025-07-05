@@ -1,15 +1,15 @@
-﻿using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.SyncService;
+﻿using DG.XrmSync.Model;
+using DG.XrmSync.SyncService;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace DG.XrmPluginSync;
+namespace DG.XrmSync;
 
 internal static class PluginSync
 {
     public static async Task RunSync(IServiceProvider services)
     {
-        var options = services.GetRequiredService<XrmPluginSyncOptions>();
+        var options = services.GetRequiredService<XrmSyncOptions>();
         var description = services.GetRequiredService<Description>();
 
         var log = services.GetRequiredService<ILogger>();

@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmPluginSync.Dataverse.Context
+namespace DG.XrmSync.Dataverse.Context
 {
 	
 	
@@ -907,17 +907,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("customapiid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("customapi_customapiresponseproperty")]
-		public DG.XrmPluginSync.Dataverse.Context.CustomApi? CustomApi_CustomApiResponseProperty
+		public DG.XrmSync.Dataverse.Context.CustomApi? CustomApi_CustomApiResponseProperty
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.CustomApi>("customapi_customapiresponseproperty", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.CustomApi>("customapi_customapiresponseproperty", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.CustomApi>("customapi_customapiresponseproperty", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.CustomApi>("customapi_customapiresponseproperty", null, value);
 			}
 		}
 		
@@ -926,12 +926,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapiresponseproperty_createdby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_CustomApiResponseProperty_CreatedBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiResponseProperty_CreatedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_createdby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_createdby", null);
 			}
 		}
 		
@@ -940,17 +940,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapiresponseproperty_createdonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_CustomApiResponseProperty_CreatedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiResponseProperty_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_createdonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_createdonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -959,12 +959,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapiresponseproperty_modifiedby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_CustomApiResponseProperty_ModifiedBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiResponseProperty_ModifiedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_modifiedby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_modifiedby", null);
 			}
 		}
 		
@@ -973,17 +973,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapiresponseproperty_modifiedonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_CustomApiResponseProperty_ModifiedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiResponseProperty_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_modifiedonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_modifiedonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapiresponseproperty_modifiedonbehalfby", null, value);
 			}
 		}
 		

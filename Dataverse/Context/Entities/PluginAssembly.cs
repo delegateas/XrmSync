@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmPluginSync.Dataverse.Context
+namespace DG.XrmSync.Dataverse.Context
 {
 	
 	
@@ -999,17 +999,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// 1:N pluginassembly_plugintype
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("pluginassembly_plugintype")]
-		public System.Collections.Generic.IEnumerable<DG.XrmPluginSync.Dataverse.Context.PluginType>? PluginAssembly_PluginType
+		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginType>? PluginAssembly_PluginType
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.PluginType>("pluginassembly_plugintype", null);
+				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("pluginassembly_plugintype", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmPluginSync.Dataverse.Context.PluginType>("pluginassembly_plugintype", null, value);
+				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("pluginassembly_plugintype", null, value);
 			}
 		}
 		
@@ -1018,12 +1018,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_pluginassembly")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? CreatedBy_PluginAssembly
+		public DG.XrmSync.Dataverse.Context.SystemUser? CreatedBy_PluginAssembly
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("createdby_pluginassembly", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("createdby_pluginassembly", null);
 			}
 		}
 		
@@ -1032,17 +1032,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_pluginassembly_createdonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_PluginAssembly_CreatedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_PluginAssembly_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_pluginassembly_createdonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_pluginassembly_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_pluginassembly_createdonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_pluginassembly_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -1051,17 +1051,17 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_pluginassembly_modifiedonbehalfby")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? Lk_PluginAssembly_ModifiedOnBehalfBy
+		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_PluginAssembly_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_pluginassembly_modifiedonbehalfby", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_pluginassembly_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("lk_pluginassembly_modifiedonbehalfby", null, value);
+				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_pluginassembly_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -1070,12 +1070,12 @@ namespace DG.XrmPluginSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_pluginassembly")]
-		public DG.XrmPluginSync.Dataverse.Context.SystemUser? ModifiedBy_PluginAssembly
+		public DG.XrmSync.Dataverse.Context.SystemUser? ModifiedBy_PluginAssembly
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmPluginSync.Dataverse.Context.SystemUser>("modifiedby_pluginassembly", null);
+				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("modifiedby_pluginassembly", null);
 			}
 		}
 		
