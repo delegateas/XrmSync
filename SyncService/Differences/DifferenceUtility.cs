@@ -6,21 +6,22 @@ using DG.XrmPluginSync.SyncService.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
-namespace DG.XrmPluginSync.SyncService.Common;
+namespace DG.XrmPluginSync.SyncService.Differences;
 
 public record EntityDifference<TEntity>(TEntity LocalEntity, TEntity? RemoteEntity, IEnumerable<Expression<Func<TEntity, object>>> DifferentProperties) where TEntity : EntityBase;
 
-public class Difference<T> where T : EntityBase
+public record Difference<T>(List<T> Creates, List<EntityDifference<T>> UpdatesWithDifferences, List<T> Deletes) where T : EntityBase
 {
-    public List<T> Creates { get; set; } = [];
     public List<T> Updates => UpdatesWithDifferences.ConvertAll(x => x.LocalEntity);
-    public List<EntityDifference<T>> UpdatesWithDifferences { get; set; } = [];
-    public List<T> Deletes { get; set; } = [];
 }
 
 public record Differences(Difference<PluginType> Types,
-    Difference<Step> PluginSteps, Difference<Image> PluginImages,
-    Difference<ApiDefinition> CustomApis, Difference<RequestParameter> RequestParameters, Difference<ResponseProperty> ResponseProperties);
+    Difference<Step> PluginSteps,
+    Difference<Image> PluginImages,
+    Difference<ApiDefinition> CustomApis,
+    Difference<RequestParameter> RequestParameters,
+    Difference<ResponseProperty> ResponseProperties
+);
 
 public class DifferenceUtility(ILogger log,
     IEntityComparer<PluginType> pluginTypeComparer,
@@ -56,12 +57,7 @@ public class DifferenceUtility(ILogger log,
             .Where(x => x.DifferentProperties.Any())
             .ToList();
 
-        return new Difference<T>
-        {
-            Creates = creates,
-            Deletes = deletes,
-            UpdatesWithDifferences = updates
-        };
+        return new (creates, updates, deletes);
     }
 
     public Differences CalculateDifferences(CompiledData localData, CompiledData remoteData)

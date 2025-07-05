@@ -10,7 +10,7 @@ internal static class PluginSync
     public static async Task RunSync(IServiceProvider services)
     {
         var options = services.GetRequiredService<XrmPluginSyncOptions>();
-        var description = services.GetRequiredService<SyncService.Common.Description>();
+        var description = services.GetRequiredService<Description>();
 
         var log = services.GetRequiredService<ILogger>();
         log.LogInformation("{header}", description.ToolHeader);

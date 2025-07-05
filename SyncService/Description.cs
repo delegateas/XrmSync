@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace DG.XrmPluginSync.SyncService.Common;
+namespace DG.XrmPluginSync.SyncService;
 
 public class Description
 {

@@ -1,5 +1,5 @@
 ﻿using DG.XrmPluginSync.Model;
-using DG.XrmPluginSync.SyncService.Common;
+using DG.XrmPluginSync.SyncService.Differences;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 

@@ -3,7 +3,7 @@ using DG.XrmPluginSync.Model;
 using DG.XrmPluginSync.Model.CustomApi;
 using DG.XrmPluginSync.Model.Plugin;
 using DG.XrmPluginSync.SyncService.AssemblyReader;
-using DG.XrmPluginSync.SyncService.Common;
+using DG.XrmPluginSync.SyncService.Differences;
 using DG.XrmPluginSync.SyncService.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;

@@ -1,6 +1,6 @@
 using DG.XrmPluginSync.Model.Plugin;
-using DG.XrmPluginSync.SyncService.Common;
 using DG.XrmPluginSync.SyncService.Comparers;
+using DG.XrmPluginSync.SyncService.Differences;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;

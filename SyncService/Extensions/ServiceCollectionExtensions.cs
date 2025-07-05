@@ -2,8 +2,8 @@
 using DG.XrmPluginSync.SyncService.Comparers;
 using Microsoft.Extensions.DependencyInjection;
 using DG.XrmPluginSync.Model.Plugin;
-using DG.XrmPluginSync.SyncService.Common;
 using DG.XrmPluginSync.Model.CustomApi;
+using DG.XrmPluginSync.SyncService.Differences;
 
 namespace DG.XrmPluginSync.SyncService.Extensions;
 
