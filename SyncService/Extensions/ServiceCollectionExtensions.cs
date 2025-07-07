@@ -12,7 +12,6 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSyncService(this IServiceCollection services)
     {
         return services
-            .AddSingleton<IAssemblyReader, AssemblyReader.AssemblyReader>()
             .AddSingleton<Description>()
             .AddSingleton<PluginSyncService>()
             .AddSingleton<IDifferenceUtility, DifferenceUtility>()

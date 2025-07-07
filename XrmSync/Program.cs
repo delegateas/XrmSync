@@ -7,7 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
+using System.Text.Json;
+using DG.XrmSync.AssemblyAnalyzer;
 using DGLoggerFactory = DG.XrmSync.LoggerFactory;
+using DG.XrmSync.AssemblyAnalyzer.Extensions;
 
 
 // Define CLI options
@@ -40,6 +43,20 @@ var rootCommand = new RootCommand("XrmSync - Synchronize your Dataverse plugins"
     dataverseOption
 };
 
+var analyzeAssemblyCommand = new Command("analyze", "Analyze a plugin assembly and output info as JSON")
+{
+    assemblyFileOption
+};
+
+analyzeAssemblyCommand.SetHandler((assemblyPath) =>
+{
+    var pluginDto = AssemblyAnalyzer.GetPluginAssembly(assemblyPath);
+    var jsonOutput = JsonSerializer.Serialize(pluginDto);
+    Console.WriteLine(jsonOutput);
+}, assemblyFileOption);
+
+rootCommand.AddCommand(analyzeAssemblyCommand);
+
 rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, dataverseUrl) =>
 {
     DGLoggerFactory.MinimumLevel = logLevel;
@@ -63,6 +80,7 @@ rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, data
         {
             services.AddSingleton(options);
             services.AddSingleton((_) => DGLoggerFactory.GetLogger<ISyncService>());
+            services.AddAssemblyAnalyzer();
             services.AddSyncService();
             services.AddDataverse();
         })

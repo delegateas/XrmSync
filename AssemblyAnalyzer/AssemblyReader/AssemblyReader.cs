@@ -1,9 +1,10 @@
 ﻿using DG.XrmSync.Model;
+using DG.XrmSync.SyncService.AssemblyReader;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace DG.XrmSync.SyncService.AssemblyReader;
+namespace DG.XrmSync.AssemblyAnalyzer.AssemblyReader;
 
 internal class AssemblyReader(ILogger logger) : IAssemblyReader
 {
@@ -31,15 +32,21 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         return assemblyInfo;
     }
 
-    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath) {
-        var analyzerExePath = Path.Combine(AppContext.BaseDirectory, "AssemblyAnalyzer.exe");
-        var analyzerWorkingDir = AppContext.BaseDirectory;
-
+    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath)
+    {
+        var args = $"analyze --assembly \"{assemblyDllPath}\"";
+#if DEBUG
+        // In debug, invoke the currently executing assembly
+        var filename = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+#else
+        // In release, invoke as a dotnet tool
+        var filename = "dotnet";
+        var args = $"tool run XrmSync {args}";
+#endif
         var psi = new ProcessStartInfo
         {
-            FileName = analyzerExePath,
-            WorkingDirectory = analyzerWorkingDir,
-            Arguments = assemblyDllPath,
+            FileName = filename,
+            Arguments = args,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,

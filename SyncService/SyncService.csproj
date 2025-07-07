@@ -15,6 +15,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <ProjectReference Include="..\AssemblyAnalyzer\AssemblyAnalyzer.csproj" />
 	  <ProjectReference Include="..\Dataverse\Dataverse.csproj" />
 	  <ProjectReference Include="..\Model\Model.csproj" />
 	</ItemGroup>

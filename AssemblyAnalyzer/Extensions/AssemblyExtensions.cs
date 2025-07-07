@@ -1,10 +1,9 @@
 ﻿using System.Reflection;
 using System.Security.Cryptography;
 
-namespace DG.XrmSync.AssemblyAnalyzer;
+namespace DG.XrmSync.AssemblyAnalyzer.Extensions;
 
-internal static class Extensions
-{
+internal static class AssemblyExtensions {
     public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
     {
         try

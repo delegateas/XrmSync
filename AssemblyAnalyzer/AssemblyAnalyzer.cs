@@ -17,21 +17,26 @@ using RequestParameterConfig = System.Tuple<string?, string?, string?, bool, boo
 // ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
 using ResponsePropertyConfig = System.Tuple<string?, string?, string?, bool, string?, int>;
 using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.Model.CustomApi; // TODO
+using DG.XrmSync.Model.CustomApi;
+using DG.XrmSync.AssemblyAnalyzer.Extensions;
 
 namespace DG.XrmSync.AssemblyAnalyzer;
 
-internal static class AssemblyAnalyzer
+public static class AssemblyAnalyzer
 {
     public static AssemblyInfo GetPluginAssembly(string dllPath)
     {
         var dllFullPath = Path.GetFullPath(dllPath);
 
-        var dllTempPath = dllPath;
-        var dllname = Path.GetFileNameWithoutExtension(dllPath);
-        var hash = File.ReadAllBytes(dllTempPath).Sha1Checksum();
+        if (!File.Exists(dllFullPath))
+            throw new FileNotFoundException($"Assembly not found at {dllPath}");
+        if (!Path.GetExtension(dllFullPath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Invalid assembly file type: {Path.GetExtension(dllFullPath)}, expected DLL");
 
-        var assembly = Assembly.LoadFrom(dllTempPath);
+        var dllname = Path.GetFileNameWithoutExtension(dllFullPath);
+        var hash = File.ReadAllBytes(dllFullPath).Sha1Checksum();
+
+        var assembly = Assembly.LoadFrom(dllFullPath);
         var assemblyVersion = assembly.GetName()?.Version?.ToString() ?? throw new InvalidOperationException("Could not determine assembly version");
         var pluginDefinitions = GetPluginTypesFromAssembly(assembly);
         var customApis = GetCustomApisFromAssembly(assembly);
