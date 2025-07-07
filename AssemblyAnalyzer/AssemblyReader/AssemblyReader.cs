@@ -40,8 +40,8 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         var filename = Process.GetCurrentProcess().MainModule?.FileName ?? "";
 #else
         // In release, invoke as a dotnet tool
-        var filename = "dotnet";
-        var args = $"tool run XrmSync {args}";
+        const string filename = "dotnet";
+        args = $"tool run XrmSync {args}";
 #endif
         var psi = new ProcessStartInfo
         {
