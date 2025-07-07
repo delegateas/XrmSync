@@ -1,11 +1,11 @@
 using DG.XrmSync.Model;
 using DG.XrmSync.SyncService;
 using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.SyncService.Comparers;
+using DG.XrmSync.SyncService.Differences;
+using DG.XrmSync.SyncService.AssemblyReader;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.SyncService.AssemblyReader;
 using DG.XrmSync.Model.CustomApi;
 
 namespace Tests;
@@ -15,18 +15,22 @@ public class PluginServiceTests
     private readonly ILogger _logger = Substitute.For<ILogger>();
     private readonly IPluginReader _pluginReader = Substitute.For<IPluginReader>();
     private readonly IPluginWriter _pluginWriter = Substitute.For<IPluginWriter>();
+    private readonly ICustomApiReader _customApiReader = Substitute.For<ICustomApiReader>();
+    private readonly ICustomApiWriter _customApiWriter = Substitute.For<ICustomApiWriter>();
     private readonly IAssemblyReader _assemblyReader = Substitute.For<IAssemblyReader>();
     private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
+    private readonly IDifferenceUtility _differenceUtility = Substitute.For<IDifferenceUtility>();
     private readonly Description _description = new();
-    private readonly XrmSyncOptions _options = new();
-    private readonly PluginTypeComparer _typeComparer = new();
-    private readonly PluginStepComparer _stepComparer = new();
-    private readonly PluginImageComparer _imageComparer = new();
+    private readonly XrmSyncOptions _options = new()
+    {
+        SolutionName = "solution"
+    };
+
     private readonly PluginSyncService _plugin;
 
     public PluginServiceTests()
     {
-        _plugin = new PluginSyncService(_pluginReader, _pluginWriter, _assemblyReader, _solutionReader, _description, _options, _typeComparer, _stepComparer, _imageComparer, _logger);
+        _plugin = new PluginSyncService(_pluginReader, _pluginWriter, _customApiReader, _customApiWriter, _assemblyReader, _solutionReader, _differenceUtility, _description, _options, _logger);
     }
 
     [Fact]
@@ -86,11 +90,10 @@ public class PluginServiceTests
             Plugins = []
         };
         var crmPluginSteps = new List<Step>();
-        var solutionName = "solution";
-        var pluginTypes = new List<PluginDefinition> {
+        var solutionName = _options.SolutionName;
+        var pluginTypes = new List<PluginType> {
             new() {
                 Name = "Type1",
-                PluginSteps = [],
                 Id = Guid.NewGuid()
             }
         };
@@ -118,10 +121,9 @@ public class PluginServiceTests
                 Attributes = string.Empty
             }
         };
-        var createdTypes = new List<PluginDefinition> {
+        var createdTypes = new List<PluginType> {
             new() {
                 Name = "CreatedType",
-                PluginSteps = [],
                 Id = Guid.NewGuid()
             }
         };
@@ -141,17 +143,17 @@ public class PluginServiceTests
             }
         };
         _pluginWriter.CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription).Returns(createdTypes);
-        _pluginWriter.CreatePluginSteps(pluginSteps, Arg.Any<List<PluginDefinition>>(), solutionName, _description.SyncDescription).Returns(createdSteps);
+        _pluginWriter.CreatePluginSteps(pluginSteps, Arg.Any<List<PluginType>>(), solutionName, _description.SyncDescription).Returns(createdSteps);
 
         // Act
-        _plugin.CreatePlugins(crmAssembly, crmPluginSteps, solutionName, pluginTypes, pluginSteps, pluginImages);
+        _plugin.CreateTypes(crmAssembly, pluginTypes);
+        _plugin.CreateSteps(pluginSteps, pluginTypes);
+        _plugin.CreateImages(pluginImages, crmPluginSteps);
 
         // Assert
         _pluginWriter.Received(1).CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription);
-        _pluginWriter.Received(1).CreatePluginSteps(pluginSteps, crmAssembly.Plugins, solutionName, _description.SyncDescription);
+        _pluginWriter.Received(1).CreatePluginSteps(pluginSteps, pluginTypes, solutionName, _description.SyncDescription);
         _pluginWriter.Received(1).CreatePluginImages(pluginImages, crmPluginSteps);
-        Assert.Contains(createdTypes[0], crmAssembly.Plugins);
-        Assert.Contains(createdSteps[0], crmPluginSteps);
     }
 
     [Fact]
@@ -176,13 +178,15 @@ public class PluginServiceTests
     public void UpdatePlugins_CallsWriter()
     {
         // Arrange
-        var steps = new List<Step>();
-        var images = new List<Image>();
+        var data = new CompiledData(new List<PluginType>(), new List<Step>(), new List<Image>(), new List<ApiDefinition>(), new List<RequestParameter>(), new List<ResponseProperty>());
 
         // Act
-        _plugin.UpdatePlugins(steps, images);
+        _plugin.UpdatePlugins(data);
 
         // Assert
-        _pluginWriter.Received(1).UpdatePlugins(steps, images, _description.SyncDescription);
+        _pluginWriter.Received(1).UpdatePlugins(data.Steps, data.Images, _description.SyncDescription);
+        _customApiWriter.Received(1).UpdateCustomApis(data.CustomApis, _description.SyncDescription);
+        _customApiWriter.Received(1).UpdateRequestParameters(data.RequestParameters);
+        _customApiWriter.Received(1).UpdateResponseProperties(data.ResponseProperties);
     }
 }

@@ -18,7 +18,7 @@ internal static class LoggerExtensions
             var props = x.DifferentProperties
                 .Select(p =>
                 {
-                    var memberName = GetMemberName(p);
+                    var memberName = p.GetMemberName();
                     var propGetter = p.Compile();
                     var localValue = propGetter(x.LocalEntity);
                     var remoteValue = x.RemoteEntity != null ? propGetter(x.RemoteEntity) : null;
@@ -32,7 +32,7 @@ internal static class LoggerExtensions
         differences.Deletes.ForEach(x => log.LogDebug("  - {name}", namePicker(x)));
     }
 
-    private static string GetMemberName<T>(Expression<Func<T, object>> lambda)
+    public static string GetMemberName<T>(this Expression<Func<T, object>> lambda)
     {
         var body = lambda.Body as MemberExpression;
         if (body == null)

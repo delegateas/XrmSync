@@ -2,8 +2,9 @@ using DG.XrmSync.Dataverse.Interfaces;
 using DG.XrmSync.Model;
 using DG.XrmSync.Model.Plugin;
 using DG.XrmSync.SyncService;
-using DG.XrmSync.SyncService.Common;
-using DG.XrmSync.SyncService.Comparers;
+using DG.XrmSync.SyncService.Differences;
+using DG.XrmSync.SyncService.AssemblyReader;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 namespace Tests;
@@ -18,7 +19,7 @@ public class PluginValidationTests
         {
             Name = "TestStep",
             PluginTypeName = "TestType",
-            ExecutionStage = (int)ExecutionStage.PreOperation, // Pre
+            ExecutionStage = (int)ExecutionStage.Pre, // Pre
             ExecutionMode = (int)ExecutionMode.Asynchronous, // Async
             EventOperation = "Update",
             LogicalName = "account",
@@ -29,17 +30,28 @@ public class PluginValidationTests
             PluginImages = []
         };
         var pluginType = new PluginDefinition { Name = "TestType", PluginSteps = [pluginStep], Id = Guid.NewGuid() };
-        var reader = Substitute.For<IPluginReader>();
-        reader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns(new List<Step>());
-        var plugin = new PluginService(
-            Substitute.For<Microsoft.Extensions.Logging.ILogger>(),
-            reader,
-            Substitute.For<IPluginWriter>(),
+        var pluginReader = Substitute.For<IPluginReader>();
+        var pluginWriter = Substitute.For<IPluginWriter>();
+        var customApiReader = Substitute.For<ICustomApiReader>();
+        var customApiWriter = Substitute.For<ICustomApiWriter>();
+        var assemblyReader = Substitute.For<IAssemblyReader>();
+        var solutionReader = Substitute.For<ISolutionReader>();
+        var differenceUtility = Substitute.For<IDifferenceUtility>();
+        var logger = Substitute.For<ILogger>();
+        
+        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns(new List<Step>());
+        
+        var plugin = new PluginSyncService(
+            pluginReader,
+            pluginWriter,
+            customApiReader,
+            customApiWriter,
+            assemblyReader,
+            solutionReader,
+            differenceUtility,
             new Description(),
             new XrmSyncOptions(),
-            new PluginTypeComparer(),
-            new PluginStepComparer(),
-            new PluginImageComparer()
+            logger
         );
 
         // Act & Assert
@@ -55,7 +67,7 @@ public class PluginValidationTests
         {
             Name = "Step1",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.PreOperation,
+            ExecutionStage = (int)ExecutionStage.Pre,
             ExecutionMode = (int)ExecutionMode.Asynchronous,
             EventOperation = "Update",
             LogicalName = "account",
@@ -69,7 +81,7 @@ public class PluginValidationTests
         {
             Name = "Step2",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.PreOperation,
+            ExecutionStage = (int)ExecutionStage.Pre,
             ExecutionMode = (int)ExecutionMode.Synchronous,
             EventOperation = "Associate",
             LogicalName = "notempty",
@@ -80,17 +92,28 @@ public class PluginValidationTests
             PluginImages = []
         };
         var pluginType = new PluginDefinition { Name = "Type1", PluginSteps = [pluginStep1, pluginStep2], Id = Guid.NewGuid() };
-        var reader = Substitute.For<IPluginReader>();
-        reader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns(new List<Step>());
-        var plugin = new PluginService(
-            Substitute.For<Microsoft.Extensions.Logging.ILogger>(),
-            reader,
-            Substitute.For<IPluginWriter>(),
+        var pluginReader = Substitute.For<IPluginReader>();
+        var pluginWriter = Substitute.For<IPluginWriter>();
+        var customApiReader = Substitute.For<ICustomApiReader>();
+        var customApiWriter = Substitute.For<ICustomApiWriter>();
+        var assemblyReader = Substitute.For<IAssemblyReader>();
+        var solutionReader = Substitute.For<ISolutionReader>();
+        var differenceUtility = Substitute.For<IDifferenceUtility>();
+        var logger = Substitute.For<ILogger>();
+        
+        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns(new List<Step>());
+        
+        var plugin = new PluginSyncService(
+            pluginReader,
+            pluginWriter,
+            customApiReader,
+            customApiWriter,
+            assemblyReader,
+            solutionReader,
+            differenceUtility,
             new Description(),
             new XrmSyncOptions(),
-            new PluginTypeComparer(),
-            new PluginStepComparer(),
-            new PluginImageComparer()
+            logger
         );
 
         // Act & Assert
