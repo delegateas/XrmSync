@@ -19,8 +19,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution files", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		CHANGELOG.md = CHANGELOG.md
+		.github\workflows\ci.yml = .github\workflows\ci.yml
 		LICENSE = LICENSE
 		README.md = README.md
+		.github\workflows\release.yml = .github\workflows\release.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{C4B6AD9E-66B5-4A2F-9B37-6A32653F752E}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+		.github\workflows\release.yml = .github\workflows\release.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{BC1384C2-7507-4EA5-A65F-5D42B9BE20B7}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\Set-VersionFromChangelog.ps1 = scripts\Set-VersionFromChangelog.ps1
 	EndProjectSection
 EndProject
 Global
@@ -56,6 +69,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C4B6AD9E-66B5-4A2F-9B37-6A32653F752E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{BC1384C2-7507-4EA5-A65F-5D42B9BE20B7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F9480A28-E137-4B10-A81F-7EAA7955B252}

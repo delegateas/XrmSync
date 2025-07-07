@@ -1,7 +1,7 @@
 # Sets the <Version> property in the given .csproj file to the latest version found in CHANGELOG.md (keepachangelog format)
 param(
     [string]$ChangelogPath = "CHANGELOG.md",
-    [string]$CsprojPath = "XrmPluginSync/XrmPluginSync.csproj"
+    [string]$CsprojPath = "XrmSync/XrmSync.csproj"
 )
 
 $changelog = Get-Content $ChangelogPath
