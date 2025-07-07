@@ -36,7 +36,7 @@ public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseRea
         return entity.Id != Guid.Empty;
     }
 
-    public Entity RetrieveFirstOrDefault(QueryExpression query)
+    public Entity? RetrieveFirstOrDefault(QueryExpression query)
     {
         query.TopCount = 1;
         var entities = serviceClient.RetrieveMultiple(query).Entities;
@@ -51,12 +51,12 @@ public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseRea
     {
         // Define the fetch attributes.
         // Set the number of records per page to retrieve.
-        var fetchCount = 5000;
+        const int fetchCount = 5000;
         // Initialize the page number.
         var pageNumber = 1;
         // Specify the current paging cookie. For retrieving the first page, 
         // pagingCookie should be null.
-        string pagingCookie = null;
+        string? pagingCookie = null;
 
         var result = new List<Entity>();
 
@@ -90,7 +90,7 @@ public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseRea
         }
         return result;
     }
-    private static PagingInfo BuildPagingCookie(int fetchCount, int pageNumber, string pagingCookie)
+    private static PagingInfo BuildPagingCookie(int fetchCount, int pageNumber, string? pagingCookie)
     {
         return new PagingInfo
         {

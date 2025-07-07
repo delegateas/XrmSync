@@ -145,7 +145,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
             entity.Attributes.Add("supporteddeployment", new OptionSetValue(step.Deployment));
             entity.Attributes.Add("description", description);
             entity.Attributes.Add("impersonatinguserid", step.UserContext == Guid.Empty ? null : new EntityReference(EntityTypeNames.SystemUser, step.UserContext));
-            entity.Attributes.Add("sdkmessagefilterid", string.IsNullOrEmpty(step.LogicalName) ? null : new EntityReference(EntityTypeNames.MessageFilter, messageFilter.Id));
+            entity.Attributes.Add("sdkmessagefilterid", string.IsNullOrEmpty(step.LogicalName) || messageFilter is null ? null : new EntityReference(EntityTypeNames.MessageFilter, messageFilter.Id));
 
             var parameters = new ParameterCollection
             {

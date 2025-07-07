@@ -184,6 +184,7 @@ public class PluginSyncService(
     internal AssemblyInfo CreatePluginAssembly(AssemblyInfo localAssembly, string solutionName)
     {
         log.LogInformation($"Creating assembly {localAssembly.Name}");
+        if (localAssembly.DllPath is null) throw new Exception("Assembly DLL path is null. Ensure the assembly has been read correctly.");
         var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, solutionName, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
         return localAssembly with { Id = assemblyId };
     }
@@ -191,6 +192,7 @@ public class PluginSyncService(
     internal void UpdatePluginAssembly(Guid assemblyId, AssemblyInfo localAssembly)
     {
         log.LogInformation($"Updating assembly {localAssembly.Name}");
+        if (localAssembly.DllPath is null) throw new Exception("Assembly DLL path is null. Ensure the assembly has been read correctly.");
         pluginWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
     }
 

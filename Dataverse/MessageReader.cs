@@ -40,7 +40,7 @@ public class MessageReader(IDataverseReader reader) : IMessageReader
             .ToDictionary(e => e.GetAttributeValue<string>("name"), e => e.GetAttributeValue<Guid>("sdkmessageid"));
     }
 
-    public Entity GetMessageFilter(string primaryObjectType, Guid sdkMessageId)
+    public Entity? GetMessageFilter(string primaryObjectType, Guid sdkMessageId)
     {
         var query = new QueryExpression(EntityTypeNames.MessageFilter)
         {
