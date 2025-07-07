@@ -15,7 +15,8 @@
 		<AssemblyName>DG.$(MSBuildProjectName)</AssemblyName>
 		<PackageLicenseFile>../LICENSE</PackageLicenseFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/delegateas/YOUR_REPO_NAME</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/delegateas/XrmSync</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -31,6 +32,7 @@
 
 	<ItemGroup>
 		<None Include="..\LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 </Project>
