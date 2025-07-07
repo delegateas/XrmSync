@@ -25,18 +25,31 @@ XrmSync is a powerful tool that helps you manage and synchronize your Microsoft 
 ## Installation
 
 ### As a .NET Tool
+```bash
 dotnet tool install --global XrmSync
+```
 ### From Source
 
-1. Clone the repository:git clone https://github.com/delegateas/XrmSync.git
+1. Clone the repository:
+```bash
+git clone https://github.com/delegateas/XrmSync.git
 cd XrmSync
-2. Build the project:dotnet build
-3. Install as a local tool:dotnet pack XrmSync/XrmSync.csproj
+```
+3. Build the project:
+```bash
+dotnet build
+```
+5. Install as a local tool:
+```bash
+dotnet pack XrmSync/XrmSync.csproj
 dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
+```
 ## Usage
 
 ### Basic Sync Command
+```bash
 XrmSync --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
+```
 ### Command Line Options
 
 | Option | Short | Description | Required |
@@ -50,14 +63,31 @@ XrmSync --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
 ### Assembly Analysis
 
 You can analyze an assembly without connecting to Dataverse:
+```bash
 XrmSync analyze --assembly "path/to/your/plugin.dll"
+```
 This outputs JSON information about the plugin types, steps, and images found in the assembly.
 
 ### Examples
 
-#### Basic synchronization:XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
-#### Dry run with debug logging:XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug
-#### Specify Dataverse environment:XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dataverse "https://myorg.crm.dynamics.com"
+#### Basic synchronization:
+
+```bash
+dotnet tool XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
+```
+
+#### Dry run with debug logging:
+
+```bash
+dotnet tool XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug
+```
+
+#### Specify Dataverse environment:
+
+```bash
+dotnet tool XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dataverse "https://myorg.crm.dynamics.com"
+```
+
 ## Configuration
 
 ### Dataverse Connection
