@@ -1,5 +1,5 @@
-﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
+﻿using Microsoft.Xrm.Sdk.Query;
+using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
 
 namespace XrmSync.Dataverse;
@@ -27,33 +27,34 @@ public class MessageReader(IDataverseReader reader) : IMessageReader
         if (!names.Any())
             return [];
 
-        var query = new QueryExpression(EntityTypeNames.Message)
+        var query = new QueryExpression(SdkMessage.EntityLogicalName)
         {
-            ColumnSet = new ColumnSet("sdkmessageid", "name")
+            ColumnSet = new ColumnSet(SdkMessage.Fields.Name)
         };
 
         var filter = new FilterExpression();
-        filter.AddCondition(new ConditionExpression("name", ConditionOperator.In, [.. names]));
+        filter.AddCondition(SdkMessage.Fields.Name, ConditionOperator.In, [.. names]);
         query.Criteria = filter;
 
         return reader.RetrieveMultiple(query)
-            .ToDictionary(e => e.GetAttributeValue<string>("name"), e => e.GetAttributeValue<Guid>("sdkmessageid"));
+            .ToDictionary(e => e.GetAttributeValue<string>(SdkMessage.Fields.Name), e => e.Id);
     }
 
-    public Entity? GetMessageFilter(string primaryObjectType, Guid sdkMessageId)
+    public Guid? GetMessageFilterId(string primaryObjectType, Guid sdkMessageId)
     {
-        var query = new QueryExpression(EntityTypeNames.MessageFilter)
+        var query = new QueryExpression(SdkMessageFilter.EntityLogicalName)
         {
-            ColumnSet = new ColumnSet("sdkmessagefilterid")
+            ColumnSet = new ColumnSet(SdkMessageFilter.PrimaryIdAttribute)
         };
 
         var filter = new FilterExpression();
-        filter.AddCondition(new ConditionExpression("sdkmessageid", ConditionOperator.Equal, sdkMessageId));
+        filter.AddCondition(SdkMessageFilter.Fields.SdkMessageId, ConditionOperator.Equal, sdkMessageId);
         query.Criteria = filter;
 
         if (!string.IsNullOrEmpty(primaryObjectType))
-            filter.AddCondition(new ConditionExpression("primaryobjecttypecode", ConditionOperator.Equal, primaryObjectType));
+            filter.AddCondition(SdkMessageFilter.Fields.PrimaryObjectTypeCode, ConditionOperator.Equal, primaryObjectType);
 
-        return reader.RetrieveFirstOrDefault(query);
+        var messageFilter = reader.RetrieveFirstOrDefault(query);
+        return messageFilter?.Id;
     }
 }
