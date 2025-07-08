@@ -1,11 +1,8 @@
 using DG.XrmSync.Dataverse.Interfaces;
 using DG.XrmSync.Model;
 using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.SyncService;
-using DG.XrmSync.SyncService.Differences;
-using DG.XrmSync.SyncService.AssemblyReader;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
+using DG.XrmSync.SyncService.PluginValidator;
 
 namespace Tests;
 
@@ -30,32 +27,13 @@ public class PluginValidationTests
             PluginImages = []
         };
         var pluginType = new PluginDefinition { Name = "TestType", PluginSteps = [pluginStep], Id = Guid.NewGuid() };
+
         var pluginReader = Substitute.For<IPluginReader>();
-        var pluginWriter = Substitute.For<IPluginWriter>();
-        var customApiReader = Substitute.For<ICustomApiReader>();
-        var customApiWriter = Substitute.For<ICustomApiWriter>();
-        var assemblyReader = Substitute.For<IAssemblyReader>();
-        var solutionReader = Substitute.For<ISolutionReader>();
-        var differenceUtility = Substitute.For<IDifferenceUtility>();
-        var logger = Substitute.For<ILogger>();
-        
-        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns(new List<Step>());
-        
-        var plugin = new PluginSyncService(
-            pluginReader,
-            pluginWriter,
-            customApiReader,
-            customApiWriter,
-            assemblyReader,
-            solutionReader,
-            differenceUtility,
-            new Description(),
-            new XrmSyncOptions(),
-            logger
-        );
+        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
+        var validator = new PluginValidator(pluginReader);
 
         // Act & Assert
-        var ex = Assert.Throws<Exception>(() => plugin.ValidatePlugins([pluginType]));
+        var ex = Assert.Throws<Exception>(() => validator.Validate([pluginType]));
         Assert.Contains("Pre execution stages does not support asynchronous execution mode", ex.Message);
     }
 
@@ -92,32 +70,13 @@ public class PluginValidationTests
             PluginImages = []
         };
         var pluginType = new PluginDefinition { Name = "Type1", PluginSteps = [pluginStep1, pluginStep2], Id = Guid.NewGuid() };
+
         var pluginReader = Substitute.For<IPluginReader>();
-        var pluginWriter = Substitute.For<IPluginWriter>();
-        var customApiReader = Substitute.For<ICustomApiReader>();
-        var customApiWriter = Substitute.For<ICustomApiWriter>();
-        var assemblyReader = Substitute.For<IAssemblyReader>();
-        var solutionReader = Substitute.For<ISolutionReader>();
-        var differenceUtility = Substitute.For<IDifferenceUtility>();
-        var logger = Substitute.For<ILogger>();
-        
-        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns(new List<Step>());
-        
-        var plugin = new PluginSyncService(
-            pluginReader,
-            pluginWriter,
-            customApiReader,
-            customApiWriter,
-            assemblyReader,
-            solutionReader,
-            differenceUtility,
-            new Description(),
-            new XrmSyncOptions(),
-            logger
-        );
+        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
+        var validator = new PluginValidator(pluginReader);
 
         // Act & Assert
-        var ex = Assert.Throws<AggregateException>(() => plugin.ValidatePlugins([pluginType]));
+        var ex = Assert.Throws<AggregateException>(() => validator.Validate([pluginType]));
         Assert.Contains("Pre execution stages does not support asynchronous execution mode", ex.InnerExceptions[0].Message);
         Assert.Contains("Associate/Disassociate events can't have filtered attributes", ex.InnerExceptions[1].Message);
         Assert.Contains("Associate/Disassociate events must target all entities", ex.InnerExceptions[2].Message);
@@ -160,31 +119,11 @@ public class PluginValidationTests
         var pluginType = new PluginDefinition { Name = "Type1", PluginSteps = [pluginStep1, pluginStep2], Id = Guid.NewGuid() };
 
         var pluginReader = Substitute.For<IPluginReader>();
-        var pluginWriter = Substitute.For<IPluginWriter>();
-        var customApiReader = Substitute.For<ICustomApiReader>();
-        var customApiWriter = Substitute.For<ICustomApiWriter>();
-        var assemblyReader = Substitute.For<IAssemblyReader>();
-        var solutionReader = Substitute.For<ISolutionReader>();
-        var differenceUtility = Substitute.For<IDifferenceUtility>();
-        var logger = Substitute.For<ILogger>();
-        
-        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns(new List<Step>());
-        
-        var plugin = new PluginSyncService(
-            pluginReader,
-            pluginWriter,
-            customApiReader,
-            customApiWriter,
-            assemblyReader,
-            solutionReader,
-            differenceUtility,
-            new Description(),
-            new XrmSyncOptions(),
-            logger
-        );
+        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
+        var validator = new PluginValidator(pluginReader);
 
         // Act & Assert
-        var ex = Assert.Throws<Exception>(() => plugin.ValidatePlugins([pluginType]));
+        var ex = Assert.Throws<Exception>(() => validator.Validate([pluginType]));
         Assert.Contains("Plugin Step1: Multiple registrations on the same message, stage and entity are not allowed", ex.Message);
     }
 
@@ -226,30 +165,10 @@ public class PluginValidationTests
         var pluginType2 = new PluginDefinition { Name = "Type2", PluginSteps = [pluginStep2], Id = Guid.NewGuid() };
 
         var pluginReader = Substitute.For<IPluginReader>();
-        var pluginWriter = Substitute.For<IPluginWriter>();
-        var customApiReader = Substitute.For<ICustomApiReader>();
-        var customApiWriter = Substitute.For<ICustomApiWriter>();
-        var assemblyReader = Substitute.For<IAssemblyReader>();
-        var solutionReader = Substitute.For<ISolutionReader>();
-        var differenceUtility = Substitute.For<IDifferenceUtility>();
-        var logger = Substitute.For<ILogger>();
-
-        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns(new List<Step>());
-
-        var plugin = new PluginSyncService(
-            pluginReader,
-            pluginWriter,
-            customApiReader,
-            customApiWriter,
-            assemblyReader,
-            solutionReader,
-            differenceUtility,
-            new Description(),
-            new XrmSyncOptions(),
-            logger
-        );
+        pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
+        var validator = new PluginValidator(pluginReader);
 
         // Act & Assert
-        plugin.ValidatePlugins([pluginType1, pluginType2]);
+        validator.Validate([pluginType1, pluginType2]);
     }
 }

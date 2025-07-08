@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using DG.XrmSync.Model.Plugin;
 using DG.XrmSync.Model.CustomApi;
+using DG.XrmSync.SyncService.PluginValidator;
 
 namespace Tests;
 
@@ -15,6 +16,7 @@ public class PluginServiceTests
     private readonly ILogger _logger = Substitute.For<ILogger>();
     private readonly IPluginReader _pluginReader = Substitute.For<IPluginReader>();
     private readonly IPluginWriter _pluginWriter = Substitute.For<IPluginWriter>();
+    private readonly IPluginValidator _pluginValidator = Substitute.For<IPluginValidator>();
     private readonly ICustomApiReader _customApiReader = Substitute.For<ICustomApiReader>();
     private readonly ICustomApiWriter _customApiWriter = Substitute.For<ICustomApiWriter>();
     private readonly IAssemblyReader _assemblyReader = Substitute.For<IAssemblyReader>();
@@ -30,7 +32,7 @@ public class PluginServiceTests
 
     public PluginServiceTests()
     {
-        _plugin = new PluginSyncService(_pluginReader, _pluginWriter, _customApiReader, _customApiWriter, _assemblyReader, _solutionReader, _differenceUtility, _description, _options, _logger);
+        _plugin = new PluginSyncService(_pluginReader, _pluginWriter, _pluginValidator, _customApiReader, _customApiWriter, _assemblyReader, _solutionReader, _differenceUtility, _description, _options, _logger);
     }
 
     [Fact]

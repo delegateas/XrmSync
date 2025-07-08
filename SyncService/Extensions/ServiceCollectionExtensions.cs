@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using DG.XrmSync.Model.Plugin;
 using DG.XrmSync.Model.CustomApi;
 using DG.XrmSync.SyncService.Differences;
+using DG.XrmSync.SyncService.PluginValidator;
 
 namespace DG.XrmSync.SyncService.Extensions;
 
@@ -15,6 +16,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<Description>()
             .AddSingleton<PluginSyncService>()
             .AddSingleton<IDifferenceUtility, DifferenceUtility>()
+            .AddSingleton<IPluginValidator, PluginValidator.PluginValidator>()
             .AddSingleton<IEntityComparer<PluginType>, PluginTypeComparer>()
             .AddSingleton<IEntityComparer<Step>, PluginStepComparer>()
             .AddSingleton<IEntityComparer<Image>, PluginImageComparer>()
