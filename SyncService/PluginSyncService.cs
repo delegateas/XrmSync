@@ -153,15 +153,15 @@ public class PluginSyncService(
             {
                 if (inner is AnalysisException analysisEx)
                 {
-                    log.LogError(analysisEx, "Analysis error: {Message}", analysisEx.Message);
+                    log.LogError("Analysis error: {Message}", analysisEx.Message);
                 }
                 else if (inner is ValidationException validationEx)
                 {
-                    log.LogError(validationEx, "Validation error: {Message}", validationEx.Message);
+                    log.LogError("Validation error: {message}", validationEx.Message);
                 }
                 else
                 {
-                    log.LogCritical(inner, "Unexpected error: {Message}", inner.Message);
+                    log.LogCritical(inner, "Unexpected error:");
                 }
             }
 
