@@ -277,6 +277,13 @@ public class PluginSyncService(
             });
         exceptions.AddRange(deleteWithPostImagesPLugins.Select(x => new Exception($"Plugin {x.Name}: Delete events does not support post-images")));
 
+        var stepsGroupedByMessageStageAndEntity =
+            pluginSteps.GroupBy(x => (x.PluginTypeName, x.EventOperation, x.ExecutionStage, x.LogicalName))
+            .Where(g => g.Count() > 1)
+            .Select(g => g.First())
+            .ToList();
+        exceptions.AddRange(stepsGroupedByMessageStageAndEntity.Select(x => new Exception($"Plugin {x.Name}: Multiple registrations on the same message, stage and entity are not allowed")));
+
         var userContextDoesNotExistPlugins = pluginReader.GetMissingUserContexts(pluginSteps);
         exceptions.AddRange(userContextDoesNotExistPlugins.Select(x => new Exception($"Plugin {x.Name}: Defined user context is not in the system")));
 
