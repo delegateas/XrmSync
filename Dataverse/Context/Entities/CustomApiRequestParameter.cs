@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmSync.Dataverse.Context
+namespace XrmSync.Dataverse.Context
 {
 	
 	
@@ -944,17 +944,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("customapiid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("customapi_customapirequestparameter")]
-		public DG.XrmSync.Dataverse.Context.CustomApi? CustomApi_CustomApiRequestParameter
+		public XrmSync.Dataverse.Context.CustomApi? CustomApi_CustomApiRequestParameter
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.CustomApi>("customapi_customapirequestparameter", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.CustomApi>("customapi_customapirequestparameter", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.CustomApi>("customapi_customapirequestparameter", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.CustomApi>("customapi_customapirequestparameter", null, value);
 			}
 		}
 		
@@ -963,12 +963,12 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapirequestparameter_createdby")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiRequestParameter_CreatedBy
+		public XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiRequestParameter_CreatedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_createdby", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_createdby", null);
 			}
 		}
 		
@@ -977,17 +977,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapirequestparameter_createdonbehalfby")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiRequestParameter_CreatedOnBehalfBy
+		public XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiRequestParameter_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_createdonbehalfby", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_createdonbehalfby", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -996,12 +996,12 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapirequestparameter_modifiedby")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiRequestParameter_ModifiedBy
+		public XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiRequestParameter_ModifiedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_modifiedby", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_modifiedby", null);
 			}
 		}
 		
@@ -1010,17 +1010,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapirequestparameter_modifiedonbehalfby")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiRequestParameter_ModifiedOnBehalfBy
+		public XrmSync.Dataverse.Context.SystemUser? Lk_CustomApiRequestParameter_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_modifiedonbehalfby", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_modifiedonbehalfby", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_customapirequestparameter_modifiedonbehalfby", null, value);
 			}
 		}
 		

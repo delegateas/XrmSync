@@ -1,9 +1,9 @@
-﻿using DG.XrmSync.Model;
-using DG.XrmSync.SyncService;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using XrmSync.Model;
+using XrmSync.SyncService;
 
-namespace DG.XrmSync;
+namespace XrmSync;
 
 internal static class PluginSync
 {

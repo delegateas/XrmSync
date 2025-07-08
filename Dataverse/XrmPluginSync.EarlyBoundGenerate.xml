@@ -126,10 +126,10 @@ VoiceMail</TokenCapitalizationOverrides>
   <MetadataQueryProviderService>DLaB.ModelBuilderExtensions.MetadataQueryProviderService,DLaB.ModelBuilderExtensions</MetadataQueryProviderService>
   <NamingService>DLaB.ModelBuilderExtensions.NamingService,DLaB.ModelBuilderExtensions</NamingService>
   <OptionSetsTypesFolder>OptionSets</OptionSetsTypesFolder>
-  <Namespace>DG.XrmSync.Dataverse.Context</Namespace>
+  <Namespace>XrmSync.Dataverse.Context</Namespace>
   <ServiceContextName>DataverseContext</ServiceContextName>
   <SuppressGeneratedCodeAttribute>true</SuppressGeneratedCodeAttribute>
-  <SettingsVersion>2.2025.4.20</SettingsVersion>
+  <SettingsVersion>2.2025.7.3</SettingsVersion>
   <UpdateBuilderSettingsJson>true</UpdateBuilderSettingsJson>
   <Version>2.2025.7.3</Version>
 </Config>

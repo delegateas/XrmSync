@@ -1,14 +1,9 @@
-using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.Model.CustomApi;
-using DG.XrmSync.SyncService.Comparers;
-using DG.XrmSync.SyncService.Differences;
-using DG.XrmSync.SyncService;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using Xunit;
-using DG.XrmSync.SyncService.Extensions;
+using XrmSync.Model.Plugin;
+using XrmSync.SyncService;
+using XrmSync.SyncService.Comparers;
+using XrmSync.SyncService.Differences;
+using XrmSync.SyncService.Extensions;
 
 namespace Tests;
 

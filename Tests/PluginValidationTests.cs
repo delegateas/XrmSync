@@ -1,9 +1,9 @@
-using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.Model;
-using DG.XrmSync.Model.Plugin;
 using NSubstitute;
-using DG.XrmSync.SyncService.PluginValidator;
-using DG.XrmSync.SyncService.Exceptions;
+using XrmSync.Dataverse.Interfaces;
+using XrmSync.SyncService.Exceptions;
+using XrmSync.Model.Plugin;
+using XrmSync.Model;
+using XrmSync.SyncService.PluginValidator;
 
 namespace Tests;
 

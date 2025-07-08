@@ -1,10 +1,10 @@
-﻿using DG.XrmSync.Model;
-using DG.XrmSync.Model.Exceptions;
-using DG.XrmSync.SyncService.Differences;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using XrmSync.Model;
+using XrmSync.Model.Exceptions;
+using XrmSync.SyncService.Differences;
 
-namespace DG.XrmSync.SyncService.Extensions;
+namespace XrmSync.SyncService.Extensions;
 
 internal static class LoggerExtensions
 {

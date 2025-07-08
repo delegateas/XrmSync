@@ -1,7 +1,7 @@
-﻿using DG.XrmSync.SyncService.AssemblyReader;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using XrmSync.AssemblyAnalyzer.AssemblyReader;
 
-namespace DG.XrmSync.AssemblyAnalyzer.Extensions;
+namespace XrmSync.AssemblyAnalyzer.Extensions;
 
 public static class ServiceColletionExteions
 {

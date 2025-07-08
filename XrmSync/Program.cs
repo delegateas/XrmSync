@@ -1,17 +1,17 @@
-﻿using DG.XrmSync;
-using DG.XrmSync.Dataverse.Extensions;
-using DG.XrmSync.Model;
-using DG.XrmSync.SyncService;
-using DG.XrmSync.SyncService.Extensions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
 using System.Text.Json;
-using DG.XrmSync.AssemblyAnalyzer;
-using DGLoggerFactory = DG.XrmSync.LoggerFactory;
-using DG.XrmSync.AssemblyAnalyzer.Extensions;
-using DG.XrmSync.Model.Exceptions;
+using DGLoggerFactory = XrmSync.LoggerFactory;
+using XrmSync;
+using XrmSync.Dataverse.Extensions;
+using XrmSync.SyncService.Extensions;
+using XrmSync.SyncService;
+using XrmSync.Model.Exceptions;
+using XrmSync.AssemblyAnalyzer;
+using XrmSync.AssemblyAnalyzer.Extensions;
+using XrmSync.Model;
 
 
 // Define CLI options

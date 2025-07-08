@@ -1,7 +1,7 @@
-using DG.XrmSync.Model.Plugin;
 using System.Linq.Expressions;
+using XrmSync.Model.Plugin;
 
-namespace DG.XrmSync.SyncService.Comparers;
+namespace XrmSync.SyncService.Comparers;
 
 public class PluginImageComparer : BaseComparer<Image>
 {

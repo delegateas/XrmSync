@@ -1,4 +1,4 @@
-﻿namespace DG.XrmSync.Model.Plugin;
+﻿namespace XrmSync.Model.Plugin;
 
 public record Image : EntityBase
 {

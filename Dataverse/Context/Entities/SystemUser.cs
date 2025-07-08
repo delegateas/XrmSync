@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmSync.Dataverse.Context
+namespace XrmSync.Dataverse.Context
 {
 	
 	
@@ -4139,17 +4139,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N createdby_pluginassembly
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_pluginassembly")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginAssembly>? CreatedBy_PluginAssembly
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.PluginAssembly>? CreatedBy_PluginAssembly
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginAssembly>("createdby_pluginassembly", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.PluginAssembly>("createdby_pluginassembly", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginAssembly>("createdby_pluginassembly", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.PluginAssembly>("createdby_pluginassembly", null, value);
 			}
 		}
 		
@@ -4157,17 +4157,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N createdby_plugintype
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_plugintype")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginType>? CreatedBy_PluginType
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.PluginType>? CreatedBy_PluginType
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("createdby_plugintype", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.PluginType>("createdby_plugintype", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("createdby_plugintype", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.PluginType>("createdby_plugintype", null, value);
 			}
 		}
 		
@@ -4175,17 +4175,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N createdby_sdkmessage
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_sdkmessage")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessage>? CreatedBy_SdkMessage
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessage>? CreatedBy_SdkMessage
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessage>("createdby_sdkmessage", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessage>("createdby_sdkmessage", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessage>("createdby_sdkmessage", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessage>("createdby_sdkmessage", null, value);
 			}
 		}
 		
@@ -4193,17 +4193,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N createdby_sdkmessagefilter
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_sdkmessagefilter")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageFilter>? CreatedBy_SdkMessageFilter
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageFilter>? CreatedBy_SdkMessageFilter
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("createdby_sdkmessagefilter", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageFilter>("createdby_sdkmessagefilter", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("createdby_sdkmessagefilter", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageFilter>("createdby_sdkmessagefilter", null, value);
 			}
 		}
 		
@@ -4211,17 +4211,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N createdby_sdkmessageprocessingstep
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_sdkmessageprocessingstep")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>? CreatedBy_SdkMessageProcessingStep
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStep>? CreatedBy_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("createdby_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("createdby_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("createdby_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("createdby_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -4229,17 +4229,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N createdby_sdkmessageprocessingstepimage
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_sdkmessageprocessingstepimage")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? CreatedBy_SdkMessageProcessingStepImage
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? CreatedBy_SdkMessageProcessingStepImage
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("createdby_sdkmessageprocessingstepimage", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("createdby_sdkmessageprocessingstepimage", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("createdby_sdkmessageprocessingstepimage", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("createdby_sdkmessageprocessingstepimage", null, value);
 			}
 		}
 		
@@ -4247,17 +4247,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N impersonatinguserid_sdkmessageprocessingstep
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("impersonatinguserid_sdkmessageprocessingstep")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>? ImpersonatingUserId_SdkMessageProcessingStep
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStep>? ImpersonatingUserId_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("impersonatinguserid_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("impersonatinguserid_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("impersonatinguserid_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("impersonatinguserid_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -4265,17 +4265,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapi_createdby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapi_createdby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApi>? Lk_CustomApi_CreatedBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApi>? Lk_CustomApi_CreatedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("lk_customapi_createdby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("lk_customapi_createdby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("lk_customapi_createdby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("lk_customapi_createdby", null, value);
 			}
 		}
 		
@@ -4283,17 +4283,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapi_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapi_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApi>? Lk_CustomApi_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApi>? Lk_CustomApi_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("lk_customapi_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("lk_customapi_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("lk_customapi_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("lk_customapi_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4301,17 +4301,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapi_modifiedby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapi_modifiedby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApi>? Lk_CustomApi_ModifiedBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApi>? Lk_CustomApi_ModifiedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("lk_customapi_modifiedby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("lk_customapi_modifiedby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("lk_customapi_modifiedby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("lk_customapi_modifiedby", null, value);
 			}
 		}
 		
@@ -4319,17 +4319,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapi_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapi_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApi>? Lk_CustomApi_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApi>? Lk_CustomApi_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("lk_customapi_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("lk_customapi_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("lk_customapi_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("lk_customapi_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4337,17 +4337,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapirequestparameter_createdby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapirequestparameter_createdby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>? Lk_CustomApiRequestParameter_CreatedBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApiRequestParameter>? Lk_CustomApiRequestParameter_CreatedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_createdby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_createdby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_createdby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_createdby", null, value);
 			}
 		}
 		
@@ -4355,17 +4355,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapirequestparameter_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapirequestparameter_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>? Lk_CustomApiRequestParameter_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApiRequestParameter>? Lk_CustomApiRequestParameter_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4373,17 +4373,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapirequestparameter_modifiedby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapirequestparameter_modifiedby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>? Lk_CustomApiRequestParameter_ModifiedBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApiRequestParameter>? Lk_CustomApiRequestParameter_ModifiedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_modifiedby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_modifiedby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_modifiedby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_modifiedby", null, value);
 			}
 		}
 		
@@ -4391,17 +4391,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapirequestparameter_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapirequestparameter_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>? Lk_CustomApiRequestParameter_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApiRequestParameter>? Lk_CustomApiRequestParameter_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApiRequestParameter>("lk_customapirequestparameter_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4409,17 +4409,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapiresponseproperty_createdby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapiresponseproperty_createdby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>? Lk_CustomApiResponseProperty_CreatedBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApiResponseProperty>? Lk_CustomApiResponseProperty_CreatedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_createdby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_createdby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_createdby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_createdby", null, value);
 			}
 		}
 		
@@ -4427,17 +4427,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapiresponseproperty_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapiresponseproperty_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>? Lk_CustomApiResponseProperty_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApiResponseProperty>? Lk_CustomApiResponseProperty_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4445,17 +4445,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapiresponseproperty_modifiedby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapiresponseproperty_modifiedby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>? Lk_CustomApiResponseProperty_ModifiedBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApiResponseProperty>? Lk_CustomApiResponseProperty_ModifiedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_modifiedby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_modifiedby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_modifiedby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_modifiedby", null, value);
 			}
 		}
 		
@@ -4463,17 +4463,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_customapiresponseproperty_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_customapiresponseproperty_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>? Lk_CustomApiResponseProperty_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApiResponseProperty>? Lk_CustomApiResponseProperty_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApiResponseProperty>("lk_customapiresponseproperty_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4481,17 +4481,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_pluginassembly_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_pluginassembly_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginAssembly>? Lk_PluginAssembly_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.PluginAssembly>? Lk_PluginAssembly_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginAssembly>("lk_pluginassembly_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.PluginAssembly>("lk_pluginassembly_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginAssembly>("lk_pluginassembly_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.PluginAssembly>("lk_pluginassembly_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4499,17 +4499,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_pluginassembly_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_pluginassembly_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginAssembly>? Lk_PluginAssembly_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.PluginAssembly>? Lk_PluginAssembly_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginAssembly>("lk_pluginassembly_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.PluginAssembly>("lk_pluginassembly_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginAssembly>("lk_pluginassembly_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.PluginAssembly>("lk_pluginassembly_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4517,17 +4517,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_plugintype_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_plugintype_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginType>? Lk_PluginType_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.PluginType>? Lk_PluginType_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("lk_plugintype_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.PluginType>("lk_plugintype_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("lk_plugintype_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.PluginType>("lk_plugintype_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4535,17 +4535,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_plugintype_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_plugintype_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginType>? Lk_PluginType_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.PluginType>? Lk_PluginType_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("lk_plugintype_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.PluginType>("lk_plugintype_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("lk_plugintype_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.PluginType>("lk_plugintype_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4553,17 +4553,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_sdkmessage_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessage_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessage>? Lk_SdkMessage_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessage>? Lk_SdkMessage_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessage>("lk_sdkmessage_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessage>("lk_sdkmessage_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessage>("lk_sdkmessage_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessage>("lk_sdkmessage_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4571,17 +4571,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_sdkmessage_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessage_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessage>? Lk_SdkMessage_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessage>? Lk_SdkMessage_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessage>("lk_sdkmessage_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessage>("lk_sdkmessage_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessage>("lk_sdkmessage_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessage>("lk_sdkmessage_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4589,17 +4589,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_sdkmessagefilter_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessagefilter_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageFilter>? Lk_SdkMessageFilter_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageFilter>? Lk_SdkMessageFilter_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("lk_sdkmessagefilter_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageFilter>("lk_sdkmessagefilter_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("lk_sdkmessagefilter_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageFilter>("lk_sdkmessagefilter_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4607,17 +4607,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_sdkmessagefilter_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessagefilter_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageFilter>? Lk_SdkMessageFilter_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageFilter>? Lk_SdkMessageFilter_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("lk_sdkmessagefilter_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageFilter>("lk_sdkmessagefilter_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("lk_sdkmessagefilter_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageFilter>("lk_sdkmessagefilter_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4625,17 +4625,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_sdkmessageprocessingstep_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessageprocessingstep_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>? Lk_SdkMessageProcessingStep_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStep>? Lk_SdkMessageProcessingStep_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("lk_sdkmessageprocessingstep_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("lk_sdkmessageprocessingstep_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("lk_sdkmessageprocessingstep_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("lk_sdkmessageprocessingstep_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4643,17 +4643,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_sdkmessageprocessingstep_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessageprocessingstep_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>? Lk_SdkMessageProcessingStep_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStep>? Lk_SdkMessageProcessingStep_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("lk_sdkmessageprocessingstep_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("lk_sdkmessageprocessingstep_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("lk_sdkmessageprocessingstep_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("lk_sdkmessageprocessingstep_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4661,17 +4661,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_sdkmessageprocessingstepimage_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessageprocessingstepimage_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? Lk_SdkMessageProcessingStepImage_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? Lk_SdkMessageProcessingStepImage_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4679,17 +4679,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_sdkmessageprocessingstepimage_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessageprocessingstepimage_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? Lk_SdkMessageProcessingStepImage_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? Lk_SdkMessageProcessingStepImage_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4697,17 +4697,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_solutioncomponentbase_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_solutioncomponentbase_createdonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SolutionComponent>? Lk_SolutionComponentBase_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SolutionComponent>? Lk_SolutionComponentBase_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SolutionComponent>("lk_solutioncomponentbase_createdonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SolutionComponent>("lk_solutioncomponentbase_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SolutionComponent>("lk_solutioncomponentbase_createdonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SolutionComponent>("lk_solutioncomponentbase_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -4715,17 +4715,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_solutioncomponentbase_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_solutioncomponentbase_modifiedonbehalfby")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SolutionComponent>? Lk_SolutionComponentBase_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SolutionComponent>? Lk_SolutionComponentBase_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SolutionComponent>("lk_solutioncomponentbase_modifiedonbehalfby", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SolutionComponent>("lk_solutioncomponentbase_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SolutionComponent>("lk_solutioncomponentbase_modifiedonbehalfby", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SolutionComponent>("lk_solutioncomponentbase_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -4733,17 +4733,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_systemuser_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced)]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SystemUser>? ReferencedLk_SystemUser_CreatedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SystemUser>? ReferencedLk_SystemUser_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
 			}
 		}
 		
@@ -4751,17 +4751,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_systemuser_modifiedonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced)]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SystemUser>? ReferencedLk_SystemUser_ModifiedOnBehalfBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SystemUser>? ReferencedLk_SystemUser_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
 			}
 		}
 		
@@ -4769,17 +4769,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_systemuserbase_createdby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_systemuserbase_createdby", Microsoft.Xrm.Sdk.EntityRole.Referenced)]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SystemUser>? ReferencedLk_SystemUserBase_CreatedBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SystemUser>? ReferencedLk_SystemUserBase_CreatedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_createdby", Microsoft.Xrm.Sdk.EntityRole.Referenced);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_createdby", Microsoft.Xrm.Sdk.EntityRole.Referenced);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_createdby", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_createdby", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
 			}
 		}
 		
@@ -4787,17 +4787,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N lk_systemuserbase_modifiedby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_systemuserbase_modifiedby", Microsoft.Xrm.Sdk.EntityRole.Referenced)]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SystemUser>? ReferencedLk_SystemUserBase_ModifiedBy
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SystemUser>? ReferencedLk_SystemUserBase_ModifiedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_modifiedby", Microsoft.Xrm.Sdk.EntityRole.Referenced);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_modifiedby", Microsoft.Xrm.Sdk.EntityRole.Referenced);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_modifiedby", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_modifiedby", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
 			}
 		}
 		
@@ -4805,17 +4805,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N modifiedby_pluginassembly
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_pluginassembly")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginAssembly>? ModifiedBy_PluginAssembly
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.PluginAssembly>? ModifiedBy_PluginAssembly
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginAssembly>("modifiedby_pluginassembly", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.PluginAssembly>("modifiedby_pluginassembly", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginAssembly>("modifiedby_pluginassembly", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.PluginAssembly>("modifiedby_pluginassembly", null, value);
 			}
 		}
 		
@@ -4823,17 +4823,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N modifiedby_plugintype
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_plugintype")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.PluginType>? ModifiedBy_PluginType
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.PluginType>? ModifiedBy_PluginType
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("modifiedby_plugintype", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.PluginType>("modifiedby_plugintype", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.PluginType>("modifiedby_plugintype", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.PluginType>("modifiedby_plugintype", null, value);
 			}
 		}
 		
@@ -4841,17 +4841,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N modifiedby_sdkmessage
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_sdkmessage")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessage>? ModifiedBy_SdkMessage
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessage>? ModifiedBy_SdkMessage
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessage>("modifiedby_sdkmessage", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessage>("modifiedby_sdkmessage", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessage>("modifiedby_sdkmessage", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessage>("modifiedby_sdkmessage", null, value);
 			}
 		}
 		
@@ -4859,17 +4859,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N modifiedby_sdkmessagefilter
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_sdkmessagefilter")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageFilter>? ModifiedBy_SdkMessageFilter
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageFilter>? ModifiedBy_SdkMessageFilter
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("modifiedby_sdkmessagefilter", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageFilter>("modifiedby_sdkmessagefilter", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("modifiedby_sdkmessagefilter", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageFilter>("modifiedby_sdkmessagefilter", null, value);
 			}
 		}
 		
@@ -4877,17 +4877,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N modifiedby_sdkmessageprocessingstep
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_sdkmessageprocessingstep")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>? ModifiedBy_SdkMessageProcessingStep
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStep>? ModifiedBy_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("modifiedby_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("modifiedby_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStep>("modifiedby_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStep>("modifiedby_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -4895,17 +4895,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N modifiedby_sdkmessageprocessingstepimage
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_sdkmessageprocessingstepimage")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? ModifiedBy_SdkMessageProcessingStepImage
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? ModifiedBy_SdkMessageProcessingStepImage
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("modifiedby_sdkmessageprocessingstepimage", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("modifiedby_sdkmessageprocessingstepimage", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("modifiedby_sdkmessageprocessingstepimage", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("modifiedby_sdkmessageprocessingstepimage", null, value);
 			}
 		}
 		
@@ -4913,17 +4913,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N user_customapi
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("user_customapi")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.CustomApi>? User_CustomApi
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.CustomApi>? User_CustomApi
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("user_customapi", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("user_customapi", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.CustomApi>("user_customapi", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.CustomApi>("user_customapi", null, value);
 			}
 		}
 		
@@ -4931,17 +4931,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N user_parent_user
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referenced)]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SystemUser>? ReferencedUser_Parent_User
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SystemUser>? ReferencedUser_Parent_User
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referenced);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referenced);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SystemUser>("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SystemUser>("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
 			}
 		}
 		
@@ -4950,17 +4950,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing)]
-		public DG.XrmSync.Dataverse.Context.SystemUser? ReferencingLk_SystemUser_CreatedOnBehalfBy
+		public XrmSync.Dataverse.Context.SystemUser? ReferencingLk_SystemUser_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_createdonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing, value);
 			}
 		}
 		
@@ -4969,17 +4969,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing)]
-		public DG.XrmSync.Dataverse.Context.SystemUser? ReferencingLk_SystemUser_ModifiedOnBehalfBy
+		public XrmSync.Dataverse.Context.SystemUser? ReferencingLk_SystemUser_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_systemuser_modifiedonbehalfby", Microsoft.Xrm.Sdk.EntityRole.Referencing, value);
 			}
 		}
 		
@@ -4988,12 +4988,12 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_systemuserbase_createdby", Microsoft.Xrm.Sdk.EntityRole.Referencing)]
-		public DG.XrmSync.Dataverse.Context.SystemUser? ReferencingLk_SystemUserBase_CreatedBy
+		public XrmSync.Dataverse.Context.SystemUser? ReferencingLk_SystemUserBase_CreatedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_createdby", Microsoft.Xrm.Sdk.EntityRole.Referencing);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_createdby", Microsoft.Xrm.Sdk.EntityRole.Referencing);
 			}
 		}
 		
@@ -5002,12 +5002,12 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_systemuserbase_modifiedby", Microsoft.Xrm.Sdk.EntityRole.Referencing)]
-		public DG.XrmSync.Dataverse.Context.SystemUser? ReferencingLk_SystemUserBase_ModifiedBy
+		public XrmSync.Dataverse.Context.SystemUser? ReferencingLk_SystemUserBase_ModifiedBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_modifiedby", Microsoft.Xrm.Sdk.EntityRole.Referencing);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_systemuserbase_modifiedby", Microsoft.Xrm.Sdk.EntityRole.Referencing);
 			}
 		}
 		
@@ -5016,17 +5016,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("parentsystemuserid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referencing)]
-		public DG.XrmSync.Dataverse.Context.SystemUser? ReferencingUser_Parent_User
+		public XrmSync.Dataverse.Context.SystemUser? ReferencingUser_Parent_User
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referencing);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referencing);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referencing, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("user_parent_user", Microsoft.Xrm.Sdk.EntityRole.Referencing, value);
 			}
 		}
 		

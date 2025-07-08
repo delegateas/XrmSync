@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DG.XrmSync.Model.Plugin;
+namespace XrmSync.Model.Plugin;
 
 public record PluginDefinition : EntityBase
 {

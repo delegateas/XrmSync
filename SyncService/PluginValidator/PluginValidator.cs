@@ -1,9 +1,9 @@
-﻿using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.Model;
-using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.SyncService.Exceptions;
+﻿using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model;
+using XrmSync.Model.Plugin;
+using XrmSync.SyncService.Exceptions;
 
-namespace DG.XrmSync.SyncService.PluginValidator;
+namespace XrmSync.SyncService.PluginValidator;
 
 internal class PluginValidator(IPluginReader pluginReader) : IPluginValidator
 {

@@ -1,10 +1,9 @@
-﻿using DG.XrmSync.Model;
-using DG.XrmSync.SyncService.AssemblyReader;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
+using XrmSync.Model;
 
-namespace DG.XrmSync.AssemblyAnalyzer.AssemblyReader;
+namespace XrmSync.AssemblyAnalyzer.AssemblyReader;
 
 /// <summary>
 /// Reads assembly information by executing XrmSync analyze command in a separate process.

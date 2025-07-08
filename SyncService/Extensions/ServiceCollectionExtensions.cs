@@ -1,12 +1,11 @@
-﻿using DG.XrmSync.SyncService.AssemblyReader;
-using DG.XrmSync.SyncService.Comparers;
-using Microsoft.Extensions.DependencyInjection;
-using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.Model.CustomApi;
-using DG.XrmSync.SyncService.Differences;
-using DG.XrmSync.SyncService.PluginValidator;
+﻿using Microsoft.Extensions.DependencyInjection;
+using XrmSync.SyncService.Comparers;
+using XrmSync.SyncService.Differences;
+using XrmSync.SyncService.PluginValidator;
+using XrmSync.Model.CustomApi;
+using XrmSync.Model.Plugin;
 
-namespace DG.XrmSync.SyncService.Extensions;
+namespace XrmSync.SyncService.Extensions;
 
 public static class ServiceCollectionExtensions
 {

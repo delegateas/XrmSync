@@ -1,12 +1,12 @@
-﻿using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.Model.Exceptions;
-using Microsoft.Crm.Sdk.Messages;
+﻿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
+using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model.Exceptions;
 
-namespace DG.XrmSync.Dataverse;
+namespace XrmSync.Dataverse;
 
 public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseReader
 {

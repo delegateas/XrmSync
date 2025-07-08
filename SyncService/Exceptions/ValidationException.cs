@@ -1,4 +1,4 @@
-﻿namespace DG.XrmSync.SyncService.Exceptions;
+﻿namespace XrmSync.SyncService.Exceptions;
 
 public class ValidationException : Exception
 {

@@ -1,4 +1,4 @@
-namespace DG.XrmSync.Model.CustomApi;
+namespace XrmSync.Model.CustomApi;
 
 public record ResponseProperty : EntityBase
 {

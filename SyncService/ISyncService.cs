@@ -1,5 +1,4 @@
-﻿
-namespace DG.XrmSync.SyncService;
+﻿namespace XrmSync.SyncService;
 
 public interface ISyncService
 {

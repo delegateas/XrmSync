@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmSync.Dataverse.Context
+namespace XrmSync.Dataverse.Context
 {
 	
 	

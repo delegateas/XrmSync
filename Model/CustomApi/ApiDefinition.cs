@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DG.XrmSync.Model.CustomApi;
+namespace XrmSync.Model.CustomApi;
 
 public record ApiDefinition : EntityBase
 {

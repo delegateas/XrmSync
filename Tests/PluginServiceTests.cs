@@ -1,13 +1,13 @@
-using DG.XrmSync.Model;
-using DG.XrmSync.SyncService;
-using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.SyncService.Differences;
-using DG.XrmSync.SyncService.AssemblyReader;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.Model.CustomApi;
-using DG.XrmSync.SyncService.PluginValidator;
+using XrmSync.Dataverse.Interfaces;
+using XrmSync.SyncService;
+using XrmSync.SyncService.Differences;
+using XrmSync.SyncService.PluginValidator;
+using XrmSync.Model.CustomApi;
+using XrmSync.Model.Plugin;
+using XrmSync.Model;
+using XrmSync.AssemblyAnalyzer.AssemblyReader;
 
 namespace Tests;
 

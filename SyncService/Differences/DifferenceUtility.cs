@@ -1,12 +1,12 @@
-﻿using DG.XrmSync.Model;
-using DG.XrmSync.Model.CustomApi;
-using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.SyncService.Comparers;
-using DG.XrmSync.SyncService.Extensions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using XrmSync.Model;
+using XrmSync.Model.CustomApi;
+using XrmSync.Model.Plugin;
+using XrmSync.SyncService.Comparers;
+using XrmSync.SyncService.Extensions;
 
-namespace DG.XrmSync.SyncService.Differences;
+namespace XrmSync.SyncService.Differences;
 
 public record EntityDifference<TEntity>(TEntity LocalEntity, TEntity? RemoteEntity, IEnumerable<Expression<Func<TEntity, object>>> DifferentProperties) where TEntity : EntityBase;
 

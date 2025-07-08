@@ -11,8 +11,8 @@
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>xrmsync</ToolCommandName>
 		<PackageOutputPath>./nupkg</PackageOutputPath>
-		<RootNamespace>DG.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-		<AssemblyName>DG.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageProjectUrl>https://github.com/delegateas/XrmSync</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

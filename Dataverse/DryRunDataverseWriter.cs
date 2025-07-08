@@ -1,11 +1,11 @@
-﻿using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.Model;
-using DG.XrmSync.Model.Exceptions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using System.Runtime.CompilerServices;
+using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model;
+using XrmSync.Model.Exceptions;
 
-namespace DG.XrmSync.Dataverse;
+namespace XrmSync.Dataverse;
 
 public class DryRunDataverseWriter : IDataverseWriter
 {

@@ -1,4 +1,4 @@
-﻿namespace DG.XrmSync.Model;
+﻿namespace XrmSync.Model;
 
 public enum ExecutionMode
 {

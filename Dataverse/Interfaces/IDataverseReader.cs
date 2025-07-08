@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
-namespace DG.XrmSync.Dataverse.Interfaces;
+namespace XrmSync.Dataverse.Interfaces;
 
 public interface IDataverseReader
 {

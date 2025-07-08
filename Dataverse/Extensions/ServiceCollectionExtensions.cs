@@ -1,8 +1,8 @@
-﻿using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.Model;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model;
 
-namespace DG.XrmSync.Dataverse.Extensions;
+namespace XrmSync.Dataverse.Extensions;
 
 public static class ServiceCollectionExtensions
 {

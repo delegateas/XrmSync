@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk;
 
-namespace DG.XrmSync.Dataverse.Interfaces
+namespace XrmSync.Dataverse.Interfaces
 {
     public interface IDataverseWriter
     {

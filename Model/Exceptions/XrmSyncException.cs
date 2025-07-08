@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace DG.XrmSync.Model.Exceptions;
+namespace XrmSync.Model.Exceptions;
 
 public class XrmSyncException : Exception
 {

@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmSync.Dataverse.Context
+namespace XrmSync.Dataverse.Context
 {
 	
 	
@@ -421,17 +421,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N solutioncomponent_parent_solutioncomponent
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("solutioncomponent_parent_solutioncomponent", Microsoft.Xrm.Sdk.EntityRole.Referenced)]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SolutionComponent>? ReferencedSolutionComponent_Parent_SolutionComponent
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SolutionComponent>? ReferencedSolutionComponent_Parent_SolutionComponent
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SolutionComponent>("solutioncomponent_parent_solutioncomponent", Microsoft.Xrm.Sdk.EntityRole.Referenced);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SolutionComponent>("solutioncomponent_parent_solutioncomponent", Microsoft.Xrm.Sdk.EntityRole.Referenced);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SolutionComponent>("solutioncomponent_parent_solutioncomponent", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SolutionComponent>("solutioncomponent_parent_solutioncomponent", Microsoft.Xrm.Sdk.EntityRole.Referenced, value);
 			}
 		}
 		
@@ -440,17 +440,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_solutioncomponentbase_createdonbehalfby")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_SolutionComponentBase_CreatedOnBehalfBy
+		public XrmSync.Dataverse.Context.SystemUser? Lk_SolutionComponentBase_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_createdonbehalfby", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_createdonbehalfby", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -459,17 +459,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_solutioncomponentbase_modifiedonbehalfby")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_SolutionComponentBase_ModifiedOnBehalfBy
+		public XrmSync.Dataverse.Context.SystemUser? Lk_SolutionComponentBase_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_modifiedonbehalfby", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_modifiedonbehalfby", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -478,12 +478,12 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("rootsolutioncomponentid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("solutioncomponent_parent_solutioncomponent", Microsoft.Xrm.Sdk.EntityRole.Referencing)]
-		public DG.XrmSync.Dataverse.Context.SolutionComponent? ReferencingSolutionComponent_Parent_SolutionComponent
+		public XrmSync.Dataverse.Context.SolutionComponent? ReferencingSolutionComponent_Parent_SolutionComponent
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SolutionComponent>("solutioncomponent_parent_solutioncomponent", Microsoft.Xrm.Sdk.EntityRole.Referencing);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SolutionComponent>("solutioncomponent_parent_solutioncomponent", Microsoft.Xrm.Sdk.EntityRole.Referencing);
 			}
 		}
 		

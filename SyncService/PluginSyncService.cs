@@ -1,19 +1,19 @@
-﻿using DG.XrmSync.AssemblyAnalyzer;
-using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.Model;
-using DG.XrmSync.Model.CustomApi;
-using DG.XrmSync.Model.Exceptions;
-using DG.XrmSync.Model.Plugin;
-using DG.XrmSync.SyncService.AssemblyReader;
-using DG.XrmSync.SyncService.Differences;
-using DG.XrmSync.SyncService.Exceptions;
-using DG.XrmSync.SyncService.Extensions;
-using DG.XrmSync.SyncService.PluginValidator;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
+using XrmSync.AssemblyAnalyzer;
+using XrmSync.AssemblyAnalyzer.AssemblyReader;
+using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model;
+using XrmSync.Model.CustomApi;
+using XrmSync.Model.Exceptions;
+using XrmSync.Model.Plugin;
+using XrmSync.SyncService.Differences;
+using XrmSync.SyncService.Exceptions;
+using XrmSync.SyncService.Extensions;
+using XrmSync.SyncService.PluginValidator;
 
 [assembly: InternalsVisibleTo("Tests")]
-namespace DG.XrmSync.SyncService;
+namespace XrmSync.SyncService;
 
 public class PluginSyncService(
     IPluginReader pluginReader,

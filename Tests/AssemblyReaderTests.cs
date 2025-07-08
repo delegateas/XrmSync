@@ -1,7 +1,7 @@
-using DG.XrmSync.AssemblyAnalyzer;
-using DG.XrmSync.AssemblyAnalyzer.AssemblyReader;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using XrmSync.AssemblyAnalyzer;
+using XrmSync.AssemblyAnalyzer.AssemblyReader;
 
 namespace Tests;
 

@@ -1,7 +1,7 @@
-﻿using DG.XrmSync.Model.CustomApi;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using XrmSync.Model.CustomApi;
 
-namespace DG.XrmSync.SyncService.Comparers;
+namespace XrmSync.SyncService.Comparers;
 
 public class ResponsePropertyComparer : BaseComparer<ResponseProperty>
 {

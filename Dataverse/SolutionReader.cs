@@ -1,8 +1,8 @@
-﻿using DG.XrmSync.Dataverse.Interfaces;
-using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using XrmSync.Dataverse.Interfaces;
 
-namespace DG.XrmSync.Dataverse;
+namespace XrmSync.Dataverse;
 
 public class SolutionReader(IDataverseReader reader) : ISolutionReader
 {

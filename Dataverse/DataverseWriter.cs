@@ -1,12 +1,12 @@
-﻿using DG.XrmSync.Dataverse.Interfaces;
-using DG.XrmSync.Model;
-using DG.XrmSync.Model.Exceptions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
+using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model;
+using XrmSync.Model.Exceptions;
 
-namespace DG.XrmSync.Dataverse;
+namespace XrmSync.Dataverse;
 
 public sealed class DataverseWriter : IDataverseWriter
 {

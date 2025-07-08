@@ -1,6 +1,6 @@
-﻿using DG.XrmSync.Model.CustomApi;
-using DG.XrmSync.Model.Plugin;
+﻿using XrmSync.Model.CustomApi;
+using XrmSync.Model.Plugin;
 
-namespace DG.XrmSync.SyncService;
+namespace XrmSync.SyncService;
 
 public record CompiledData(List<PluginType> Types, List<Step> Steps, List<Image> Images, List<ApiDefinition> CustomApis, List<RequestParameter> RequestParameters, List<ResponseProperty> ResponseProperties);

@@ -1,6 +1,6 @@
-﻿using DG.XrmSync.Model.Plugin;
+﻿using XrmSync.Model.Plugin;
 
-namespace DG.XrmSync.SyncService.PluginValidator;
+namespace XrmSync.SyncService.PluginValidator;
 
 public interface IPluginValidator
 {

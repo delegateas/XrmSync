@@ -27,7 +27,7 @@ XrmSync is a powerful tool that helps you manage and synchronize your Microsoft 
 ### As a .NET Tool
 
 ```bash
-dotnet tool install --global DG.XrmSync
+dotnet tool install --global XrmSync
 ```
 
 ### From Source
@@ -44,7 +44,7 @@ dotnet build
 5. Install as a local tool:
 ```bash
 dotnet pack XrmSync/XrmSync.csproj
-dotnet tool install --global --add-source ./XrmSync/nupkg DG.XrmSync
+dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
 ```
 ## Usage
 

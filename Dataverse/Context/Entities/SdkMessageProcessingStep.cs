@@ -10,7 +10,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DG.XrmSync.Dataverse.Context
+namespace XrmSync.Dataverse.Context
 {
 	
 	
@@ -1443,17 +1443,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// 1:N sdkmessageprocessingstepid_sdkmessageprocessingstepimage
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("sdkmessageprocessingstepid_sdkmessageprocessingstepimage")]
-		public System.Collections.Generic.IEnumerable<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? SdkMessageProcessingStepId_SdkMessageProcessingStepImage
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>? SdkMessageProcessingStepId_SdkMessageProcessingStepImage
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("sdkmessageprocessingstepid_sdkmessageprocessingstepimage", null);
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("sdkmessageprocessingstepid_sdkmessageprocessingstepimage", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntities<DG.XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("sdkmessageprocessingstepid_sdkmessageprocessingstepimage", null, value);
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("sdkmessageprocessingstepid_sdkmessageprocessingstepimage", null, value);
 			}
 		}
 		
@@ -1462,12 +1462,12 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("createdby_sdkmessageprocessingstep")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? CreatedBy_SdkMessageProcessingStep
+		public XrmSync.Dataverse.Context.SystemUser? CreatedBy_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("createdby_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("createdby_sdkmessageprocessingstep", null);
 			}
 		}
 		
@@ -1476,17 +1476,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("impersonatinguserid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("impersonatinguserid_sdkmessageprocessingstep")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? ImpersonatingUserId_SdkMessageProcessingStep
+		public XrmSync.Dataverse.Context.SystemUser? ImpersonatingUserId_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("impersonatinguserid_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("impersonatinguserid_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("impersonatinguserid_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("impersonatinguserid_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -1495,17 +1495,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("createdonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessageprocessingstep_createdonbehalfby")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_SdkMessageProcessingStep_CreatedOnBehalfBy
+		public XrmSync.Dataverse.Context.SystemUser? Lk_SdkMessageProcessingStep_CreatedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstep_createdonbehalfby", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstep_createdonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstep_createdonbehalfby", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstep_createdonbehalfby", null, value);
 			}
 		}
 		
@@ -1514,17 +1514,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedonbehalfby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessageprocessingstep_modifiedonbehalfby")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? Lk_SdkMessageProcessingStep_ModifiedOnBehalfBy
+		public XrmSync.Dataverse.Context.SystemUser? Lk_SdkMessageProcessingStep_ModifiedOnBehalfBy
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstep_modifiedonbehalfby", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstep_modifiedonbehalfby", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstep_modifiedonbehalfby", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_sdkmessageprocessingstep_modifiedonbehalfby", null, value);
 			}
 		}
 		
@@ -1533,12 +1533,12 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("modifiedby")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("modifiedby_sdkmessageprocessingstep")]
-		public DG.XrmSync.Dataverse.Context.SystemUser? ModifiedBy_SdkMessageProcessingStep
+		public XrmSync.Dataverse.Context.SystemUser? ModifiedBy_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SystemUser>("modifiedby_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("modifiedby_sdkmessageprocessingstep", null);
 			}
 		}
 		
@@ -1547,17 +1547,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("eventhandler")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("plugintype_sdkmessageprocessingstep")]
-		public DG.XrmSync.Dataverse.Context.PluginType? PluginType_SdkMessageProcessingStep
+		public XrmSync.Dataverse.Context.PluginType? PluginType_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.PluginType>("plugintype_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.PluginType>("plugintype_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.PluginType>("plugintype_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.PluginType>("plugintype_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -1566,17 +1566,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("plugintypeid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("plugintypeid_sdkmessageprocessingstep")]
-		public DG.XrmSync.Dataverse.Context.PluginType? PluginTypeId_SdkMessageProcessingStep
+		public XrmSync.Dataverse.Context.PluginType? PluginTypeId_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.PluginType>("plugintypeid_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.PluginType>("plugintypeid_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.PluginType>("plugintypeid_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.PluginType>("plugintypeid_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -1585,17 +1585,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("sdkmessagefilterid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("sdkmessagefilterid_sdkmessageprocessingstep")]
-		public DG.XrmSync.Dataverse.Context.SdkMessageFilter? SdkMessageFilterId_SdkMessageProcessingStep
+		public XrmSync.Dataverse.Context.SdkMessageFilter? SdkMessageFilterId_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("sdkmessagefilterid_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SdkMessageFilter>("sdkmessagefilterid_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SdkMessageFilter>("sdkmessagefilterid_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SdkMessageFilter>("sdkmessagefilterid_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
@@ -1604,17 +1604,17 @@ namespace DG.XrmSync.Dataverse.Context
 		/// </summary>
 		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("sdkmessageid")]
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("sdkmessageid_sdkmessageprocessingstep")]
-		public DG.XrmSync.Dataverse.Context.SdkMessage? SdkMessageId_SdkMessageProcessingStep
+		public XrmSync.Dataverse.Context.SdkMessage? SdkMessageId_SdkMessageProcessingStep
 		{
 			[System.Diagnostics.DebuggerNonUserCode()]
 			get
 			{
-				return this.GetRelatedEntity<DG.XrmSync.Dataverse.Context.SdkMessage>("sdkmessageid_sdkmessageprocessingstep", null);
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.SdkMessage>("sdkmessageid_sdkmessageprocessingstep", null);
 			}
 			[System.Diagnostics.DebuggerNonUserCode()]
 			set
 			{
-				this.SetRelatedEntity<DG.XrmSync.Dataverse.Context.SdkMessage>("sdkmessageid_sdkmessageprocessingstep", null, value);
+				this.SetRelatedEntity<XrmSync.Dataverse.Context.SdkMessage>("sdkmessageid_sdkmessageprocessingstep", null, value);
 			}
 		}
 		
