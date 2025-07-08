@@ -1,3 +1,4 @@
+using DG.XrmSync.AssemblyAnalyzer;
 using DG.XrmSync.AssemblyAnalyzer.AssemblyReader;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -21,27 +22,27 @@ public class AssemblyReaderTests
         string? assemblyPath = null;
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath!));
+        await Assert.ThrowsAsync<AnalysisException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath!));
     }
 
     [Fact]
-    public async Task ReadAssemblyAsync_WithEmptyPath_ThrowsArgumentException()
+    public async Task ReadAssemblyAsync_WithEmptyPath_ThrowsAnalysisException()
     {
         // Arrange
         var assemblyPath = "";
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath));
+        await Assert.ThrowsAsync<AnalysisException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath));
     }
 
     [Fact]
-    public async Task ReadAssemblyAsync_WithWhitespacePath_ThrowsArgumentException()
+    public async Task ReadAssemblyAsync_WithWhitespacePath_ThrowsAnalysisException()
     {
         // Arrange
         var assemblyPath = "   ";
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath));
+        await Assert.ThrowsAsync<AnalysisException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath));
     }
 
     [Fact]
@@ -49,7 +50,7 @@ public class AssemblyReaderTests
     {
         // This test would require mocking the internal process execution,
         // which is complex. For now, we'll test the caching behavior indirectly
-        // by ensuring that the ArgumentException validation works correctly.
+        // by ensuring that the AnalysisException validation works correctly.
         
         // Arrange
         var assemblyPath = "test.dll";
@@ -58,6 +59,6 @@ public class AssemblyReaderTests
         // Since we can't easily mock the process execution without major refactoring,
         // we'll verify that the method correctly validates input parameters
         // The actual process execution testing would require integration tests
-        await Assert.ThrowsAsync<Exception>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath));
+        await Assert.ThrowsAsync<AnalysisException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath));
     }
 }
