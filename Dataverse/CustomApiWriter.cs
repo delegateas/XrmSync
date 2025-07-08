@@ -9,25 +9,28 @@ namespace XrmSync.Dataverse;
 
 public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
 {
-    public List<ApiDefinition> CreateCustomApis(List<ApiDefinition> customApis, string solutionName, string description)
+    public List<ApiDefinition> CreateCustomApis(List<ApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string solutionName, string solutionPrefix, string description)
     {
         foreach (var api in customApis)
         {
+            var pluginType = pluginTypes.FirstOrDefault(pt => pt.Name == api.PluginTypeName)
+                ?? throw new XrmSyncException($"PluginType '{api.PluginTypeName}' not found for CustomApi '{api.UniqueName}'.");
+
             var ownerId = api.OwnerId == Guid.Empty
                 ? null
                 : new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
 
             var entity = new CustomApi {
                 Name = api.UniqueName,
-                UniqueName = api.UniqueName, // TODO: ADD PREFIX FROM SOLUTION
+                UniqueName = solutionPrefix + "_" + api.UniqueName,
                 DisplayName = api.DisplayName,
-                Description = api.Description ?? description,
+                Description = !string.IsNullOrEmpty(api.Description) ? api.Description : description,
                 IsFunction = api.IsFunction,
                 WorkflowSdkStepEnabled = api.EnabledForWorkflow,
                 BindingType = (CustomApi_BindingType?)api.BindingType,
                 BoundEntityLogicalName = api.BoundEntityLogicalName,
                 AllowedCustomProcessingStepType = (CustomApi_AllowedCustomProcessingStepType?)api.AllowedCustomProcessingStepType,
-                PluginTypeId = null, // TODO: FIND PLUGIN TYPE ID
+                PluginTypeId = new EntityReference(PluginType.EntityLogicalName, pluginType.Id),
                 OwnerId = ownerId,
                 IsCustomizable = new BooleanManagedProperty(api.IsCustomizable),
                 IsPrivate = api.IsPrivate,
@@ -51,6 +54,7 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
         {
             var api = customApis.FirstOrDefault(a => a.UniqueName == param.CustomApiName)
                 ?? throw new XrmSyncException($"CustomApi '{param.CustomApiName}' not found for request parameter '{param.UniqueName}'.");
+
             var entity = new CustomApiRequestParameter {
                 Name = param.UniqueName,
                 UniqueName = param.UniqueName,
@@ -90,10 +94,13 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
         return responseProperties;
     }
 
-    public List<ApiDefinition> UpdateCustomApis(List<ApiDefinition> customApis, string description)
+    public List<ApiDefinition> UpdateCustomApis(List<ApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string description)
     {
         var updateRequests = customApis.ConvertAll(api =>
         {
+            var pluginType = pluginTypes.FirstOrDefault(pt => pt.Name == api.PluginTypeName)
+                ?? throw new XrmSyncException($"PluginType '{api.PluginTypeName}' not found for CustomApi '{api.UniqueName}'.");
+
             var ownerId = api.OwnerId == Guid.Empty
                 ? null
                 : new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
@@ -101,13 +108,13 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
             var entity = new CustomApi(api.Id)
             {
                 DisplayName = api.DisplayName,
-                Description = api.Description ?? description,
+                Description = !string.IsNullOrEmpty(api.Description) ? api.Description : description,
                 IsFunction = api.IsFunction,
                 WorkflowSdkStepEnabled = api.EnabledForWorkflow,
                 BindingType = (CustomApi_BindingType?)api.BindingType,
                 BoundEntityLogicalName = api.BoundEntityLogicalName,
                 AllowedCustomProcessingStepType = (CustomApi_AllowedCustomProcessingStepType?)api.AllowedCustomProcessingStepType,
-                PluginTypeId = null, // TODO: FIND PLUGIN TYPE ID
+                PluginTypeId = new EntityReference(PluginType.EntityLogicalName, pluginType.Id),
                 OwnerId = ownerId,
                 IsCustomizable = new BooleanManagedProperty(api.IsCustomizable),
                 IsPrivate = api.IsPrivate,

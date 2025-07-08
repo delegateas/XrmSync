@@ -63,6 +63,7 @@ public class PluginSyncService(
         crmPluginTypes.AddRange(CreateTypes(crmAssembly, differences.Types.Creates));
         crmPluginSteps.AddRange(CreateSteps(differences.PluginSteps.Creates, crmPluginTypes));
         CreateImages(differences.PluginImages.Creates, crmPluginSteps);
+        // TODO: Create Custom APIs
 
         // Done
         log.LogInformation("Plugin synchronization was completed successfully");
@@ -258,7 +259,7 @@ public class PluginSyncService(
     internal void UpdatePlugins(CompiledData data)
     {
         pluginWriter.UpdatePlugins(data.Steps, data.Images, description.SyncDescription);
-        customApiWriter.UpdateCustomApis(data.CustomApis, description.SyncDescription);
+        customApiWriter.UpdateCustomApis(data.CustomApis, data.Types, description.SyncDescription);
         customApiWriter.UpdateRequestParameters(data.RequestParameters);
         customApiWriter.UpdateResponseProperties(data.ResponseProperties);
     }
