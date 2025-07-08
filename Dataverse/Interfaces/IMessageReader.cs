@@ -2,6 +2,7 @@
 
 public interface IMessageReader
 {
-    Guid? GetMessageFilterId(string primaryObjectType, Guid sdkMessageId);
-    Dictionary<string, Guid> GetMessages(IEnumerable<string> names);
+    Dictionary<string, MessageFilterMap> GetMessageFilters(IEnumerable<string> names, IEnumerable<string> entityNames);
 }
+
+public record MessageFilterMap(Guid MessageId, Dictionary<string, Guid> FilterMap);

@@ -136,23 +136,16 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
     public List<Step> CreatePluginSteps(List<Step> pluginSteps, List<Model.Plugin.PluginType> pluginTypes, string solutionName, string description)
     {
         var eventOperations = pluginSteps.Select(step => step.EventOperation).Distinct();
-        var messageIds = messageReader.GetMessages(eventOperations);
+        var stepLogicalNames = pluginSteps.Select(step => step.LogicalName).Distinct();
+        
+        var messageFilterIds = messageReader.GetMessageFilters(eventOperations, stepLogicalNames);
 
         // TODO: Can we use CreateMultiple instead?
         return pluginSteps.ConvertAll(step =>
         {
             var pluginType = pluginTypes.First(type => type.Name == step.PluginTypeName);
 
-            if (!messageIds.TryGetValue(step.EventOperation, out var messageId))
-            {
-                throw new XrmSyncException($"Message operation '{step.EventOperation}' not found in Dataverse.");
-            }
-
-            // TODO: Fetch all message filters before looping through steps
-            var messageFilterId = messageReader.GetMessageFilterId(step.LogicalName, messageId);
-            var messageFilterReference = string.IsNullOrEmpty(step.LogicalName) || messageFilterId is null
-                ? null
-                : new EntityReference(SdkMessageFilter.EntityLogicalName, messageFilterId.Value);
+            var (messageId, messageFilterReference) = GetMessageFilterReference(step, messageFilterIds);
 
             var impersonatingUserReference = step.UserContext == Guid.Empty
                 ? null
@@ -165,12 +158,12 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
                 Rank = step.ExecutionOrder,
                 Mode = (SdkMessageProcessingStep_Mode)step.ExecutionMode,
                 PluginTypeId = new EntityReference(Context.PluginType.EntityLogicalName, pluginType.Id),
-                SdkMessageId = new EntityReference(SdkMessage.EntityLogicalName, messageId),
                 Stage = (SdkMessageProcessingStep_Stage)step.ExecutionStage,
                 FilteringAttributes = step.FilteredAttributes,
                 SupportedDeployment = (SdkMessageProcessingStep_SupportedDeployment)step.Deployment,
                 Description = description,
                 ImpersonatingUserId = impersonatingUserReference,
+                SdkMessageId = new EntityReference(SdkMessage.EntityLogicalName, messageId),
                 SdkMessageFilterId = messageFilterReference
             };
 
@@ -182,6 +175,27 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
             step.Id = writer.Create(entity, parameters);
             return step;
         });
+    }
+
+    private static (Guid messageId, EntityReference? messageFilterReference) GetMessageFilterReference(Step step, Dictionary<string, MessageFilterMap> messages)
+    {
+        if (!messages.TryGetValue(step.EventOperation, out var opMessageFilters))
+        {
+            throw new XrmSyncException($"Message operation '{step.EventOperation}' not found in Dataverse.");
+        }
+
+        if (string.IsNullOrEmpty(step.LogicalName))
+        {
+            // If no logical name is provided, we assume the message filter is not needed
+            return (opMessageFilters.MessageId, null);
+        }
+
+        if (!opMessageFilters.FilterMap.TryGetValue(step.LogicalName, out var messageFilterId))
+        {
+            throw new XrmSyncException($"Message operation '{step.EventOperation}' for logical name '{step.LogicalName}' not found in Dataverse.");
+        }
+
+        return (opMessageFilters.MessageId, new EntityReference(SdkMessageFilter.EntityLogicalName, messageFilterId));
     }
 
     public List<Image> CreatePluginImages(List<Image> pluginImages, List<Step> pluginSteps)

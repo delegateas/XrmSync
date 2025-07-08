@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk.Query;
+﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
 
@@ -22,9 +23,9 @@ public class MessageReader(IDataverseReader reader) : IMessageReader
         _ => null,
     };
 
-    public Dictionary<string, Guid> GetMessages(IEnumerable<string> names)
+    public Dictionary<string, MessageFilterMap> GetMessageFilters(IEnumerable<string> messageNames, IEnumerable<string> entityNames)
     {
-        if (!names.Any())
+        if (!messageNames.Any())
             return [];
 
         var query = new QueryExpression(SdkMessage.EntityLogicalName)
@@ -33,28 +34,45 @@ public class MessageReader(IDataverseReader reader) : IMessageReader
         };
 
         var filter = new FilterExpression();
-        filter.AddCondition(SdkMessage.Fields.Name, ConditionOperator.In, [.. names]);
+        filter.AddCondition(SdkMessage.Fields.Name, ConditionOperator.In, [.. messageNames]);
         query.Criteria = filter;
+
+        if (entityNames.Any())
+        {
+            var messageFilterLink = query.AddLink(SdkMessageFilter.EntityLogicalName, SdkMessage.PrimaryIdAttribute, SdkMessageFilter.Fields.SdkMessageId, JoinOperator.LeftOuter);
+            messageFilterLink.Columns = new ColumnSet(
+                SdkMessageFilter.PrimaryIdAttribute,
+                SdkMessageFilter.Fields.PrimaryObjectTypeCode
+            );
+            messageFilterLink.EntityAlias = "mf";
+            messageFilterLink.LinkCriteria.AddCondition(SdkMessageFilter.Fields.PrimaryObjectTypeCode, ConditionOperator.In, [.. entityNames]);
+        }
 
         return reader.RetrieveMultiple(query)
-            .ToDictionary(e => e.GetAttributeValue<string>(SdkMessage.Fields.Name), e => e.Id);
-    }
+            .GroupBy(e => e.Id)
+            .Select(group =>
+            {
+                var message = group.First();
+                var messageId = message.Id;
+                var messageName = message.GetAttributeValue<string>(SdkMessage.Fields.Name);
 
-    public Guid? GetMessageFilterId(string primaryObjectType, Guid sdkMessageId)
-    {
-        var query = new QueryExpression(SdkMessageFilter.EntityLogicalName)
-        {
-            ColumnSet = new ColumnSet(SdkMessageFilter.PrimaryIdAttribute)
-        };
+                // PrimaryObject -> MessageFilterId
+                var messageFilterIds = group
+                    .Where(g => g.Contains($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}"))
+                    .ToDictionary(
+                        g => g.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}")?.Value as string ?? string.Empty,
+                        g => g.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.PrimaryIdAttribute}")?.Value as Guid? ?? Guid.Empty
+                    );
 
-        var filter = new FilterExpression();
-        filter.AddCondition(SdkMessageFilter.Fields.SdkMessageId, ConditionOperator.Equal, sdkMessageId);
-        query.Criteria = filter;
-
-        if (!string.IsNullOrEmpty(primaryObjectType))
-            filter.AddCondition(SdkMessageFilter.Fields.PrimaryObjectTypeCode, ConditionOperator.Equal, primaryObjectType);
-
-        var messageFilter = reader.RetrieveFirstOrDefault(query);
-        return messageFilter?.Id;
+                return (
+                    messageName,
+                    messageId,
+                    messageFilterIds
+                );
+            })
+            .ToDictionary(
+                x => x.messageName,
+                x => new MessageFilterMap(x.messageId, x.messageFilterIds)
+            );
     }
 }
