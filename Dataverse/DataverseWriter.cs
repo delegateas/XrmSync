@@ -1,5 +1,6 @@
 ﻿using DG.XrmSync.Dataverse.Interfaces;
 using DG.XrmSync.Model;
+using DG.XrmSync.Model.Exceptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
@@ -16,7 +17,7 @@ public sealed class DataverseWriter : IDataverseWriter
     {
         if (options.DryRun)
         {
-            throw new InvalidOperationException("Cannot perform write operations in dry run mode. Please disable dry run to proceed with writing to Dataverse.");
+            throw new XrmSyncException("Cannot perform write operations in dry run mode. Please disable dry run to proceed with writing to Dataverse.");
         }
 
         this.serviceClient = serviceClient;
@@ -27,7 +28,7 @@ public sealed class DataverseWriter : IDataverseWriter
     {
         if (entity == null)
         {
-            throw new ArgumentNullException(nameof(entity), "The provided entity cannot be null.");
+            throw new XrmSyncException("The provided entity cannot be null.");
         }
 
         return serviceClient.Create(entity);
@@ -37,7 +38,7 @@ public sealed class DataverseWriter : IDataverseWriter
     {
         if (entity == null)
         {
-            throw new ArgumentNullException(nameof(entity), "The provided entity cannot be null.");
+            throw new XrmSyncException("The provided entity cannot be null.");
         }
 
         var req = new CreateRequest
@@ -55,7 +56,7 @@ public sealed class DataverseWriter : IDataverseWriter
     {
         if (entity == null)
         {
-            throw new ArgumentNullException(nameof(entity), "The provided entity cannot be null.");
+            throw new XrmSyncException("The provided entity cannot be null.");
         }
 
         serviceClient.Update(entity);
@@ -68,7 +69,7 @@ public sealed class DataverseWriter : IDataverseWriter
         if (failedReponses.Count > 0)
         {
             logger.LogError($"Error when performing {failedReponses.Count} requests.");
-            throw new Exception("PerformAsBulkWithOutput encountered an error in one or more of the requests.");
+            throw new XrmSyncException("PerformAsBulkWithOutput encountered an error in one or more of the requests.");
         }
         else
         {

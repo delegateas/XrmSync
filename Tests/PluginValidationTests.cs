@@ -3,6 +3,7 @@ using DG.XrmSync.Model;
 using DG.XrmSync.Model.Plugin;
 using NSubstitute;
 using DG.XrmSync.SyncService.PluginValidator;
+using DG.XrmSync.SyncService.Exceptions;
 
 namespace Tests;
 
@@ -33,7 +34,7 @@ public class PluginValidationTests
         var validator = new PluginValidator(pluginReader);
 
         // Act & Assert
-        var ex = Assert.Throws<Exception>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
         Assert.Contains("Pre execution stages does not support asynchronous execution mode", ex.Message);
     }
 
@@ -123,7 +124,7 @@ public class PluginValidationTests
         var validator = new PluginValidator(pluginReader);
 
         // Act & Assert
-        var ex = Assert.Throws<Exception>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
         Assert.Contains("Plugin Step1: Multiple registrations on the same message, stage and entity are not allowed", ex.Message);
     }
 

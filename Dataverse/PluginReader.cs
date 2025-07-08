@@ -1,6 +1,7 @@
 ﻿using DG.XrmSync.Dataverse.Context;
 using DG.XrmSync.Dataverse.Interfaces;
 using DG.XrmSync.Model;
+using DG.XrmSync.Model.Exceptions;
 using DG.XrmSync.Model.Plugin;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
@@ -24,7 +25,7 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                     Version = pa.Version ?? string.Empty,
                     Hash = pa.SourceHash ?? string.Empty
                 }).FirstOrDefault()
-                ?? throw new InvalidOperationException($"Plugin assembly with name '{assemblyName}' not found in solution with ID '{solutionId}'.");
+                ?? throw new XrmSyncException($"Plugin assembly with name '{assemblyName}' not found in solution with ID '{solutionId}'.");
     }
 
     public List<Model.Plugin.PluginType> GetPluginTypes(Guid assemblyId)
@@ -97,7 +98,7 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
         return groupedSteps.Select(group =>
         {
             var entity = group.FirstOrDefault()
-                ?? throw new InvalidOperationException("No steps found but ID returned: " + group.Key);
+                ?? throw new XrmSyncException("No steps found but ID returned: " + group.Key);
 
             var stepName = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.Name) ?? string.Empty;
 

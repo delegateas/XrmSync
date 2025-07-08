@@ -1,4 +1,5 @@
 ﻿using DG.XrmSync.Model;
+using DG.XrmSync.Model.Exceptions;
 using DG.XrmSync.Model.Plugin;
 
 namespace DG.XrmSync.SyncService.Extensions;
@@ -19,7 +20,7 @@ internal static class EntityExtensions
             }
             else if (entities.Count > 1)
             {
-                throw new InvalidOperationException($"Multiple entities with the same name '{dest.Name}' found in Dataverse. This is not allowed.");
+                throw new XrmSyncException($"Multiple entities with the same name '{dest.Name}' found in Dataverse. This is not allowed.");
             }
             else if (entities.Count == 0)
             {

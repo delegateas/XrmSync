@@ -31,15 +31,15 @@ public static class AssemblyAnalyzer
         var dllFullPath = Path.GetFullPath(dllPath);
 
         if (!File.Exists(dllFullPath))
-            throw new FileNotFoundException($"Assembly not found at {dllPath}");
+            throw new AnalysisException($"Assembly not found at {dllPath}");
         if (!Path.GetExtension(dllFullPath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Invalid assembly file type: {Path.GetExtension(dllFullPath)}, expected DLL");
+            throw new AnalysisException($"Invalid assembly file type: {Path.GetExtension(dllFullPath)}, expected DLL");
 
         var dllname = Path.GetFileNameWithoutExtension(dllFullPath);
         var hash = File.ReadAllBytes(dllFullPath).Sha1Checksum();
 
         var assembly = Assembly.LoadFrom(dllFullPath);
-        var assemblyVersion = assembly.GetName()?.Version?.ToString() ?? throw new InvalidOperationException("Could not determine assembly version");
+        var assemblyVersion = assembly.GetName()?.Version?.ToString() ?? throw new AnalysisException("Could not determine assembly version");
         var pluginDefinitions = GetPluginTypesFromAssembly(assembly);
         var customApis = GetCustomApisFromAssembly(assembly);
 
@@ -66,8 +66,8 @@ public static class AssemblyAnalyzer
         foreach (var x in types.Where(x => x.IsSubclassOf(customApiType) && !x.IsAbstract && x.GetConstructor(Type.EmptyTypes) != null))
         {
             var instance = Activator.CreateInstance(x);
-            var methodInfo = x.GetMethod("GetCustomAPIConfig") ?? throw new InvalidOperationException($"CustomAPI type '{x.Name}' does not have a GetCustomAPIConfig method.");
-            var result = methodInfo.Invoke(instance, null) ?? throw new InvalidOperationException($"GetCustomAPIConfig returned null for type '{x.Name}'.");
+            var methodInfo = x.GetMethod("GetCustomAPIConfig") ?? throw new AnalysisException($"CustomAPI type '{x.Name}' does not have a GetCustomAPIConfig method.");
+            var result = methodInfo.Invoke(instance, null) ?? throw new AnalysisException($"GetCustomAPIConfig returned null for type '{x.Name}'.");
 
             var tuple = (Tuple<
 				MainCustomAPIConfig,
@@ -151,11 +151,11 @@ public static class AssemblyAnalyzer
             var instance = Activator.CreateInstance(x);
             var methodInfo = x.GetMethod("PluginProcessingStepConfigs");
             if (methodInfo == null)
-                throw new InvalidOperationException($"Plugin type '{x.Name}' does not have a PluginProcessingStepConfigs method.");
+                throw new AnalysisException($"Plugin type '{x.Name}' does not have a PluginProcessingStepConfigs method.");
 
             var result = methodInfo.Invoke(instance, null);
             if (result == null)
-                throw new InvalidOperationException($"PluginProcessingStepConfigs returned null for type '{x.Name}'.");
+                throw new AnalysisException($"PluginProcessingStepConfigs returned null for type '{x.Name}'.");
 
             var pluginTuples = (IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>)result;
             return pluginTuples

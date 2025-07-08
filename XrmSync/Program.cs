@@ -11,6 +11,7 @@ using System.Text.Json;
 using DG.XrmSync.AssemblyAnalyzer;
 using DGLoggerFactory = DG.XrmSync.LoggerFactory;
 using DG.XrmSync.AssemblyAnalyzer.Extensions;
+using DG.XrmSync.Model.Exceptions;
 
 
 // Define CLI options
@@ -50,9 +51,17 @@ var analyzeAssemblyCommand = new Command("analyze", "Analyze a plugin assembly a
 
 analyzeAssemblyCommand.SetHandler((assemblyPath) =>
 {
-    var pluginDto = AssemblyAnalyzer.GetPluginAssembly(assemblyPath);
-    var jsonOutput = JsonSerializer.Serialize(pluginDto);
-    Console.WriteLine(jsonOutput);
+    try
+    {
+        var pluginDto = AssemblyAnalyzer.GetPluginAssembly(assemblyPath);
+        var jsonOutput = JsonSerializer.Serialize(pluginDto);
+        Console.WriteLine(jsonOutput);
+    }
+    catch (AnalysisException ex)
+    {
+        Console.Error.WriteLine($"Error analyzing assembly: {ex.Message}");
+        Environment.Exit(1);
+    }
 }, assemblyFileOption);
 
 rootCommand.AddCommand(analyzeAssemblyCommand);
@@ -86,7 +95,14 @@ rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, data
         })
         .Build();
 
-    await PluginSync.RunSync(host.Services);
+    try
+    {
+        await PluginSync.RunSync(host.Services);
+    } catch (XrmSyncException ex)
+    {
+        Console.Error.WriteLine($"Error during synchronization: {ex.Message}");
+        Environment.Exit(1);
+    }
 }, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption, dataverseOption);
 
 return await rootCommand.InvokeAsync(args);

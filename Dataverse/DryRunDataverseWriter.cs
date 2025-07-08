@@ -1,5 +1,6 @@
 ﻿using DG.XrmSync.Dataverse.Interfaces;
 using DG.XrmSync.Model;
+using DG.XrmSync.Model.Exceptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using System.Runtime.CompilerServices;
@@ -14,7 +15,7 @@ public class DryRunDataverseWriter : IDataverseWriter
     {
         if (!options.DryRun)
         {
-            throw new InvalidOperationException("This writer is intended for dry runs only.");
+            throw new XrmSyncException("This writer is intended for dry runs only.");
         }
 
         this.logger = logger;

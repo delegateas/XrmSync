@@ -1,6 +1,7 @@
 ﻿using DG.XrmSync.Dataverse.Extensions;
 using DG.XrmSync.Dataverse.Interfaces;
 using DG.XrmSync.Model.CustomApi;
+using DG.XrmSync.Model.Exceptions;
 using DG.XrmSync.Model.Plugin;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -128,7 +129,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
 
             if (!messageIds.TryGetValue(step.EventOperation, out var messageId))
             {
-                throw new InvalidOperationException($"Message operation '{step.EventOperation}' not found in Dataverse.");
+                throw new XrmSyncException($"Message operation '{step.EventOperation}' not found in Dataverse.");
             }
             
             var messageFilter = messageReader.GetMessageFilter(step.LogicalName, messageId);
@@ -181,9 +182,9 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
     {
         // Reads the file at dllPath and returns its contents as a Base64 string
         if (string.IsNullOrWhiteSpace(dllPath))
-            throw new ArgumentException("DLL path must not be null or empty.", nameof(dllPath));
+            throw new XrmSyncException("DLL path must not be null or empty.");
         if (!File.Exists(dllPath))
-            throw new FileNotFoundException($"DLL file not found: {dllPath}", dllPath);
+            throw new XrmSyncException($"DLL file not found: {dllPath}");
 
         byte[] fileBytes = File.ReadAllBytes(dllPath);
         return Convert.ToBase64String(fileBytes);

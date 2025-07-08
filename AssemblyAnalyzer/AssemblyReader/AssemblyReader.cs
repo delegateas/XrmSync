@@ -22,7 +22,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
     {
         if (string.IsNullOrWhiteSpace(assemblyDllPath))
         {
-            throw new ArgumentException("Assembly DLL path cannot be null or empty.", nameof(assemblyDllPath));
+            throw new AnalysisException("Assembly DLL path cannot be null or empty");
         }
 
         if (assemblyCache.TryGetValue(assemblyDllPath, out var cachedAssemblyInfo))
@@ -33,10 +33,10 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
 
         logger.LogDebug("Reading assembly from {AssemblyDllPath}", assemblyDllPath);
         var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath);
-        
+
         // Cache the assembly info
         assemblyCache[assemblyDllPath] = assemblyInfo;
-        
+
         return assemblyInfo;
     }
 
@@ -48,7 +48,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         if (result.ExitCode != 0)
         {
             logger.LogError("Failed to read assembly: {Error}", result.Error);
-            throw new Exception($"Failed to read assembly: {result.Error}");
+            throw new AnalysisException($"Failed to read assembly: {result.Error}");
         }
 
         // Process the output
@@ -56,7 +56,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
 
         logger.LogInformation("Local assembly read successfully: {AssemblyName} version {Version}", assemblyInfo?.Name, assemblyInfo?.Version);
 
-        return assemblyInfo ?? throw new Exception("Failed to read plugin type information from assembly");
+        return assemblyInfo ?? throw new AnalysisException("Failed to read plugin type information from assembly");
     }
 
     private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath)

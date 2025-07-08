@@ -1,4 +1,5 @@
 ﻿using DG.XrmSync.Model;
+using DG.XrmSync.Model.Exceptions;
 using DG.XrmSync.SyncService.Differences;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
@@ -37,12 +38,12 @@ internal static class LoggerExtensions
         var body = lambda.Body as MemberExpression;
         if (body == null)
         {
-            var ubody = lambda.Body as UnaryExpression ?? throw new ArgumentException("Expression is not a member access", nameof(lambda));
+            var ubody = lambda.Body as UnaryExpression ?? throw new XrmSyncException("Expression is not a member access");
             body = ubody.Operand as MemberExpression;
         }
 
         if (body == null)
-            throw new ArgumentException("Expression is not a member access", nameof(lambda));
+            throw new XrmSyncException("Expression is not a member access");
 
         return body.Member.Name;
     }

@@ -1,5 +1,6 @@
 ﻿using DG.XrmSync.Dataverse.Interfaces;
 using DG.XrmSync.Model.CustomApi;
+using DG.XrmSync.Model.Exceptions;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 
@@ -43,7 +44,7 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
         foreach (var param in requestParameters)
         {
             var api = customApis.FirstOrDefault(a => a.UniqueName == param.CustomApiName)
-                ?? throw new InvalidOperationException($"CustomApi '{param.CustomApiName}' not found for request parameter '{param.UniqueName}'.");
+                ?? throw new XrmSyncException($"CustomApi '{param.CustomApiName}' not found for request parameter '{param.UniqueName}'.");
             var entity = new Entity(EntityTypeNames.RequestParameter);
             entity["name"] = param.UniqueName;
             entity["uniquename"] = param.UniqueName;
@@ -65,7 +66,7 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
         {
             var api = customApis.FirstOrDefault(a => a.UniqueName == prop.CustomApiName);
             if (api == null)
-                throw new InvalidOperationException($"CustomApi '{prop.CustomApiName}' not found for response property '{prop.UniqueName}'.");
+                throw new XrmSyncException($"CustomApi '{prop.CustomApiName}' not found for response property '{prop.UniqueName}'.");
 
             var entity = new Entity(EntityTypeNames.ResponseProperty);
             entity["name"] = prop.UniqueName;

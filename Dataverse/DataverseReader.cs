@@ -1,4 +1,5 @@
 ﻿using DG.XrmSync.Dataverse.Interfaces;
+using DG.XrmSync.Model.Exceptions;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
@@ -13,7 +14,7 @@ public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseRea
     {
         if (id == Guid.Empty)
         {
-            throw new ArgumentException("The provided ID is empty.", nameof(id));
+            throw new XrmSyncException("The provided ID is empty.");
         }
 
         return serviceClient.Retrieve(logicalName, id, columnSet);
@@ -25,7 +26,7 @@ public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseRea
         var entities = serviceClient.RetrieveMultiple(query).Entities;
         if (entities.Count == 0)
         {
-            throw new Exception($"No entities of type '{query.EntityName}' found with the given query.\n{ConvertQueryToString(query)}");
+            throw new XrmSyncException($"No entities of type '{query.EntityName}' found with the given query.\n{ConvertQueryToString(query)}");
         }
         return entities.First();
     }

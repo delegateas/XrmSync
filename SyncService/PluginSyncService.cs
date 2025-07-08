@@ -1,9 +1,12 @@
-﻿using DG.XrmSync.Dataverse.Interfaces;
+﻿using DG.XrmSync.AssemblyAnalyzer;
+using DG.XrmSync.Dataverse.Interfaces;
 using DG.XrmSync.Model;
 using DG.XrmSync.Model.CustomApi;
+using DG.XrmSync.Model.Exceptions;
 using DG.XrmSync.Model.Plugin;
 using DG.XrmSync.SyncService.AssemblyReader;
 using DG.XrmSync.SyncService.Differences;
+using DG.XrmSync.SyncService.Exceptions;
 using DG.XrmSync.SyncService.Extensions;
 using DG.XrmSync.SyncService.PluginValidator;
 using Microsoft.Extensions.Logging;
@@ -110,26 +113,60 @@ public class PluginSyncService(
 
     private async Task<(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly, List<PluginType> localPluginTypes, List<PluginType> crmPluginTypes)> ReadData()
     {
-        log.LogInformation("Loading local assembly and its plugins");
-        var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath);
-        log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis locally", localAssembly.Plugins.Count, localAssembly.CustomApis.Count);
+        try
+        {
+            log.LogInformation("Loading local assembly and its plugins");
+            var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath);
+            log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis locally", localAssembly.Plugins.Count, localAssembly.CustomApis.Count);
 
-        log.LogInformation("Validating plugins to be registered");
-        pluginValidator.Validate(localAssembly.Plugins);
-        log.LogInformation("Plugins validated");
+            log.LogInformation("Validating plugins to be registered");
+            pluginValidator.Validate(localAssembly.Plugins);
+            log.LogInformation("Plugins validated");
 
-        log.LogInformation("Retrieving registered plugins from Dataverse");
-        var solutionId = solutionReader.GetSolutionId(options.SolutionName);
-        var (crmAssembly, crmPluginTypes) = GetPluginAssembly(solutionId, localAssembly.Name);
-        log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis registered in CRM", crmAssembly?.Plugins.Count ?? 0, crmAssembly?.CustomApis.Count ?? 0);
+            log.LogInformation("Retrieving registered plugins from Dataverse");
+            var solutionId = solutionReader.GetSolutionId(options.SolutionName);
+            var (crmAssembly, crmPluginTypes) = GetPluginAssembly(solutionId, localAssembly.Name);
+            log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis registered in CRM", crmAssembly?.Plugins.Count ?? 0, crmAssembly?.CustomApis.Count ?? 0);
 
-        // Identify the associated local plugin types
-        var localPluginTypes = localAssembly.CustomApis
-            .ConvertAll(localApi => localApi.ToPluginType(crmPluginTypes, c => c.PluginTypeName))
-            .Concat(localAssembly.Plugins.ConvertAll(localPlugin => localPlugin.ToPluginType(crmPluginTypes, c => c.Name)))
-            .ToList();
+            // Identify the associated local plugin types
+            var localPluginTypes = localAssembly.CustomApis
+                .ConvertAll(localApi => localApi.ToPluginType(crmPluginTypes, c => c.PluginTypeName))
+                .Concat(localAssembly.Plugins.ConvertAll(localPlugin => localPlugin.ToPluginType(crmPluginTypes, c => c.Name)))
+                .ToList();
 
-        return (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes);
+            return (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes);
+        }
+        catch (AnalysisException ex)
+        {
+            log.LogCritical(ex, "Failed to analyze local assembly. Ensure the assembly is valid and contains plugins.");
+            throw new XrmSyncException("Failed analyse local assembly", ex);
+        }
+        catch (ValidationException ex)
+        {
+            log.LogError(ex, "Validation failed for the plugins in the assembly. Ensure the plugins are valid and compatible with Dataverse.");
+            throw new XrmSyncException("Validation failed for the plugins in the assembly", ex);
+        }
+        catch (AggregateException ex)
+        {
+            log.LogError("An error occurred while reading the assembly or plugins. Ensure the assembly is valid and contains plugins.");
+            foreach (var inner in ex.InnerExceptions)
+            {
+                if (inner is AnalysisException analysisEx)
+                {
+                    log.LogError(analysisEx, "Analysis error: {Message}", analysisEx.Message);
+                }
+                else if (inner is ValidationException validationEx)
+                {
+                    log.LogError(validationEx, "Validation error: {Message}", validationEx.Message);
+                }
+                else
+                {
+                    log.LogCritical(inner, "Unexpected error: {Message}", inner.Message);
+                }
+            }
+
+            throw new XrmSyncException("Failed to read data", ex);
+        }
     }
 
     internal (AssemblyInfo? assemblyInfo, List<PluginType> pluginTypes) GetPluginAssembly(Guid solutionId, string assemblyName)
@@ -186,7 +223,7 @@ public class PluginSyncService(
     internal AssemblyInfo CreatePluginAssembly(AssemblyInfo localAssembly, string solutionName)
     {
         log.LogInformation($"Creating assembly {localAssembly.Name}");
-        if (localAssembly.DllPath is null) throw new Exception("Assembly DLL path is null. Ensure the assembly has been read correctly.");
+        if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
         var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, solutionName, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
         return localAssembly with { Id = assemblyId };
     }
@@ -194,7 +231,7 @@ public class PluginSyncService(
     internal void UpdatePluginAssembly(Guid assemblyId, AssemblyInfo localAssembly)
     {
         log.LogInformation($"Updating assembly {localAssembly.Name}");
-        if (localAssembly.DllPath is null) throw new Exception("Assembly DLL path is null. Ensure the assembly has been read correctly.");
+        if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
         pluginWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
     }
 
