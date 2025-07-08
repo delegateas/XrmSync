@@ -1,5 +1,6 @@
 ﻿using DG.XrmSync.Model;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 // StepConfig           : className, ExecutionStage, EventOperation, LogicalName
 using StepConfig = System.Tuple<string?, int, string?, string?>;
@@ -20,6 +21,7 @@ using DG.XrmSync.Model.Plugin;
 using DG.XrmSync.Model.CustomApi;
 using DG.XrmSync.AssemblyAnalyzer.Extensions;
 
+[assembly: InternalsVisibleTo("Tests")]
 namespace DG.XrmSync.AssemblyAnalyzer;
 
 public static class AssemblyAnalyzer

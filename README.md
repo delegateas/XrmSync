@@ -25,9 +25,11 @@ XrmSync is a powerful tool that helps you manage and synchronize your Microsoft 
 ## Installation
 
 ### As a .NET Tool
+
 ```bash
-dotnet tool install --global XrmSync
+dotnet tool install --global DG.XrmSync
 ```
+
 ### From Source
 
 1. Clone the repository:
@@ -42,14 +44,16 @@ dotnet build
 5. Install as a local tool:
 ```bash
 dotnet pack XrmSync/XrmSync.csproj
-dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
+dotnet tool install --global --add-source ./XrmSync/nupkg DG.XrmSync
 ```
 ## Usage
 
 ### Basic Sync Command
+
 ```bash
-XrmSync --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
+xrmsync --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
 ```
+
 ### Command Line Options
 
 | Option | Short | Description | Required |
@@ -64,7 +68,7 @@ XrmSync --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
 
 You can analyze an assembly without connecting to Dataverse:
 ```bash
-XrmSync analyze --assembly "path/to/your/plugin.dll"
+xrmstbc analyze --assembly "path/to/your/plugin.dll"
 ```
 This outputs JSON information about the plugin types, steps, and images found in the assembly.
 
@@ -73,19 +77,19 @@ This outputs JSON information about the plugin types, steps, and images found in
 #### Basic synchronization:
 
 ```bash
-dotnet tool XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
+xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
 ```
 
 #### Dry run with debug logging:
 
 ```bash
-dotnet tool XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug
+xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug
 ```
 
 #### Specify Dataverse environment:
 
 ```bash
-dotnet tool XrmSync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dataverse "https://myorg.crm.dynamics.com"
+xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dataverse "https://myorg.crm.dynamics.com"
 ```
 
 ## Configuration
@@ -146,9 +150,17 @@ The solution consists of several projects:
 - Access to a Dataverse environment for testing
 
 ### Building
+
+```bash
 dotnet build
+```
+
 ### Testing
+
+```bash
 dotnet test
+```
+
 ### Contributing
 
 1. Fork the repository
