@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using XrmSync.SyncService.Comparers;
-using XrmSync.SyncService.Differences;
 using XrmSync.SyncService.PluginValidator;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
+using XrmSync.SyncService.Difference;
 
 namespace XrmSync.SyncService.Extensions;
 

@@ -1,27 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Linq.Expressions;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService.Comparers;
 using XrmSync.SyncService.Extensions;
 
-namespace XrmSync.SyncService.Differences;
-
-public record EntityDifference<TEntity>(TEntity LocalEntity, TEntity? RemoteEntity, IEnumerable<Expression<Func<TEntity, object>>> DifferentProperties) where TEntity : EntityBase;
-
-public record Difference<T>(List<T> Creates, List<EntityDifference<T>> UpdatesWithDifferences, List<T> Deletes) where T : EntityBase
-{
-    public List<T> Updates => UpdatesWithDifferences.ConvertAll(x => x.LocalEntity);
-}
-
-public record Differences(Difference<PluginType> Types,
-    Difference<Step> PluginSteps,
-    Difference<Image> PluginImages,
-    Difference<ApiDefinition> CustomApis,
-    Difference<RequestParameter> RequestParameters,
-    Difference<ResponseProperty> ResponseProperties
-);
+namespace XrmSync.SyncService.Difference;
 
 public class DifferenceUtility(ILogger log,
     IEntityComparer<PluginType> pluginTypeComparer,

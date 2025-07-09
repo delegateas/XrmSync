@@ -2,12 +2,12 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.SyncService;
-using XrmSync.SyncService.Differences;
 using XrmSync.SyncService.PluginValidator;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.Model;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
+using XrmSync.SyncService.Difference;
 
 namespace Tests;
 
@@ -46,17 +46,16 @@ public class PluginServiceTests
             Version = "1.0.0.0",
             Plugins = []
         };
-        var solutionName = "solution";
         var expectedId = Guid.NewGuid();
-        _pluginWriter.CreatePluginAssembly(assembly.Name, solutionName, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription)
+        _pluginWriter.CreatePluginAssembly(assembly.Name, _options.SolutionName, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription)
             .Returns(expectedId);
 
         // Act
-        var result = _plugin.CreatePluginAssembly(assembly, solutionName);
+        var result = _plugin.CreatePluginAssembly(assembly);
 
         // Assert
         Assert.Equal(expectedId, result.Id);
-        _pluginWriter.Received(1).CreatePluginAssembly(assembly.Name, solutionName, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription);
+        _pluginWriter.Received(1).CreatePluginAssembly(assembly.Name, _options.SolutionName, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription);
     }
 
     [Fact]
@@ -80,7 +79,7 @@ public class PluginServiceTests
     }
 
     [Fact]
-    public void CreatePlugins_CallsWriterForTypesStepsImages()
+    public void CreatePlugins_CallsWriter()
     {
         // Arrange
         var crmAssembly = new AssemblyInfo {
@@ -91,8 +90,8 @@ public class PluginServiceTests
             Version = "1.0.0.0",
             Plugins = []
         };
-        var crmPluginSteps = new List<Step>();
         var solutionName = _options.SolutionName;
+        const string solutionPrefix = "pre";
         var pluginTypes = new List<PluginType> {
             new() {
                 Name = "Type1",
@@ -123,12 +122,48 @@ public class PluginServiceTests
                 Attributes = string.Empty
             }
         };
+        var customApis = new List<ApiDefinition>()
+        {
+            new() {
+                Name = "CustomApi1",
+                UniqueName = "customapi_testapi",
+                Description = "Test API",
+                DisplayName = "Test API",
+                BoundEntityLogicalName = "account",
+                ExecutePrivilegeName = "prvTestExecute",
+                PluginTypeName = "Type1"
+            }
+        };
+
+        var requestParams = new List<RequestParameter> {
+            new() {
+                Name = "TestParameter",
+                UniqueName = "test_parameter",
+                CustomApiName = "customapi_testapi",
+                Type = 0,
+                DisplayName = "Test Parameter",
+                LogicalEntityName = "account"
+            }
+        };
+
+        var responseProps = new List<ResponseProperty> {
+            new() {
+                Name = "TestResponse",
+                UniqueName = "test_response",
+                CustomApiName = "customapi_testapi",
+                Type = 0,
+                DisplayName = "Test Response",
+                LogicalEntityName = "account"
+            }
+        };
+
         var createdTypes = new List<PluginType> {
             new() {
                 Name = "CreatedType",
                 Id = Guid.NewGuid()
             }
         };
+
         var createdSteps = new List<Step> {
             new() {
                 Name = "CreatedStep",
@@ -144,18 +179,44 @@ public class PluginServiceTests
                 PluginImages = []
             }
         };
-        _pluginWriter.CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription).Returns(createdTypes);
-        _pluginWriter.CreatePluginSteps(pluginSteps, Arg.Any<List<PluginType>>(), solutionName, _description.SyncDescription).Returns(createdSteps);
+
+        var createdCustomApis = new List<ApiDefinition> {
+            new() {
+                Name = "CreatedCustomApi",
+                UniqueName = "customapi_created",
+                Id = Guid.NewGuid(),
+                Description = "Created API",
+                DisplayName = "Created API",
+                BoundEntityLogicalName = "account",
+                ExecutePrivilegeName = "prvCreatedExecute",
+                PluginTypeName = "Type1"
+            }
+        };
+
+        _pluginWriter.CreatePluginTypes(pluginTypes, Arg.Any<Guid>(), Arg.Any<string>()).Returns(createdTypes);
+        _pluginWriter.CreatePluginSteps(pluginSteps, Arg.Any<List<PluginType>>(), Arg.Any<string>(), Arg.Any<string>()).Returns(createdSteps);
+        _customApiWriter.CreateCustomApis(customApis, Arg.Any<List<PluginType>>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(createdCustomApis);
+
+        var differences = new Differences(
+            new Difference<PluginType>(pluginTypes, [], []),
+            new Difference<Step>(pluginSteps, [], []),
+            new Difference<Image>(pluginImages, [], []),
+            new Difference<ApiDefinition>(customApis, [], []),
+            new Difference<RequestParameter>(requestParams, [], []),
+            new Difference<ResponseProperty>(responseProps, [], [])
+        );
 
         // Act
-        _plugin.CreateTypes(crmAssembly, pluginTypes);
-        _plugin.CreateSteps(pluginSteps, pluginTypes);
-        _plugin.CreateImages(pluginImages, crmPluginSteps);
+        _plugin.CreatePlugins(differences, [], [], crmAssembly, solutionPrefix);
 
         // Assert
         _pluginWriter.Received(1).CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription);
-        _pluginWriter.Received(1).CreatePluginSteps(pluginSteps, pluginTypes, solutionName, _description.SyncDescription);
-        _pluginWriter.Received(1).CreatePluginImages(pluginImages, crmPluginSteps);
+        _pluginWriter.Received(1).CreatePluginSteps(pluginSteps, Arg.Is<List<PluginType>>(t => !t.Except(createdTypes).Any()), solutionName, _description.SyncDescription);
+        _pluginWriter.Received(1).CreatePluginImages(pluginImages, Arg.Is<List<Step>>(s => !s.Except(createdSteps).Any()));
+        _customApiWriter.Received(1).CreateCustomApis(customApis, Arg.Is<List<PluginType>>(t => !t.Except(createdTypes).Any()), solutionName, solutionPrefix, _description.SyncDescription);
+        Assert.Equal(createdCustomApis, crmAssembly.CustomApis);
+        _customApiWriter.Received(1).CreateRequestParameters(requestParams, Arg.Is<List<ApiDefinition>>(c => !c.Except(createdCustomApis).Any()));
+        _customApiWriter.Received(1).CreateResponseProperties(responseProps, Arg.Is<List<ApiDefinition>>(c => !c.Except(createdCustomApis).Any()));
     }
 
     [Fact]
@@ -170,7 +231,14 @@ public class PluginServiceTests
         var resps = new List<ResponseProperty>();
 
         // Act
-        _plugin.DeletePlugins(new CompiledData(types, steps, images, apis, reqs, resps));
+        _plugin.DeletePlugins(new Differences(
+            new Difference<PluginType>([], [], types),
+            new Difference<Step>([], [], steps),
+            new Difference<Image>([], [], images),
+            new Difference<ApiDefinition>([], [], apis),
+            new Difference<RequestParameter>([], [], reqs),
+            new Difference<ResponseProperty>([], [], resps)
+        ));
 
         // Assert
         _pluginWriter.Received(1).DeletePlugins(types, steps, images, apis, reqs, resps);
@@ -180,15 +248,24 @@ public class PluginServiceTests
     public void UpdatePlugins_CallsWriter()
     {
         // Arrange
-        var data = new CompiledData(new List<PluginType>(), new List<Step>(), new List<Image>(), new List<ApiDefinition>(), new List<RequestParameter>(), new List<ResponseProperty>());
+        var data = new Differences(
+            new Difference<PluginType>([], [], []),
+            new Difference<Step>([], [], []),
+            new Difference<Image>([], [], []),
+            new Difference<ApiDefinition>([], [], []),
+            new Difference<RequestParameter>([], [], []),
+            new Difference<ResponseProperty>([], [], [])
+        );
+
+        List<PluginType> pluginTypes = [];
 
         // Act
-        _plugin.UpdatePlugins(data);
+        _plugin.UpdatePlugins(data, pluginTypes);
 
         // Assert
-        _pluginWriter.Received(1).UpdatePlugins(data.Steps, data.Images, _description.SyncDescription);
-        _customApiWriter.Received(1).UpdateCustomApis(data.CustomApis, _description.SyncDescription);
-        _customApiWriter.Received(1).UpdateRequestParameters(data.RequestParameters);
-        _customApiWriter.Received(1).UpdateResponseProperties(data.ResponseProperties);
+        _pluginWriter.Received(1).UpdatePlugins(data.PluginSteps.Updates, data.PluginImages.Updates, _description.SyncDescription);
+        _customApiWriter.Received(1).UpdateCustomApis(data.CustomApis.Updates, pluginTypes, _description.SyncDescription);
+        _customApiWriter.Received(1).UpdateRequestParameters(data.RequestParameters.Updates);
+        _customApiWriter.Received(1).UpdateResponseProperties(data.ResponseProperties.Updates);
     }
 }

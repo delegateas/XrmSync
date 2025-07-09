@@ -151,6 +151,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
                 ? null
                 : new EntityReference(SystemUser.EntityLogicalName, step.UserContext);
 
+#pragma warning disable CS0612 // Type or member is obsolete
             var entity = new SdkMessageProcessingStep
             {
                 Name = step.Name,
@@ -166,6 +167,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
                 SdkMessageId = new EntityReference(SdkMessage.EntityLogicalName, messageId),
                 SdkMessageFilterId = messageFilterReference
             };
+#pragma warning restore CS0612 // Type or member is obsolete
 
             var parameters = new ParameterCollection
             {

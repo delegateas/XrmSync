@@ -66,6 +66,7 @@ namespace XrmSync.Dataverse.Context
 			public const string ReferencedSolutionComponent_Parent_SolutionComponent = "ReferencedSolutionComponent_Parent_SolutionComponent";
 			public const string RootComponentBehavior = "rootcomponentbehavior";
 			public const string RootSolutionComponentId = "rootsolutioncomponentid";
+			public const string Solution_SolutionComponent = "solution_solutioncomponent";
 			public const string ReferencingSolutionComponent_Parent_SolutionComponent = "solutioncomponent_parent_solutioncomponent";
 			public const string SolutionComponentId = "solutioncomponentid";
 			public const string Id = "solutioncomponentid";
@@ -470,6 +471,20 @@ namespace XrmSync.Dataverse.Context
 			set
 			{
 				this.SetRelatedEntity<XrmSync.Dataverse.Context.SystemUser>("lk_solutioncomponentbase_modifiedonbehalfby", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// N:1 solution_solutioncomponent
+		/// </summary>
+		[Microsoft.Xrm.Sdk.AttributeLogicalNameAttribute("solutionid")]
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("solution_solutioncomponent")]
+		public XrmSync.Dataverse.Context.Solution? Solution_SolutionComponent
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntity<XrmSync.Dataverse.Context.Solution>("solution_solutioncomponent", null);
 			}
 		}
 		

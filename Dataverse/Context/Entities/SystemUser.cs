@@ -566,6 +566,10 @@ namespace XrmSync.Dataverse.Context
 			public const string Lk_PluginAssembly_ModifiedOnBehalfBy = "Lk_PluginAssembly_ModifiedOnBehalfBy";
 			public const string Lk_PluginType_CreatedOnBehalfBy = "Lk_PluginType_CreatedOnBehalfBy";
 			public const string Lk_PluginType_ModifiedOnBehalfBy = "Lk_PluginType_ModifiedOnBehalfBy";
+			public const string Lk_Publisher_CreatedBy = "Lk_Publisher_CreatedBy";
+			public const string Lk_Publisher_ModifiedBy = "Lk_Publisher_ModifiedBy";
+			public const string Lk_PublisherBase_CreatedOnBehalfBy = "Lk_PublisherBase_CreatedOnBehalfBy";
+			public const string Lk_PublisherBase_ModifiedOnBehalfBy = "Lk_PublisherBase_ModifiedOnBehalfBy";
 			public const string Lk_SdkMessage_CreatedOnBehalfBy = "Lk_SdkMessage_CreatedOnBehalfBy";
 			public const string Lk_SdkMessage_ModifiedOnBehalfBy = "Lk_SdkMessage_ModifiedOnBehalfBy";
 			public const string Lk_SdkMessageFilter_CreatedOnBehalfBy = "Lk_SdkMessageFilter_CreatedOnBehalfBy";
@@ -574,6 +578,10 @@ namespace XrmSync.Dataverse.Context
 			public const string Lk_SdkMessageProcessingStep_ModifiedOnBehalfBy = "Lk_SdkMessageProcessingStep_ModifiedOnBehalfBy";
 			public const string Lk_SdkMessageProcessingStepImage_CreatedOnBehalfBy = "Lk_SdkMessageProcessingStepImage_CreatedOnBehalfBy";
 			public const string Lk_SdkMessageProcessingStepImage_ModifiedOnBehalfBy = "Lk_SdkMessageProcessingStepImage_ModifiedOnBehalfBy";
+			public const string Lk_Solution_CreatedBy = "Lk_Solution_CreatedBy";
+			public const string Lk_Solution_ModifiedBy = "Lk_Solution_ModifiedBy";
+			public const string Lk_SolutionBase_CreatedOnBehalfBy = "Lk_SolutionBase_CreatedOnBehalfBy";
+			public const string Lk_SolutionBase_ModifiedOnBehalfBy = "Lk_SolutionBase_ModifiedOnBehalfBy";
 			public const string Lk_SolutionComponentBase_CreatedOnBehalfBy = "Lk_SolutionComponentBase_CreatedOnBehalfBy";
 			public const string Lk_SolutionComponentBase_ModifiedOnBehalfBy = "Lk_SolutionComponentBase_ModifiedOnBehalfBy";
 			public const string ReferencingLk_SystemUser_CreatedOnBehalfBy = "lk_systemuser_createdonbehalfby";
@@ -4550,6 +4558,78 @@ namespace XrmSync.Dataverse.Context
 		}
 		
 		/// <summary>
+		/// 1:N lk_publisher_createdby
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_publisher_createdby")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.Publisher>? Lk_Publisher_CreatedBy
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.Publisher>("lk_publisher_createdby", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.Publisher>("lk_publisher_createdby", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// 1:N lk_publisher_modifiedby
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_publisher_modifiedby")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.Publisher>? Lk_Publisher_ModifiedBy
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.Publisher>("lk_publisher_modifiedby", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.Publisher>("lk_publisher_modifiedby", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// 1:N lk_publisherbase_createdonbehalfby
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_publisherbase_createdonbehalfby")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.Publisher>? Lk_PublisherBase_CreatedOnBehalfBy
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.Publisher>("lk_publisherbase_createdonbehalfby", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.Publisher>("lk_publisherbase_createdonbehalfby", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// 1:N lk_publisherbase_modifiedonbehalfby
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_publisherbase_modifiedonbehalfby")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.Publisher>? Lk_PublisherBase_ModifiedOnBehalfBy
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.Publisher>("lk_publisherbase_modifiedonbehalfby", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.Publisher>("lk_publisherbase_modifiedonbehalfby", null, value);
+			}
+		}
+		
+		/// <summary>
 		/// 1:N lk_sdkmessage_createdonbehalfby
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_sdkmessage_createdonbehalfby")]
@@ -4690,6 +4770,78 @@ namespace XrmSync.Dataverse.Context
 			set
 			{
 				this.SetRelatedEntities<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>("lk_sdkmessageprocessingstepimage_modifiedonbehalfby", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// 1:N lk_solution_createdby
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_solution_createdby")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.Solution>? Lk_Solution_CreatedBy
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.Solution>("lk_solution_createdby", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.Solution>("lk_solution_createdby", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// 1:N lk_solution_modifiedby
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_solution_modifiedby")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.Solution>? Lk_Solution_ModifiedBy
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.Solution>("lk_solution_modifiedby", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.Solution>("lk_solution_modifiedby", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// 1:N lk_solutionbase_createdonbehalfby
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_solutionbase_createdonbehalfby")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.Solution>? Lk_SolutionBase_CreatedOnBehalfBy
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.Solution>("lk_solutionbase_createdonbehalfby", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.Solution>("lk_solutionbase_createdonbehalfby", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// 1:N lk_solutionbase_modifiedonbehalfby
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("lk_solutionbase_modifiedonbehalfby")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.Solution>? Lk_SolutionBase_ModifiedOnBehalfBy
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.Solution>("lk_solutionbase_modifiedonbehalfby", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.Solution>("lk_solutionbase_modifiedonbehalfby", null, value);
 			}
 		}
 		

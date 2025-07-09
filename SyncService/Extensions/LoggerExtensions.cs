@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
-using XrmSync.SyncService.Differences;
+using XrmSync.SyncService.Difference;
 
 namespace XrmSync.SyncService.Extensions;
 

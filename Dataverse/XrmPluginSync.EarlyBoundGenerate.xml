@@ -33,10 +33,12 @@ customapirequestparameter|
 customapiresponseproperty|
 pluginassembly|
 plugintype|
+publisher|
 sdkmessage|
 sdkmessagefilter|
 sdkmessageprocessingstep|
 sdkmessageprocessingstepimage|
+solution|
 solutioncomponent|
 systemuser</EntitiesWhitelist>
     <EntityAttributeSpecifiedNames />

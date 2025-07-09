@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService;
 using XrmSync.SyncService.Comparers;
-using XrmSync.SyncService.Differences;
+using XrmSync.SyncService.Difference;
 using XrmSync.SyncService.Extensions;
 
 namespace Tests;

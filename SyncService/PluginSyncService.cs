@@ -7,7 +7,7 @@ using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Exceptions;
 using XrmSync.Model.Plugin;
-using XrmSync.SyncService.Differences;
+using XrmSync.SyncService.Difference;
 using XrmSync.SyncService.Exceptions;
 using XrmSync.SyncService.Extensions;
 using XrmSync.SyncService.PluginValidator;
@@ -33,7 +33,7 @@ public class PluginSyncService(
         log.LogInformation("Comparing plugins registered in Dataverse versus those found in your local code");
 
         // Read the data from the local assembly and from Dataverse
-        var (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes) = await ReadData();
+        var (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes, prefix) = await ReadData();
 
         // Update the actual assembly file in Dataverse
         crmAssembly = UpsertAssembly(localAssembly, crmAssembly);
@@ -45,25 +45,35 @@ public class PluginSyncService(
         var (localRequestParameters, crmRequestParameters) = AlignRequestParameters(localAssembly, crmAssembly);
         var (localResponseProperties, crmResponseProperties) = AlignResponseProperties(localAssembly, crmAssembly);
 
-        var localData = new CompiledData(localPluginTypes, localPluginSteps, localPluginImages, localCustomApis, localRequestParameters, localResponseProperties);
-        var crmData = new CompiledData(crmPluginTypes, crmPluginSteps, crmPluginImages, crmAssembly.CustomApis, crmRequestParameters, crmResponseProperties);
+        var localData = new CompiledData(
+            localPluginTypes,
+            localPluginSteps,
+            localPluginImages,
+            localCustomApis,
+            localRequestParameters,
+            localResponseProperties
+        );
+
+        var crmData = new CompiledData(
+            crmPluginTypes,
+            crmPluginSteps,
+            crmPluginImages,
+            crmAssembly.CustomApis,
+            crmRequestParameters,
+            crmResponseProperties
+        );
 
         // Calculate the differences
         var differences = differenceUtility.CalculateDifferences(localData, crmData);
 
         // Delete
-        var deleteData = new CompiledData(differences.Types.Deletes, differences.PluginSteps.Deletes, differences.PluginImages.Deletes, differences.CustomApis.Deletes, differences.RequestParameters.Deletes, differences.ResponseProperties.Deletes);
-        DeletePlugins(deleteData);
+        DeletePlugins(differences);
 
         // Update
-        var updateData = new CompiledData(differences.Types.Updates, differences.PluginSteps.Updates, differences.PluginImages.Updates, differences.CustomApis.Updates, differences.RequestParameters.Updates, differences.ResponseProperties.Updates);
-        UpdatePlugins(updateData);
+        UpdatePlugins(differences, crmPluginTypes);
 
         // Create
-        crmPluginTypes.AddRange(CreateTypes(crmAssembly, differences.Types.Creates));
-        crmPluginSteps.AddRange(CreateSteps(differences.PluginSteps.Creates, crmPluginTypes));
-        CreateImages(differences.PluginImages.Creates, crmPluginSteps);
-        // TODO: Create Custom APIs
+        CreatePlugins(differences, crmPluginTypes, crmPluginSteps, crmAssembly, prefix);
 
         // Done
         log.LogInformation("Plugin synchronization was completed successfully");
@@ -112,7 +122,7 @@ public class PluginSyncService(
         return (localPluginSteps, crmPluginSteps);
     }
 
-    private async Task<(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly, List<PluginType> localPluginTypes, List<PluginType> crmPluginTypes)> ReadData()
+    private async Task<SyncData> ReadData()
     {
         try
         {
@@ -125,7 +135,7 @@ public class PluginSyncService(
             log.LogInformation("Plugins validated");
 
             log.LogInformation("Retrieving registered plugins from Dataverse");
-            var solutionId = solutionReader.GetSolutionId(options.SolutionName);
+            var (solutionId, solutionPrefix) = solutionReader.RetrieveSolution(options.SolutionName);
             var (crmAssembly, crmPluginTypes) = GetPluginAssembly(solutionId, localAssembly.Name);
             log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis registered in CRM", crmAssembly?.Plugins.Count ?? 0, crmAssembly?.CustomApis.Count ?? 0);
 
@@ -135,7 +145,7 @@ public class PluginSyncService(
                 .Concat(localAssembly.Plugins.ConvertAll(localPlugin => localPlugin.ToPluginType(crmPluginTypes, c => c.Name)))
                 .ToList();
 
-            return (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes);
+            return new SyncData(localAssembly, crmAssembly, localPluginTypes, crmPluginTypes, solutionPrefix);
         }
         catch (AnalysisException ex)
         {
@@ -219,13 +229,10 @@ public class PluginSyncService(
     }
 
     internal AssemblyInfo CreatePluginAssembly(AssemblyInfo localAssembly)
-        => CreatePluginAssembly(localAssembly, options.SolutionName);
-
-    internal AssemblyInfo CreatePluginAssembly(AssemblyInfo localAssembly, string solutionName)
     {
-        log.LogInformation($"Creating assembly {localAssembly.Name}");
+        log.LogInformation("Creating assembly {assemblyName}", localAssembly.Name);
         if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
-        var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, solutionName, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
+        var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, options.SolutionName, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
         return localAssembly with { Id = assemblyId };
     }
 
@@ -236,31 +243,35 @@ public class PluginSyncService(
         pluginWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
     }
 
-    internal List<PluginType> CreateTypes(AssemblyInfo crmAssembly, List<PluginType> types)
+    internal void CreatePlugins(Differences differences, List<PluginType> dataversePluginTypes, List<Step> dataversePluginSteps, AssemblyInfo dataverseAssembly, string prefix)
     {
-        return pluginWriter.CreatePluginTypes(types, crmAssembly.Id, description.SyncDescription);
+        dataversePluginTypes.AddRange(pluginWriter.CreatePluginTypes(differences.Types.Creates, dataverseAssembly.Id, description.SyncDescription));
+        dataversePluginSteps.AddRange(pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates, dataversePluginTypes, options.SolutionName, description.SyncDescription));
+        pluginWriter.CreatePluginImages(differences.PluginImages.Creates, dataversePluginSteps);
+        dataverseAssembly.CustomApis.AddRange(customApiWriter.CreateCustomApis(differences.CustomApis.Creates, dataversePluginTypes, options.SolutionName, prefix, description.SyncDescription));
+        customApiWriter.CreateRequestParameters(differences.RequestParameters.Creates, dataverseAssembly.CustomApis);
+        customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates, dataverseAssembly.CustomApis);
     }
 
-    internal List<Step> CreateSteps(List<Step> pluginSteps, List<PluginType> types)
+    internal void UpdatePlugins(Differences differences, List<PluginType> dataverseTypes)
     {
-        return pluginWriter.CreatePluginSteps(pluginSteps, types, options.SolutionName, description.SyncDescription);
+        pluginWriter.UpdatePlugins(differences.PluginSteps.Updates, differences.PluginImages.Updates, description.SyncDescription);
+        customApiWriter.UpdateCustomApis(differences.CustomApis.Updates, dataverseTypes, description.SyncDescription);
+        customApiWriter.UpdateRequestParameters(differences.RequestParameters.Updates);
+        customApiWriter.UpdateResponseProperties(differences.ResponseProperties.Updates);
     }
 
-    internal List<Image> CreateImages(List<Image> pluginImages, List<Step> crmPluginSteps)
+    internal void DeletePlugins(Differences differences)
     {
-        return pluginWriter.CreatePluginImages(pluginImages, crmPluginSteps);
-    }
-
-    internal void DeletePlugins(CompiledData data)
-    {
-        pluginWriter.DeletePlugins(data.Types, data.Steps, data.Images, data.CustomApis, data.RequestParameters, data.ResponseProperties);
-    }
-
-    internal void UpdatePlugins(CompiledData data)
-    {
-        pluginWriter.UpdatePlugins(data.Steps, data.Images, description.SyncDescription);
-        customApiWriter.UpdateCustomApis(data.CustomApis, data.Types, description.SyncDescription);
-        customApiWriter.UpdateRequestParameters(data.RequestParameters);
-        customApiWriter.UpdateResponseProperties(data.ResponseProperties);
+        pluginWriter.DeletePlugins(
+            differences.Types.Deletes,
+            differences.PluginSteps.Deletes,
+            differences.PluginImages.Deletes,
+            differences.CustomApis.Deletes,
+            differences.RequestParameters.Deletes,
+            differences.ResponseProperties.Deletes
+        );
     }
 }
+
+internal record SyncData(AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly, List<PluginType> LocalPluginTypes, List<PluginType> CrmPluginTypes, string Prefix);

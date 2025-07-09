@@ -86,6 +86,17 @@ namespace XrmSync.Dataverse.Context
 		}
 		
 		/// <summary>
+		/// Gets a binding to the set of all <see cref="XrmSync.Dataverse.Context.Publisher"/> entities.
+		/// </summary>
+		public System.Linq.IQueryable<XrmSync.Dataverse.Context.Publisher> PublisherSet
+		{
+			get
+			{
+				return this.CreateQuery<XrmSync.Dataverse.Context.Publisher>();
+			}
+		}
+		
+		/// <summary>
 		/// Gets a binding to the set of all <see cref="XrmSync.Dataverse.Context.SdkMessage"/> entities.
 		/// </summary>
 		public System.Linq.IQueryable<XrmSync.Dataverse.Context.SdkMessage> SdkMessageSet
@@ -126,6 +137,17 @@ namespace XrmSync.Dataverse.Context
 			get
 			{
 				return this.CreateQuery<XrmSync.Dataverse.Context.SdkMessageProcessingStepImage>();
+			}
+		}
+		
+		/// <summary>
+		/// Gets a binding to the set of all <see cref="XrmSync.Dataverse.Context.Solution"/> entities.
+		/// </summary>
+		public System.Linq.IQueryable<XrmSync.Dataverse.Context.Solution> SolutionSet
+		{
+			get
+			{
+				return this.CreateQuery<XrmSync.Dataverse.Context.Solution>();
 			}
 		}
 		

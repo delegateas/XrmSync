@@ -23,7 +23,7 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                     Id = pa.Id,
                     Name = pa.Name ?? string.Empty,
                     Version = pa.Version ?? string.Empty,
-                    Hash = pa.SourceHash ?? string.Empty
+                    Hash = pa.SourceHash ?? string.Empty,
                 }).FirstOrDefault()
                 ?? throw new XrmSyncException($"Plugin assembly with name '{assemblyName}' not found in solution with ID '{solutionId}'.");
     }
