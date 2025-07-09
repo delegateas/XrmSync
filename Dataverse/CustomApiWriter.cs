@@ -24,7 +24,7 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
                 Name = api.UniqueName,
                 UniqueName = solutionPrefix + "_" + api.UniqueName,
                 DisplayName = api.DisplayName,
-                Description = !string.IsNullOrEmpty(api.Description) ? api.Description : description,
+                Description = GetDescription(api, description),
                 IsFunction = api.IsFunction,
                 WorkflowSdkStepEnabled = api.EnabledForWorkflow,
                 BindingType = (CustomApi_BindingType?)api.BindingType,
@@ -108,7 +108,7 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
             var entity = new CustomApi(api.Id)
             {
                 DisplayName = api.DisplayName,
-                Description = !string.IsNullOrEmpty(api.Description) ? api.Description : description,
+                Description = GetDescription(api, description),
                 IsFunction = api.IsFunction,
                 WorkflowSdkStepEnabled = api.EnabledForWorkflow,
                 BindingType = (CustomApi_BindingType?)api.BindingType,
@@ -171,5 +171,12 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
             writer.PerformAsBulkWithOutput(updateRequests, r => r.Target.LogicalName);
 
         return responseProperties;
+    }
+
+    private static string GetDescription(ApiDefinition api, string description)
+    {
+        return !string.IsNullOrEmpty(api.Description) && !api.Description.Equals("description", StringComparison.InvariantCultureIgnoreCase)
+            ? api.Description
+            : description;
     }
 }

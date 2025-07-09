@@ -9,6 +9,8 @@ public class CustomApiComparer(Description description) : BaseComparer<ApiDefini
     {
         return x.Description.StartsWith($"Synced with {description.ToolHeader}") ||
                y.Description.StartsWith($"Synced with {description.ToolHeader}") ||
+               x.Description.Equals("description", StringComparison.InvariantCultureIgnoreCase) ||
+               y.Description.Equals("description", StringComparison.InvariantCultureIgnoreCase) ||
                x.Description == y.Description;
     }
 
