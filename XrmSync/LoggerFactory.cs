@@ -12,7 +12,7 @@ internal static class LoggerFactory
         {
             builder.AddFilter("Microsoft", LogLevel.Warning)
                    .AddFilter("System", LogLevel.Warning)
-                   .AddFilter("DG", MinimumLevel)
+                   .AddFilter("XrmSync", MinimumLevel)
                    .AddSimpleConsole(options =>
                    {
                        options.IncludeScopes = false;
