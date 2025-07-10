@@ -1,9 +1,8 @@
 ﻿
 using System;
 using BusinessDomain.Context;
-using SamplePlugins;
 
-namespace TestPluginAssembly365.Plugins.LegacyDaxif {
+namespace SamplePlugins {
     public class AccountPlugin : Plugin {
 
         public AccountPlugin() : base(typeof(AccountPlugin)) {

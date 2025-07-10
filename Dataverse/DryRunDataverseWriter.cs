@@ -35,6 +35,24 @@ public class DryRunDataverseWriter : IDataverseWriter
         return Guid.NewGuid(); // In dry run mode, we do not actually create the entity.
     }
 
+    public List<TEntity> CreateMultiple<TEntity>(List<TEntity> entities, IDictionary<string, object>? parameters = null) where TEntity : Entity
+    {
+        if (entities.Count == 0)
+        {
+            return [];
+        }
+
+        logger.LogDebug("DRY RUN: CreateMultiple operation would be performed for {count} entities of type '{entityType}'.",
+                        entities.Count, entities[0].LogicalName);
+
+        for (var i = 0; i < entities.Count; i++)
+        {
+            entities[i].Id = Guid.NewGuid();
+        }
+
+        return entities;
+    }
+
     public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
     {
         var targetTypes = updates.Select(targetSelector).Distinct().ToList();
@@ -50,6 +68,17 @@ public class DryRunDataverseWriter : IDataverseWriter
     public void Update(Entity entity)
     {
         LogOperation(entity);
+    }
+
+    public void UpdateMultiple<TEntity>(List<TEntity> entities) where TEntity : Entity
+    {
+        if (entities.Count == 0)
+        {
+            return;
+        }
+
+        logger.LogDebug("DRY RUN: UpdateMultiple operation would be performed for {count} entities of type '{entityType}'.",
+                        entities.Count, entities[0].LogicalName);
     }
 
     private void LogOperation(Entity entity, ParameterCollection? parameters = null, [CallerMemberName] string operation = "")

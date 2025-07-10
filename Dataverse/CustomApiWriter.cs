@@ -2,16 +2,21 @@
 using Microsoft.Xrm.Sdk.Messages;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
+public class CustomApiWriter(IDataverseWriter writer, XrmSyncOptions options) : ICustomApiWriter
 {
-    public List<ApiDefinition> CreateCustomApis(List<ApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string solutionName, string solutionPrefix, string description)
+    private Dictionary<string, object> Parameters { get; } = new() {
+            { "SolutionUniqueName", options.SolutionName }
+    };
+
+    public List<ApiDefinition> CreateCustomApis(List<ApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string solutionPrefix, string description)
     {
-        foreach (var api in customApis)
+        var entities = customApis.ConvertAll(api =>
         {
             var pluginType = pluginTypes.FirstOrDefault(pt => pt.Name == api.PluginTypeName)
                 ?? throw new XrmSyncException($"PluginType '{api.PluginTypeName}' not found for CustomApi '{api.UniqueName}'.");
@@ -20,7 +25,8 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
                 ? null
                 : new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
 
-            var entity = new CustomApi {
+            return new CustomApi
+            {
                 Name = api.UniqueName,
                 UniqueName = solutionPrefix + "_" + api.UniqueName,
                 DisplayName = api.DisplayName,
@@ -36,13 +42,17 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
                 IsPrivate = api.IsPrivate,
                 ExecutePrivilegeName = api.ExecutePrivilegeName
             };
+        });
 
-            var parameters = new ParameterCollection
-            {
-                { "SolutionUniqueName", solutionName }
-            };
+        var created = writer.CreateMultiple(entities, Parameters);
 
-            api.Id = writer.Create(entity, parameters);
+        for (var i = 0; i < customApis.Count; i++)
+        {
+            customApis[i].Id = created[i].Id;
+            customApis[i].UniqueName = solutionPrefix + "_" + customApis[i].UniqueName;
+
+            customApis[i].RequestParameters.ForEach(r => r.CustomApiName = customApis[i].UniqueName);
+            customApis[i].ResponseProperties.ForEach(r => r.CustomApiName = customApis[i].UniqueName);
         }
 
         return customApis;
@@ -50,12 +60,13 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
 
     public List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters, List<ApiDefinition> customApis)
     {
-        foreach (var param in requestParameters)
+        var entities = requestParameters.ConvertAll(param =>
         {
             var api = customApis.FirstOrDefault(a => a.UniqueName == param.CustomApiName)
                 ?? throw new XrmSyncException($"CustomApi '{param.CustomApiName}' not found for request parameter '{param.UniqueName}'.");
 
-            var entity = new CustomApiRequestParameter {
+            return new CustomApiRequestParameter
+            {
                 Name = param.UniqueName,
                 UniqueName = param.UniqueName,
                 CustomApiId = new EntityReference(CustomApi.EntityLogicalName, api.Id),
@@ -65,20 +76,26 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
                 LogicalEntityName = param.LogicalEntityName,
                 Type = (CustomApiFieldType?)param.Type
             };
+        });
 
-            param.Id = writer.Create(entity);
+        var created = writer.CreateMultiple(entities, Parameters);
+
+        for (var i = 0; i < requestParameters.Count; i++)
+        {
+            requestParameters[i].Id = created[i].Id;
         }
+
         return requestParameters;
     }
 
     public List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties, List<ApiDefinition> customApis)
     {
-        foreach (var prop in responseProperties)
+        var entities = responseProperties.ConvertAll(prop =>
         {
             var api = customApis.FirstOrDefault(a => a.UniqueName == prop.CustomApiName)
-                ?? throw new XrmSyncException($"CustomApi '{prop.CustomApiName}' not found for response property '{prop.UniqueName}'.");
+                            ?? throw new XrmSyncException($"CustomApi '{prop.CustomApiName}' not found for response property '{prop.UniqueName}'.");
 
-            var entity = new CustomApiResponseProperty
+            return new CustomApiResponseProperty
             {
                 Name = prop.UniqueName,
                 UniqueName = prop.UniqueName,
@@ -88,9 +105,15 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
                 LogicalEntityName = prop.LogicalEntityName,
                 Type = (CustomApiFieldType?)prop.Type
             };
+        });
 
-            prop.Id = writer.Create(entity);
+        var created = writer.CreateMultiple(entities, Parameters);
+
+        for (var i = 0; i < responseProperties.Count; i++)
+        {
+            responseProperties[i].Id = created[i].Id;
         }
+
         return responseProperties;
     }
 
@@ -105,7 +128,7 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
                 ? null
                 : new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
 
-            var entity = new CustomApi(api.Id)
+            return new CustomApi(api.Id)
             {
                 DisplayName = api.DisplayName,
                 Description = GetDescription(api, description),
@@ -120,55 +143,45 @@ public class CustomApiWriter(IDataverseWriter writer) : ICustomApiWriter
                 IsPrivate = api.IsPrivate,
                 ExecutePrivilegeName = api.ExecutePrivilegeName
             };
-
-            return new UpdateRequest { Target = entity };
         });
 
         if (updateRequests.Count > 0)
-            writer.PerformAsBulkWithOutput(updateRequests, r => r.Target.LogicalName);
+        {
+            writer.UpdateMultiple(updateRequests);
+        }
 
         return customApis;
     }
 
     public List<RequestParameter> UpdateRequestParameters(List<RequestParameter> requestParameters)
     {
-        var updateRequests = requestParameters.ConvertAll(param =>
+        var updateRequests = requestParameters.ConvertAll(param => new CustomApiRequestParameter(param.Id)
         {
-            var entity = new CustomApiRequestParameter(param.Id)
-            {
-                DisplayName = param.DisplayName,
-                IsCustomizable = new BooleanManagedProperty(param.IsCustomizable),
-                IsOptional = param.IsOptional,
-                LogicalEntityName = param.LogicalEntityName,
-                Type = (CustomApiFieldType?)param.Type
-            };
-
-            return new UpdateRequest { Target = entity };
+            DisplayName = param.DisplayName,
+            IsCustomizable = new BooleanManagedProperty(param.IsCustomizable),
+            IsOptional = param.IsOptional,
+            LogicalEntityName = param.LogicalEntityName,
+            Type = (CustomApiFieldType?)param.Type
         });
 
         if (updateRequests.Count > 0)
-            writer.PerformAsBulkWithOutput(updateRequests, r => r.Target.LogicalName);
+            writer.UpdateMultiple(updateRequests);
 
         return requestParameters;
     }
 
     public List<ResponseProperty> UpdateResponseProperties(List<ResponseProperty> responseProperties)
     {
-        var updateRequests = responseProperties.ConvertAll(prop =>
+        var updateRequests = responseProperties.ConvertAll(prop => new CustomApiResponseProperty(prop.Id)
         {
-            var entity = new CustomApiResponseProperty(prop.Id)
-            {
-                DisplayName = prop.DisplayName,
-                IsCustomizable = new BooleanManagedProperty(prop.IsCustomizable),
-                LogicalEntityName = prop.LogicalEntityName,
-                Type = (CustomApiFieldType?)prop.Type
-            };
-
-            return new UpdateRequest { Target = entity };
+            DisplayName = prop.DisplayName,
+            IsCustomizable = new BooleanManagedProperty(prop.IsCustomizable),
+            LogicalEntityName = prop.LogicalEntityName,
+            Type = (CustomApiFieldType?)prop.Type
         });
 
         if (updateRequests.Count > 0)
-            writer.PerformAsBulkWithOutput(updateRequests, r => r.Target.LogicalName);
+            writer.UpdateMultiple(updateRequests);
 
         return responseProperties;
     }

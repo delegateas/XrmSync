@@ -52,6 +52,44 @@ public sealed class DataverseWriter : IDataverseWriter
             : throw new InvalidOperationException("Failed to create entity with provided parameters.");
     }
 
+    public List<TEntity> CreateMultiple<TEntity>(List<TEntity> entities, IDictionary<string, object>? parameters = null) where TEntity : Entity
+    {
+        if (entities.Count == 0) return [];
+
+        var req = new CreateMultipleRequest
+        {
+            Targets = new EntityCollection([.. entities.Cast<Entity>()])
+            {
+                EntityName = entities[0].LogicalName
+            }
+        };
+
+        if (parameters != null)
+        {
+            req.Parameters.AddRange(parameters);
+        }
+
+        var response = serviceClient.Execute(req);
+        if (response is CreateMultipleResponse createResponse)
+        {
+            logger.LogTrace("Created {Count} entities of type {EntityType}, with IDs: {Ids}", createResponse.Ids.Length, entities[0].LogicalName, createResponse.Ids);
+
+            for (var i = 0; i < entities.Count; i++)
+            {
+                entities[i].Id = createResponse.Ids[i];
+            }
+
+            return entities;
+        } else
+        {
+            var responseType = response.GetType().Name;
+            var errorMessage = $"Unexpected response type: {responseType}";
+            logger.LogError("Unexpected response type {ResponseType} when creating multiple entities", responseType);
+    
+            throw new XrmSyncException(errorMessage);
+        }
+    }
+
     public void Update(Entity entity)
     {
         if (entity == null)
@@ -60,6 +98,21 @@ public sealed class DataverseWriter : IDataverseWriter
         }
 
         serviceClient.Update(entity);
+    }
+
+    public void UpdateMultiple<TEntity>(List<TEntity> entities) where TEntity : Entity
+    {
+        if (entities.Count == 0) return;
+
+        var req = new UpdateMultipleRequest
+        {
+            Targets = new EntityCollection([.. entities.Cast<Entity>()])
+            {
+                EntityName = entities[0].LogicalName
+            }
+        };
+
+        serviceClient.Execute(req);
     }
 
     public void PerformAsBulkWithOutput<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest

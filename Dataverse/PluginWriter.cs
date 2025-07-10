@@ -3,15 +3,20 @@ using Microsoft.Xrm.Sdk.Messages;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Exceptions;
 using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 
-public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer) : IPluginWriter
+public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, XrmSyncOptions options) : IPluginWriter
 {
-    public Guid CreatePluginAssembly(string pluginName, string solutionName, string dllPath, string sourceHash, string assemblyVersion, string description)
+    private Dictionary<string, object> Parameters { get; } = new() {
+            { "SolutionUniqueName", options.SolutionName }
+    };
+
+    public Guid CreatePluginAssembly(string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
     {
         var entity = new PluginAssembly
         {
@@ -23,10 +28,8 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
             Description = description
         };
 
-        var parameters = new ParameterCollection
-        {
-            { "SolutionUniqueName", solutionName }
-        };
+        var parameters = new ParameterCollection();
+        parameters.AddRange(Parameters);
 
         return writer.Create(entity, parameters);
     }
@@ -66,82 +69,60 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
     public void UpdatePlugins(IEnumerable<Step> pluginSteps, IEnumerable<Image> pluginImages, string description)
     {
         var pluginStepReqs = pluginSteps
-            .Select(x =>
+            .Select(x => new SdkMessageProcessingStep(x.Id)
             {
-                var impersonatingUser = x.UserContext == Guid.Empty
-                    ? null
-                    : new EntityReference(SystemUser.EntityLogicalName, x.UserContext);
+                Stage = (SdkMessageProcessingStep_Stage)x.ExecutionStage,
+                FilteringAttributes = x.FilteredAttributes,
+                SupportedDeployment = (SdkMessageProcessingStep_SupportedDeployment)x.Deployment,
+                Mode = (SdkMessageProcessingStep_Mode)x.ExecutionMode,
+                Rank = x.ExecutionOrder,
+                Description = description,
+                ImpersonatingUserId = x.UserContext == Guid.Empty ? null : new EntityReference(SystemUser.EntityLogicalName, x.UserContext)
+            }).ToList();
 
-                var entity = new SdkMessageProcessingStep(x.Id)
-                {
-                    Stage = (SdkMessageProcessingStep_Stage)x.ExecutionStage,
-                    FilteringAttributes = x.FilteredAttributes,
-                    SupportedDeployment = (SdkMessageProcessingStep_SupportedDeployment)x.Deployment,
-                    Mode = (SdkMessageProcessingStep_Mode)x.ExecutionMode,
-                    Rank = x.ExecutionOrder,
-                    Description = description,
-                    ImpersonatingUserId = impersonatingUser
-                };
-
-                return new UpdateRequest
-                {
-                    Target = entity
-                };
-            });
+        writer.UpdateMultiple(pluginStepReqs);
 
         var pluginImageReqs = pluginImages
-            .Select(x =>
+            .Select(x => new SdkMessageProcessingStepImage(x.Id)
             {
-                var entity = new SdkMessageProcessingStepImage(x.Id)
-                {
-                    Name = x.Name,
-                    EntityAlias = x.EntityAlias,
-                    ImageType = (SdkMessageProcessingStepImage_ImageType)x.ImageType,
-                    Attributes1 = x.Attributes
-                };
+                Name = x.Name,
+                EntityAlias = x.EntityAlias,
+                ImageType = (SdkMessageProcessingStepImage_ImageType)x.ImageType,
+                Attributes1 = x.Attributes
+            }).ToList();
 
-                return new UpdateRequest
-                {
-                    Target = entity
-                };
-            });
-
-        List<UpdateRequest> updateRequests = [.. pluginImageReqs, .. pluginStepReqs];
-
-        if (updateRequests.Count > 0)
-        {
-            writer.PerformAsBulkWithOutput(updateRequests, r => r.Target.LogicalName);
-        }
+        writer.UpdateMultiple(pluginImageReqs);
     }
 
     public List<Model.Plugin.PluginType> CreatePluginTypes(List<Model.Plugin.PluginType> pluginTypes, Guid assemblyId, string description)
     {
-        return pluginTypes.ConvertAll(x =>
+        var pluginEntities = pluginTypes.ConvertAll(x => new Context.PluginType
         {
-            var entity = new Context.PluginType
-            {
-                Name = x.Name,
-                TypeName = x.Name,
-                FriendlyName = Guid.NewGuid().ToString(),
-                PluginAssemblyId = new EntityReference(PluginAssembly.EntityLogicalName, assemblyId),
-                Description = description
-            };
-
-            x.Id = writer.Create(entity);
-
-            return x;
+            Name = x.Name,
+            TypeName = x.Name,
+            FriendlyName = Guid.NewGuid().ToString(),
+            PluginAssemblyId = new EntityReference(PluginAssembly.EntityLogicalName, assemblyId),
+            Description = description
         });
+
+        var created = writer.CreateMultiple(pluginEntities, Parameters);
+
+        for (var i = 0; i < pluginTypes.Count; i++)
+        {
+            pluginTypes[i].Id = created[i].Id;
+        }
+
+        return pluginTypes;
     }
 
-    public List<Step> CreatePluginSteps(List<Step> pluginSteps, List<Model.Plugin.PluginType> pluginTypes, string solutionName, string description)
+    public List<Step> CreatePluginSteps(List<Step> pluginSteps, List<Model.Plugin.PluginType> pluginTypes, string description)
     {
         var eventOperations = pluginSteps.Select(step => step.EventOperation).Distinct();
         var stepLogicalNames = pluginSteps.Select(step => step.LogicalName).Distinct();
         
         var messageFilterIds = messageReader.GetMessageFilters(eventOperations, stepLogicalNames);
 
-        // TODO: Can we use CreateMultiple instead?
-        return pluginSteps.ConvertAll(step =>
+        var entities = pluginSteps.ConvertAll(step =>
         {
             var pluginType = pluginTypes.First(type => type.Name == step.PluginTypeName);
 
@@ -151,14 +132,15 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
                 ? null
                 : new EntityReference(SystemUser.EntityLogicalName, step.UserContext);
 
-#pragma warning disable CS0612 // Type or member is obsolete
-            var entity = new SdkMessageProcessingStep
+            return new SdkMessageProcessingStep
             {
                 Name = step.Name,
                 AsyncAutoDelete = false, // TODO: This should be configurable
                 Rank = step.ExecutionOrder,
                 Mode = (SdkMessageProcessingStep_Mode)step.ExecutionMode,
+#pragma warning disable CS0612 // Type or member is obsolete
                 PluginTypeId = new EntityReference(Context.PluginType.EntityLogicalName, pluginType.Id),
+#pragma warning restore CS0612 // Type or member is obsolete
                 Stage = (SdkMessageProcessingStep_Stage)step.ExecutionStage,
                 FilteringAttributes = step.FilteredAttributes,
                 SupportedDeployment = (SdkMessageProcessingStep_SupportedDeployment)step.Deployment,
@@ -167,16 +149,15 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
                 SdkMessageId = new EntityReference(SdkMessage.EntityLogicalName, messageId),
                 SdkMessageFilterId = messageFilterReference
             };
-#pragma warning restore CS0612 // Type or member is obsolete
-
-            var parameters = new ParameterCollection
-            {
-                { "SolutionUniqueName", solutionName }
-            };
-
-            step.Id = writer.Create(entity, parameters);
-            return step;
         });
+
+        var created = writer.CreateMultiple(entities, Parameters);
+        for (var i = 0; i < pluginSteps.Count; i++)
+        {
+            pluginSteps[i].Id = created[i].Id;
+        }
+
+        return pluginSteps;
     }
 
     private static (Guid messageId, EntityReference? messageFilterReference) GetMessageFilterReference(Step step, Dictionary<string, MessageFilterMap> messages)
@@ -200,15 +181,14 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
         return (opMessageFilters.MessageId, new EntityReference(SdkMessageFilter.EntityLogicalName, messageFilterId));
     }
 
-    public List<Image> CreatePluginImages(List<Image> pluginImages, List<Step> pluginSteps)
+    public List<Image> CreatePluginImages(List<Image> pluginImages, List<Step> pluginSteps, string solutionName)
     {
-        // TODO: Can we use CreateMultiple instead?
-        return pluginImages.ConvertAll(image =>
+        var entities = pluginImages.ConvertAll(image =>
         {
             var pluginStep = pluginSteps.First(step => step.Name == image.PluginStepName);
             var messagePropertyName = MessageReader.GetMessagePropertyName(pluginStep.EventOperation);
 
-            var entity = new SdkMessageProcessingStepImage
+            return new SdkMessageProcessingStepImage
             {
                 Name = image.Name,
                 EntityAlias = image.EntityAlias,
@@ -217,10 +197,15 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer)
                 MessagePropertyName = messagePropertyName,
                 SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, pluginStep.Id)
             };
-            
-            image.Id = writer.Create(entity);
-            return image;
         });
+
+        var created = writer.CreateMultiple(entities, Parameters);
+        for (var i = 0; i < pluginImages.Count; i++)
+        {
+            pluginImages[i].Id = created[i].Id;
+        }
+
+        return pluginImages;
     }
 
     private static string GetBase64StringFromFile(string dllPath)

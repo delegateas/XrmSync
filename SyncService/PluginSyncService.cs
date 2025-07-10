@@ -35,13 +35,10 @@ public class PluginSyncService(
         // Read the data from the local assembly and from Dataverse
         var (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes, prefix) = await ReadData();
 
-        // Update the actual assembly file in Dataverse
-        crmAssembly = UpsertAssembly(localAssembly, crmAssembly);
-
         // Align the local and remote info, matching IDs
         var (localPluginSteps, crmPluginSteps) = AlignSteps(localAssembly, crmAssembly);
         var (localPluginImages, crmPluginImages) = AlignImages(localPluginSteps, crmPluginSteps);
-        var localCustomApis = AlignCustomApis(localAssembly, crmAssembly);
+        var (localCustomApis, crmCustomApis) = AlignCustomApis(localAssembly, crmAssembly);
         var (localRequestParameters, crmRequestParameters) = AlignRequestParameters(localAssembly, crmAssembly);
         var (localResponseProperties, crmResponseProperties) = AlignResponseProperties(localAssembly, crmAssembly);
 
@@ -58,13 +55,16 @@ public class PluginSyncService(
             crmPluginTypes,
             crmPluginSteps,
             crmPluginImages,
-            crmAssembly.CustomApis,
+            crmCustomApis,
             crmRequestParameters,
             crmResponseProperties
         );
 
         // Calculate the differences
         var differences = differenceUtility.CalculateDifferences(localData, crmData);
+
+        // Update the actual assembly file in Dataverse
+        crmAssembly = UpsertAssembly(localAssembly, crmAssembly);
 
         // Delete
         DeletePlugins(differences);
@@ -79,25 +79,26 @@ public class PluginSyncService(
         log.LogInformation("Plugin synchronization was completed successfully");
     }
 
-    private static List<ApiDefinition> AlignCustomApis(AssemblyInfo localAssembly, AssemblyInfo crmAssembly)
+    private static (List<ApiDefinition> localCustomApis, List<ApiDefinition> crmCustomApis) AlignCustomApis(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
     {
-        crmAssembly.CustomApis.TransferIdsTo(localAssembly.CustomApis, x => x.Name);
-        return localAssembly.CustomApis;
+        crmAssembly?.CustomApis.TransferIdsTo(localAssembly.CustomApis, x => x.Name);
+
+        return (localAssembly.CustomApis, crmAssembly?.CustomApis ?? []);
     }
 
-    private static (List<ResponseProperty> localProperties, List<ResponseProperty> crmProperties) AlignResponseProperties(AssemblyInfo localAssembly, AssemblyInfo crmAssembly)
+    private static (List<ResponseProperty> localProperties, List<ResponseProperty> crmProperties) AlignResponseProperties(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
     {
         var localCustomApiProperties = localAssembly.CustomApis.SelectMany(x => x.ResponseProperties).ToList();
-        var crmCustomApiProperties = crmAssembly.CustomApis.SelectMany(x => x.ResponseProperties).ToList();
+        var crmCustomApiProperties = crmAssembly?.CustomApis.SelectMany(x => x.ResponseProperties).ToList() ?? [];
         crmCustomApiProperties.TransferIdsTo(localCustomApiProperties, x => x.Name);
 
         return (localCustomApiProperties, crmCustomApiProperties);
     }
 
-    private static (List<RequestParameter> localRequests, List<RequestParameter> crmRequests) AlignRequestParameters(AssemblyInfo localAssembly, AssemblyInfo crmAssembly)
+    private static (List<RequestParameter> localRequests, List<RequestParameter> crmRequests) AlignRequestParameters(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
     {
         var localCustomApiRequests = localAssembly.CustomApis.SelectMany(x => x.RequestParameters).ToList();
-        var crmCustomApiRequests = crmAssembly.CustomApis.SelectMany(x => x.RequestParameters).ToList();
+        var crmCustomApiRequests = crmAssembly?.CustomApis.SelectMany(x => x.RequestParameters).ToList() ?? [];
         crmCustomApiRequests.TransferIdsTo(localCustomApiRequests, x => x.Name);
 
         return (localCustomApiRequests,  crmCustomApiRequests);
@@ -112,9 +113,9 @@ public class PluginSyncService(
         return (localPluginImages, crmPluginImages);
     }
 
-    private static (List<Step> localSteps, List<Step> crmSteps) AlignSteps(AssemblyInfo localAssembly, AssemblyInfo crmAssembly)
+    private static (List<Step> localSteps, List<Step> crmSteps) AlignSteps(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
     {
-        var crmPluginSteps = crmAssembly.Plugins.SelectMany(x => x.PluginSteps).ToList();
+        var crmPluginSteps = crmAssembly?.Plugins.SelectMany(x => x.PluginSteps).ToList() ?? [];
         var localPluginSteps = localAssembly.Plugins.SelectMany(x => x.PluginSteps).ToList();
 
         crmPluginSteps.TransferIdsTo(localPluginSteps, x => x.Name);
@@ -150,7 +151,7 @@ public class PluginSyncService(
         catch (AnalysisException ex)
         {
             log.LogCritical(ex, "Failed to analyze local assembly. Ensure the assembly is valid and contains plugins.");
-            throw new XrmSyncException("Failed analyse local assembly", ex);
+            throw new XrmSyncException("Failed to analyse local assembly", ex);
         }
         catch (ValidationException ex)
         {
@@ -238,7 +239,7 @@ public class PluginSyncService(
     {
         log.LogInformation("Creating assembly {assemblyName}", localAssembly.Name);
         if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
-        var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, options.SolutionName, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
+        var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
         return localAssembly with {
             Id = assemblyId,
             Plugins = [],
@@ -256,9 +257,9 @@ public class PluginSyncService(
     internal void CreatePlugins(Differences differences, List<PluginType> dataversePluginTypes, List<Step> dataversePluginSteps, AssemblyInfo dataverseAssembly, string prefix)
     {
         dataversePluginTypes.AddRange(pluginWriter.CreatePluginTypes(differences.Types.Creates, dataverseAssembly.Id, description.SyncDescription));
-        dataversePluginSteps.AddRange(pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates, dataversePluginTypes, options.SolutionName, description.SyncDescription));
-        pluginWriter.CreatePluginImages(differences.PluginImages.Creates, dataversePluginSteps);
-        dataverseAssembly.CustomApis.AddRange(customApiWriter.CreateCustomApis(differences.CustomApis.Creates, dataversePluginTypes, options.SolutionName, prefix, description.SyncDescription));
+        dataversePluginSteps.AddRange(pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates, dataversePluginTypes, description.SyncDescription));
+        pluginWriter.CreatePluginImages(differences.PluginImages.Creates, dataversePluginSteps, options.SolutionName);
+        dataverseAssembly.CustomApis.AddRange(customApiWriter.CreateCustomApis(differences.CustomApis.Creates, dataversePluginTypes, prefix, description.SyncDescription));
         customApiWriter.CreateRequestParameters(differences.RequestParameters.Creates, dataverseAssembly.CustomApis);
         customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates, dataverseAssembly.CustomApis);
     }
