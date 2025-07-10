@@ -100,7 +100,13 @@ rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, data
         await PluginSync.RunSync(host.Services);
     } catch (XrmSyncException ex)
     {
-        Console.Error.WriteLine($"Error during synchronization: {ex.Message}");
+        var logger = host.Services.GetRequiredService<ILogger>();
+        logger.LogError("Error during synchronization: {message}", ex.Message);
+        Environment.Exit(1);
+    } catch (Exception ex)
+    {
+        var logger = host.Services.GetRequiredService<ILogger>();
+        logger.LogCritical(ex, "An unexpected error occurred during synchronization");
         Environment.Exit(1);
     }
 }, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption, dataverseOption);
