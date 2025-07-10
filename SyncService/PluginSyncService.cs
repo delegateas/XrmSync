@@ -183,6 +183,12 @@ public class PluginSyncService(
     internal (AssemblyInfo? assemblyInfo, List<PluginType> pluginTypes) GetPluginAssembly(Guid solutionId, string assemblyName)
     {
         var assemblyInfo = pluginReader.GetPluginAssembly(solutionId, assemblyName);
+        if (assemblyInfo == null)
+        {
+            log.LogInformation("Assembly {assemblyName} not found in CRM, creating new assembly", assemblyName);
+            return (null, []);
+        }
+
         var pluginDefinitions = GetPluginTypes(solutionId, assemblyInfo.Id);
 
         assemblyInfo = assemblyInfo with {
@@ -233,7 +239,11 @@ public class PluginSyncService(
         log.LogInformation("Creating assembly {assemblyName}", localAssembly.Name);
         if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
         var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, options.SolutionName, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
-        return localAssembly with { Id = assemblyId };
+        return localAssembly with {
+            Id = assemblyId,
+            Plugins = [],
+            CustomApis = []
+        };
     }
 
     internal void UpdatePluginAssembly(Guid assemblyId, AssemblyInfo localAssembly)
