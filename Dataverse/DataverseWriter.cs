@@ -59,35 +59,31 @@ public sealed class DataverseWriter : IDataverseWriter
 
     public void UpdateMultiple<TEntity>(List<TEntity> entities) where TEntity : Entity
     {
-        if (entities.Count == 0) return;
-
-        var req = new UpdateMultipleRequest
-        {
-            Targets = new EntityCollection([.. entities.Cast<Entity>()])
-            {
-                EntityName = entities[0].LogicalName
-            }
-        };
-
-        serviceClient.Execute(req);
+        PerformAsBulk(entities.ConvertAll(e => new UpdateRequest { Target = e }));
     }
 
-    public void PerformAsBulkWithOutput<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
+    public void PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest
     {
-        var responses = PerformAsBulk(updates, targetSelector);
+        var responses = PerformAsBulkInner(updates);
         var failedReponses = responses.Where(x => x.Fault != null).ToList();
         if (failedReponses.Count > 0)
         {
-            logger.LogError($"Error when performing {failedReponses.Count} requests.");
+            logger.LogError("Error when performing {count} requests.", failedReponses.Count);
+            failedReponses.ForEach(f =>
+            {
+                logger.LogError(" - {message}: {innerFault}", f.Fault.Message, f.Fault.InnerFault.Message);
+                if (!string.IsNullOrEmpty(f.Fault.TraceText))
+                    logger.LogTrace("   {trace}", f.Fault.TraceText);
+            });
             throw new XrmSyncException("PerformAsBulkWithOutput encountered an error in one or more of the requests.");
         }
         else
         {
-            logger.LogTrace($"Succesfully performed {updates.Count} actions.");
+            logger.LogTrace("Succesfully performed {count} actions.", updates.Count);
         }
     }
 
-    public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
+    private List<ExecuteMultipleResponseItem> PerformAsBulkInner<T>(List<T> updates) where T : OrganizationRequest
     {
         var chunks = updates.Chunk(200);
         var responses = new List<ExecuteMultipleResponseItem>();

@@ -120,8 +120,9 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
                 ? null
                 : new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
 
-            return new CustomApi(api.Id)
+            return new CustomApi()
             {
+                Id = api.Id,
                 DisplayName = api.DisplayName,
                 Description = GetDescription(api, description),
                 IsFunction = api.IsFunction,
@@ -147,8 +148,9 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
 
     public List<RequestParameter> UpdateRequestParameters(List<RequestParameter> requestParameters)
     {
-        var updateRequests = requestParameters.ConvertAll(param => new CustomApiRequestParameter(param.Id)
+        var updateRequests = requestParameters.ConvertAll(param => new CustomApiRequestParameter()
         {
+            Id = param.Id,
             DisplayName = param.DisplayName,
             IsCustomizable = new BooleanManagedProperty(param.IsCustomizable),
             IsOptional = param.IsOptional,
@@ -164,8 +166,9 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
 
     public List<ResponseProperty> UpdateResponseProperties(List<ResponseProperty> responseProperties)
     {
-        var updateRequests = responseProperties.ConvertAll(prop => new CustomApiResponseProperty(prop.Id)
+        var updateRequests = responseProperties.ConvertAll(prop => new CustomApiResponseProperty()
         {
+            Id = prop.Id,
             DisplayName = prop.DisplayName,
             IsCustomizable = new BooleanManagedProperty(prop.IsCustomizable),
             LogicalEntityName = prop.LogicalEntityName,

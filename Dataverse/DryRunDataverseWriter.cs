@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using System.Runtime.CompilerServices;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
@@ -28,16 +29,17 @@ public class DryRunDataverseWriter : IDataverseWriter
         return Guid.NewGuid(); // In dry run mode, we do not actually create the entity.
     }
 
-    public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
+    public void PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest
     {
-        var targetTypes = updates.Select(targetSelector).Distinct().ToList();
-        logger.LogTrace("DRY RUN: Would execute {count} {type} requests targeting entities of type {target}", updates.Count, typeof(T).Name, string.Join(", ", targetTypes));
-        return [];
-    }
+        var targetTypes = updates.Select(t =>
+            t switch {
+                CreateRequest cr => cr.Target.LogicalName,
+                UpdateRequest ur => ur.Target.LogicalName,
+                DeleteRequest dr => dr.Target.LogicalName,
+                _ => throw new XrmSyncException($"Unexpected request type: {typeof(T)}, expected Create, Update or Delete request")
+            }).Distinct().ToList();
 
-    public void PerformAsBulkWithOutput<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
-    {
-        PerformAsBulk(updates, targetSelector);
+        logger.LogTrace("DRY RUN: Would execute {count} {type} requests targeting entities of type {target}", updates.Count, typeof(T).Name, string.Join(", ", targetTypes));
     }
 
     public void Update(Entity entity)

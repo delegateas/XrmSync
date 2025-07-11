@@ -35,8 +35,9 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
     public void UpdatePluginAssembly(Guid assemblyId, string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
     {
-        var entity = new PluginAssembly(assemblyId)
+        var entity = new PluginAssembly()
         {
+            Id = assemblyId,
             Name = pluginName,
             Content = GetBase64StringFromFile(dllPath),
             SourceHash = sourceHash,
@@ -61,15 +62,17 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
         if (deleteRequests.Count > 0)
         {
-            writer.PerformAsBulkWithOutput(deleteRequests, r => r.Target.LogicalName);
+            log.LogInformation("Deleting {count} plugin types, steps, images, custom apis, request and respones in Dataverse", deleteRequests.Count);
+            writer.PerformAsBulk(deleteRequests);
         }
     }
 
     public void UpdatePlugins(IEnumerable<Step> pluginSteps, IEnumerable<Image> pluginImages, string description)
     {
         var pluginStepReqs = pluginSteps
-            .Select(x => new SdkMessageProcessingStep(x.Id)
+            .Select(x => new SdkMessageProcessingStep()
             {
+                Id = x.Id,
                 Stage = (SdkMessageProcessingStep_Stage)x.ExecutionStage,
                 FilteringAttributes = x.FilteredAttributes,
                 SupportedDeployment = (SdkMessageProcessingStep_SupportedDeployment)x.Deployment,
@@ -79,18 +82,27 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
                 ImpersonatingUserId = x.UserContext == Guid.Empty ? null : new EntityReference(SystemUser.EntityLogicalName, x.UserContext)
             }).ToList();
 
-        writer.UpdateMultiple(pluginStepReqs);
+        if (pluginStepReqs.Count > 0)
+        {
+            log.LogInformation("Updating {count} plugin steps in Dataverse", pluginStepReqs.Count);
+            writer.UpdateMultiple(pluginStepReqs);
+        }
 
         var pluginImageReqs = pluginImages
-            .Select(x => new SdkMessageProcessingStepImage(x.Id)
+            .Select(x => new SdkMessageProcessingStepImage()
             {
+                Id = x.Id,
                 Name = x.Name,
                 EntityAlias = x.EntityAlias,
                 ImageType = (SdkMessageProcessingStepImage_ImageType)x.ImageType,
                 Attributes1 = x.Attributes
             }).ToList();
 
-        writer.UpdateMultiple(pluginImageReqs);
+        if (pluginImageReqs.Count > 0)
+        {
+            log.LogInformation("Updating {count} plugin images in Dataverse", pluginImageReqs.Count);
+            writer.UpdateMultiple(pluginImageReqs);
+        }
     }
 
     public List<Model.Plugin.PluginType> CreatePluginTypes(List<Model.Plugin.PluginType> pluginTypes, Guid assemblyId, string description)
