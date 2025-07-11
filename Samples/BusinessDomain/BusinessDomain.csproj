@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <RootNamespace>BusinessDomain</RootNamespace>
     <AssemblyName>BusinessDomain</AssemblyName>
     <ProjectGuid>{D7E68D1D-4E79-438E-BC0F-5586B45A5625}</ProjectGuid>

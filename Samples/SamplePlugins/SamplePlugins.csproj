@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <RootNamespace>SamplePlugins</RootNamespace>
     <AssemblyName>SamplePlugins</AssemblyName>
     <ProjectGuid>{62D467E1-A4A2-4776-A8F1-812AA303C8CA}</ProjectGuid>
