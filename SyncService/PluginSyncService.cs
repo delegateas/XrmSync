@@ -70,7 +70,7 @@ public class PluginSyncService(
         DeletePlugins(differences);
 
         // Update
-        UpdatePlugins(differences, crmPluginTypes);
+        UpdatePlugins(differences, crmPluginTypes, crmPluginSteps);
 
         // Create
         CreatePlugins(differences, crmPluginTypes, crmPluginSteps, crmAssembly, prefix);
@@ -264,9 +264,10 @@ public class PluginSyncService(
         customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates, dataverseAssembly.CustomApis);
     }
 
-    internal void UpdatePlugins(Differences differences, List<PluginType> dataverseTypes)
+    internal void UpdatePlugins(Differences differences, List<PluginType> dataverseTypes, List<Step> dataversePluginSteps)
     {
-        pluginWriter.UpdatePlugins(differences.PluginSteps.Updates, differences.PluginImages.Updates, description.SyncDescription);
+        pluginWriter.UpdatePluginSteps(differences.PluginSteps.Updates, description.SyncDescription);
+        pluginWriter.UpdatePluginImages(differences.PluginImages.Updates, dataversePluginSteps);
         customApiWriter.UpdateCustomApis(differences.CustomApis.Updates, dataverseTypes, description.SyncDescription);
         customApiWriter.UpdateRequestParameters(differences.RequestParameters.Updates);
         customApiWriter.UpdateResponseProperties(differences.ResponseProperties.Updates);

@@ -67,7 +67,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         }
     }
 
-    public void UpdatePlugins(IEnumerable<Step> pluginSteps, IEnumerable<Image> pluginImages, string description)
+    public void UpdatePluginSteps(IEnumerable<Step> pluginSteps, string description)
     {
         var pluginStepReqs = pluginSteps
             .Select(x => new SdkMessageProcessingStep()
@@ -87,15 +87,25 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
             log.LogInformation("Updating {count} plugin steps in Dataverse", pluginStepReqs.Count);
             writer.UpdateMultiple(pluginStepReqs);
         }
+    }
 
+    public void UpdatePluginImages(IEnumerable<Image> pluginImages, List<Step> pluginSteps)
+    {
         var pluginImageReqs = pluginImages
-            .Select(x => new SdkMessageProcessingStepImage()
+            .Select(x =>
             {
-                Id = x.Id,
-                Name = x.Name,
-                EntityAlias = x.EntityAlias,
-                ImageType = (SdkMessageProcessingStepImage_ImageType)x.ImageType,
-                Attributes1 = x.Attributes
+                var stepRef = pluginSteps.FirstOrDefault(s => s.Name == x.PluginStepName)
+                    ?? throw new XrmSyncException($"Plugin step '{x.PluginStepName}' not found in the provided steps.");
+                
+                return new SdkMessageProcessingStepImage()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    EntityAlias = x.EntityAlias,
+                    ImageType = (SdkMessageProcessingStepImage_ImageType)x.ImageType,
+                    Attributes1 = x.Attributes,
+                    SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, stepRef.Id),
+                };
             }).ToList();
 
         if (pluginImageReqs.Count > 0)

@@ -258,12 +258,14 @@ public class PluginServiceTests
         );
 
         List<PluginType> pluginTypes = [];
+        List<Step> pluginSteps = [];
 
         // Act
-        _plugin.UpdatePlugins(data, pluginTypes);
+        _plugin.UpdatePlugins(data, pluginTypes, pluginSteps);
 
         // Assert
-        _pluginWriter.Received(1).UpdatePlugins(data.PluginSteps.Updates, data.PluginImages.Updates, _description.SyncDescription);
+        _pluginWriter.Received(1).UpdatePluginSteps(data.PluginSteps.Updates, _description.SyncDescription);
+        _pluginWriter.Received(1).UpdatePluginImages(data.PluginImages.Updates, pluginSteps);
         _customApiWriter.Received(1).UpdateCustomApis(data.CustomApis.Updates, pluginTypes, _description.SyncDescription);
         _customApiWriter.Received(1).UpdateRequestParameters(data.RequestParameters.Updates);
         _customApiWriter.Received(1).UpdateResponseProperties(data.ResponseProperties.Updates);
