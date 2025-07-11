@@ -212,7 +212,7 @@ public class PluginServiceTests
         // Assert
         _pluginWriter.Received(1).CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription);
         _pluginWriter.Received(1).CreatePluginSteps(pluginSteps, Arg.Is<List<PluginType>>(t => !t.Except(createdTypes).Any()), _description.SyncDescription);
-        _pluginWriter.Received(1).CreatePluginImages(pluginImages, Arg.Is<List<Step>>(s => !s.Except(createdSteps).Any()), solutionName);
+        _pluginWriter.Received(1).CreatePluginImages(pluginImages, Arg.Is<List<Step>>(s => !s.Except(createdSteps).Any()));
         _customApiWriter.Received(1).CreateCustomApis(customApis, Arg.Is<List<PluginType>>(t => !t.Except(createdTypes).Any()), solutionPrefix, _description.SyncDescription);
         Assert.Equal(createdCustomApis, crmAssembly.CustomApis);
         _customApiWriter.Received(1).CreateRequestParameters(requestParams, Arg.Is<List<ApiDefinition>>(c => !c.Except(createdCustomApis).Any()));

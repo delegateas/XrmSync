@@ -1,5 +1,5 @@
-﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Xrm.Sdk;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
@@ -8,7 +8,7 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-public class CustomApiWriter(IDataverseWriter writer, XrmSyncOptions options) : ICustomApiWriter
+public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOptions options) : ICustomApiWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", options.SolutionName }
@@ -16,19 +16,20 @@ public class CustomApiWriter(IDataverseWriter writer, XrmSyncOptions options) : 
 
     public List<ApiDefinition> CreateCustomApis(List<ApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string solutionPrefix, string description)
     {
-        var entities = customApis.ConvertAll(api =>
+        if (customApis.Count == 0) return customApis;
+
+        log.LogInformation("Creating {Count} Custom APIs in Dataverse.", customApis.Count);
+        customApis.ForEach(api =>
         {
             var pluginType = pluginTypes.FirstOrDefault(pt => pt.Name == api.PluginTypeName)
                 ?? throw new XrmSyncException($"PluginType '{api.PluginTypeName}' not found for CustomApi '{api.UniqueName}'.");
 
-            var ownerId = api.OwnerId == Guid.Empty
-                ? null
-                : new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
+            api.UniqueName = solutionPrefix + "_" + api.UniqueName;
 
-            return new CustomApi
+            var entity = new CustomApi
             {
-                Name = api.UniqueName,
-                UniqueName = solutionPrefix + "_" + api.UniqueName,
+                Name = api.Name,
+                UniqueName = api.UniqueName,
                 DisplayName = api.DisplayName,
                 Description = GetDescription(api, description),
                 IsFunction = api.IsFunction,
@@ -37,37 +38,35 @@ public class CustomApiWriter(IDataverseWriter writer, XrmSyncOptions options) : 
                 BoundEntityLogicalName = api.BoundEntityLogicalName,
                 AllowedCustomProcessingStepType = (CustomApi_AllowedCustomProcessingStepType?)api.AllowedCustomProcessingStepType,
                 PluginTypeId = new EntityReference(PluginType.EntityLogicalName, pluginType.Id),
-                OwnerId = ownerId,
                 IsCustomizable = new BooleanManagedProperty(api.IsCustomizable),
                 IsPrivate = api.IsPrivate,
                 ExecutePrivilegeName = api.ExecutePrivilegeName
             };
+
+            if (api.OwnerId != Guid.Empty)
+            {
+                entity.OwnerId = new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
+            }
+
+            api.Id = writer.Create(entity, Parameters);
         });
-
-        var created = writer.CreateMultiple(entities, Parameters);
-
-        for (var i = 0; i < customApis.Count; i++)
-        {
-            customApis[i].Id = created[i].Id;
-            customApis[i].UniqueName = solutionPrefix + "_" + customApis[i].UniqueName;
-
-            customApis[i].RequestParameters.ForEach(r => r.CustomApiName = customApis[i].UniqueName);
-            customApis[i].ResponseProperties.ForEach(r => r.CustomApiName = customApis[i].UniqueName);
-        }
 
         return customApis;
     }
 
     public List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters, List<ApiDefinition> customApis)
     {
-        var entities = requestParameters.ConvertAll(param =>
+        if (requestParameters.Count == 0) return requestParameters;
+
+        log.LogInformation("Creating {Count} Custom API Request Parameters in Dataverse.", requestParameters.Count);
+        requestParameters.ForEach(param =>
         {
-            var api = customApis.FirstOrDefault(a => a.UniqueName == param.CustomApiName)
+            var api = customApis.FirstOrDefault(a => a.Name == param.CustomApiName)
                 ?? throw new XrmSyncException($"CustomApi '{param.CustomApiName}' not found for request parameter '{param.UniqueName}'.");
 
-            return new CustomApiRequestParameter
+            var entity = new CustomApiRequestParameter
             {
-                Name = param.UniqueName,
+                Name = param.Name,
                 UniqueName = param.UniqueName,
                 CustomApiId = new EntityReference(CustomApi.EntityLogicalName, api.Id),
                 DisplayName = param.DisplayName,
@@ -76,28 +75,26 @@ public class CustomApiWriter(IDataverseWriter writer, XrmSyncOptions options) : 
                 LogicalEntityName = param.LogicalEntityName,
                 Type = (CustomApiFieldType?)param.Type
             };
+
+            param.Id = writer.Create(entity, Parameters);
         });
-
-        var created = writer.CreateMultiple(entities, Parameters);
-
-        for (var i = 0; i < requestParameters.Count; i++)
-        {
-            requestParameters[i].Id = created[i].Id;
-        }
 
         return requestParameters;
     }
 
     public List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties, List<ApiDefinition> customApis)
     {
-        var entities = responseProperties.ConvertAll(prop =>
+        if (responseProperties.Count == 0) return responseProperties;
+
+        log.LogInformation("Creating {Count} Custom API Response Properties in Dataverse.", responseProperties.Count);
+        responseProperties.ForEach(prop =>
         {
-            var api = customApis.FirstOrDefault(a => a.UniqueName == prop.CustomApiName)
+            var api = customApis.FirstOrDefault(a => a.Name == prop.CustomApiName)
                             ?? throw new XrmSyncException($"CustomApi '{prop.CustomApiName}' not found for response property '{prop.UniqueName}'.");
 
-            return new CustomApiResponseProperty
+            var entity = new CustomApiResponseProperty
             {
-                Name = prop.UniqueName,
+                Name = prop.Name,
                 UniqueName = prop.UniqueName,
                 CustomApiId = new EntityReference(CustomApi.EntityLogicalName, api.Id),
                 DisplayName = prop.DisplayName,
@@ -105,14 +102,9 @@ public class CustomApiWriter(IDataverseWriter writer, XrmSyncOptions options) : 
                 LogicalEntityName = prop.LogicalEntityName,
                 Type = (CustomApiFieldType?)prop.Type
             };
+
+            prop.Id = writer.Create(entity, Parameters);
         });
-
-        var created = writer.CreateMultiple(entities, Parameters);
-
-        for (var i = 0; i < responseProperties.Count; i++)
-        {
-            responseProperties[i].Id = created[i].Id;
-        }
 
         return responseProperties;
     }

@@ -31,3 +31,6 @@ using System.Runtime.InteropServices;
 //
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+
+// Enable proper serialization/deserialization of early-bound entity types
+[assembly: Microsoft.Xrm.Sdk.Client.ProxyTypesAssembly]

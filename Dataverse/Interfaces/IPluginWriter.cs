@@ -11,6 +11,6 @@ namespace XrmSync.Dataverse.Interfaces
         void DeletePlugins(IEnumerable<PluginType> pluginTypes, IEnumerable<Step> pluginSteps, IEnumerable<Image> pluginImages, IEnumerable<ApiDefinition> customApis, IEnumerable<RequestParameter> requestParameters, IEnumerable<ResponseProperty> responseProperties);
         List<PluginType> CreatePluginTypes(List<PluginType> pluginTypes, Guid assemblyId, string description);
         List<Step> CreatePluginSteps(List<Step> pluginSteps, List<PluginType> pluginTypes, string description);
-        List<Image> CreatePluginImages(List<Image> pluginImages, List<Step> pluginSteps, string solutionName);
+        List<Image> CreatePluginImages(List<Image> pluginImages, List<Step> pluginSteps);
     }
 }

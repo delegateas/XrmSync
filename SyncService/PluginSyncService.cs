@@ -135,7 +135,7 @@ public class PluginSyncService(
             pluginValidator.Validate(localAssembly.Plugins);
             log.LogInformation("Plugins validated");
 
-            log.LogInformation("Retrieving registered plugins from Dataverse");
+            log.LogInformation("Retrieving registered plugins from Dataverse solution \"{solutionName}\"", options.SolutionName);
             var (solutionId, solutionPrefix) = solutionReader.RetrieveSolution(options.SolutionName);
             var (crmAssembly, crmPluginTypes) = GetPluginAssembly(solutionId, localAssembly.Name);
             log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis registered in CRM", crmAssembly?.Plugins.Count ?? 0, crmAssembly?.CustomApis.Count ?? 0);
@@ -258,7 +258,7 @@ public class PluginSyncService(
     {
         dataversePluginTypes.AddRange(pluginWriter.CreatePluginTypes(differences.Types.Creates, dataverseAssembly.Id, description.SyncDescription));
         dataversePluginSteps.AddRange(pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates, dataversePluginTypes, description.SyncDescription));
-        pluginWriter.CreatePluginImages(differences.PluginImages.Creates, dataversePluginSteps, options.SolutionName);
+        pluginWriter.CreatePluginImages(differences.PluginImages.Creates, dataversePluginSteps);
         dataverseAssembly.CustomApis.AddRange(customApiWriter.CreateCustomApis(differences.CustomApis.Creates, dataversePluginTypes, prefix, description.SyncDescription));
         customApiWriter.CreateRequestParameters(differences.RequestParameters.Creates, dataverseAssembly.CustomApis);
         customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates, dataverseAssembly.CustomApis);

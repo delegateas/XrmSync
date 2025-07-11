@@ -31,17 +31,23 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
     {
         using var xrm = new DataverseContext(serviceClient);
 
-        return (from pt in xrm.PluginTypeSet
+        return [.. (from pt in xrm.PluginTypeSet
                 where pt.PluginAssemblyId != null && pt.PluginAssemblyId.Id == assemblyId
                 select new Model.Plugin.PluginType
                 {
                     Id = pt.Id,
                     Name = pt.Name ?? string.Empty
-                }).ToList();
+                })];
     }
 
     public ILookup<Guid, Step> GetPluginSteps(Guid solutionId, IEnumerable<Guid> pluginTypeIds)
     {
+        if (!pluginTypeIds.Any())
+        {
+            // If no pluginTypeIds are provided, return an empty lookup
+            return Enumerable.Empty<KeyValuePair<Guid, Step>>().ToLookup(k => k.Key, k => k.Value);
+        }
+
         // Create QueryExpression for SdkMessageProcessingStep
         var query = new QueryExpression(SdkMessageProcessingStep.EntityLogicalName)
         {

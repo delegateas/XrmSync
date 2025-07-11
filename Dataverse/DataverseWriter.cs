@@ -24,21 +24,16 @@ public sealed class DataverseWriter : IDataverseWriter
         this.logger = logger;
     }
 
-    public Guid Create(Entity entity)
+    public Guid Create(Entity entity, IDictionary<string, object>? parameters = null)
     {
         if (entity == null)
         {
             throw new XrmSyncException("The provided entity cannot be null.");
         }
 
-        return serviceClient.Create(entity);
-    }
-
-    public Guid Create(Entity entity, ParameterCollection parameters)
-    {
-        if (entity == null)
+        if (parameters == null)
         {
-            throw new XrmSyncException("The provided entity cannot be null.");
+            return serviceClient.Create(entity);
         }
 
         var req = new CreateRequest
@@ -50,44 +45,6 @@ public sealed class DataverseWriter : IDataverseWriter
         return serviceClient.Execute(req) is CreateResponse response
             ? response.id
             : throw new InvalidOperationException("Failed to create entity with provided parameters.");
-    }
-
-    public List<TEntity> CreateMultiple<TEntity>(List<TEntity> entities, IDictionary<string, object>? parameters = null) where TEntity : Entity
-    {
-        if (entities.Count == 0) return [];
-
-        var req = new CreateMultipleRequest
-        {
-            Targets = new EntityCollection([.. entities.Cast<Entity>()])
-            {
-                EntityName = entities[0].LogicalName
-            }
-        };
-
-        if (parameters != null)
-        {
-            req.Parameters.AddRange(parameters);
-        }
-
-        var response = serviceClient.Execute(req);
-        if (response is CreateMultipleResponse createResponse)
-        {
-            logger.LogTrace("Created {Count} entities of type {EntityType}, with IDs: {Ids}", createResponse.Ids.Length, entities[0].LogicalName, createResponse.Ids);
-
-            for (var i = 0; i < entities.Count; i++)
-            {
-                entities[i].Id = createResponse.Ids[i];
-            }
-
-            return entities;
-        } else
-        {
-            var responseType = response.GetType().Name;
-            var errorMessage = $"Unexpected response type: {responseType}";
-            logger.LogError("Unexpected response type {ResponseType} when creating multiple entities", responseType);
-    
-            throw new XrmSyncException(errorMessage);
-        }
     }
 
     public void Update(Entity entity)

@@ -21,42 +21,17 @@ public class DryRunDataverseWriter : IDataverseWriter
         this.logger = logger;
     }
 
-    public Guid Create(Entity entity)
-    {
-        LogOperation(entity);
-
-        return Guid.NewGuid(); // In dry run mode, we do not actually create the entity.
-    }
-
-    public Guid Create(Entity entity, ParameterCollection parameters)
+    public Guid Create(Entity entity, IDictionary<string, object>? parameters = null)
     {
         LogOperation(entity, parameters);
 
         return Guid.NewGuid(); // In dry run mode, we do not actually create the entity.
     }
 
-    public List<TEntity> CreateMultiple<TEntity>(List<TEntity> entities, IDictionary<string, object>? parameters = null) where TEntity : Entity
-    {
-        if (entities.Count == 0)
-        {
-            return [];
-        }
-
-        logger.LogDebug("DRY RUN: CreateMultiple operation would be performed for {count} entities of type '{entityType}'.",
-                        entities.Count, entities[0].LogicalName);
-
-        for (var i = 0; i < entities.Count; i++)
-        {
-            entities[i].Id = Guid.NewGuid();
-        }
-
-        return entities;
-    }
-
     public List<ExecuteMultipleResponseItem> PerformAsBulk<T>(List<T> updates, Func<T, string> targetSelector) where T : OrganizationRequest
     {
         var targetTypes = updates.Select(targetSelector).Distinct().ToList();
-        logger.LogDebug("DRY RUN: Would execute {count} {type} requests targeting entities of type {target}", updates.Count, typeof(T).Name, string.Join(", ", targetTypes));
+        logger.LogTrace("DRY RUN: Would execute {count} {type} requests targeting entities of type {target}", updates.Count, typeof(T).Name, string.Join(", ", targetTypes));
         return [];
     }
 
@@ -77,13 +52,13 @@ public class DryRunDataverseWriter : IDataverseWriter
             return;
         }
 
-        logger.LogDebug("DRY RUN: UpdateMultiple operation would be performed for {count} entities of type '{entityType}'.",
+        logger.LogTrace("DRY RUN: UpdateMultiple operation would be performed for {count} entities of type '{entityType}'.",
                         entities.Count, entities[0].LogicalName);
     }
 
-    private void LogOperation(Entity entity, ParameterCollection? parameters = null, [CallerMemberName] string operation = "")
+    private void LogOperation(Entity entity, IDictionary<string, object>? parameters = null, [CallerMemberName] string operation = "")
     {
-        logger.LogDebug("DRY RUN: {Operation} operation would be performed for entity of type '{EntityType}'.",
+        logger.LogTrace("DRY RUN: {Operation} operation would be performed for entity of type '{EntityType}'.",
                         operation, entity.LogicalName);
 
         logger.LogTrace("{attrs}", string.Join("\n", entity.Attributes.Select(kvp => $" - {kvp.Key}: {TruncateValue(kvp.Value)}")));
