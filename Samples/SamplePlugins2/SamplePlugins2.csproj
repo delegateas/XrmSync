@@ -93,10 +93,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountPlugin.cs" />
+    <Compile Include="AccountDuplicatePlugin.cs" />
     <Compile Include="CustomAPI.cs" />
     <Compile Include="CreateAccountApi.cs" />
+    <Compile Include="DeleteAccountApi.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UpdateAccountApi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -1,74 +1,64 @@
-﻿
-using System;
-using BusinessDomain.Context;
+﻿using BusinessDomain.Context;
 
 namespace SamplePlugins {
     public class AccountPlugin : Plugin {
 
         public AccountPlugin() : base(typeof(AccountPlugin)) {
+            // MODIFIED: Update step - changed filtered attributes and images to test Updates
             RegisterPluginStep<Account>(
                 EventOperation.Update,
                 ExecutionStage.PostOperation,
                 Execute)
-                .AddFilteredAttributes(x => x.Name, x => x.AccountNumber)
-                .AddImage(ImageType.PreImage, x => x.Name, x => x.AccountNumber)
-                .AddImage(ImageType.PostImage, x => x.Name);
+                .AddFilteredAttributes(x => x.Name, x => x.AccountNumber, x => x.Telephone1) // Added Telephone1
+                .AddImage(ImageType.PreImage, x => x.Name, x => x.AccountNumber, x => x.Telephone1) // Added Telephone1
+                .AddImage(ImageType.PostImage, x => x.Name, x => x.Telephone1); // Added Telephone1
 
+            // EXISTING: Create step (same as SamplePlugins - no change)
             RegisterPluginStep<Account>(
                 EventOperation.Create,
                 ExecutionStage.PostOperation,
                 Execute);
 
+            // NEW: Create PreOperation step - this will be a CREATE difference
             RegisterPluginStep<Account>(
                 EventOperation.Create,
                 ExecutionStage.PreOperation,
-                ExecutePreOp)
-                .AddFilteredAttributes(x => x.AccountNumber);
+                ExecuteCreatePreOp)
+                .AddFilteredAttributes(x => x.AccountNumber, x => x.WebsiteUrl);
+
+            // NEW: Delete step - this will be a CREATE difference (not in SamplePlugins)
+            RegisterPluginStep<Account>(
+                EventOperation.Delete,
+                ExecutionStage.PreOperation,
+                ExecuteDeletePreOp)
+                .AddImage(ImageType.PreImage, x => x.Name, x => x.AccountNumber);
+
+            // NEW: Additional Update step with different stage - CREATE difference
+            RegisterPluginStep<Account>(
+                EventOperation.Update,
+                ExecutionStage.PreOperation,
+                ExecuteUpdatePreOp)
+                .AddFilteredAttributes(x => x.Description)
+                .AddImage(ImageType.PreImage, x => x.Description);
         }
 
-        protected void Execute(LocalPluginContext localContext) {
-            if (localContext == null) {
-                throw new ArgumentNullException(nameof(localContext));
-            }
-
-            if (localContext.PluginExecutionContext == null)
-            {
-                throw new ArgumentNullException(nameof(localContext.PluginExecutionContext));
-            }
-
-            if (localContext.OrganizationService == null)
-            {
-                throw new ArgumentNullException(nameof(localContext.OrganizationService));
-            }
-
-            if (localContext.TracingService == null)
-            {
-                throw new ArgumentNullException(nameof(localContext.TracingService));
-            }
-
-            if (localContext.OrganizationAdminService == null)
-            {
-                throw new ArgumentNullException(nameof(localContext.OrganizationAdminService));
-            }
-
-            var service = localContext.OrganizationService;
-
-            var account = GetEntity<Account>(localContext);
-            if (account == null)
-            {
-                throw new ArgumentNullException(nameof(account));
-            }
-
-            var rand = new Random();
-            service.Create(new Lead() {
-                Subject = nameof(AccountPlugin) + " " + localContext.PluginExecutionContext.MessageName + ": Some new lead " + rand.Next(0, 1000),
-                ParentAccountId = new Account(localContext.PluginExecutionContext.PrimaryEntityId).ToEntityReference()
-            });
+        protected void Execute(LocalPluginContext ctx) {
+            ctx.Trace("Execute executed");
         }
 
-        protected void ExecutePreOp(LocalPluginContext ctx)
+        protected void ExecuteCreatePreOp(LocalPluginContext ctx)
         {
             ctx.Trace("ExecutePreOp executed");
+        }
+
+        protected void ExecuteDeletePreOp(LocalPluginContext ctx)
+        {
+            ctx.Trace("ExecuteDelete executed");
+        }
+
+        protected void ExecuteUpdatePreOp(LocalPluginContext ctx)
+        {
+            ctx.Trace("ExecuteUpdatePre executed");
         }
     }
 }
