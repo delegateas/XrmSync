@@ -116,11 +116,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
             var pluginType = pluginTypes.FirstOrDefault(pt => pt.Name == api.PluginTypeName)
                 ?? throw new XrmSyncException($"PluginType '{api.PluginTypeName}' not found for CustomApi '{api.UniqueName}'.");
 
-            var ownerId = api.OwnerId == Guid.Empty
-                ? null
-                : new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
-
-            return new CustomApi()
+            var definition = new CustomApi
             {
                 Id = api.Id,
                 DisplayName = api.DisplayName,
@@ -131,11 +127,17 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
                 BoundEntityLogicalName = api.BoundEntityLogicalName,
                 AllowedCustomProcessingStepType = (CustomApi_AllowedCustomProcessingStepType?)api.AllowedCustomProcessingStepType,
                 PluginTypeId = new EntityReference(PluginType.EntityLogicalName, pluginType.Id),
-                OwnerId = ownerId,
                 IsCustomizable = new BooleanManagedProperty(api.IsCustomizable),
                 IsPrivate = api.IsPrivate,
                 ExecutePrivilegeName = api.ExecutePrivilegeName
             };
+
+            if (api.OwnerId != Guid.Empty)
+            {
+                definition.OwnerId = new EntityReference(SystemUser.EntityLogicalName, api.OwnerId);
+            }
+
+            return definition;
         });
 
         if (updateRequests.Count > 0)
