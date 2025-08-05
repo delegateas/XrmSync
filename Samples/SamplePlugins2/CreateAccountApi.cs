@@ -13,8 +13,7 @@
                 .AddRequestParameter(new CustomAPIConfig.CustomAPIRequestParameter("Phone", RequestParameterType.String, false, true)) // Added optional parameter
                 .AddResponseProperty(new CustomAPIConfig.CustomAPIResponseProperty("Name", RequestParameterType.String))
                 .AddResponseProperty(new CustomAPIConfig.CustomAPIResponseProperty("AccountId", RequestParameterType.Guid)) // Added response property
-                .EnableForWorkFlow() // Added workflow enablement
-                .MakeFunction(); // Made it a function
+                .MakePrivate(); // Make it private
         }
 
         protected void Execute(LocalPluginContext localContext)

@@ -65,13 +65,33 @@ public sealed class DataverseWriter : IDataverseWriter
     public void PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest
     {
         var responses = PerformAsBulkInner(updates);
+
         var failedReponses = responses.Where(x => x.Fault != null).ToList();
         if (failedReponses.Count > 0)
         {
             logger.LogError("Error when performing {count} requests.", failedReponses.Count);
             failedReponses.ForEach(f =>
             {
-                logger.LogError(" - {message}: {innerFault}", f.Fault.Message, f.Fault.InnerFault.Message);
+            var update = updates[f.RequestIndex];
+
+                var (entityName, entityId) = update switch
+                {
+                    CreateRequest cr => (cr.Target.LogicalName, cr.Target.Id),
+                    UpdateRequest ur => (ur.Target.LogicalName, ur.Target.Id),
+                    DeleteRequest dr => (dr.Target.LogicalName, dr.Target.Id),
+                    _ => throw new XrmSyncException($"Unexpected request type: {typeof(T)}, expected Create, Update or Delete request")
+                };
+
+                var prefix = $" - {update.RequestName} for {entityName} with ID {entityId}: ";
+                if (f.Fault.Message.Equals(f.Fault.InnerFault.Message, StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.LogError("{prefix}{message}", prefix, f.Fault.Message);
+                }
+                else
+                {
+                    logger.LogError("{prefix}{message}: {innerFault}", prefix, f.Fault.Message, f.Fault.InnerFault.Message);
+                }
+
                 if (!string.IsNullOrEmpty(f.Fault.TraceText))
                     logger.LogTrace("   {trace}", f.Fault.TraceText);
             });
