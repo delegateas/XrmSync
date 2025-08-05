@@ -2,23 +2,27 @@
   "profiles": {
     "DryRunSyncSample": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\SamplePlugins\\bin\\Debug\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
+      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\SamplePlugins\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
     },
     "SyncSample": {
       "commandName": "Project",
-      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\SamplePlugins\\bin\\Debug\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
+      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\SamplePlugins\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
     },
     "DryRunSyncSample2": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\SamplePlugins2\\bin\\Debug\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
+      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\SamplePlugins2\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
     },
     "SyncSample2": {
       "commandName": "Project",
-      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\SamplePlugins2\\bin\\Debug\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
+      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\SamplePlugins2\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
     },
     "AnalyzeSample": {
       "commandName": "Project",
-      "commandLineArgs": "analyze --assembly \"..\\..\\..\\..\\Samples\\SamplePlugins\\bin\\Debug\\ILMerged.SamplePlugins.dll\""
+      "commandLineArgs": "analyze --assembly \"..\\..\\..\\..\\Samples\\SamplePlugins\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\""
+    },
+    "AnalyzeSample2": {
+      "commandName": "Project",
+      "commandLineArgs": "analyze --assembly \"..\\..\\..\\..\\Samples\\SamplePlugins2\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\""
     },
     "XrmSyncHelp": {
       "commandName": "Project",
