@@ -63,17 +63,17 @@ public class PluginSyncService(
         // Calculate the differences
         var differences = differenceUtility.CalculateDifferences(localData, crmData);
 
+        // Delete
+        DoDeletes(differences);
+
         // Update the actual assembly file in Dataverse
         crmAssembly = UpsertAssembly(localAssembly, crmAssembly);
 
-        // Delete
-        DeletePlugins(differences);
-
         // Update
-        UpdatePlugins(differences, crmPluginTypes, crmPluginSteps);
+        DoUpdates(differences, crmPluginTypes, crmPluginSteps);
 
         // Create
-        CreatePlugins(differences, crmPluginTypes, crmPluginSteps, crmAssembly, prefix);
+        DoCreates(differences, crmPluginTypes, crmPluginSteps, crmAssembly, prefix);
 
         // Done
         log.LogInformation("Plugin synchronization was completed successfully");
@@ -254,7 +254,7 @@ public class PluginSyncService(
         pluginWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
     }
 
-    internal void CreatePlugins(Differences differences, List<PluginType> dataversePluginTypes, List<Step> dataversePluginSteps, AssemblyInfo dataverseAssembly, string prefix)
+    internal void DoCreates(Differences differences, List<PluginType> dataversePluginTypes, List<Step> dataversePluginSteps, AssemblyInfo dataverseAssembly, string prefix)
     {
         dataversePluginTypes.AddRange(pluginWriter.CreatePluginTypes(differences.Types.Creates, dataverseAssembly.Id, description.SyncDescription));
         dataversePluginSteps.AddRange(pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates, dataversePluginTypes, description.SyncDescription));
@@ -264,7 +264,7 @@ public class PluginSyncService(
         customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates, dataverseAssembly.CustomApis);
     }
 
-    internal void UpdatePlugins(Differences differences, List<PluginType> dataverseTypes, List<Step> dataversePluginSteps)
+    internal void DoUpdates(Differences differences, List<PluginType> dataverseTypes, List<Step> dataversePluginSteps)
     {
         pluginWriter.UpdatePluginSteps(differences.PluginSteps.Updates, description.SyncDescription);
         pluginWriter.UpdatePluginImages(differences.PluginImages.Updates, dataversePluginSteps);
@@ -273,7 +273,7 @@ public class PluginSyncService(
         customApiWriter.UpdateResponseProperties(differences.ResponseProperties.Updates);
     }
 
-    internal void DeletePlugins(Differences differences)
+    internal void DoDeletes(Differences differences)
     {
         pluginWriter.DeletePlugins(
             differences.Types.Deletes,

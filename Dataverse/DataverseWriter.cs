@@ -83,7 +83,7 @@ public sealed class DataverseWriter : IDataverseWriter
                 };
 
                 var prefix = $" - {update.RequestName} for {entityName} with ID {entityId}: ";
-                if (f.Fault.Message.Equals(f.Fault.InnerFault.Message, StringComparison.OrdinalIgnoreCase))
+                if (f.Fault.InnerFault is null || f.Fault.Message.Equals(f.Fault.InnerFault.Message, StringComparison.OrdinalIgnoreCase))
                 {
                     logger.LogError("{prefix}{message}", prefix, f.Fault.Message);
                 }

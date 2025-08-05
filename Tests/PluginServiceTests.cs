@@ -207,7 +207,7 @@ public class PluginServiceTests
         );
 
         // Act
-        _plugin.CreatePlugins(differences, [], [], crmAssembly, solutionPrefix);
+        _plugin.DoCreates(differences, [], [], crmAssembly, solutionPrefix);
 
         // Assert
         _pluginWriter.Received(1).CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription);
@@ -231,7 +231,7 @@ public class PluginServiceTests
         var resps = new List<ResponseProperty>();
 
         // Act
-        _plugin.DeletePlugins(new Differences(
+        _plugin.DoDeletes(new Differences(
             new Difference<PluginType>([], [], types),
             new Difference<Step>([], [], steps),
             new Difference<Image>([], [], images),
@@ -261,7 +261,7 @@ public class PluginServiceTests
         List<Step> pluginSteps = [];
 
         // Act
-        _plugin.UpdatePlugins(data, pluginTypes, pluginSteps);
+        _plugin.DoUpdates(data, pluginTypes, pluginSteps);
 
         // Assert
         _pluginWriter.Received(1).UpdatePluginSteps(data.PluginSteps.Updates, _description.SyncDescription);
