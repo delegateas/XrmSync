@@ -1,18 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.CommandLine;
 using System.Text.Json;
-using DGLoggerFactory = XrmSync.LoggerFactory;
 using XrmSync;
-using XrmSync.Dataverse.Extensions;
-using XrmSync.SyncService.Extensions;
-using XrmSync.SyncService;
-using XrmSync.Model.Exceptions;
 using XrmSync.AssemblyAnalyzer;
-using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Model;
-
+using DGLoggerFactory = XrmSync.LoggerFactory;
 
 // Define CLI options
 Option<string> assemblyFileOption = new(["--assembly", "-a", "--assembly-file", "--af"], "Path to the plugin assembly (*.dll)")
@@ -70,11 +62,6 @@ rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, data
 {
     DGLoggerFactory.MinimumLevel = logLevel;
 
-    if (!string.IsNullOrEmpty(dataverseUrl))
-    {
-        Environment.SetEnvironmentVariable("DATAVERSE_URL", dataverseUrl);
-    }
-
     var options = new XrmSyncOptions
     {
         AssemblyPath = assemblyPath,
@@ -84,31 +71,11 @@ rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, data
         DataverseUrl = dataverseUrl
     };
 
-    var host = Host.CreateDefaultBuilder()
-        .ConfigureServices((_, services) =>
-        {
-            services.AddSingleton(options);
-            services.AddSingleton((_) => DGLoggerFactory.GetLogger<ISyncService>());
-            services.AddAssemblyAnalyzer();
-            services.AddSyncService();
-            services.AddDataverse();
-        })
-        .Build();
-
-    try
+    if (!await PluginSync.RunSync(options))
     {
-        await PluginSync.RunSync(host.Services);
-    } catch (XrmSyncException ex)
-    {
-        var logger = host.Services.GetRequiredService<ILogger>();
-        logger.LogError("Error during synchronization: {message}", ex.Message);
-        Environment.Exit(1);
-    } catch (Exception ex)
-    {
-        var logger = host.Services.GetRequiredService<ILogger>();
-        logger.LogCritical(ex, "An unexpected error occurred during synchronization");
         Environment.Exit(1);
     }
+
 }, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption, dataverseOption);
 
 return await rootCommand.InvokeAsync(args);

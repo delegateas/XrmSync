@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DataverseConnection;
+using Microsoft.Extensions.DependencyInjection;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 
@@ -6,9 +7,15 @@ namespace XrmSync.Dataverse.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddDataverse(this IServiceCollection services)
+    public static IServiceCollection AddDataverseConnection(this IServiceCollection services, XrmSyncOptions syncOptions)
     {
-        DataverseConnection.ServiceCollectionExtensions.AddDataverse(services);
+        services.AddDataverse(options =>
+        {
+            if (syncOptions.DataverseUrl is not null)
+            {
+                options.DataverseUrl = syncOptions.DataverseUrl;
+            }
+        });
 
         services.AddSingleton<IDataverseReader, DataverseReader>();
 
