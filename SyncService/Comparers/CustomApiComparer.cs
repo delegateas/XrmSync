@@ -16,6 +16,8 @@ public class CustomApiComparer(Description description) : BaseComparer<ApiDefini
 
     public override IEnumerable<Expression<Func<ApiDefinition, object>>> GetDifferentPropertyNames(ApiDefinition x, ApiDefinition y)
     {
+        // TODO: Verify that these are the fields that can be updated
+        // TODO: If changing un-changable fields, we should delete and recreate instead
         if (x.Name != y.Name) yield return x => x.Name;
         if (x.DisplayName != y.DisplayName) yield return x => x.DisplayName;
         if (!DescriptionEquals(x, y))

@@ -13,7 +13,7 @@ using MainCustomAPIConfig = System.Tuple<string?, bool, int, int, int, string?>;
 // ExtendedCustomAPIConfig  : PluginType, OwnerId, OwnerType, IsCustomizable, IsPrivate, ExecutePrivilegeName, Description
 using ExtendedCustomAPIConfig = System.Tuple<string?, string?, string?, bool, bool, string?, string?>;
 // RequestParameterConfig   : Name, UniqueName, DisplayName, IsCustomizable, IsOptional, LogicalEntityName, Type
-using RequestParameterConfig = System.Tuple<string?, string?, string?, bool, bool, string?, int>; // TODO: Add description maybe
+using RequestParameterConfig = System.Tuple<string?, string?, string?, bool, bool, string?, int>;
 // ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
 using ResponsePropertyConfig = System.Tuple<string?, string?, string?, bool, string?, int>;
 using XrmSync.Model;

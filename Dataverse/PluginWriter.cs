@@ -11,7 +11,6 @@ namespace XrmSync.Dataverse;
 
 public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger log, XrmSyncOptions options) : IPluginWriter
 {
-    // TODO: CreateMultiple doesn't accept SolutionUniqueName parameter, we need to add the components to the solution after adding them
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", options.SolutionName }
     };

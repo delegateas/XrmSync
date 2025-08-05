@@ -11,7 +11,7 @@ using Microsoft.Xrm.Sdk;
 // ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
 using MainCustomAPIConfig = System.Tuple<string, bool, int, int, int, string>;
 using ExtendedCustomAPIConfig = System.Tuple<string, string, string, bool, bool, string, string>;
-using RequestParameterConfig = System.Tuple<string, string, string, bool, bool, string, int>; // TODO: Add description maybe
+using RequestParameterConfig = System.Tuple<string, string, string, bool, bool, string, int>;
 using ResponsePropertyConfig = System.Tuple<string, string, string, bool, string, int>;
 
 namespace SamplePlugins
@@ -273,7 +273,7 @@ namespace SamplePlugins
     }
 
     public class CustomAPIConfig : ICustomAPIConfig
-    { // TODO
+    {
         public int _AllowedCustomProcessingStepType { get; private set; }
         public int _BindingType { get; private set; }
         public string _BoundEntityLogicalName { get; private set; }
@@ -284,7 +284,7 @@ namespace SamplePlugins
         public bool _IsFunction { get; private set; }
         public bool _IsPrivate { get; private set; }
         public string _Name { get; private set; }
-        public string _UniqueName { get; private set; } // TODO: Maybe Remove, could control internally
+        public string _UniqueName { get; private set; }
         public string _PluginType { get; private set; }
         public int _EnabledForWorkflow { get; private set; }
 
@@ -305,8 +305,8 @@ namespace SamplePlugins
             _PluginType = null;
             _IsCustomizable = false;
             _IsPrivate = false;
-            _ExecutePrivilegeName = null; // TODO
-            _Description = "Description"; // TODO Can not be empty
+            _ExecutePrivilegeName = null;
+            _Description = "Description";
         }
 
         public CustomAPIConfig AllowCustomProcessingStep(AllowedCustomProcessingStepType type)
@@ -363,7 +363,7 @@ namespace SamplePlugins
         {
             foreach (var requestParameter in _RequestParameters)
             {
-                // TODO: Add description maybe
+               
                 yield return new RequestParameterConfig(
                     requestParameter._Name,
                     requestParameter._UniqueName,
@@ -396,9 +396,9 @@ namespace SamplePlugins
         public class CustomAPIRequestParameter
         {
             public string _Name { get; private set; }
-            public string _UniqueName { get; private set; } // TODO: Maybe Remove, could control internally
-            public string _Description { get; private set; } // TODO: Maybe Remove, could control internally
-            public string _DisplayName { get; private set; } // TODO: Maybe Remove, could control internally
+            public string _UniqueName { get; private set; }
+            public string _Description { get; private set; }
+            public string _DisplayName { get; private set; }
             public bool _IsCustomizable { get; private set; }
             public bool _IsOptional { get; private set; }
             public string _LogicalEntityName { get; private set; }
@@ -429,9 +429,9 @@ namespace SamplePlugins
         public class CustomAPIResponseProperty
         {
             public string _Name { get; private set; }
-            public string _UniqueName { get; private set; } // TODO: Maybe Remove, could control internally
-            public string _Description { get; private set; } // TODO: Maybe Remove, could control internally
-            public string _DisplayName { get; private set; } // TODO: Maybe Remove, could control internally
+            public string _UniqueName { get; private set; }
+            public string _Description { get; private set; }
+            public string _DisplayName { get; private set; }
             public bool _IsCustomizable { get; private set; }
             public string _LogicalEntityName { get; private set; }
             public RequestParameterType _Type { get; private set; }
