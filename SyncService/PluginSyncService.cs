@@ -220,16 +220,22 @@ public class PluginSyncService(
     {
         if (remoteAssembly == null)
         {
+            log.LogInformation("Creating assembly {assemblyName}", localAssembly.Name);
             remoteAssembly = CreatePluginAssembly(localAssembly);
-        } else if (new Version(remoteAssembly.Version) < new Version(localAssembly.Version))
+        }
+        else if (new Version(remoteAssembly.Version) < new Version(localAssembly.Version))
         {
-            log.LogDebug("Registered assembly version {RemoteVersion} is lower than local assembly version {LocalVersion}, updating", remoteAssembly.Version, localAssembly.Version);
+            log.LogInformation("Registered assembly version {RemoteVersion} is lower than local assembly version {LocalVersion}, updating", remoteAssembly.Version, localAssembly.Version);
             UpdatePluginAssembly(remoteAssembly.Id, localAssembly);
         }
         else if (remoteAssembly.Hash != localAssembly.Hash)
         {
-            log.LogDebug("Registered assembly hash does not match local assembly hash, updating");
+            log.LogInformation("Registered assembly hash does not match local assembly hash, updating");
             UpdatePluginAssembly(remoteAssembly.Id, localAssembly);
+        }
+        else
+        {
+            log.LogInformation("Assembly {assemblyName} already exists in CRM with matching version and hash, skipping update", remoteAssembly.Name);
         }
 
         return remoteAssembly;
@@ -237,7 +243,6 @@ public class PluginSyncService(
 
     internal AssemblyInfo CreatePluginAssembly(AssemblyInfo localAssembly)
     {
-        log.LogInformation("Creating assembly {assemblyName}", localAssembly.Name);
         if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
         var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
         return localAssembly with {
@@ -249,7 +254,6 @@ public class PluginSyncService(
 
     internal void UpdatePluginAssembly(Guid assemblyId, AssemblyInfo localAssembly)
     {
-        log.LogInformation($"Updating assembly {localAssembly.Name}");
         if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
         pluginWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
     }
