@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IEntityComparer<PluginType>, PluginTypeComparer>()
             .AddSingleton<IEntityComparer<Step>, PluginStepComparer>()
             .AddSingleton<IEntityComparer<Image>, PluginImageComparer>()
-            .AddSingleton<IEntityComparer<ApiDefinition>, CustomApiComparer>()
+            .AddSingleton<IEntityComparer<CustomApiDefinition>, CustomApiComparer>()
             .AddSingleton<IEntityComparer<RequestParameter>, RequestParameterComparer>()
             .AddSingleton<IEntityComparer<ResponseProperty>, ResponsePropertyComparer>();
     }

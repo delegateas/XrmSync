@@ -11,7 +11,7 @@ public class DifferenceUtility(ILogger log,
     IEntityComparer<PluginType> pluginTypeComparer,
     IEntityComparer<Step> pluginStepComparer,
     IEntityComparer<Image> pluginImageComparer,
-    IEntityComparer<ApiDefinition> customApiComparer,
+    IEntityComparer<CustomApiDefinition> customApiComparer,
     IEntityComparer<RequestParameter> requestComparer,
     IEntityComparer<ResponseProperty> responseComparer) : IDifferenceUtility
 {

@@ -79,7 +79,7 @@ public class PluginSyncService(
         log.LogInformation("Plugin synchronization was completed successfully");
     }
 
-    private static (List<ApiDefinition> localCustomApis, List<ApiDefinition> crmCustomApis) AlignCustomApis(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
+    private static (List<CustomApiDefinition> localCustomApis, List<CustomApiDefinition> crmCustomApis) AlignCustomApis(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
     {
         crmAssembly?.CustomApis.TransferIdsTo(localAssembly.CustomApis, x => x.Name);
 

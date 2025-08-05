@@ -122,7 +122,7 @@ public class PluginServiceTests
                 Attributes = string.Empty
             }
         };
-        var customApis = new List<ApiDefinition>()
+        var customApis = new List<CustomApiDefinition>()
         {
             new() {
                 Name = "CustomApi1",
@@ -180,7 +180,7 @@ public class PluginServiceTests
             }
         };
 
-        var createdCustomApis = new List<ApiDefinition> {
+        var createdCustomApis = new List<CustomApiDefinition> {
             new() {
                 Name = "CreatedCustomApi",
                 UniqueName = "customapi_created",
@@ -201,7 +201,7 @@ public class PluginServiceTests
             new Difference<PluginType>(pluginTypes, [], []),
             new Difference<Step>(pluginSteps, [], []),
             new Difference<Image>(pluginImages, [], []),
-            new Difference<ApiDefinition>(customApis, [], []),
+            new Difference<CustomApiDefinition>(customApis, [], []),
             new Difference<RequestParameter>(requestParams, [], []),
             new Difference<ResponseProperty>(responseProps, [], [])
         );
@@ -215,8 +215,8 @@ public class PluginServiceTests
         _pluginWriter.Received(1).CreatePluginImages(pluginImages, Arg.Is<List<Step>>(s => !s.Except(createdSteps).Any()));
         _customApiWriter.Received(1).CreateCustomApis(customApis, Arg.Is<List<PluginType>>(t => !t.Except(createdTypes).Any()), solutionPrefix, _description.SyncDescription);
         Assert.Equal(createdCustomApis, crmAssembly.CustomApis);
-        _customApiWriter.Received(1).CreateRequestParameters(requestParams, Arg.Is<List<ApiDefinition>>(c => !c.Except(createdCustomApis).Any()));
-        _customApiWriter.Received(1).CreateResponseProperties(responseProps, Arg.Is<List<ApiDefinition>>(c => !c.Except(createdCustomApis).Any()));
+        _customApiWriter.Received(1).CreateRequestParameters(requestParams, Arg.Is<List<CustomApiDefinition>>(c => !c.Except(createdCustomApis).Any()));
+        _customApiWriter.Received(1).CreateResponseProperties(responseProps, Arg.Is<List<CustomApiDefinition>>(c => !c.Except(createdCustomApis).Any()));
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class PluginServiceTests
         var types = new List<PluginType>();
         var steps = new List<Step>();
         var images = new List<Image>();
-        var apis = new List<ApiDefinition>();
+        var apis = new List<CustomApiDefinition>();
         var reqs = new List<RequestParameter>();
         var resps = new List<ResponseProperty>();
 
@@ -235,7 +235,7 @@ public class PluginServiceTests
             new Difference<PluginType>([], [], types),
             new Difference<Step>([], [], steps),
             new Difference<Image>([], [], images),
-            new Difference<ApiDefinition>([], [], apis),
+            new Difference<CustomApiDefinition>([], [], apis),
             new Difference<RequestParameter>([], [], reqs),
             new Difference<ResponseProperty>([], [], resps)
         ));
@@ -257,7 +257,7 @@ public class PluginServiceTests
             new Difference<PluginType>([], [], []),
             new Difference<Step>([], [], []),
             new Difference<Image>([], [], []),
-            new Difference<ApiDefinition>([], [], []),
+            new Difference<CustomApiDefinition>([], [], []),
             new Difference<RequestParameter>([], [], []),
             new Difference<ResponseProperty>([], [], [])
         );

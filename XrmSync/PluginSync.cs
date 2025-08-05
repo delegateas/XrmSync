@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using XrmSync.AssemblyAnalyzer;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Model;
@@ -15,7 +16,7 @@ internal static class PluginSync
 {
     public static async Task<bool> RunSync(XrmSyncOptions options)
     {
-        var services = RegisterServices(options);
+        var services = RegisterSyncServices(options);
 
         var log = services.GetRequiredService<ILogger>();
         var description = services.GetRequiredService<Description>();
@@ -32,10 +33,9 @@ internal static class PluginSync
             log.LogInformation("Connecting to Dataverse at {dataverseUrl}", options.DataverseUrl);
         }
 
-        var pluginSyncService = ActivatorUtilities.CreateInstance<PluginSyncService>(services);
-
         try
         {
+            var pluginSyncService = ActivatorUtilities.CreateInstance<PluginSyncService>(services);
             await pluginSyncService.Sync();
             return true;
         }
@@ -53,16 +53,46 @@ internal static class PluginSync
         }
     }
 
-    private static ServiceProvider RegisterServices(XrmSyncOptions options)
+    public static bool RunAnalysis(string assemblyPath)
+    {
+        var services = RegisterAnalysisServices();
+
+        try
+        {
+            var analyzer = ActivatorUtilities.CreateInstance<AssemblyAnalyzer.AssemblyAnalyzer>(services);
+            var pluginDto = analyzer.AnalyzeAssembly(assemblyPath);
+            var jsonOutput = JsonSerializer.Serialize(pluginDto);
+            Console.WriteLine(jsonOutput);
+            return true;
+        }
+        catch (AnalysisException ex)
+        {
+            Console.Error.WriteLine($"Error analyzing assembly: {ex.Message}");
+            return false;
+        }
+    }
+
+    private static ServiceProvider RegisterSyncServices(XrmSyncOptions options)
     {
         var services = new ServiceCollection();
 
         services.AddSingleton(options);
+
+        DGLoggerFactory.MinimumLevel = Enum.Parse<LogLevel>(options.LogLevel);
         services.AddSingleton((_) => DGLoggerFactory.GetLogger<ISyncService>());
-        services.AddAssemblyAnalyzer();
+        services.AddAssemblyReader();
         services.AddSyncService();
         services.AddDataverseConnection(options);
 
         return services.BuildServiceProvider();
+    }
+
+    private static ServiceProvider RegisterAnalysisServices()
+    {
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton((_) => DGLoggerFactory.GetLogger<ISyncService>());
+        serviceCollection.AddAssemblyAnalyzer();
+
+        return serviceCollection.BuildServiceProvider();
     }
 }

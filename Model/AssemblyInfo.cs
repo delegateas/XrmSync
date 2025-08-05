@@ -10,5 +10,5 @@ public record AssemblyInfo : EntityBase
     public required string Hash { get; set; }
     public string? DllPath { get; set; }
     public List<PluginDefinition> Plugins { get; set; } = [];
-    public List<ApiDefinition> CustomApis { get; set; } = [];
+    public List<CustomApiDefinition> CustomApis { get; set; } = [];
 }

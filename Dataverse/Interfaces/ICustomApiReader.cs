@@ -4,5 +4,5 @@ namespace XrmSync.Dataverse.Interfaces;
 
 public interface ICustomApiReader
 {
-    List<ApiDefinition> GetCustomApis(Guid solutionId);
+    List<CustomApiDefinition> GetCustomApis(Guid solutionId);
 }

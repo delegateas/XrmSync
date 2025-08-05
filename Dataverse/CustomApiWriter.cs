@@ -15,7 +15,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
             { "SolutionUniqueName", options.SolutionName }
     };
 
-    public List<ApiDefinition> CreateCustomApis(List<ApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string solutionPrefix, string description)
+    public List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string solutionPrefix, string description)
     {
         if (customApis.Count == 0) return customApis;
 
@@ -55,7 +55,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
         return customApis;
     }
 
-    public List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters, List<ApiDefinition> customApis)
+    public List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters, List<CustomApiDefinition> customApis)
     {
         if (requestParameters.Count == 0) return requestParameters;
 
@@ -83,7 +83,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
         return requestParameters;
     }
 
-    public List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties, List<ApiDefinition> customApis)
+    public List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties, List<CustomApiDefinition> customApis)
     {
         if (responseProperties.Count == 0) return responseProperties;
 
@@ -110,7 +110,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
         return responseProperties;
     }
 
-    public List<ApiDefinition> UpdateCustomApis(List<ApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string description)
+    public List<CustomApiDefinition> UpdateCustomApis(List<CustomApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string description)
     {
         var updateRequests = customApis.ConvertAll(api =>
         {
@@ -184,7 +184,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
         return responseProperties;
     }
 
-    public void DeleteCustomApiDefinitions(IEnumerable<ApiDefinition> customApis)
+    public void DeleteCustomApiDefinitions(IEnumerable<CustomApiDefinition> customApis)
     {
         var deleteRequests = customApis.ToDeleteRequests(CustomApi.EntityLogicalName).ToList();
 
@@ -217,7 +217,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
         }
     }
 
-    private static string GetDescription(ApiDefinition api, string description)
+    private static string GetDescription(CustomApiDefinition api, string description)
     {
         return !string.IsNullOrEmpty(api.Description) && !api.Description.Equals("description", StringComparison.InvariantCultureIgnoreCase)
             ? api.Description

@@ -8,7 +8,7 @@ namespace XrmSync.Dataverse;
 
 public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
 {
-    public List<ApiDefinition> GetCustomApis(Guid solutionId)
+    public List<CustomApiDefinition> GetCustomApis(Guid solutionId)
     {
         var query = new QueryExpression(CustomApi.EntityLogicalName)
         {
@@ -98,7 +98,7 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
                     IsCustomizable = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.IsCustomizable}").Value as bool? ?? false,
                 }).ToList();
 
-            return new ApiDefinition
+            return new CustomApiDefinition
             {
                 Id = customApi.Id,
                 Name = customApiName,

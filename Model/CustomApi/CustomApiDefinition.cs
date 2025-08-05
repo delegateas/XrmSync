@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace XrmSync.Model.CustomApi;
 
-public record ApiDefinition : EntityBase
+public record CustomApiDefinition : EntityBase
 {
     public required string UniqueName { get; set; }
     public required string DisplayName { get; set; }

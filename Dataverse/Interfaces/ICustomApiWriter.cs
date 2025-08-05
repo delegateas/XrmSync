@@ -5,13 +5,13 @@ namespace XrmSync.Dataverse.Interfaces;
 
 public interface ICustomApiWriter
 {
-    List<ApiDefinition> CreateCustomApis(List<ApiDefinition> customApis, List<PluginType> pluginTypes, string solutionPrefix, string description);
-    List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters, List<ApiDefinition> customApis);
-    List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties, List<ApiDefinition> customApis);
-    List<ApiDefinition> UpdateCustomApis(List<ApiDefinition> customApis, List<PluginType> pluginTypes, string description);
+    List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, List<PluginType> pluginTypes, string solutionPrefix, string description);
+    List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters, List<CustomApiDefinition> customApis);
+    List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties, List<CustomApiDefinition> customApis);
+    List<CustomApiDefinition> UpdateCustomApis(List<CustomApiDefinition> customApis, List<PluginType> pluginTypes, string description);
     List<RequestParameter> UpdateRequestParameters(List<RequestParameter> requestParameters);
     List<ResponseProperty> UpdateResponseProperties(List<ResponseProperty> responseProperties);
-    void DeleteCustomApiDefinitions(IEnumerable<ApiDefinition> customApis);
+    void DeleteCustomApiDefinitions(IEnumerable<CustomApiDefinition> customApis);
     void DeleteCustomApiRequestParameters(IEnumerable<RequestParameter> requestParameters);
     void DeleteCustomApiResponseProperties(IEnumerable<ResponseProperty> responseProperties);
 }

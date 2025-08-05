@@ -3,9 +3,9 @@ using XrmSync.Model.CustomApi;
 
 namespace XrmSync.SyncService.Comparers;
 
-public class CustomApiComparer(Description description) : BaseComparer<ApiDefinition>
+public class CustomApiComparer(Description description) : BaseComparer<CustomApiDefinition>
 {
-    private bool DescriptionEquals(ApiDefinition x, ApiDefinition y)
+    private bool DescriptionEquals(CustomApiDefinition x, CustomApiDefinition y)
     {
         return x.Description.StartsWith($"Synced with {description.ToolHeader}") ||
                y.Description.StartsWith($"Synced with {description.ToolHeader}") ||
@@ -14,7 +14,7 @@ public class CustomApiComparer(Description description) : BaseComparer<ApiDefini
                x.Description == y.Description;
     }
 
-    public override IEnumerable<Expression<Func<ApiDefinition, object>>> GetDifferentPropertyNames(ApiDefinition x, ApiDefinition y)
+    public override IEnumerable<Expression<Func<CustomApiDefinition, object>>> GetDifferentPropertyNames(CustomApiDefinition x, CustomApiDefinition y)
     {
         // TODO: Verify that these are the fields that can be updated
         // TODO: If changing un-changable fields, we should delete and recreate instead

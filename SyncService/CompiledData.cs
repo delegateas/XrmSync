@@ -3,4 +3,4 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.SyncService;
 
-public record CompiledData(List<PluginType> Types, List<Step> Steps, List<Image> Images, List<ApiDefinition> CustomApis, List<RequestParameter> RequestParameters, List<ResponseProperty> ResponseProperties);
+public record CompiledData(List<PluginType> Types, List<Step> Steps, List<Image> Images, List<CustomApiDefinition> CustomApis, List<RequestParameter> RequestParameters, List<ResponseProperty> ResponseProperties);

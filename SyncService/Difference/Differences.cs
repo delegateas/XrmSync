@@ -7,7 +7,7 @@ public record Differences(
     Difference<PluginType> Types,
     Difference<Step> PluginSteps,
     Difference<Image> PluginImages,
-    Difference<ApiDefinition> CustomApis,
+    Difference<CustomApiDefinition> CustomApis,
     Difference<RequestParameter> RequestParameters,
     Difference<ResponseProperty> ResponseProperties
 );

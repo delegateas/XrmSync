@@ -1,10 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.CommandLine;
-using System.Text.Json;
 using XrmSync;
-using XrmSync.AssemblyAnalyzer;
 using XrmSync.Model;
-using DGLoggerFactory = XrmSync.LoggerFactory;
 
 // Define CLI options
 Option<string> assemblyFileOption = new(["--assembly", "-a", "--assembly-file", "--af"], "Path to the plugin assembly (*.dll)")
@@ -43,15 +40,8 @@ var analyzeAssemblyCommand = new Command("analyze", "Analyze a plugin assembly a
 
 analyzeAssemblyCommand.SetHandler((assemblyPath) =>
 {
-    try
+    if (!PluginSync.RunAnalysis(assemblyPath))
     {
-        var pluginDto = AssemblyAnalyzer.GetPluginAssembly(assemblyPath);
-        var jsonOutput = JsonSerializer.Serialize(pluginDto);
-        Console.WriteLine(jsonOutput);
-    }
-    catch (AnalysisException ex)
-    {
-        Console.Error.WriteLine($"Error analyzing assembly: {ex.Message}");
         Environment.Exit(1);
     }
 }, assemblyFileOption);
@@ -60,8 +50,6 @@ rootCommand.AddCommand(analyzeAssemblyCommand);
 
 rootCommand.SetHandler(async (assemblyPath, solutionName, dryRun, logLevel, dataverseUrl) =>
 {
-    DGLoggerFactory.MinimumLevel = logLevel;
-
     var options = new XrmSyncOptions
     {
         AssemblyPath = assemblyPath,
