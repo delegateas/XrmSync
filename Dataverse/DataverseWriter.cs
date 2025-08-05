@@ -111,12 +111,14 @@ public sealed class DataverseWriter : IDataverseWriter
         {
             logger.LogTrace("Executing batch of {length}", chunk.Length);
 
-            var req = new ExecuteMultipleRequest();
-            req.Requests = [.. chunk];
-            req.Settings = new ExecuteMultipleSettings
+            var req = new ExecuteMultipleRequest
             {
-                ContinueOnError = true,
-                ReturnResponses = true,
+                Requests = [.. chunk],
+                Settings = new ExecuteMultipleSettings
+                {
+                    ContinueOnError = true,
+                    ReturnResponses = true,
+                }
             };
             var response = (ExecuteMultipleResponse)serviceClient.Execute(req);
             responses.AddRange([.. response.Responses]);

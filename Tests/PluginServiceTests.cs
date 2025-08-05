@@ -241,7 +241,12 @@ public class PluginServiceTests
         ));
 
         // Assert
-        _pluginWriter.Received(1).DeletePlugins(types, steps, images, apis, reqs, resps);
+        _pluginWriter.Received(1).DeletePluginImages(images);
+        _pluginWriter.Received(1).DeletePluginSteps(steps);
+        _pluginWriter.Received(1).DeletePluginTypes(types);
+        _customApiWriter.Received(1).DeleteCustomApiRequestParameters(reqs);
+        _customApiWriter.Received(1).DeleteCustomApiResponseProperties(resps);
+        _customApiWriter.Received(1).DeleteCustomApiDefinitions(apis);
     }
 
     [Fact]

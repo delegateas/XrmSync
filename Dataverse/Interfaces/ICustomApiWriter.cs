@@ -11,4 +11,7 @@ public interface ICustomApiWriter
     List<ApiDefinition> UpdateCustomApis(List<ApiDefinition> customApis, List<PluginType> pluginTypes, string description);
     List<RequestParameter> UpdateRequestParameters(List<RequestParameter> requestParameters);
     List<ResponseProperty> UpdateResponseProperties(List<ResponseProperty> responseProperties);
+    void DeleteCustomApiDefinitions(IEnumerable<ApiDefinition> customApis);
+    void DeleteCustomApiRequestParameters(IEnumerable<RequestParameter> requestParameters);
+    void DeleteCustomApiResponseProperties(IEnumerable<ResponseProperty> responseProperties);
 }

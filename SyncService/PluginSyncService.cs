@@ -275,14 +275,15 @@ public class PluginSyncService(
 
     internal void DoDeletes(Differences differences)
     {
-        pluginWriter.DeletePlugins(
-            differences.Types.Deletes,
-            differences.PluginSteps.Deletes,
-            differences.PluginImages.Deletes,
-            differences.CustomApis.Deletes,
-            differences.RequestParameters.Deletes,
-            differences.ResponseProperties.Deletes
-        );
+        // Delete in the correct order: images first, then steps, then custom api components, finally types
+        pluginWriter.DeletePluginImages(differences.PluginImages.Deletes);
+        pluginWriter.DeletePluginSteps(differences.PluginSteps.Deletes);
+
+        customApiWriter.DeleteCustomApiRequestParameters(differences.RequestParameters.Deletes);
+        customApiWriter.DeleteCustomApiResponseProperties(differences.ResponseProperties.Deletes);
+        customApiWriter.DeleteCustomApiDefinitions(differences.CustomApis.Deletes);
+
+        pluginWriter.DeletePluginTypes(differences.Types.Deletes);
     }
 }
 

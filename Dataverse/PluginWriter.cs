@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
-using XrmSync.Model.CustomApi;
 using XrmSync.Model.Exceptions;
 using XrmSync.Model.Plugin;
 
@@ -49,20 +47,35 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         writer.Update(entity);
     }
 
-    public void DeletePlugins(IEnumerable<Model.Plugin.PluginType> pluginTypes, IEnumerable<Step> pluginSteps, IEnumerable<Image> pluginImages, IEnumerable<ApiDefinition> customApis, IEnumerable<RequestParameter> requestParameters, IEnumerable<ResponseProperty> responseProperties)
+    public void DeletePluginImages(IEnumerable<Image> pluginImages)
     {
-        var pluginTypeReqs = pluginTypes.ToDeleteRequests(Context.PluginType.EntityLogicalName);
-        var pluginStepReqs = pluginSteps.ToDeleteRequests(SdkMessageProcessingStep.EntityLogicalName);
-        var pluginImageReqs = pluginImages.ToDeleteRequests(SdkMessageProcessingStepImage.EntityLogicalName);
-        var customApiReqs = customApis.ToDeleteRequests(CustomApi.EntityLogicalName);
-        var paramReqs = requestParameters.ToDeleteRequests(CustomApiRequestParameter.EntityLogicalName);
-        var responseReqs = responseProperties.ToDeleteRequests(CustomApiResponseProperty.EntityLogicalName);
-
-        List<DeleteRequest> deleteRequests = [..pluginImageReqs, ..pluginStepReqs, ..pluginTypeReqs, ..customApiReqs, ..paramReqs, ..responseReqs];
+        var deleteRequests = pluginImages.ToDeleteRequests(SdkMessageProcessingStepImage.EntityLogicalName).ToList();
 
         if (deleteRequests.Count > 0)
         {
-            log.LogInformation("Deleting {count} plugin types, steps, images, custom apis, request and respones in Dataverse", deleteRequests.Count);
+            log.LogInformation("Deleting {count} plugin images in Dataverse", deleteRequests.Count);
+            writer.PerformAsBulk(deleteRequests);
+        }
+    }
+
+    public void DeletePluginSteps(IEnumerable<Step> pluginSteps)
+    {
+        var deleteRequests = pluginSteps.ToDeleteRequests(SdkMessageProcessingStep.EntityLogicalName).ToList();
+
+        if (deleteRequests.Count > 0)
+        {
+            log.LogInformation("Deleting {count} plugin steps in Dataverse", deleteRequests.Count);
+            writer.PerformAsBulk(deleteRequests);
+        }
+    }
+
+    public void DeletePluginTypes(IEnumerable<Model.Plugin.PluginType> pluginTypes)
+    {
+        var deleteRequests = pluginTypes.ToDeleteRequests(Context.PluginType.EntityLogicalName).ToList();
+
+        if (deleteRequests.Count > 0)
+        {
+            log.LogInformation("Deleting {count} plugin types in Dataverse", deleteRequests.Count);
             writer.PerformAsBulk(deleteRequests);
         }
     }

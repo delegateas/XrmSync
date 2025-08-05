@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using XrmSync.Dataverse.Context;
+using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;
@@ -181,6 +182,39 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
             writer.UpdateMultiple(updateRequests);
 
         return responseProperties;
+    }
+
+    public void DeleteCustomApiDefinitions(IEnumerable<ApiDefinition> customApis)
+    {
+        var deleteRequests = customApis.ToDeleteRequests(CustomApi.EntityLogicalName).ToList();
+
+        if (deleteRequests.Count > 0)
+        {
+            log.LogInformation("Deleting {count} custom api definitions in Dataverse", deleteRequests.Count);
+            writer.PerformAsBulk(deleteRequests);
+        }
+    }
+
+    public void DeleteCustomApiRequestParameters(IEnumerable<RequestParameter> requestParameters)
+    {
+        var deleteRequests = requestParameters.ToDeleteRequests("customapirequestparameter").ToList();
+
+        if (deleteRequests.Count > 0)
+        {
+            log.LogInformation("Deleting {count} custom api request parameters in Dataverse", deleteRequests.Count);
+            writer.PerformAsBulk(deleteRequests);
+        }
+    }
+
+    public void DeleteCustomApiResponseProperties(IEnumerable<ResponseProperty> responseProperties)
+    {
+        var deleteRequests = responseProperties.ToDeleteRequests("customapiresponseproperty").ToList();
+
+        if (deleteRequests.Count > 0)
+        {
+            log.LogInformation("Deleting {count} custom api response properties in Dataverse", deleteRequests.Count);
+            writer.PerformAsBulk(deleteRequests);
+        }
     }
 
     private static string GetDescription(ApiDefinition api, string description)
