@@ -1,9 +1,8 @@
 ﻿using System.Linq.Expressions;
-using System.Reflection;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
-internal class CoreAnalyzer
+internal class CoreAnalyzer : Analyzer
 {
     protected static int ConvertEnumToInt(object? enumValue)
     {

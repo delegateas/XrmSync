@@ -60,8 +60,7 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
         var asyncAutoDelete = GetRegistrationValue(registration, x => x.AsyncAutoDelete);
         var imageSpecs = GetRegistrationValue<IEnumerable>(registration, x => x.ImageSpecifications) ?? Enumerable.Empty<object>();
 
-        var entity = string.IsNullOrEmpty(entityLogicalName) ? "any Entity" : entityLogicalName;
-        var stepName = $"{pluginType.Name}: {Enum.GetName(typeof(Model.ExecutionMode), executionMode)} {Enum.GetName(typeof(Model.ExecutionStage), executionStage)} {eventOperation} of {entity}";
+        var stepName = StepName(pluginType.Name, executionMode, executionStage, eventOperation, entityLogicalName);
 
         return new Step
         {

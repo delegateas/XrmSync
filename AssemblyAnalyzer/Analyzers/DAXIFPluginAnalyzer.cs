@@ -11,7 +11,7 @@ using ExtendedStepConfig = Tuple<int, int, string?, int, string?, string?>;
 // ImageTuple           : Name, EntityAlias, ImageType, Attributes
 using ImageTuple = Tuple<string?, string?, int, string?>;
 
-internal class DAXIFPluginAnalyzer : IPluginAnalyzer
+internal class DAXIFPluginAnalyzer : Analyzer, IPluginAnalyzer
 {
     public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types)
     {
@@ -55,8 +55,7 @@ internal class DAXIFPluginAnalyzer : IPluginAnalyzer
                         var (deployment, mode, notUsedStepname, executionOrder, filteredAttr, userIdStr) = tuple.Item2;
                         var imageTuples = tuple.Item3;
 
-                        var entity = string.IsNullOrEmpty(logicalName) ? "any Entity" : logicalName;
-                        var stepName = $"{className}: {Enum.GetName(typeof(ExecutionMode), mode)} {Enum.GetName(typeof(ExecutionStage), stage)} {eventOp} of {entity}";
+                        var stepName = StepName(className ?? string.Empty, mode, stage, eventOp ?? string.Empty, logicalName);
 
                         var images = imageTuples
                             .Select(image =>
