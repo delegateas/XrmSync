@@ -1,10 +1,10 @@
 # XrmSync
 
-[![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/delegateas/XrmSync/ci.yml)](https://github.com/delegateas/XrmSync/actions)
 [![NuGet](https://img.shields.io/nuget/v/XrmSync.svg)](https://www.nuget.org/packages/XrmSync)
 [![GitHub release](https://img.shields.io/github/release/delegateas/XrmSync.svg)](https://github.com/delegateas/XrmSync/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/delegateas/XrmSync/ci.yml)](https://github.com/delegateas/XrmSync/actions)
+[![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A .NET 8 command-line tool for synchronizing Dataverse plugins and custom APIs with your local plugin assemblies.
 
