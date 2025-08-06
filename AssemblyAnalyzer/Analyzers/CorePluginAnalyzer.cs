@@ -3,7 +3,6 @@ using DG.XrmPluginCore.Enums;
 using DG.XrmPluginCore.Interfaces.Plugin;
 using System.Collections;
 using System.Linq.Expressions;
-using XrmSync.Model;
 using XrmSync.Model.Plugin;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;

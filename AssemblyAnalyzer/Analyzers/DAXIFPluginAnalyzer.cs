@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using XrmSync.Model;
-using XrmSync.Model.Plugin;
+﻿using XrmSync.Model.Plugin;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
