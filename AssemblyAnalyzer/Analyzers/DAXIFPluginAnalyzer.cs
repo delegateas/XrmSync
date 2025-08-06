@@ -11,7 +11,7 @@ using ExtendedStepConfig = Tuple<int, int, string?, int, string?, string?>;
 // ImageTuple           : Name, EntityAlias, ImageType, Attributes
 using ImageTuple = Tuple<string?, string?, int, string?>;
 
-internal class DAXIFPluginAnalyzer(ILogger logger) : IPluginAnalyzer
+internal class DAXIFPluginAnalyzer : IPluginAnalyzer
 {
     public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types)
     {
@@ -21,7 +21,13 @@ internal class DAXIFPluginAnalyzer(ILogger logger) : IPluginAnalyzer
             return [];
         }
 
-        static bool IsValid(Type pluginType) => !pluginType.IsAbstract && pluginType.GetConstructor(Type.EmptyTypes) != null;
+        // Check if the plugin base type is valid
+        if (pluginType.GetMethod("PluginProcessingStepConfigs") is null)
+        {
+            return [];
+        }
+
+        static bool IsValid(Type x) => !x.IsAbstract && x.GetConstructor(Type.EmptyTypes) != null;
 
         var plugins = types.Where(x => x.IsSubclassOf(pluginType));
         var validPlugins = plugins.Where(IsValid);
@@ -29,9 +35,9 @@ internal class DAXIFPluginAnalyzer(ILogger logger) : IPluginAnalyzer
         foreach (var plugin in plugins.Where(x => !IsValid(x)))
         {
             if (plugin.IsAbstract)
-                logger.LogError("The plugin '{pluginName}' is an abstract type and is therefore not valid. The plugin will not be synchronized", plugin.Name);
+                throw new AnalysisException($"The plugin '{plugin.Name}' is an abstract type and is therefore not valid. The plugin will not be synchronized");
             if (plugin.GetConstructor(Type.EmptyTypes) == null)
-                logger.LogError("The plugin '{pluginName}' does not contain an empty contructor and is therefore not valid. The plugin will not be synchronized", plugin.Name);
+                throw new AnalysisException($"The plugin '{plugin.Name}' does not contain an empty contructor and is therefore not valid. The plugin will not be synchronized");
         }
 
         return [.. validPlugins
@@ -82,9 +88,10 @@ internal class DAXIFPluginAnalyzer(ILogger logger) : IPluginAnalyzer
                             UserContext = Guid.TryParse(userIdStr, out var userId) ? userId : Guid.Empty,
                             PluginTypeName = className ?? string.Empty,
                             Name = stepName,
-                            PluginImages = images,
                             EventOperation = eventOp ?? string.Empty,
                             LogicalName = logicalName ?? string.Empty,
+                            AsyncAutoDelete = false,
+                            PluginImages = images,
                         };
                     })
                     .GroupBy(s => s.PluginTypeName)

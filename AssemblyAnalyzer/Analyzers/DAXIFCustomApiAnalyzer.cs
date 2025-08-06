@@ -18,6 +18,8 @@ internal class DAXIFCustomApiAnalyzer : ICustomApiAnalyzer
         if (customApiType == null)
             return [];
 
+        if (customApiType.GetMethod("PluginProcessingStepConfigs") is null)
+            return [];
 
         var customApiTypes = types.Where(x => x.IsSubclassOf(customApiType) && !x.IsAbstract && x.GetConstructor(Type.EmptyTypes) != null);
         return [..customApiTypes

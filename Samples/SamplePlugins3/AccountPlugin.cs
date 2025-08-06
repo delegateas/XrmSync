@@ -1,11 +1,9 @@
 ﻿using BusinessDomain.Context;
-using DG.XrmPluginCore;
-using DG.XrmPluginCore.Enums;
 
 namespace SamplePlugins {
     public class AccountPlugin : Plugin {
 
-        public AccountPlugin() {
+        public AccountPlugin() : base(typeof(AccountPlugin)) {
             // MODIFIED: Update step - changed filtered attributes and images to test Updates
             RegisterPluginStep<Account>(
                 EventOperation.Update,

@@ -60,6 +60,7 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                 SdkMessageProcessingStep.Fields.SupportedDeployment,
                 SdkMessageProcessingStep.Fields.FilteringAttributes,
                 SdkMessageProcessingStep.Fields.ImpersonatingUserId,
+                SdkMessageProcessingStep.Fields.AsyncAutoDelete,
                 SdkMessageProcessingStep.Fields.SdkMessageFilterId,
                 SdkMessageProcessingStep.Fields.PluginTypeId),
             Criteria = new FilterExpression(LogicalOperator.And)
@@ -132,6 +133,7 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                 ExecutionOrder = entity.GetAttributeValue<int>(SdkMessageProcessingStep.Fields.Rank),
                 FilteredAttributes = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.FilteringAttributes) ?? string.Empty,
                 UserContext = entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.ImpersonatingUserId)?.Id ?? Guid.Empty,
+                AsyncAutoDelete = entity.GetAttributeValue<bool?>(SdkMessageProcessingStep.Fields.AsyncAutoDelete) ?? false,
                 PluginImages = images
             });
         })

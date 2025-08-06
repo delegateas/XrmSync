@@ -110,6 +110,7 @@ public class PluginServiceTests
                 ExecutionOrder = 1,
                 FilteredAttributes = string.Empty,
                 UserContext = Guid.NewGuid(),
+                AsyncAutoDelete = false,
                 PluginImages = []
             }
         };
@@ -176,6 +177,7 @@ public class PluginServiceTests
                 ExecutionOrder = 1,
                 FilteredAttributes = string.Empty,
                 UserContext = Guid.NewGuid(),
+                AsyncAutoDelete = false,
                 PluginImages = []
             }
         };

@@ -25,6 +25,7 @@ public class PluginValidationTests
             ExecutionOrder = 1,
             FilteredAttributes = string.Empty,
             UserContext = Guid.NewGuid(),
+            AsyncAutoDelete = false,
             PluginImages = []
         };
         var pluginType = new PluginDefinition { Name = "TestType", PluginSteps = [pluginStep], Id = Guid.NewGuid() };
@@ -54,6 +55,7 @@ public class PluginValidationTests
             ExecutionOrder = 1,
             FilteredAttributes = string.Empty,
             UserContext = Guid.NewGuid(),
+            AsyncAutoDelete = false,
             PluginImages = []
         };
         var pluginStep2 = new Step
@@ -68,6 +70,7 @@ public class PluginValidationTests
             ExecutionOrder = 1,
             FilteredAttributes = "attr",
             UserContext = Guid.NewGuid(),
+            AsyncAutoDelete = false,
             PluginImages = []
         };
         var pluginType = new PluginDefinition { Name = "Type1", PluginSteps = [pluginStep1, pluginStep2], Id = Guid.NewGuid() };
@@ -99,6 +102,7 @@ public class PluginValidationTests
             ExecutionOrder = 1,
             FilteredAttributes = "accountnumber",
             UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
             PluginImages = []
         };
 
@@ -114,6 +118,7 @@ public class PluginValidationTests
             ExecutionOrder = 2,
             FilteredAttributes = "name",
             UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
             PluginImages = []
         };
 
@@ -144,6 +149,7 @@ public class PluginValidationTests
             ExecutionOrder = 1,
             FilteredAttributes = "accountnumber",
             UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
             PluginImages = []
         };
 
@@ -159,6 +165,7 @@ public class PluginValidationTests
             ExecutionOrder = 2,
             FilteredAttributes = "name",
             UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
             PluginImages = []
         };
 

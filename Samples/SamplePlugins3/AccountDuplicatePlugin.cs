@@ -1,35 +1,38 @@
 using BusinessDomain.Context;
-using DG.XrmPluginCore;
-using DG.XrmPluginCore.Enums;
+using CorePlugin = DG.XrmPluginCore.Plugin;
+using EO = DG.XrmPluginCore.Enums.EventOperation;
+using ES = DG.XrmPluginCore.Enums.ExecutionStage;
+using IT = DG.XrmPluginCore.Enums.ImageType;
+using Context = DG.XrmPluginCore.LocalPluginContext;
 
-namespace SamplePlugins 
+namespace SamplePlugins
 {
     // NEW Plugin - will be a CREATE difference (doesn't exist in SamplePlugins)
-    public class AccountDuplicatePlugin : Plugin
+    public class AccountDuplicatePlugin : CorePlugin
     {
         public AccountDuplicatePlugin()
         {
             RegisterPluginStep<Account>(
-                EventOperation.Create,
-                ExecutionStage.PreOperation,
+                EO.Create,
+                ES.PreOperation,
                 Execute)
                 .AddFilteredAttributes(x => x.Name, x => x.EmailAddress1);
 
             RegisterPluginStep<Account>(
-                EventOperation.Update,
-                ExecutionStage.PostOperation,
+                EO.Update,
+                ES.PostOperation,
                 ExecuteUpdate)
                 .AddFilteredAttributes(x => x.Telephone1, x => x.Fax)
-                .AddImage(ImageType.PreImage, x => x.Telephone1)
-                .AddImage(ImageType.PostImage, x => x.Telephone1, x => x.Fax);
+                .AddImage(IT.PreImage, x => x.Telephone1)
+                .AddImage(IT.PostImage, x => x.Telephone1, x => x.Fax);
         }
 
-        protected void Execute(LocalPluginContext localContext)
+        protected void Execute(Context localContext)
         {
             localContext.Trace($"AccountDuplicatePlugin executed for {localContext.PluginExecutionContext.MessageName}");
         }
 
-        protected void ExecuteUpdate(LocalPluginContext localContext) 
+        protected void ExecuteUpdate(Context localContext) 
         {
             localContext.Trace("AccountDuplicatePlugin ExecuteUpdate executed");
         }

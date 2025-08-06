@@ -45,6 +45,7 @@ public class DifferenceUtilityTests
             ExecutionOrder = 1,
             FilteredAttributes = "",
             UserContext = Guid.NewGuid(),
+            AsyncAutoDelete = false,
             PluginImages = []
         };
         
@@ -59,6 +60,7 @@ public class DifferenceUtilityTests
             ExecutionOrder = 1,
             FilteredAttributes = "",
             UserContext = Guid.NewGuid(),
+            AsyncAutoDelete = false,
             PluginImages = []
         };
 
@@ -133,6 +135,7 @@ public class DifferenceUtilityTests
             ExecutionOrder = 1,
             FilteredAttributes = "name,description",
             UserContext = Guid.NewGuid(),
+            AsyncAutoDelete = false,
             PluginImages = []
         };
         
@@ -147,6 +150,7 @@ public class DifferenceUtilityTests
             ExecutionOrder = 2, // Different execution order
             FilteredAttributes = "name,description,subject", // Different filtered attributes
             UserContext = Guid.NewGuid(), // Different user context
+            AsyncAutoDelete = false,
             PluginImages = []
         };
         

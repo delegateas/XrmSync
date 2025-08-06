@@ -91,7 +91,8 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
                 Mode = (SdkMessageProcessingStep_Mode)x.ExecutionMode,
                 Rank = x.ExecutionOrder,
                 Description = description,
-                ImpersonatingUserId = x.UserContext == Guid.Empty ? null : new EntityReference(SystemUser.EntityLogicalName, x.UserContext)
+                ImpersonatingUserId = x.UserContext == Guid.Empty ? null : new EntityReference(SystemUser.EntityLogicalName, x.UserContext),
+                AsyncAutoDelete = x.AsyncAutoDelete,
             }).ToList();
 
         if (pluginStepReqs.Count > 0)
@@ -172,7 +173,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
             var entity = new SdkMessageProcessingStep
             {
                 Name = step.Name,
-                AsyncAutoDelete = false, // TODO: This should be configurable
+                AsyncAutoDelete = step.AsyncAutoDelete,
                 Rank = step.ExecutionOrder,
                 Mode = (SdkMessageProcessingStep_Mode)step.ExecutionMode,
 #pragma warning disable CS0612 // Type or member is obsolete

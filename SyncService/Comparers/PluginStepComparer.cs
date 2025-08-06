@@ -3,7 +3,7 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.SyncService.Comparers;
 
-public class PluginStepComparer : BaseComparer<Step>
+public class PluginStepComparer() : BaseComparer<Step>
 {
     public override IEnumerable<Expression<Func<Step, object>>> GetDifferentPropertyNames(Step x, Step y)
     {
@@ -14,5 +14,6 @@ public class PluginStepComparer : BaseComparer<Step>
         if (x.ExecutionOrder != y.ExecutionOrder) yield return x => x.ExecutionOrder;
         if (x.FilteredAttributes != y.FilteredAttributes) yield return x => x.FilteredAttributes;
         if (x.UserContext != y.UserContext) yield return x => x.UserContext;
+        if (x.AsyncAutoDelete != y.AsyncAutoDelete) yield return x => x.AsyncAutoDelete;
     }
 }

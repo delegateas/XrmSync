@@ -14,5 +14,6 @@ public record Step : EntityBase
     public required int ExecutionOrder { get; set; }
     public required string FilteredAttributes { get; set; }
     public required Guid UserContext { get; set; }
+    public required bool AsyncAutoDelete { get; set; }
     public required List<Image> PluginImages { get; set; } = [];
 }

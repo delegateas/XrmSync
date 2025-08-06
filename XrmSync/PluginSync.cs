@@ -90,7 +90,6 @@ internal static class PluginSync
     private static ServiceProvider RegisterAnalysisServices()
     {
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton((_) => DGLoggerFactory.GetLogger<ISyncService>());
         serviceCollection.AddAssemblyAnalyzer();
 
         return serviceCollection.BuildServiceProvider();

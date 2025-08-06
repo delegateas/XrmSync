@@ -15,6 +15,9 @@ public static class ServiceColletionExtensions
     {
         return services
             .AddSingleton<IPluginAnalyzer, DAXIFPluginAnalyzer>()
-            .AddSingleton<ICustomApiAnalyzer, DAXIFCustomApiAnalyzer>();
+            .AddSingleton<IPluginAnalyzer, CorePluginAnalyzer>()
+            .AddSingleton<ICustomApiAnalyzer, DAXIFCustomApiAnalyzer>()
+            .AddSingleton<ICustomApiAnalyzer, CoreCustomApiAnalyzer>()
+            ;
     }
 }

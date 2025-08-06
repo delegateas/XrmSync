@@ -5,6 +5,7 @@ namespace XrmSync.Model.CustomApi;
 
 public record CustomApiDefinition : EntityBase
 {
+    public required string PluginTypeName { get; set; }
     public required string UniqueName { get; set; }
     public required string DisplayName { get; set; }
     public required string Description { get; set; }
@@ -13,7 +14,6 @@ public record CustomApiDefinition : EntityBase
     public int BindingType { get; set; }
     public required string BoundEntityLogicalName { get; set; }
     public int AllowedCustomProcessingStepType { get; set; }
-    public required string PluginTypeName { get; set; }
     public Guid OwnerId { get; set; }
     public bool IsCustomizable { get; set; }
     public bool IsPrivate { get; set; }
