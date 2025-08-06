@@ -24,6 +24,11 @@ var dryRunOption = new Option<bool>(["--dry-run", "--dryrun"], "Perform a dry ru
 var logLevelOption = new Option<LogLevel>(["--log-level", "-l"], () => LogLevel.Information, "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical)");
 var dataverseOption = new Option<string?>(["--dataverse"], "The Dataverse URL to connect to");
 
+var prettyPrintOption = new Option<bool>(["--pretty-print", "-p"], "Pretty print the JSON output")
+{
+    IsRequired = false
+};
+
 var rootCommand = new RootCommand("XrmSync - Synchronize your Dataverse plugins")
 {
     assemblyFileOption,
@@ -35,16 +40,17 @@ var rootCommand = new RootCommand("XrmSync - Synchronize your Dataverse plugins"
 
 var analyzeAssemblyCommand = new Command("analyze", "Analyze a plugin assembly and output info as JSON")
 {
-    assemblyFileOption
+    assemblyFileOption,
+    prettyPrintOption
 };
 
-analyzeAssemblyCommand.SetHandler((assemblyPath) =>
+analyzeAssemblyCommand.SetHandler((assemblyPath, prettyPrint) =>
 {
-    if (!PluginSync.RunAnalysis(assemblyPath))
+    if (!PluginSync.RunAnalysis(assemblyPath, prettyPrint))
     {
         Environment.Exit(1);
     }
-}, assemblyFileOption);
+}, assemblyFileOption, prettyPrintOption);
 
 rootCommand.AddCommand(analyzeAssemblyCommand);
 

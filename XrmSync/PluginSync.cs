@@ -53,7 +53,7 @@ internal static class PluginSync
         }
     }
 
-    public static bool RunAnalysis(string assemblyPath)
+    public static bool RunAnalysis(string assemblyPath, bool prettyPrint)
     {
         var services = RegisterAnalysisServices();
 
@@ -61,7 +61,13 @@ internal static class PluginSync
         {
             var analyzer = ActivatorUtilities.CreateInstance<AssemblyAnalyzer.AssemblyAnalyzer>(services);
             var pluginDto = analyzer.AnalyzeAssembly(assemblyPath);
-            var jsonOutput = JsonSerializer.Serialize(pluginDto);
+
+            var options = new JsonSerializerOptions(JsonSerializerOptions.Default)
+            {
+                WriteIndented = prettyPrint
+            };
+
+            var jsonOutput = JsonSerializer.Serialize(pluginDto, options);
             Console.WriteLine(jsonOutput);
             return true;
         }
