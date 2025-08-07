@@ -37,6 +37,7 @@ publish/
 
 # Test results
 TestResults/
+test-outputs/
 
 # Others
 *.dbmdl

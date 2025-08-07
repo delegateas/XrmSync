@@ -4,7 +4,9 @@
 
 param(
     [switch]$Verbose = $false,
-    [switch]$SkipBuild = $false
+    [switch]$SkipBuild = $false,
+    [switch]$OutputNormalizedJson = $false,
+    [string]$OutputDirectory = ".\test-outputs"
 )
 
 $ErrorActionPreference = "Stop"
@@ -91,6 +93,36 @@ function Run-Analyzer {
     return $jsonOutput
 }
 
+function Save-NormalizedJsonToFile {
+    param(
+        [object]$NormalizedObject,
+        [string]$SampleName,
+        [string]$OutputDirectory
+    )
+    
+    if (-not $OutputNormalizedJson) {
+        return
+    }
+    
+    # Ensure output directory exists
+    if (-not (Test-Path $OutputDirectory)) {
+        New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
+        Write-VerboseOutput "Created output directory: $OutputDirectory"
+    }
+    
+    # Generate filename with timestamp for uniqueness
+    $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    $filename = "$SampleName-normalized-$timestamp.json"
+    $filePath = Join-Path $OutputDirectory $filename
+    
+    # Convert to pretty-printed JSON and save
+    $prettyJson = $NormalizedObject | ConvertTo-Json -Depth 10
+    $prettyJson | Out-File -FilePath $filePath -Encoding UTF8
+    
+    Write-Host "  ?? Saved normalized JSON: $filename" -ForegroundColor Cyan
+    return $filePath
+}
+
 function Compare-JsonObjects {
     param(
         [string]$Json1,
@@ -107,14 +139,26 @@ function Compare-JsonObjects {
         $normalized1 = Normalize-AssemblyInfo $obj1
         $normalized2 = Normalize-AssemblyInfo $obj2
         
+        # Save normalized JSON to files if requested
+        $file1 = Save-NormalizedJsonToFile $normalized1 $Sample1Name $OutputDirectory
+        $file2 = Save-NormalizedJsonToFile $normalized2 $Sample2Name $OutputDirectory
+        
         $json1Normalized = $normalized1 | ConvertTo-Json -Depth 10 -Compress
         $json2Normalized = $normalized2 | ConvertTo-Json -Depth 10 -Compress
         
         if ($json1Normalized -eq $json2Normalized) {
             Write-Host "? $Sample1Name and $Sample2Name produce equivalent output" -ForegroundColor Green
+            if ($OutputNormalizedJson -and $file1 -and $file2) {
+                Write-Host "  ?? Files saved for comparison. Use: git diff --no-index `"$file1`" `"$file2`"" -ForegroundColor Gray
+            }
             return $true
         } else {
             Write-Host "? $Sample1Name and $Sample2Name produce different output" -ForegroundColor Red
+            if ($OutputNormalizedJson -and $file1 -and $file2) {
+                Write-Host "  ?? Diff the saved files: git diff --no-index `"$file1`" `"$file2`"" -ForegroundColor Yellow
+                Write-Host "  ?? Files: $file1" -ForegroundColor Gray
+                Write-Host "  ??       $file2" -ForegroundColor Gray
+            }
             Write-VerboseOutput "Normalized $Sample1Name JSON:"
             Write-VerboseOutput ($normalized1 | ConvertTo-Json -Depth 10)
             Write-VerboseOutput "Normalized $Sample2Name JSON:"
@@ -161,6 +205,10 @@ function Test-AnalyzerEquivalence {
     
     Write-Host "`n=== Running Analysis ===" -ForegroundColor Cyan
     
+    if ($OutputNormalizedJson) {
+        Write-Host "?? Normalized JSON files will be saved to: $OutputDirectory" -ForegroundColor Cyan
+    }
+    
     # Run analyzer on each sample
     $results = @{}
     foreach ($sampleName in $samples.Keys) {
@@ -201,6 +249,11 @@ function Test-AnalyzerEquivalence {
         Write-Host "This indicates an issue with analyzer framework compatibility" -ForegroundColor Red
     }
     
+    if ($OutputNormalizedJson) {
+        Write-Host "`n?? Normalized JSON files saved in: $OutputDirectory" -ForegroundColor Cyan
+        Write-Host "?? Use your favorite diff tool to compare the files for detailed analysis" -ForegroundColor Gray
+    }
+    
     if ($Verbose) {
         Write-Host "`n=== Raw JSON Outputs ===" -ForegroundColor Cyan
         foreach ($sampleName in $sampleNames) {
@@ -210,6 +263,13 @@ function Test-AnalyzerEquivalence {
     }
     
     return $allEqual
+}
+
+# Show usage information
+if ($OutputNormalizedJson) {
+    Write-Host "?? Normalized JSON output enabled" -ForegroundColor Green
+    Write-Host "   Output directory: $OutputDirectory" -ForegroundColor Gray
+    Write-Host "   Files will be timestamped for uniqueness" -ForegroundColor Gray
 }
 
 # Run the test
