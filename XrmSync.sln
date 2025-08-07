@@ -39,13 +39,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{F1C4
 		Samples\README.md = Samples\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplePlugins", "Samples\SamplePlugins\SamplePlugins.csproj", "{62D467E1-A4A2-4776-A8F1-812AA303C8CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "1-DAXIF", "Samples\1-DAXIF\1-DAXIF.csproj", "{62D467E1-A4A2-4776-A8F1-812AA303C8CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessDomain", "Samples\BusinessDomain\BusinessDomain.csproj", "{D7E68D1D-4E79-438E-BC0F-5586B45A5625}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplePlugins2", "Samples\SamplePlugins2\SamplePlugins2.csproj", "{17BB0383-BEA9-4B82-BDDD-501D78D2F450}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3-XrmPluginCore", "Samples\3-XrmPluginCore\3-XrmPluginCore.csproj", "{17BB0383-BEA9-4B82-BDDD-501D78D2F450}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplePlugins3", "Samples\SamplePlugins3\SamplePlugins3.csproj", "{60A71E95-56E4-1BEC-947D-F2E911FDEC7F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2-Hybrid", "Samples\2-Hybrid\2-Hybrid.csproj", "{60A71E95-56E4-1BEC-947D-F2E911FDEC7F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
