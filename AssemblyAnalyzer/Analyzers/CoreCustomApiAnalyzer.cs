@@ -20,14 +20,7 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, ICustomApiAnalyzer
 
     private static CustomApiDefinition GetCustomApiDefinition(Type customApiType)
     {
-        var customApi = Activator.CreateInstance(customApiType) ?? throw new AnalysisException($"Failed to create instance of type {customApiType.FullName}");
-
-        // Use reflection to call GetRegistration() method safely
-        var getRegistrationMethod = customApiType.GetMethod("GetRegistration")
-            ?? throw new AnalysisException($"Type {customApiType.FullName} does not have GetRegistration method");
-
-        var registration = getRegistrationMethod.Invoke(customApi, null)
-            ?? throw new AnalysisException($"GetRegistration() returned null for type {customApiType.FullName}");
+        var registration = GetRegistrationFromType<object>(nameof(ICustomApiDefinition.GetRegistration), customApiType);
 
         return ConvertRegistrationToCustomApi(registration, customApiType);
     }

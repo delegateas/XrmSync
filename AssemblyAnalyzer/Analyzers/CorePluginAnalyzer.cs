@@ -32,17 +32,9 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
 
     private static IEnumerable<Step> GetPluginSteps(Type pluginType)
     {
-        var plugin = Activator.CreateInstance(pluginType) ?? throw new AnalysisException($"Failed to create instance of type {pluginType.FullName}");
-
-        // Use reflection to call GetRegistrations() method safely
-        const string GetRegistrations = nameof(IPluginDefinition.GetRegistrations);
-        var getRegistrationsMethod = pluginType.GetMethod(GetRegistrations)
-            ?? throw new AnalysisException($"Type {pluginType.FullName} does not have a {GetRegistrations} method");
-        
-        var registrations = getRegistrationsMethod.Invoke(plugin, null) as IEnumerable
-            ?? throw new AnalysisException($"{GetRegistrations}() returned null for type {pluginType.FullName}");
-        
-        return registrations.Cast<object>().Select(r => ConvertRegistrationToStep(r, pluginType));
+        return GetRegistrationFromType<IEnumerable>(nameof(IPluginDefinition.GetRegistrations), pluginType)
+            .Cast<object>()
+            .Select(r => ConvertRegistrationToStep(r, pluginType));
     }
 
     private static Step ConvertRegistrationToStep(object registration, Type pluginType)

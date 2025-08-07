@@ -10,7 +10,8 @@ using ExtendedCustomAPIConfig = Tuple<string?, string?, string?, bool, bool, str
 using RequestParameterConfig = Tuple<string?, string?, string?, bool, bool, string?, int>;
 // ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
 using ResponsePropertyConfig = Tuple<string?, string?, string?, bool, string?, int>;
-internal class DAXIFCustomApiAnalyzer : ICustomApiAnalyzer
+
+internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
 {
     public List<CustomApiDefinition> GetCustomApis(IEnumerable<Type> types)
     {
@@ -18,28 +19,16 @@ internal class DAXIFCustomApiAnalyzer : ICustomApiAnalyzer
         if (customApiType == null)
             return [];
 
-        if (customApiType.GetMethod("PluginProcessingStepConfigs") is null)
+        const string MethodName = "GetCustomAPIConfig";
+
+        if (customApiType.GetMethod(MethodName) is null)
             return [];
 
         var customApiTypes = types.Where(x => x.IsSubclassOf(customApiType) && !x.IsAbstract && x.GetConstructor(Type.EmptyTypes) != null);
         return [..customApiTypes
-        .Select(x =>
+        .Select(pluginType =>
         {
-            var instance = Activator.CreateInstance(x);
-            var methodInfo = x.GetMethod("GetCustomAPIConfig") ?? throw new AnalysisException($"CustomAPI type '{x.Name}' does not have a GetCustomAPIConfig method.");
-            var result = methodInfo.Invoke(instance, null) ?? throw new AnalysisException($"GetCustomAPIConfig returned null for type '{x.Name}'.");
-
-            var tuple = (Tuple<
-                MainCustomAPIConfig,
-                ExtendedCustomAPIConfig,
-                IEnumerable<RequestParameterConfig>,
-                IEnumerable<ResponsePropertyConfig>
-            >)result;
-
-            var apiDef = tuple.Item1;
-            var apiMeta = tuple.Item2;
-            var reqParams = tuple.Item3;
-            var resProps = tuple.Item4;
+            var (apiDef, apiMeta, reqParams, resProps) = GetRegistrationFromType<Tuple<MainCustomAPIConfig, ExtendedCustomAPIConfig, IEnumerable<RequestParameterConfig>, IEnumerable<ResponsePropertyConfig>>>(MethodName, pluginType);
 
             return new CustomApiDefinition
             {

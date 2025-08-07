@@ -13,21 +13,22 @@ internal class DAXIFPluginAnalyzer : Analyzer, IPluginAnalyzer
 {
     public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types)
     {
-        var pluginType = types.FirstOrDefault(x => x.Name == "Plugin");
-        if (pluginType == null)
+        var pluginBaseType = types.FirstOrDefault(x => x.Name == "Plugin");
+        if (pluginBaseType == null)
         {
             return [];
         }
 
         // Check if the plugin base type is valid
-        if (pluginType.GetMethod("PluginProcessingStepConfigs") is null)
+        const string MethodName = "PluginProcessingStepConfigs";
+        if (pluginBaseType.GetMethod(MethodName) is null)
         {
             return [];
         }
 
         static bool IsValid(Type x) => !x.IsAbstract && x.GetConstructor(Type.EmptyTypes) != null;
 
-        var plugins = types.Where(x => x.IsSubclassOf(pluginType));
+        var plugins = types.Where(x => x.IsSubclassOf(pluginBaseType));
         var validPlugins = plugins.Where(IsValid);
 
         foreach (var plugin in plugins.Where(x => !IsValid(x)))
@@ -39,12 +40,9 @@ internal class DAXIFPluginAnalyzer : Analyzer, IPluginAnalyzer
         }
 
         return [.. validPlugins
-            .SelectMany(x =>
+            .SelectMany(pluginType =>
             {
-                var instance = Activator.CreateInstance(x);
-                var methodInfo = x.GetMethod("PluginProcessingStepConfigs") ?? throw new AnalysisException($"Plugin type '{x.Name}' does not have a PluginProcessingStepConfigs method.");
-                var result = methodInfo.Invoke(instance, null) ?? throw new AnalysisException($"PluginProcessingStepConfigs returned null for type '{x.Name}'.");
-                var pluginTuples = (IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>)result;
+                var pluginTuples = GetRegistrationFromType<IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>>(MethodName, pluginType);
 
                 return pluginTuples
                     .Select(tuple =>
