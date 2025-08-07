@@ -17,7 +17,8 @@ namespace SamplePlugins
                 .AddResponseProperty("Success", CustomApiParameterType.Boolean)
                 .AddResponseProperty("UpdatedName", CustomApiParameterType.String)
                 .Bind<BusinessDomain.Context.Account>(BindingType.Entity)
-                .AllowCustomProcessingStep(AllowedCustomProcessingStepType.SyncAndAsync);
+                .AllowCustomProcessingStep(AllowedCustomProcessingStepType.SyncAndAsync)
+                .SetDescription("Description"); // This matches the DAXIF description
         }
 
         protected void Execute(LocalPluginContext localContext)

@@ -15,6 +15,7 @@
                 .AddRequestParameter("Phone", CustomApiParameterType.String, isOptional: true) // Added optional parameter
                 .AddResponseProperty("Name", CustomApiParameterType.String)
                 .AddResponseProperty("AccountId", CustomApiParameterType.Guid) // Added response property
+                .SetDescription("Description") // This matches the DAXIF description
                 .MakePrivate(); // Make it private
         }
 

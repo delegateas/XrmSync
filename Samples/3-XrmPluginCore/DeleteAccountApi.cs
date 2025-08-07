@@ -16,6 +16,7 @@ namespace SamplePlugins
                 .AddResponseProperty("Deleted", CustomApiParameterType.Boolean)
                 .AddResponseProperty("Message", CustomApiParameterType.String)
                 .MakePrivate()
+                .SetDescription("Description") // This matches the DAXIF description
                 .EnableCustomization();
         }
 
