@@ -6,7 +6,7 @@ param(
     [switch]$Verbose = $false,
     [switch]$SkipBuild = $false,
     [switch]$OutputNormalizedJson = $false,
-    [string]$OutputDirectory = ".\test-outputs"
+    [string]$OutputDirectory = ".\test-outputs",
     [string]$Configuration = "Debug"
 )
 
