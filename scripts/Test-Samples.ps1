@@ -1,4 +1,4 @@
-# Test script to compare analyzer output from samples 2, 3, and 4
+﻿# Test script to compare analyzer output from samples 2, 3, and 4
 # These samples have the same registrations but differ in framework
 # The output JSON MUST be equivalent
 
@@ -7,6 +7,7 @@ param(
     [switch]$SkipBuild = $false,
     [switch]$OutputNormalizedJson = $false,
     [string]$OutputDirectory = ".\test-outputs"
+    [string]$Configuration = "Debug"
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,7 +52,7 @@ function Build-Project {
     Write-Host "Building $ProjectName..." -ForegroundColor Yellow
     Write-VerboseOutput "  Project path: $ProjectPath"
     
-    $buildOutput = dotnet build $ProjectPath --configuration Debug --verbosity quiet 2>&1
+    $buildOutput = dotnet build $ProjectPath --configuration $Configuration --verbosity quiet 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to build $ProjectName. Output: $buildOutput"
     }
@@ -61,7 +62,7 @@ function Build-Project {
 function Get-AssemblyPath {
     param([string]$ProjectPath, [string]$AssemblyName)
     
-    return Join-Path $ProjectPath "bin" "Debug" "net462" $AssemblyName
+    return Join-Path $ProjectPath "bin" $Configuration "net462" $AssemblyName
 }
 
 function Run-Analyzer {
@@ -119,7 +120,7 @@ function Save-NormalizedJsonToFile {
     $prettyJson = $NormalizedObject | ConvertTo-Json -Depth 10
     $prettyJson | Out-File -FilePath $filePath -Encoding UTF8
     
-    Write-Host "  ?? Saved normalized JSON: $filename" -ForegroundColor Cyan
+    Write-Host "  📄 Saved normalized JSON: $filename" -ForegroundColor Cyan
     return $filePath
 }
 
@@ -147,17 +148,17 @@ function Compare-JsonObjects {
         $json2Normalized = $normalized2 | ConvertTo-Json -Depth 10 -Compress
         
         if ($json1Normalized -eq $json2Normalized) {
-            Write-Host "? $Sample1Name and $Sample2Name produce equivalent output" -ForegroundColor Green
+            Write-Host "✓ $Sample1Name and $Sample2Name produce equivalent output" -ForegroundColor Green
             if ($OutputNormalizedJson -and $file1 -and $file2) {
-                Write-Host "  ?? Files saved for comparison. Use: git diff --no-index `"$file1`" `"$file2`"" -ForegroundColor Gray
+                Write-Host "  💡 Files saved for comparison. Use: git diff --no-index `"$file1`" `"$file2`"" -ForegroundColor Gray
             }
             return $true
         } else {
-            Write-Host "? $Sample1Name and $Sample2Name produce different output" -ForegroundColor Red
+            Write-Host "✗ $Sample1Name and $Sample2Name produce different output" -ForegroundColor Red
             if ($OutputNormalizedJson -and $file1 -and $file2) {
-                Write-Host "  ?? Diff the saved files: git diff --no-index `"$file1`" `"$file2`"" -ForegroundColor Yellow
-                Write-Host "  ?? Files: $file1" -ForegroundColor Gray
-                Write-Host "  ??       $file2" -ForegroundColor Gray
+                Write-Host "  💡 Diff the saved files: git diff --no-index `"$file1`" `"$file2`"" -ForegroundColor Yellow
+                Write-Host "  📁 Files: $file1" -ForegroundColor Gray
+                Write-Host "  📁       $file2" -ForegroundColor Gray
             }
             Write-VerboseOutput "Normalized $Sample1Name JSON:"
             Write-VerboseOutput ($normalized1 | ConvertTo-Json -Depth 10)
@@ -167,7 +168,7 @@ function Compare-JsonObjects {
         }
     }
     catch {
-        Write-Host "? Error comparing JSON for $Sample1Name and $Sample2Name : $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "✗ Error comparing JSON for $Sample1Name and $Sample2Name : $($_.Exception.Message)" -ForegroundColor Red
         return $false
     }
 }
@@ -190,7 +191,7 @@ function Test-AnalyzerEquivalence {
     if (-not $SkipBuild) {
         # Build XrmSync tool first
         Write-Host "Building XrmSync tool..." -ForegroundColor Yellow
-        $buildOutput = dotnet build $xrmSyncPath --configuration Debug --verbosity quiet 2>&1
+        $buildOutput = dotnet build $xrmSyncPath --configuration $Configuration --verbosity quiet 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to build XrmSync tool. Output: $buildOutput"
         }
@@ -206,7 +207,7 @@ function Test-AnalyzerEquivalence {
     Write-Host "`n=== Running Analysis ===" -ForegroundColor Cyan
     
     if ($OutputNormalizedJson) {
-        Write-Host "?? Normalized JSON files will be saved to: $OutputDirectory" -ForegroundColor Cyan
+        Write-Host "📄 Normalized JSON files will be saved to: $OutputDirectory" -ForegroundColor Cyan
     }
     
     # Run analyzer on each sample
@@ -242,16 +243,16 @@ function Test-AnalyzerEquivalence {
     Write-Host "`n=== Test Results ===" -ForegroundColor Cyan
     
     if ($allEqual) {
-        Write-Host "?? SUCCESS: All samples produce equivalent analyzer output!" -ForegroundColor Green
+        Write-Host "🎉 SUCCESS: All samples produce equivalent analyzer output!" -ForegroundColor Green
         Write-Host "This confirms that the analyzer correctly handles different plugin frameworks" -ForegroundColor Green
     } else {
-        Write-Host "? FAILURE: Samples produce different analyzer output!" -ForegroundColor Red
+        Write-Host "❌ FAILURE: Samples produce different analyzer output!" -ForegroundColor Red
         Write-Host "This indicates an issue with analyzer framework compatibility" -ForegroundColor Red
     }
     
     if ($OutputNormalizedJson) {
-        Write-Host "`n?? Normalized JSON files saved in: $OutputDirectory" -ForegroundColor Cyan
-        Write-Host "?? Use your favorite diff tool to compare the files for detailed analysis" -ForegroundColor Gray
+        Write-Host "`n📁 Normalized JSON files saved in: $OutputDirectory" -ForegroundColor Cyan
+        Write-Host "💡 Use your favorite diff tool to compare the files for detailed analysis" -ForegroundColor Gray
     }
     
     if ($Verbose) {
@@ -267,7 +268,7 @@ function Test-AnalyzerEquivalence {
 
 # Show usage information
 if ($OutputNormalizedJson) {
-    Write-Host "?? Normalized JSON output enabled" -ForegroundColor Green
+    Write-Host "📄 Normalized JSON output enabled" -ForegroundColor Green
     Write-Host "   Output directory: $OutputDirectory" -ForegroundColor Gray
     Write-Host "   Files will be timestamped for uniqueness" -ForegroundColor Gray
 }
