@@ -38,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: analyzer-results
-          path: scripts/test-outputs/*.json
+          path: test-outputs/*.json
