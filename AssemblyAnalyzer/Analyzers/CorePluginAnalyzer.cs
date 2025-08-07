@@ -1,5 +1,4 @@
 ﻿using DG.XrmPluginCore;
-using DG.XrmPluginCore.Enums;
 using DG.XrmPluginCore.Interfaces.Plugin;
 using System.Collections;
 using System.Linq.Expressions;
@@ -18,16 +17,13 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
             .Where(t => t.IsAssignableTo(pluginBaseType) && t.GetConstructor(Type.EmptyTypes) != null && !t.IsAbstract);
 
         return [.. validTypes
-            .SelectMany(t =>
-            {
-                return GetPluginSteps(t)
+            .SelectMany(t => GetPluginSteps(t)
                     .GroupBy(s => s.PluginTypeName)
                     .Select(g => new PluginDefinition
                     {
                         Name = g.Key,
                         PluginSteps = [.. g]
-                    });
-            })];
+                    }))];
     }
 
     private static IEnumerable<Step> GetPluginSteps(Type pluginType)
@@ -51,7 +47,7 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
         var asyncAutoDelete = GetRegistrationValue(registration, x => x.AsyncAutoDelete);
         var imageSpecs = GetRegistrationValue<IEnumerable>(registration, x => x.ImageSpecifications) ?? Enumerable.Empty<object>();
 
-        var stepName = StepName(pluginType.Name, executionMode, executionStage, eventOperation, entityLogicalName);
+        var stepName = StepName(pluginType.FullName ?? string.Empty, executionMode, executionStage, eventOperation, entityLogicalName);
 
         return new Step
         {

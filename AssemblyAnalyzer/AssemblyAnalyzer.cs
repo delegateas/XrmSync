@@ -35,8 +35,8 @@ public class AssemblyAnalyzer(IEnumerable<IPluginAnalyzer> pluginAnalyzers, IEnu
             Version = assemblyVersion,
             Hash = hash,
             DllPath = dllFullPath,
-            Plugins = [.. pluginAnalyzers.SelectMany(a => a.GetPluginDefinitions(types))],
-            CustomApis = [.. customApiAnalyzers.SelectMany(a => a.GetCustomApis(types))],
+            Plugins = [.. pluginAnalyzers.SelectMany(a => a.GetPluginDefinitions(types)).OrderBy(d => d.Name)],
+            CustomApis = [.. customApiAnalyzers.SelectMany(a => a.GetCustomApis(types)).OrderBy(d => d.Name)],
         };
     }
 }
