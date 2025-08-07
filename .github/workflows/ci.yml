@@ -26,7 +26,7 @@ jobs:
         run: dotnet test XrmSync.sln --no-build --configuration Release --verbosity normal
       - name: Test analyzers
         shell: pwsh
-        run: ./scripts/Test-Analyzers.ps1 -SkipBuild -OutputNormalizedJson
+        run: ./scripts/Test-Samples.ps1 -SkipBuild -OutputNormalizedJson
       - name: Pack NuGet package
         run: dotnet pack XrmSync/XrmSync.csproj --no-build --configuration Release --output XrmSync/nupkg
       - name: Upload NuGet package artifact
