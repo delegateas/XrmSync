@@ -21,6 +21,11 @@ jobs:
         run: dotnet restore XrmSync.sln
       - name: Build
         run: dotnet build XrmSync.sln --no-restore --configuration Release
+      - name: Test
+        run: dotnet test XrmSync.sln --no-build --configuration Release --verbosity normal
+      - name: Test analyzers
+        shell: pwsh
+        run: ./scripts/Test-Analyzers.ps1 -SkipBuild
       - name: Pack
         run: dotnet pack XrmSync/XrmSync.csproj --no-build --configuration Release --output XrmSync/nupkg
       - name: Publish to NuGet
