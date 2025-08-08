@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Delegate.XrmPluginCore" Version="0.0.7" />
+		<PackageReference Include="Delegate.XrmPluginCore" Version="1.0.0-preview.1" />
 		<PackageReference Include="ILRepack" Version="2.0.44">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

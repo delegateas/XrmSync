@@ -40,7 +40,7 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, ICustomApiAnalyzer
             BindingType = GetConfigEnum(registration, x => x.BindingType),
             ExecutePrivilegeName = GetConfigValue(registration, x => x.ExecutePrivilegeName) ?? string.Empty,
             AllowedCustomProcessingStepType = GetConfigEnum(registration, x => x.AllowedCustomProcessingStepType),
-            OwnerId = ParseGuid(GetConfigValue(registration, x => x.OwnerId)),
+            OwnerId = GetConfigValue(registration, x => x.OwnerId) ?? Guid.Empty,
             IsCustomizable = GetConfigValue(registration, x => x.IsCustomizable),
             IsPrivate = GetConfigValue(registration, x => x.IsPrivate),
             RequestParameters = [.. ConvertRequestParameters(GetConfigValue<IEnumerable>(registration, x => x.RequestParameters), GetConfigValue(registration, x => x.Name) ?? string.Empty)],
