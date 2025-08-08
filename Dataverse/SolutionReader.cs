@@ -7,6 +7,9 @@ namespace XrmSync.Dataverse;
 
 public class SolutionReader(ServiceClient serviceClient) : ISolutionReader
 {
+    private readonly Lazy<string> _lazyConnectedHost = new(serviceClient?.ConnectedOrgUriActual?.GetLeftPart(UriPartial.Authority) ?? throw new ArgumentNullException(nameof(serviceClient), "ServiceClient is not initialized"));
+    public string ConnectedHost => _lazyConnectedHost.Value;
+
     public (Guid SolutionId, string Prefix) RetrieveSolution(string uniqueName)
     {
         using var xrm = new DataverseContext(serviceClient);

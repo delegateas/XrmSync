@@ -74,7 +74,6 @@ xrmsync --dry-run --log-level Debug
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
-| `--dataverse` | | The Dataverse URL to connect to | No |
 
 *Required when not present in appsettings.json
 
@@ -91,7 +90,6 @@ The XrmSync section allows you to bundle the settings together with other settin
 	"XrmSync": {
 		"AssemblyPath": "path/to/your/plugin.dll",
 		"SolutionName": "YourSolutionName",
-		"DataverseUrl": "https://yourorg.crm.dynamics.com",
 		"DryRun": false,
 		"LogLevel": "Information"
 	}
@@ -104,7 +102,6 @@ The XrmSync section allows you to bundle the settings together with other settin
 |----------|------|-------------|---------|
 | `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
 | `SolutionName` | string | Name of the target Dataverse solution | Required |
-| `DataverseUrl` | string | The Dataverse URL to connect to | null |
 | `DryRun` | boolean | Perform a dry run without making changes | false |
 | `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
 
@@ -125,7 +122,6 @@ The XrmSync section allows you to bundle the settings together with other settin
 {
   "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
   "SolutionName": "MyCustomSolution",
-  "DataverseUrl": "https://myorg.crm.dynamics.com",
   "DryRun": true,
   "LogLevel": "Debug"
 }
@@ -137,7 +133,6 @@ The XrmSync section allows you to bundle the settings together with other settin
 {
   "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
   "SolutionName": "Plugins",
-  "DataverseUrl": "https://myorg.crm4.dynamics.com"
 }
 ```
 
@@ -172,19 +167,12 @@ xrmsync --dry-run --log-level Debug
 xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug
 ```
 
-#### Specify Dataverse environment:
-```bash
-xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dataverse "https://myorg.crm.dynamics.com"
-```
-
 ## Configuration
 
 ### Dataverse Connection
 
 XrmSync utilizes the Dataverse Connection NuGet package to manage connections to your Dataverse environment.
 See the [Dataverse Connection documentation](https://github.com/delegateas/DataverseConnection) for more details on how to configure connections.
-
-To override the connection URL, you can use the `--dataverse` option, which will override the `DATAVERSE_URL` environment variable.
 
 ### Option Priority
 

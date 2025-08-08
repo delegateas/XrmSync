@@ -31,6 +31,7 @@ public class PluginSyncService(
     public async Task Sync()
     {
         log.LogInformation("Comparing plugins registered in Dataverse versus those found in your local code");
+        log.LogInformation("Connecting to Dataverse at {dataverseUrl}", solutionReader.ConnectedHost);
 
         // Read the data from the local assembly and from Dataverse
         var (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes, prefix) = await ReadData();

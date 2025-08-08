@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using XrmSync.AssemblyAnalyzer;
@@ -26,11 +27,6 @@ internal static class PluginSync
         {
             log.LogInformation("***** DRY RUN *****");
             log.LogInformation("No changes will be made to Dataverse.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(options.DataverseUrl))
-        {
-            log.LogInformation("Connecting to Dataverse at {dataverseUrl}", options.DataverseUrl);
         }
 
         try
@@ -81,6 +77,9 @@ internal static class PluginSync
     private static ServiceProvider RegisterSyncServices(XrmSyncOptions options)
     {
         var services = new ServiceCollection();
+
+        var configuration = SimpleXrmSyncConfigBuilder.ReadConfiguration();
+        services.AddSingleton(configuration);
 
         services.AddSingleton(options);
 

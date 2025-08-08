@@ -25,7 +25,6 @@ internal static class CommandLineBuilder
         };
 
         var logLevelOption = new Option<LogLevel?>(["--log-level", "-l"], "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical)");
-        var dataverseOption = new Option<string?>(["--dataverse"], "The Dataverse URL to connect to");
 
         var prettyPrintOption = new Option<bool>(["--pretty-print", "-p"], "Pretty print the JSON output")
         {
@@ -37,8 +36,7 @@ internal static class CommandLineBuilder
             assemblyFileOption,
             solutionNameOption,
             dryRunOption,
-            logLevelOption,
-            dataverseOption
+            logLevelOption
         };
 
         var analyzeAssemblyCommand = new Command("analyze", "Analyze a plugin assembly and output info as JSON")
@@ -50,12 +48,12 @@ internal static class CommandLineBuilder
         analyzeAssemblyCommand.SetHandler(HandleAnalyzeCommand, assemblyFileOption, prettyPrintOption);
 
         rootCommand.AddCommand(analyzeAssemblyCommand);
-        rootCommand.SetHandler(HandleSync, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption, dataverseOption);
+        rootCommand.SetHandler(HandleSync, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption);
 
         return rootCommand;
     }
 
-    private static async Task HandleSync(string assemblyPath, string solutionName, bool dryRun, LogLevel? logLevel, string? dataverseUrl)
+    private static async Task HandleSync(string assemblyPath, string solutionName, bool dryRun, LogLevel? logLevel)
     {
         var baseConfig = SimpleXrmSyncConfigBuilder.BuildFromConfiguration();
 
@@ -63,8 +61,7 @@ internal static class CommandLineBuilder
             string.IsNullOrWhiteSpace(assemblyPath) ? baseConfig.AssemblyPath : assemblyPath,
             string.IsNullOrWhiteSpace(solutionName) ? baseConfig.SolutionName : solutionName,
             logLevel?.ToString() ?? baseConfig.LogLevel,
-            dryRun || baseConfig.DryRun,
-            string.IsNullOrWhiteSpace(dataverseUrl) ? baseConfig.DataverseUrl : dataverseUrl
+            dryRun || baseConfig.DryRun
         );
 
         if (!await PluginSync.RunSync(config))

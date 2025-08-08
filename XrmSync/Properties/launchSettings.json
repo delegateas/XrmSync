@@ -2,7 +2,7 @@
   "profiles": {
     "DryRunSyncDAXIF": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://org14b54654.crm4.dynamics.com -l debug"
+      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "DryRunSyncDAXIFFromFile": {
       "commandName": "Project",
@@ -10,15 +10,15 @@
     },
     "SyncDAXIF": {
       "commandName": "Project",
-      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://org14b54654.crm4.dynamics.com -l debug"
+      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "DryRunSyncHybrid": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://org14b54654.crm4.dynamics.com -l debug"
+      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "SyncHybrid": {
       "commandName": "Project",
-      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://org14b54654.crm4.dynamics.com -l debug"
+      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "AnalyzeSampleDAXIF": {
       "commandName": "Project",

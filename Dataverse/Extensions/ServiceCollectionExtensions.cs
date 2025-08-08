@@ -9,14 +9,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDataverseConnection(this IServiceCollection services, XrmSyncOptions syncOptions)
     {
-        services.AddDataverse(options =>
-        {
-            if (!string.IsNullOrWhiteSpace(syncOptions.DataverseUrl))
-            {
-                options.DataverseUrl = syncOptions.DataverseUrl;
-            }
-        });
-
+        services.AddDataverse();
         services.AddSingleton<IDataverseReader, DataverseReader>();
 
         services.AddSingleton<IDataverseWriter>((sp) =>
