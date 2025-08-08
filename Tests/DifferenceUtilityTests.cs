@@ -1,3 +1,4 @@
+using DG.XrmPluginCore.Enums;
 using Microsoft.Extensions.Logging;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService;
@@ -37,7 +38,7 @@ public class DifferenceUtilityTests
         var localStep = new Step {
             Name = "LocalStep",
             PluginTypeName = "TestType",
-            ExecutionStage = 10,
+            ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
             Deployment = 0,
@@ -52,7 +53,7 @@ public class DifferenceUtilityTests
         var remoteStep = new Step {
             Name = "RemoteStep",
             PluginTypeName = "TestType",
-            ExecutionStage = 10,
+            ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
             Deployment = 0,
@@ -127,11 +128,11 @@ public class DifferenceUtilityTests
         var localStep = new Step {
             Name = "TestStep",
             PluginTypeName = "TestType",
-            ExecutionStage = 10, // PreValidation
+            ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
             Deployment = 0,
-            ExecutionMode = 0, // Synchronous
+            ExecutionMode = DG.XrmPluginCore.Enums.ExecutionMode.Synchronous, // Synchronous
             ExecutionOrder = 1,
             FilteredAttributes = "name,description",
             UserContext = Guid.NewGuid(),
@@ -142,11 +143,11 @@ public class DifferenceUtilityTests
         var remoteStep = new Step {
             Name = "TestStep", // Same name
             PluginTypeName = "TestType",
-            ExecutionStage = 20, // Pre - Different execution stage
+            ExecutionStage =  DG.XrmPluginCore.Enums.ExecutionStage.PreOperation, // Different execution stage
             EventOperation = "Create",
             LogicalName = "account",
             Deployment = 0,
-            ExecutionMode = 1, // Asynchronous - Different execution mode
+            ExecutionMode = DG.XrmPluginCore.Enums.ExecutionMode.Asynchronous, // Asynchronous - Different execution mode
             ExecutionOrder = 2, // Different execution order
             FilteredAttributes = "name,description,subject", // Different filtered attributes
             UserContext = Guid.NewGuid(), // Different user context
@@ -188,10 +189,10 @@ public class DifferenceUtilityTests
         var userContextComp = func[4];
 
         Assert.NotNull(update.RemoteEntity); // Remote entity should not be null
-        Assert.Equal(10, stageComp(update.LocalEntity)); // ExecutionStage
-        Assert.Equal(20, stageComp(update.RemoteEntity)); // Remote ExecutionStage
-        Assert.Equal(0, modeComp(update.LocalEntity)); // ExecutionMode
-        Assert.Equal(1, modeComp(update.RemoteEntity)); // Remote ExecutionMode
+        Assert.Equal(ExecutionStage.PreValidation, stageComp(update.LocalEntity)); // ExecutionStage
+        Assert.Equal(ExecutionStage.PreOperation, stageComp(update.RemoteEntity)); // Remote ExecutionStage
+        Assert.Equal(ExecutionMode.Synchronous, modeComp(update.LocalEntity)); // ExecutionMode
+        Assert.Equal(ExecutionMode.Asynchronous, modeComp(update.RemoteEntity)); // Remote ExecutionMode
         Assert.Equal(1, orderComp(update.LocalEntity)); // ExecutionOrder
         Assert.Equal(2, orderComp(update.RemoteEntity)); // Remote ExecutionOrder
         Assert.Equal("name,description", filteredAttributesComp(update.LocalEntity)); // FilteredAttributes

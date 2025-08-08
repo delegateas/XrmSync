@@ -1,3 +1,5 @@
+using DG.XrmPluginCore.Enums;
+
 namespace XrmSync.Model.CustomApi;
 
 public record RequestParameter : EntityBase
@@ -8,5 +10,5 @@ public record RequestParameter : EntityBase
     public bool IsCustomizable { get; set; }
     public bool IsOptional { get; set; }
     public required string LogicalEntityName { get; set; }
-    public int Type { get; set; }
+    public CustomApiParameterType Type { get; set; }
 }

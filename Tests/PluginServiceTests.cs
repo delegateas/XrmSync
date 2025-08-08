@@ -102,7 +102,7 @@ public class PluginServiceTests
             new() {
                 Name = "Step1",
                 PluginTypeName = "Type1",
-                ExecutionStage = 10,
+                ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
                 EventOperation = "Update",
                 LogicalName = "account",
                 Deployment = 0,
@@ -169,7 +169,7 @@ public class PluginServiceTests
             new() {
                 Name = "CreatedStep",
                 PluginTypeName = "Type1",
-                ExecutionStage = 10,
+                ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
                 EventOperation = "Update",
                 LogicalName = "account",
                 Deployment = 0,

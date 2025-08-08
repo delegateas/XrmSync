@@ -1,4 +1,5 @@
-﻿using XrmSync.Model.Plugin;
+﻿using DG.XrmPluginCore.Enums;
+using XrmSync.Model.Plugin;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
@@ -51,7 +52,7 @@ internal class DAXIFPluginAnalyzer : Analyzer, IPluginAnalyzer
                         var (deployment, mode, notUsedStepname, executionOrder, filteredAttr, userIdStr) = tuple.Item2;
                         var imageTuples = tuple.Item3;
 
-                        var stepName = StepName(className ?? string.Empty, mode, stage, eventOp ?? string.Empty, logicalName);
+                        var stepName = StepName(className ?? string.Empty, (ExecutionMode)mode, (ExecutionStage)stage, eventOp ?? string.Empty, logicalName);
 
                         var images = imageTuples
                             .Select(image =>
@@ -67,7 +68,7 @@ internal class DAXIFPluginAnalyzer : Analyzer, IPluginAnalyzer
                                     PluginStepName = stepName,
                                     Name = iName ?? string.Empty,
                                     EntityAlias = iAlias ?? string.Empty,
-                                    ImageType = iType,
+                                    ImageType = (ImageType)iType,
                                     Attributes = iAttr ?? string.Empty
                                 };
                             })
@@ -75,9 +76,9 @@ internal class DAXIFPluginAnalyzer : Analyzer, IPluginAnalyzer
 
                         return new Step
                         {
-                            ExecutionStage = stage,
-                            Deployment = deployment,
-                            ExecutionMode = mode,
+                            ExecutionStage = (ExecutionStage)stage,
+                            Deployment = (Deployment)deployment,
+                            ExecutionMode = (ExecutionMode)mode,
                             ExecutionOrder = executionOrder,
                             FilteredAttributes = filteredAttr ?? string.Empty,
                             UserContext = Guid.TryParse(userIdStr, out var userId) ? userId : Guid.Empty,

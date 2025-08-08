@@ -1,4 +1,5 @@
-﻿using XrmSync.Dataverse.Interfaces;
+﻿using DG.XrmPluginCore.Enums;
+using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService.Exceptions;
@@ -13,19 +14,19 @@ internal class PluginValidator(IPluginReader pluginReader) : IPluginValidator
         var pluginSteps = pluginTypes.SelectMany(x => x.PluginSteps);
         var preOperationAsyncPlugins = pluginSteps
             .Where(x =>
-            x.ExecutionMode == (int)ExecutionMode.Asynchronous &&
-            x.ExecutionStage != (int)ExecutionStage.Post)
+            x.ExecutionMode == ExecutionMode.Asynchronous &&
+            x.ExecutionStage != ExecutionStage.PostOperation)
             .ToList();
         exceptions.AddRange(preOperationAsyncPlugins.Select(x => new ValidationException($"Plugin {x.Name}: Pre execution stages does not support asynchronous execution mode")));
 
         var preOperationWithPostImagesPlugins = pluginSteps
             .Where(x =>
             {
-                var postImages = x.PluginImages.Where(image => image.ImageType == (int)ImageType.PostImage);
+                var postImages = x.PluginImages.Where(image => image.ImageType == ImageType.PostImage);
 
                 return
-                (x.ExecutionStage == (int)ExecutionStage.Pre ||
-                 x.ExecutionStage == (int)ExecutionStage.PreValidation) && postImages.Any();
+                (x.ExecutionStage == ExecutionStage.PreOperation ||
+                 x.ExecutionStage == ExecutionStage.PreValidation) && postImages.Any();
             });
         exceptions.AddRange(preOperationWithPostImagesPlugins.Select(x => new ValidationException($"Plugin {x.Name}: Pre execution stages does not support post-images")));
 
@@ -55,7 +56,7 @@ internal class PluginValidator(IPluginReader pluginReader) : IPluginValidator
         var deleteWithPostImagesPLugins = pluginSteps
             .Where(x =>
             {
-                var postImages = x.PluginImages.Where(image => image.ImageType == (int)ImageType.PostImage);
+                var postImages = x.PluginImages.Where(image => image.ImageType == ImageType.PostImage);
                 return x.EventOperation == "Delete" && postImages.Any();
             });
         exceptions.AddRange(deleteWithPostImagesPLugins.Select(x => new ValidationException($"Plugin {x.Name}: Delete events does not support post-images")));

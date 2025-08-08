@@ -1,3 +1,4 @@
+using DG.XrmPluginCore.Enums;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using XrmSync.Dataverse.Context;
@@ -78,7 +79,7 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
                     DisplayName = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.DisplayName}").Value as string ?? string.Empty,
                     UniqueName = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.UniqueName}").Value as string ?? string.Empty,
                     LogicalEntityName = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.LogicalEntityName}")?.Value as string ?? string.Empty,
-                    Type = ((e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.Type}").Value as OptionSetValue)?.Value) ?? 0,
+                    Type = (CustomApiParameterType)(((e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.Type}").Value as OptionSetValue)?.Value) ?? 0),
                     IsOptional = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.IsOptional}").Value as bool? ?? false,
                     IsCustomizable = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.IsCustomizable}").Value as bool? ?? false,
                 }).ToList();
@@ -94,7 +95,7 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
                     DisplayName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.DisplayName}").Value as string ?? string.Empty,
                     UniqueName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.UniqueName}").Value as string ?? string.Empty,
                     LogicalEntityName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.LogicalEntityName}")?.Value as string ?? string.Empty,
-                    Type = ((e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.Type}").Value as OptionSetValue)?.Value) ?? 0,
+                    Type = (CustomApiParameterType)(((e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.Type}").Value as OptionSetValue)?.Value) ?? 0),
                     IsCustomizable = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.IsCustomizable}").Value as bool? ?? false,
                 }).ToList();
 
@@ -107,9 +108,9 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
                 Description = customApi.GetAttributeValue<string?>(CustomApi.Fields.Description) ?? string.Empty,
                 IsFunction = customApi.GetAttributeValue<bool>(CustomApi.Fields.IsFunction),
                 EnabledForWorkflow = customApi.GetAttributeValue<bool>(CustomApi.Fields.WorkflowSdkStepEnabled),
-                BindingType = customApi.GetAttributeValue<OptionSetValue>(CustomApi.Fields.BindingType)?.Value ?? 0,
+                BindingType = (BindingType)(customApi.GetAttributeValue<OptionSetValue>(CustomApi.Fields.BindingType)?.Value ?? 0),
                 BoundEntityLogicalName = customApi.GetAttributeValue<string?>(CustomApi.Fields.BoundEntityLogicalName) ?? string.Empty,
-                AllowedCustomProcessingStepType = customApi.GetAttributeValue<OptionSetValue>(CustomApi.Fields.AllowedCustomProcessingStepType)?.Value ?? 0,
+                AllowedCustomProcessingStepType = (AllowedCustomProcessingStepType)(customApi.GetAttributeValue<OptionSetValue>(CustomApi.Fields.AllowedCustomProcessingStepType)?.Value ?? 0),
                 PluginTypeName = customApi.GetAttributeValue<AliasedValue>($"pt.{PluginType.Fields.Name}").Value as string ?? string.Empty,
                 OwnerId = customApi.GetAttributeValue<EntityReference>(CustomApi.Fields.OwnerId)?.Id ?? Guid.Empty,
                 IsCustomizable = customApi.GetAttributeValue<BooleanManagedProperty>(CustomApi.Fields.IsCustomizable).Value,

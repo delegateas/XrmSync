@@ -4,12 +4,6 @@ namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
 internal class CoreAnalyzer : Analyzer
 {
-    protected static int GetEnumIntValue<TReference, TEnum>(object obj, Expression<Func<TReference, TEnum>> propertyExpression) where TEnum : Enum
-    {
-        var propertyName = GetPropertyName(propertyExpression);
-        return GetEnumIntValue(obj, propertyName);
-    }
-
     /// <summary>
     /// Type-safe property access using nameof() from a reference type to ensure property names match
     /// </summary>
@@ -24,16 +18,6 @@ internal class CoreAnalyzer : Analyzer
         return string.IsNullOrEmpty(guidString) ? Guid.Empty : Guid.Parse(guidString);
     }
 
-    private static int GetEnumIntValue(object obj, string propertyName)
-    {
-        return GetPropertyValue<object>(obj, propertyName) switch
-        {
-            null => default,
-            Enum enumValue => Convert.ToInt32(enumValue),
-            _ => throw new AnalysisException($"Property '{propertyName}' on type '{obj.GetType().FullName}' is not an enum")
-        };
-    }
-
     private static T? GetPropertyValue<T>(object obj, string propertyName)
     {
         var type = obj.GetType();
@@ -41,7 +25,13 @@ internal class CoreAnalyzer : Analyzer
             ?? throw new AnalysisException($"Property '{propertyName}' not found on type '{type.FullName}'");
         var value = property.GetValue(obj);
 
-        return value is T typedValue ? typedValue : default;
+        return value switch
+        {
+            null => default,
+            T typedValue => typedValue,
+            Enum enumValue => (T)(object)Convert.ToInt32(enumValue),
+            _ => throw new AnalysisException($"Property '{propertyName}' on type '{type.FullName}' is not of type '{typeof(T).FullName}'")
+        };
     }
 
     private static string GetPropertyName<TReference, T>(Expression<Func<TReference, T>> propertyExpression)

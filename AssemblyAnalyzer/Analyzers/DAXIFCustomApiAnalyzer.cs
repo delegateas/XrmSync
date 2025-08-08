@@ -1,4 +1,5 @@
-﻿using XrmSync.Model.CustomApi;
+﻿using DG.XrmPluginCore.Enums;
+using XrmSync.Model.CustomApi;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
@@ -36,8 +37,8 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
                 Name = apiDef.Item1 ?? string.Empty,
                 IsFunction = apiDef.Item2,
                 EnabledForWorkflow = apiDef.Item3 == 1,
-                AllowedCustomProcessingStepType = apiDef.Item4,
-                BindingType = apiDef.Item5,
+                AllowedCustomProcessingStepType = (AllowedCustomProcessingStepType)apiDef.Item4,
+                BindingType = (BindingType)apiDef.Item5,
                 BoundEntityLogicalName = apiDef.Item6 ?? string.Empty,
 
                 PluginTypeName = apiMeta.Item1 ?? string.Empty,
@@ -56,7 +57,7 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
                     IsCustomizable = p.Item4,
                     IsOptional = p.Item5,
                     LogicalEntityName = p.Item6 ?? string.Empty,
-                    Type = p.Item7,
+                    Type = (CustomApiParameterType)p.Item7,
                     CustomApiName = apiDef.Item1 ?? string.Empty
                 }).ToList() ?? [],
 
@@ -67,7 +68,7 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
                     DisplayName = r.Item3 ?? string.Empty,
                     IsCustomizable = r.Item4,
                     LogicalEntityName = r.Item5 ?? string.Empty,
-                    Type = r.Item6,
+                    Type = (CustomApiParameterType)r.Item6,
                     CustomApiName = apiDef.Item1 ?? string.Empty
                 }).ToList() ?? []
             };

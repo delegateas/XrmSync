@@ -37,9 +37,9 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, ICustomApiAnalyzer
             Description = GetConfigValue(registration, x => x.Description) ?? string.Empty,
             IsFunction = GetConfigValue(registration, x => x.IsFunction),
             EnabledForWorkflow = GetConfigValue(registration, x => x.EnabledForWorkflow),
-            BindingType = GetConfigEnum(registration, x => x.BindingType),
+            BindingType = GetConfigValue(registration, x => x.BindingType),
             ExecutePrivilegeName = GetConfigValue(registration, x => x.ExecutePrivilegeName) ?? string.Empty,
-            AllowedCustomProcessingStepType = GetConfigEnum(registration, x => x.AllowedCustomProcessingStepType),
+            AllowedCustomProcessingStepType = GetConfigValue(registration, x => x.AllowedCustomProcessingStepType),
             OwnerId = GetConfigValue(registration, x => x.OwnerId) ?? Guid.Empty,
             IsCustomizable = GetConfigValue(registration, x => x.IsCustomizable),
             IsPrivate = GetConfigValue(registration, x => x.IsPrivate),
@@ -60,7 +60,7 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, ICustomApiAnalyzer
             {
                 Name = GetRequestValue(param, x => x.Name) ?? string.Empty,
                 DisplayName = GetRequestValue(param, x => x.DisplayName) ?? string.Empty,
-                Type = GetRequestEnum(param, x => x.Type),
+                Type = GetRequestValue(param, x => x.Type),
                 LogicalEntityName = GetRequestValue(param, x => x.LogicalEntityName) ?? string.Empty,
                 UniqueName = GetRequestValue(param, x => x.UniqueName) ?? string.Empty,
                 IsOptional = GetRequestValue(param, x => x.IsOptional),
@@ -81,7 +81,7 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, ICustomApiAnalyzer
         {
             Name = GetResponseValue(prop, x => x.Name) ?? string.Empty,
             DisplayName = GetResponseValue(prop, x => x.DisplayName) ?? string.Empty,
-            Type = GetEnumIntValue<IResponseProperty, DG.XrmPluginCore.Enums.CustomApiParameterType>(prop, x => x.Type),
+            Type = GetResponseValue(prop, x => x.Type),
             LogicalEntityName = GetResponseValue(prop, x => x.LogicalEntityName) ?? string.Empty,
             UniqueName = GetResponseValue(prop, x => x.UniqueName) ?? string.Empty,
             IsCustomizable = GetResponseValue(prop, x => x.IsCustomizable),
@@ -91,12 +91,6 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, ICustomApiAnalyzer
 
     private static T? GetConfigValue<T>(object obj, Expression<Func<ICustomApiConfig, T>> propertyExpression) =>
         GetPropertyValue(obj, propertyExpression);
-
-    private static int GetConfigEnum<TEnum>(object obj, Expression<Func<ICustomApiConfig, TEnum>> propertyExpression) where TEnum : Enum =>
-        GetEnumIntValue(obj, propertyExpression);
-
-    private static int GetRequestEnum<TEnum>(object obj, Expression<Func<IRequestParameter, TEnum>> propertyExpression) where TEnum : Enum =>
-        GetEnumIntValue(obj, propertyExpression);
 
     private static T? GetRequestValue<T>(object obj, Expression<Func<IRequestParameter, T>> propertyExpression) =>
         GetPropertyValue(obj, propertyExpression);

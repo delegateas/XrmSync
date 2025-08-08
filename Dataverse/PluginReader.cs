@@ -1,4 +1,5 @@
-﻿using Microsoft.PowerPlatform.Dataverse.Client;
+﻿using DG.XrmPluginCore.Enums;
+using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using XrmSync.Dataverse.Context;
@@ -116,7 +117,7 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                     Name = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
                     EntityAlias = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.EntityAlias}")?.Value?.ToString() ?? string.Empty,
                     Attributes = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Attributes1}")?.Value?.ToString() ?? string.Empty,
-                    ImageType = (e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.ImageType}")?.Value as OptionSetValue)?.Value ?? 0,
+                    ImageType = (ImageType)((e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.ImageType}")?.Value as OptionSetValue)?.Value ?? 0),
                     PluginStepName = stepName
                 }).ToList();
 
@@ -125,11 +126,11 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                 Id = entity.GetAttributeValue<Guid>(SdkMessageProcessingStep.Fields.Id),
                 Name = stepName,
                 PluginTypeName = entity.GetAttributeValue<AliasedValue>($"pt.{Context.PluginType.Fields.Name}")?.Value?.ToString() ?? string.Empty,
-                ExecutionStage = entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Stage)?.Value ?? 0,
+                ExecutionStage = (ExecutionStage)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Stage)?.Value ?? 0),
                 EventOperation = entity.GetAttributeValue<AliasedValue>($"ms.{SdkMessage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
                 LogicalName = entity.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}")?.Value?.ToString() ?? string.Empty,
-                Deployment = entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.SupportedDeployment)?.Value ?? 0,
-                ExecutionMode = entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Mode)?.Value ?? 0,
+                Deployment = (Deployment)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.SupportedDeployment)?.Value ?? 0),
+                ExecutionMode = (ExecutionMode)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Mode)?.Value ?? 0),
                 ExecutionOrder = entity.GetAttributeValue<int>(SdkMessageProcessingStep.Fields.Rank),
                 FilteredAttributes = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.FilteringAttributes) ?? string.Empty,
                 UserContext = entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.ImpersonatingUserId)?.Id ?? Guid.Empty,

@@ -4,6 +4,7 @@ using XrmSync.SyncService.Exceptions;
 using XrmSync.Model.Plugin;
 using XrmSync.Model;
 using XrmSync.SyncService.PluginValidator;
+using DG.XrmPluginCore.Enums;
 
 namespace Tests;
 
@@ -17,8 +18,8 @@ public class PluginValidationTests
         {
             Name = "TestStep",
             PluginTypeName = "TestType",
-            ExecutionStage = (int)ExecutionStage.Pre, // Pre
-            ExecutionMode = (int)ExecutionMode.Asynchronous, // Async
+            ExecutionStage = ExecutionStage.PreOperation, // Pre
+            ExecutionMode = ExecutionMode.Asynchronous, // Async
             EventOperation = "Update",
             LogicalName = "account",
             Deployment = 0,
@@ -47,8 +48,8 @@ public class PluginValidationTests
         {
             Name = "Step1",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.Pre,
-            ExecutionMode = (int)ExecutionMode.Asynchronous,
+            ExecutionStage = ExecutionStage.PreOperation,
+            ExecutionMode = ExecutionMode.Asynchronous,
             EventOperation = "Update",
             LogicalName = "account",
             Deployment = 0,
@@ -62,8 +63,8 @@ public class PluginValidationTests
         {
             Name = "Step2",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.Pre,
-            ExecutionMode = (int)ExecutionMode.Synchronous,
+            ExecutionStage = ExecutionStage.PreOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Associate",
             LogicalName = "notempty",
             Deployment = 0,
@@ -94,8 +95,8 @@ public class PluginValidationTests
         {
             Name = "Step1",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.Post,
-            ExecutionMode = (int)ExecutionMode.Synchronous,
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Update",
             LogicalName = "account",
             Deployment = 0,
@@ -110,8 +111,8 @@ public class PluginValidationTests
         {
             Name = "Step2",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.Post,
-            ExecutionMode = (int)ExecutionMode.Synchronous,
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Update",
             LogicalName = "account",
             Deployment = 0,
@@ -141,8 +142,8 @@ public class PluginValidationTests
         {
             Name = "Step1",
             PluginTypeName = "Type1",
-            ExecutionStage = (int)ExecutionStage.Post,
-            ExecutionMode = (int)ExecutionMode.Synchronous,
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Update",
             LogicalName = "account",
             Deployment = 0,
@@ -157,8 +158,8 @@ public class PluginValidationTests
         {
             Name = "Step2",
             PluginTypeName = "Type2",
-            ExecutionStage = (int)ExecutionStage.Post,
-            ExecutionMode = (int)ExecutionMode.Synchronous,
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Update",
             LogicalName = "account",
             Deployment = 0,

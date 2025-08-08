@@ -1,3 +1,4 @@
+using DG.XrmPluginCore.Enums;
 using System;
 using System.Collections.Generic;
 
@@ -11,9 +12,9 @@ public record CustomApiDefinition : EntityBase
     public required string Description { get; set; }
     public bool IsFunction { get; set; }
     public bool EnabledForWorkflow { get; set; }
-    public int BindingType { get; set; }
+    public BindingType BindingType { get; set; }
     public required string BoundEntityLogicalName { get; set; }
-    public int AllowedCustomProcessingStepType { get; set; }
+    public AllowedCustomProcessingStepType AllowedCustomProcessingStepType { get; set; }
     public Guid OwnerId { get; set; }
     public bool IsCustomizable { get; set; }
     public bool IsPrivate { get; set; }

@@ -37,10 +37,10 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
     {        
         // Use type-safe reflection to safely extract properties
         var entityLogicalName = GetRegistrationValue(registration, x => x.EntityLogicalName) ?? string.Empty;
-        var executionMode = GetRegistrationEnum(registration, x => x.ExecutionMode);
-        var executionStage = GetRegistrationEnum(registration, x => x.ExecutionStage);
+        var executionMode = GetRegistrationValue(registration, x => x.ExecutionMode);
+        var executionStage = GetRegistrationValue(registration, x => x.ExecutionStage);
         var eventOperation = GetRegistrationValue<object>(registration, x => x.EventOperation)?.ToString() ?? string.Empty;
-        var deployment = GetRegistrationEnum(registration, x => x.Deployment);
+        var deployment = GetRegistrationValue(registration, x => x.Deployment);
         var executionOrder = GetRegistrationValue(registration, x => x.ExecutionOrder);
         var filteredAttributes = GetRegistrationValue(registration, x => x.FilteredAttributes) ?? string.Empty;
         var impersonatingUserId = GetRegistrationValue(registration, x => x.ImpersonatingUserId);
@@ -71,15 +71,12 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
         return new Image
         {
             Name = GetImageValue(imageSpec, x => x.ImageName) ?? string.Empty,
-            ImageType = GetEnumIntValue<IImageSpecification, DG.XrmPluginCore.Enums.ImageType>(imageSpec, x => x.ImageType),
+            ImageType = GetImageValue(imageSpec, x => x.ImageType),
             Attributes = GetImageValue(imageSpec, x => x.Attributes) ?? string.Empty,
             EntityAlias = GetImageValue(imageSpec, x => x.EntityAlias) ?? string.Empty,
             PluginStepName = stepName
         };
     }
-
-    private static int GetRegistrationEnum<TENum>(object obj, Expression<Func<IPluginStepConfig, TENum>> propertyExpression)
-        where TENum : Enum => GetEnumIntValue(obj, propertyExpression);
 
     private static T? GetRegistrationValue<T>(object obj, Expression<Func<IPluginStepConfig, T>> propertyExpression) =>
         GetPropertyValue(obj, propertyExpression);

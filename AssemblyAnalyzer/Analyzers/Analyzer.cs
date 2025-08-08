@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using XrmSync.Model;
+﻿using DG.XrmPluginCore.Enums;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
@@ -17,9 +16,19 @@ internal abstract class Analyzer
             ?? throw new AnalysisException($"{methodName}() returned null for type {pluginType.FullName}");
     }
 
-    protected static string StepName(string className, int executionMode, int executionStage, string eventOperation, string? entityLogicalName)
+    protected static string StepName(string className, ExecutionMode executionMode, ExecutionStage executionStage, string eventOperation, string? entityLogicalName)
     {
         var entity = string.IsNullOrEmpty(entityLogicalName) ? "any Entity" : entityLogicalName;
-        return $"{className}: {Enum.GetName(typeof(ExecutionMode), executionMode)} {Enum.GetName(typeof(ExecutionStage), executionStage)} {eventOperation} of {entity}";
+
+        var executionModeName = executionMode.ToString();
+        var executionStageName = executionStage switch
+        {
+            ExecutionStage.PreValidation => "PreValidation",
+            ExecutionStage.PreOperation => "Pre",
+            ExecutionStage.PostOperation => "Post",
+            _ => "Unknown"
+        };
+
+        return $"{className}: {executionModeName} {executionStageName} {eventOperation} of {entity}";
     }
 }
