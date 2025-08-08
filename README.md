@@ -20,16 +20,15 @@ XrmSync is a powerful tool that helps you manage and synchronize your Microsoft 
 - **Dry Run Mode**: Preview changes without actually modifying your Dataverse environment
 - **Solution-aware**: Deploys plugins to specific Dataverse solutions
 - **Flexible Connection**: Supports connection string and URL-based Dataverse connections
+- **Configuration Files**: Support for JSON configuration files to streamline repetitive operations
 - **Comprehensive Logging**: Configurable logging levels for debugging and monitoring
 
 ## Installation
 
 ### As a .NET Tool
-
 ```bash
 dotnet tool install --global XrmSync
 ```
-
 ### From Source
 
 1. Clone the repository:
@@ -37,16 +36,19 @@ dotnet tool install --global XrmSync
 git clone https://github.com/delegateas/XrmSync.git
 cd XrmSync
 ```
-3. Build the project:
+2. Build and pack the project:
 ```bash
 dotnet build
-```
-5. Install as a local tool:
-```bash
 dotnet pack XrmSync/XrmSync.csproj
+```
+
+3. Install as a local tool:
+```bash
 dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
 ```
+
 ## Usage
+
 
 ### Basic Sync Command
 
@@ -54,40 +56,120 @@ dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
 xrmsync --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
 ```
 
+### Configuration File Usage
+
+For repeated operations or complex configurations, you can use a JSON configuration file:
+```bash
+xrmsync --run "config.json"
+```
+You can also override specific options when using a configuration file:
+```bash
+xrmsync --run "config.json" --dry-run --log-level Debug
+```
 ### Command Line Options
 
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
-| `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes |
-| `--solution-name` | `-n` | Name of the target Dataverse solution | Yes |
+| `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
+| `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
+| `--run` | `-r` | Read settings from the supplied JSON file | No |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--dataverse` | | The Dataverse URL to connect to | No |
+
+*Required when not using `--run` option
+
+### Configuration File Format
+
+XrmSync supports JSON configuration files that contain all the necessary settings for synchronization. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
+
+#### JSON Schema
+
+```json
+{
+  "AssemblyPath": "path/to/your/plugin.dll",
+  "SolutionName": "YourSolutionName",
+  "DataverseUrl": "https://yourorg.crm.dynamics.com",
+  "DryRun": false,
+  "LogLevel": "Information"
+}
+```
+
+#### Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `SolutionName` | string | Name of the target Dataverse solution | Required |
+| `DataverseUrl` | string | The Dataverse URL to connect to | null |
+| `DryRun` | boolean | Perform a dry run without making changes | false |
+| `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
+
+#### Example Configuration Files
+
+**Basic configuration:**
+
+```json
+{
+  "AssemblyPath": "MyPlugin.dll",
+  "SolutionName": "MyCustomSolution"
+}
+```
+
+**Full configuration with all options:**
+
+```json
+{
+  "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+  "SolutionName": "MyCustomSolution",
+  "DataverseUrl": "https://myorg.crm.dynamics.com",
+  "DryRun": true,
+  "LogLevel": "Debug"
+}
+```
+
+**Relative path example:**
+
+```json
+{
+  "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
+  "SolutionName": "Plugins",
+  "DataverseUrl": "https://myorg.crm4.dynamics.com"
+}
+```
 
 ### Assembly Analysis
 
 You can analyze an assembly without connecting to Dataverse:
 ```bash
-xrmstbc analyze --assembly "path/to/your/plugin.dll"
+xrmsync analyze --assembly "path/to/your/plugin.dll" --pretty-print
 ```
+
 This outputs JSON information about the plugin types, steps, and images found in the assembly.
 
 ### Examples
 
 #### Basic synchronization:
-
 ```bash
 xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
 ```
 
-#### Dry run with debug logging:
+#### Using a configuration file:
+```bash
+xrmsync --run "sync-config.json"
+```
 
+#### Configuration file with CLI overrides:
+```bash
+xrmsync --run "sync-config.json" --dry-run --log-level Debug
+```
+
+#### Dry run with debug logging:
 ```bash
 xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug
 ```
 
 #### Specify Dataverse environment:
-
 ```bash
 xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dataverse "https://myorg.crm.dynamics.com"
 ```
@@ -100,6 +182,14 @@ XrmSync utilizes the Dataverse Connection NuGet package to manage connections to
 See the [Dataverse Connection documentation](https://github.com/delegateas/DataverseConnection) for more details on how to configure connections.
 
 To override the connection URL, you can use the `--dataverse` option, which will override the `DATAVERSE_URL` environment variable.
+
+### Option Priority
+
+When using configuration files with CLI options, the following priority order applies:
+
+1. **CLI arguments** (highest priority) - Override everything
+2. **Configuration file values** - Used when CLI arguments are not provided
+3. **Default values** (lowest priority) - Used when neither CLI nor config file specify a value
 
 ### Logging
 
@@ -150,15 +240,14 @@ The solution consists of several projects:
 - Access to a Dataverse environment for testing
 
 ### Building
-
 ```bash
 dotnet build
 ```
 
 ### Testing
-
 ```bash
 dotnet test
+./scripts/Test-Samples.ps1 -SkipBuild
 ```
 
 ### Contributing

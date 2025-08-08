@@ -1,0 +1,5 @@
+{
+  "AssemblyPath": "..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll",
+  "SolutionName": "Plugins",
+  "DataverseUrl": "https://[yourorg].crm4.dynamics.com"
+}

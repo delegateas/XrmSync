@@ -4,6 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
     },
+    "DryRunSyncDAXIFFromFile": {
+      "commandName": "Project",
+      "commandLineArgs": "--run ..\\..\\..\\..\\Samples\\1-DAXIF\\runoptions.json --dry-run -l Debug"
+    },
     "SyncDAXIF": {
       "commandName": "Project",
       "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
@@ -27,6 +31,10 @@
     "AnalyzeSampleXrmPluginCore": {
       "commandName": "Project",
       "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\3-XrmPluginCore\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\""
+    },
+    "AnalyzeSampleFullDAXIF": {
+      "commandName": "Project",
+      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\4-Full-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\""
     },
     "XrmSyncHelp": {
       "commandName": "Project",
