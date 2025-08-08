@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.CommandLine;
-using XrmSync.Model;
 
 namespace XrmSync;
 
@@ -8,6 +7,7 @@ internal static class CommandLineBuilder
 {
     public static RootCommand BuildCommand()
     {
+       
         // Define CLI options
         Option<string> assemblyFileOption = new(["--assembly", "-a", "--assembly-file", "--af"], "Path to the plugin assembly (*.dll)")
         {
@@ -44,37 +44,21 @@ internal static class CommandLineBuilder
             assemblyFileOption,
             prettyPrintOption
         };
-
-        analyzeAssemblyCommand.SetHandler(HandleAnalyzeCommand, assemblyFileOption, prettyPrintOption);
-
         rootCommand.AddCommand(analyzeAssemblyCommand);
-        rootCommand.SetHandler(HandleSync, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption);
+
+        var handlers = new CommandHandlers();
+        analyzeAssemblyCommand.SetHandler((string assemblyPath, bool prettyPrint) => 
+        {
+            var result = handlers.HandleAnalyze(assemblyPath, prettyPrint);
+            Environment.ExitCode = result;
+        }, assemblyFileOption, prettyPrintOption);
+
+        rootCommand.SetHandler(async (string assemblyPath, string solutionName, bool dryRun, LogLevel? logLevel) => 
+        {
+            var result = await handlers.HandleSync(assemblyPath, solutionName, dryRun, logLevel);
+            Environment.ExitCode = result;
+        }, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption);
 
         return rootCommand;
-    }
-
-    private static async Task HandleSync(string assemblyPath, string solutionName, bool dryRun, LogLevel? logLevel)
-    {
-        var baseConfig = SimpleXrmSyncConfigBuilder.BuildFromConfiguration();
-
-        var config = new XrmSyncOptions(
-            string.IsNullOrWhiteSpace(assemblyPath) ? baseConfig.AssemblyPath : assemblyPath,
-            string.IsNullOrWhiteSpace(solutionName) ? baseConfig.SolutionName : solutionName,
-            logLevel?.ToString() ?? baseConfig.LogLevel,
-            dryRun || baseConfig.DryRun
-        );
-
-        if (!await PluginSync.RunSync(config))
-        {
-            Environment.Exit(1);
-        }
-    }
-
-    private static void HandleAnalyzeCommand(string assemblyPath, bool prettyPrint)
-    {
-        if (!PluginSync.RunAnalysis(assemblyPath, prettyPrint))
-        {
-            Environment.Exit(1);
-        }
     }
 }
