@@ -14,6 +14,7 @@ public static class ServiceColletionExtensions
     public static IServiceCollection AddAssemblyAnalyzer(this IServiceCollection services)
     {
         return services
+            .AddSingleton<IAssemblyAnalyzer, AssemblyAnalyzer>()
             .AddSingleton<IPluginAnalyzer, DAXIFPluginAnalyzer>()
             .AddSingleton<IPluginAnalyzer, CorePluginAnalyzer>()
             .AddSingleton<ICustomApiAnalyzer, DAXIFCustomApiAnalyzer>()

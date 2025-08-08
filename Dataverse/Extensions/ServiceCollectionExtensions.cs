@@ -7,11 +7,10 @@ namespace XrmSync.Dataverse.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddDataverseConnection(this IServiceCollection services, XrmSyncOptions syncOptions)
+    public static IServiceCollection AddDataverseConnection(this IServiceCollection services)
     {
         services.AddDataverse();
         services.AddSingleton<IDataverseReader, DataverseReader>();
-
         services.AddSingleton<IDataverseWriter>((sp) =>
         {
             var options = sp.GetRequiredService<XrmSyncOptions>();

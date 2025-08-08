@@ -2,5 +2,5 @@
 
 public interface ISyncService
 {
-    Task Sync();
+    Task Sync(CancellationToken cancellation);
 }

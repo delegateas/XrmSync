@@ -28,13 +28,21 @@ public class PluginSyncService(
     XrmSyncOptions options,
     ILogger log) : ISyncService
 {
-    public async Task Sync()
+    public async Task Sync(CancellationToken cancellationToken)
     {
+        log.LogInformation("{header}", description.ToolHeader);
+
+        if (options.DryRun)
+        {
+            log.LogInformation("***** DRY RUN *****");
+            log.LogInformation("No changes will be made to Dataverse.");
+        }
+
         log.LogInformation("Comparing plugins registered in Dataverse versus those found in your local code");
         log.LogInformation("Connecting to Dataverse at {dataverseUrl}", solutionReader.ConnectedHost);
 
         // Read the data from the local assembly and from Dataverse
-        var (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes, prefix) = await ReadData();
+        var (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes, prefix) = await ReadData(cancellationToken);
 
         // Align the local and remote info, matching IDs
         var (localPluginSteps, crmPluginSteps) = AlignSteps(localAssembly, crmAssembly);
@@ -124,12 +132,12 @@ public class PluginSyncService(
         return (localPluginSteps, crmPluginSteps);
     }
 
-    private async Task<SyncData> ReadData()
+    private async Task<SyncData> ReadData(CancellationToken cancellationToken)
     {
         try
         {
             log.LogInformation("Loading local assembly and its plugins");
-            var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath);
+            var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath, cancellationToken);
             log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis locally", localAssembly.Plugins.Count, localAssembly.CustomApis.Count);
 
             log.LogInformation("Validating plugins to be registered");

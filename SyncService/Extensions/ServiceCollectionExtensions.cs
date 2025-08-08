@@ -12,8 +12,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSyncService(this IServiceCollection services)
     {
         return services
-            .AddSingleton<Description>()
             .AddSingleton<PluginSyncService>()
+            .AddSingleton<Description>()
             .AddSingleton<IDifferenceUtility, DifferenceUtility>()
             .AddSingleton<IPluginValidator, PluginValidator.PluginValidator>()
             .AddSingleton<IEntityComparer<PluginType>, PluginTypeComparer>()

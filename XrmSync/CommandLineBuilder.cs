@@ -3,62 +3,100 @@ using System.CommandLine;
 
 namespace XrmSync;
 
-internal static class CommandLineBuilder
+internal record Options
 {
-    public static RootCommand BuildCommand()
+    public required Option<string> AssemblyFile { get; init; }
+    public required Option<string> SolutionName { get; init; }
+    public required Option<bool> DryRun { get; init; }
+    public required Option<LogLevel?> LogLevel { get; init; }
+    public required Option<bool> PrettyPrint { get; init; }
+}
+
+internal class CommandLineBuilder
+{
+    protected RootCommand SyncCommand { get; init; }
+    protected Command AnalyzeCommand { get; init; }
+
+    protected Options Options { get; } = new()
     {
-       
-        // Define CLI options
-        Option<string> assemblyFileOption = new(["--assembly", "-a", "--assembly-file", "--af"], "Path to the plugin assembly (*.dll)")
+        AssemblyFile = new("--assembly", "-a", "--assembly-file", "--af")
         {
+            Description = "Path to the plugin assembly (*.dll)",
             Arity = ArgumentArity.ExactlyOne
-        };
-
-        var solutionNameOption = new Option<string>(["--solution-name", "--sn", "-n"], "Name of the solution")
+        },
+        SolutionName = new("--solution-name", "--sn", "-n")
         {
+            Description = "Name of the solution",
             Arity = ArgumentArity.ExactlyOne
+        },
+        DryRun = new("--dry-run", "--dryrun")
+        {
+            Description = "Perform a dry run without making changes",
+            Required = false
+        },
+        LogLevel = new ("--log-level", "-l")
+            {
+            Description = "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical)"
+        },
+        PrettyPrint = new("--pretty-print", "-p")
+        {
+            Description = "Pretty print the JSON output",
+            Required = false
+        }
+    };
+
+    public CommandLineBuilder()
+    {
+        SyncCommand = new ("XrmSync - Synchronize your Dataverse plugins")
+        {
+            Options.AssemblyFile,
+            Options.SolutionName,
+            Options.DryRun,
+            Options.LogLevel
         };
 
-        var dryRunOption = new Option<bool>(["--dry-run", "--dryrun"], "Perform a dry run without making changes")
+        AnalyzeCommand = new ("analyze", "Analyze a plugin assembly and output info as JSON")
         {
-            IsRequired = false
+            Options.AssemblyFile,
+            Options.PrettyPrint
         };
+        SyncCommand.Subcommands.Add(AnalyzeCommand);
+    }
 
-        var logLevelOption = new Option<LogLevel?>(["--log-level", "-l"], "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical)");
-
-        var prettyPrintOption = new Option<bool>(["--pretty-print", "-p"], "Pretty print the JSON output")
+    public CommandLineBuilder SetSyncAction(Func<string?, string?, bool?, LogLevel?, CancellationToken, Task<bool>> syncAction)
+    {
+        SyncCommand.SetAction(async (parseResult, cancellationToken) =>
         {
-            IsRequired = false
-        };
+            var assemblyPath = parseResult.GetValue(Options.AssemblyFile);
+            var solutionName = parseResult.GetValue(Options.SolutionName);
+            var dryRun = parseResult.GetValue(Options.DryRun);
+            var logLevel = parseResult.GetValue(Options.LogLevel);
 
-        var rootCommand = new RootCommand("XrmSync - Synchronize your Dataverse plugins")
+            return await syncAction(assemblyPath, solutionName, dryRun, logLevel, cancellationToken)
+                ? 0
+                : 1;
+        });
+
+        return this;
+    }
+
+    public CommandLineBuilder SetAnalyzeAction(Func<string?, bool, CancellationToken, Task<bool>> analyzeAction)
+    {
+        AnalyzeCommand.SetAction(async (parseResult, cancellationToken) =>
         {
-            assemblyFileOption,
-            solutionNameOption,
-            dryRunOption,
-            logLevelOption
-        };
+            var assemblyPath = parseResult.GetValue(Options.AssemblyFile);
+            var prettyPrint = parseResult.GetValue(Options.PrettyPrint);
 
-        var analyzeAssemblyCommand = new Command("analyze", "Analyze a plugin assembly and output info as JSON")
-        {
-            assemblyFileOption,
-            prettyPrintOption
-        };
-        rootCommand.AddCommand(analyzeAssemblyCommand);
+            return await analyzeAction(assemblyPath, prettyPrint, cancellationToken)
+                ? 0
+                : 1;
+        });
 
-        var handlers = new CommandHandlers();
-        analyzeAssemblyCommand.SetHandler((string assemblyPath, bool prettyPrint) => 
-        {
-            var result = handlers.HandleAnalyze(assemblyPath, prettyPrint);
-            Environment.ExitCode = result;
-        }, assemblyFileOption, prettyPrintOption);
+        return this;
+    }
 
-        rootCommand.SetHandler(async (string assemblyPath, string solutionName, bool dryRun, LogLevel? logLevel) => 
-        {
-            var result = await handlers.HandleSync(assemblyPath, solutionName, dryRun, logLevel);
-            Environment.ExitCode = result;
-        }, assemblyFileOption, solutionNameOption, dryRunOption, logLevelOption);
-
-        return rootCommand;
+    public RootCommand Build()
+    {
+        return SyncCommand;
     }
 }

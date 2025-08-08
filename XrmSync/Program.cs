@@ -1,6 +1,90 @@
-﻿using System.CommandLine;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using XrmSync;
+using XrmSync.AssemblyAnalyzer;
+using XrmSync.Extensions;
+using XrmSync.Model;
+using XrmSync.Model.Exceptions;
+using XrmSync.SyncService;
 
-// Build and invoke the root command
-var rootCommand = CommandLineBuilder.BuildCommand();
-return await rootCommand.InvokeAsync(args);
+var serviceCollection = new ServiceCollection()
+    .ConfigureXrmSync();
+
+var command = new CommandLineBuilder()
+    .SetSyncAction(async (assemblyPath, solutionName, dryRun, logLevel, cancellationToken) =>
+    {
+        var serviceProvider = serviceCollection
+            .AddXrmSyncServices()
+            .AddXrmSyncOptions(builder =>
+            {
+                var baseOptions = builder.Build();
+
+                return new XrmSyncOptions(
+                    string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.AssemblyPath : assemblyPath,
+                    string.IsNullOrWhiteSpace(solutionName) ? baseOptions.SolutionName : solutionName,
+                    logLevel ?? baseOptions.LogLevel,
+                    dryRun.GetValueOrDefault() || baseOptions.DryRun
+                );
+            })
+            .AddLogger(sp => sp.GetRequiredService<XrmSyncOptions>().LogLevel)
+            .BuildServiceProvider();
+
+        try
+        {
+            var pluginSync = serviceProvider.GetRequiredService<PluginSyncService>();
+            await pluginSync.Sync(cancellationToken);
+            return true;
+        }
+        catch (XrmSyncException ex)
+        {
+            var log = serviceProvider.GetRequiredService<ILogger>();
+            log.LogError("Error during synchronization: {message}", ex.Message);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            var log = serviceProvider.GetRequiredService<ILogger>();
+            log.LogCritical(ex, "An unexpected error occurred during synchronization");
+            return false;
+        }
+    })
+    .SetAnalyzeAction(async (assemblyPath, prettyPrint, cancellationToken) =>
+    {
+        var serviceProvider = serviceCollection
+            .AddAnalyzerServices()
+            .AddLogger(_ => LogLevel.Information)
+            .BuildServiceProvider();
+
+        return await Task.Run(() =>
+        {
+            if (string.IsNullOrWhiteSpace(assemblyPath))
+            {
+                Console.Error.WriteLine("Assembly path is required for analysis.");
+                return false;
+            }
+
+            try
+            {
+                var analyzer = serviceProvider.GetRequiredService<IAssemblyAnalyzer>();
+                var pluginDto = analyzer.AnalyzeAssembly(assemblyPath);
+                var options = new JsonSerializerOptions(JsonSerializerOptions.Default)
+                {
+                    WriteIndented = prettyPrint
+                };
+
+                var jsonOutput = JsonSerializer.Serialize(pluginDto, options);
+                Console.WriteLine(jsonOutput);
+                return true;
+            }
+            catch (AnalysisException ex)
+            {
+                Console.Error.WriteLine($"Error analyzing assembly: {ex.Message}");
+                return false;
+            }
+        }, cancellationToken);
+    })
+    .Build();
+
+var parseResult = command.Parse(args);
+return await parseResult.InvokeAsync();

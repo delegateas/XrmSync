@@ -8,7 +8,7 @@ using XrmSync.AssemblyAnalyzer.Analyzers;
 [assembly: InternalsVisibleTo("Tests")]
 namespace XrmSync.AssemblyAnalyzer;
 
-public class AssemblyAnalyzer(IEnumerable<IPluginAnalyzer> pluginAnalyzers, IEnumerable<ICustomApiAnalyzer> customApiAnalyzers)
+public class AssemblyAnalyzer(IEnumerable<IPluginAnalyzer> pluginAnalyzers, IEnumerable<ICustomApiAnalyzer> customApiAnalyzers) : IAssemblyAnalyzer
 {
     public AssemblyInfo AnalyzeAssembly(string dllPath)
     {

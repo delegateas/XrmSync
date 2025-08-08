@@ -17,7 +17,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
 {
     private Dictionary<string, AssemblyInfo> assemblyCache = new();
 
-    public async Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath)
+    public async Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(assemblyDllPath))
         {
@@ -31,7 +31,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         }
 
         logger.LogDebug("Reading assembly from {AssemblyDllPath}", assemblyDllPath);
-        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath);
+        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, cancellationToken);
 
         // Cache the assembly info
         assemblyCache[assemblyDllPath] = assemblyInfo;
@@ -39,11 +39,11 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         return assemblyInfo;
     }
 
-    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath)
+    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath, CancellationToken cancellationToken)
     {
-        var (filename, args) = await GetExecutionInfoAsync(assemblyDllPath);
+        var (filename, args) = await GetExecutionInfoAsync(assemblyDllPath, cancellationToken);
 
-        var result = await RunCommandAsync(filename, args);
+        var result = await RunCommandAsync(filename, args, cancellationToken);
         if (result.ExitCode != 0)
         {
             logger.LogError("Failed to read assembly: {Error}", result.Error);
@@ -58,7 +58,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         return assemblyInfo ?? throw new AnalysisException("Failed to read plugin type information from assembly");
     }
 
-    private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath)
+    private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath, CancellationToken cancellationToken)
     {
         var baseArgs = $"analyze --assembly \"{assemblyDllPath}\"";
 
@@ -75,7 +75,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         // Try to find XrmSync installation in order of preference:
         // 1. Local dotnet tool
         // 2. Global dotnet tool
-        var toolLocation = await FindXrmSyncToolAsync();
+        var toolLocation = await FindXrmSyncToolAsync(cancellationToken);
         
         if (toolLocation.IsLocal)
         {
@@ -95,12 +95,12 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         }
     }
 
-    private async Task<ToolLocation> FindXrmSyncToolAsync()
+    private async Task<ToolLocation> FindXrmSyncToolAsync(CancellationToken cancellationToken)
     {
         try
         {
             // Check for local tool first
-            var localResult = await RunCommandAsync("dotnet", "tool list");
+            var localResult = await RunCommandAsync("dotnet", "tool list", cancellationToken);
             if (localResult.ExitCode == 0 && localResult.Output.Contains("xrmsync"))
             {
                 logger.LogDebug("Found XrmSync as local dotnet tool");
@@ -108,7 +108,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
             }
 
             // Check for global tool
-            var globalResult = await RunCommandAsync("dotnet", "tool list -g");
+            var globalResult = await RunCommandAsync("dotnet", "tool list -g", cancellationToken);
             if (globalResult.ExitCode == 0 && globalResult.Output.Contains("xrmsync"))
             {
                 logger.LogDebug("Found XrmSync as global dotnet tool");
@@ -116,7 +116,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
             }
 
             // Alternative check: try to run xrmsync directly to see if it's available globally
-            var directResult = await RunCommandAsync("xrmsync", "--help");
+            var directResult = await RunCommandAsync("xrmsync", "--help", cancellationToken);
             if (directResult.ExitCode == 0)
             {
                 logger.LogDebug("XrmSync executable found in PATH");
@@ -132,7 +132,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         return new ToolLocation();
     }
 
-    private static async Task<CommandResult> RunCommandAsync(string fileName, string arguments)
+    private static async Task<CommandResult> RunCommandAsync(string fileName, string arguments, CancellationToken cancellationToken)
     {
         try
         {
@@ -152,10 +152,10 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
                 return new CommandResult { ExitCode = -1, Output = "", Error = "Failed to start process" };
             }
 
-            var outputTask = process.StandardOutput.ReadToEndAsync();
-            var errorTask = process.StandardError.ReadToEndAsync();
+            var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
 
-            await process.WaitForExitAsync();
+            await process.WaitForExitAsync(cancellationToken);
             var output = await outputTask;
             var error = await errorTask;
 
