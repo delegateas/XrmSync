@@ -1,16 +1,21 @@
 # Sets the <Version> property in the given .csproj file to the latest version found in CHANGELOG.md (keepachangelog format)
 param(
-    [string]$ChangelogPath = "CHANGELOG.md",
-    [string]$CsprojPath = "XrmSync/XrmSync.csproj"
+    [string]$ChangelogPath,
+    [string]$CsprojPath
 )
 
 $changelog = Get-Content $ChangelogPath
-# Match lines like: ### v1.0.0-rc1 - xx xxxx 2025
-$versionLine = $changelog | Where-Object { $_ -match '^### v([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9]+)?)' } | Select-Object -First 1
-if ($versionLine -match '^### v([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9]+)?)') {
+# Match lines like: ### v1.0.0-rc.1 - xx xxxx 2025
+
+$regex = '^### v([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9\-\.]+)?)'
+$resolved = Resolve-Path $CsprojPath
+
+$versionLine = $changelog | Where-Object { $_ -match $regex } | Select-Object -First 1
+if ($versionLine -match $regex) {
     $version = $matches[1]
     Write-Host "Detected version: $version"
-    [xml]$xml = Get-Content $CsprojPath
+    [xml]$xml = Get-Content $resolved
+
     $propertyGroup = $xml.Project.PropertyGroup | Where-Object { $_.Version -or $_.OutputType }
     if (-not $propertyGroup.Version) {
         $versionElement = $xml.CreateElement('Version')
@@ -19,7 +24,8 @@ if ($versionLine -match '^### v([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9]+)?)') {
     } else {
         $propertyGroup.Version = $version
     }
-    $xml.Save($CsprojPath)
+
+    $xml.Save($resolved)
     Write-Host "Updated $CsprojPath with version $version"
 } else {
     Write-Error 'No version found in CHANGELOG.md'
