@@ -2,23 +2,23 @@
   "profiles": {
     "DryRunSyncDAXIF": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
+      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://org14b54654.crm4.dynamics.com -l debug"
     },
     "DryRunSyncDAXIFFromFile": {
       "commandName": "Project",
-      "commandLineArgs": "--run ..\\..\\..\\..\\Samples\\1-DAXIF\\runoptions.json --dry-run -l Debug"
+      "commandLineArgs": "--dry-run -l Debug"
     },
     "SyncDAXIF": {
       "commandName": "Project",
-      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
+      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://org14b54654.crm4.dynamics.com -l debug"
     },
     "DryRunSyncHybrid": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
+      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://org14b54654.crm4.dynamics.com -l debug"
     },
     "SyncHybrid": {
       "commandName": "Project",
-      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://[yourorg].crm4.dynamics.com -l debug"
+      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" --dataverse https://org14b54654.crm4.dynamics.com -l debug"
     },
     "AnalyzeSampleDAXIF": {
       "commandName": "Project",

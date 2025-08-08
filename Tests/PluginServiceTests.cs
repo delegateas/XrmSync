@@ -23,10 +23,7 @@ public class PluginServiceTests
     private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
     private readonly IDifferenceUtility _differenceUtility = Substitute.For<IDifferenceUtility>();
     private readonly Description _description = new();
-    private readonly XrmSyncOptions _options = new()
-    {
-        SolutionName = "solution"
-    };
+    private readonly XrmSyncOptions _options = new(string.Empty, "solution", "Information", false, string.Empty);
 
     private readonly PluginSyncService _plugin;
 

@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddDataverse(options =>
         {
-            if (syncOptions.DataverseUrl is not null)
+            if (!string.IsNullOrWhiteSpace(syncOptions.DataverseUrl))
             {
                 options.DataverseUrl = syncOptions.DataverseUrl;
             }

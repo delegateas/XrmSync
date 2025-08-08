@@ -28,7 +28,7 @@ internal static class PluginSync
             log.LogInformation("No changes will be made to Dataverse.");
         }
 
-        if (options.DataverseUrl is not null)
+        if (!string.IsNullOrWhiteSpace(options.DataverseUrl))
         {
             log.LogInformation("Connecting to Dataverse at {dataverseUrl}", options.DataverseUrl);
         }

@@ -58,13 +58,13 @@ xrmsync --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
 
 ### Configuration File Usage
 
-For repeated operations or complex configurations, you can use a JSON configuration file:
+For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
 ```bash
-xrmsync --run "config.json"
+xrmsync
 ```
 You can also override specific options when using a configuration file:
 ```bash
-xrmsync --run "config.json" --dry-run --log-level Debug
+xrmsync --dry-run --log-level Debug
 ```
 ### Command Line Options
 
@@ -72,26 +72,29 @@ xrmsync --run "config.json" --dry-run --log-level Debug
 |--------|-------|-------------|----------|
 | `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
-| `--run` | `-r` | Read settings from the supplied JSON file | No |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--dataverse` | | The Dataverse URL to connect to | No |
 
-*Required when not using `--run` option
+*Required when not present in appsettings.json
 
 ### Configuration File Format
 
 XrmSync supports JSON configuration files that contain all the necessary settings for synchronization. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
 
+The XrmSync section allows you to bundle the settings together with other settings in the appsettings.json file. This way, you can manage your configurations in a structured manner.
+
 #### JSON Schema
 
 ```json
 {
-  "AssemblyPath": "path/to/your/plugin.dll",
-  "SolutionName": "YourSolutionName",
-  "DataverseUrl": "https://yourorg.crm.dynamics.com",
-  "DryRun": false,
-  "LogLevel": "Information"
+	"XrmSync": {
+		"AssemblyPath": "path/to/your/plugin.dll",
+		"SolutionName": "YourSolutionName",
+		"DataverseUrl": "https://yourorg.crm.dynamics.com",
+		"DryRun": false,
+		"LogLevel": "Information"
+	}
 }
 ```
 
@@ -156,12 +159,12 @@ xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
 
 #### Using a configuration file:
 ```bash
-xrmsync --run "sync-config.json"
+xrmsync
 ```
 
 #### Configuration file with CLI overrides:
 ```bash
-xrmsync --run "sync-config.json" --dry-run --log-level Debug
+xrmsync --dry-run --log-level Debug
 ```
 
 #### Dry run with debug logging:
