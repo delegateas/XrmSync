@@ -27,9 +27,6 @@ jobs:
       - name: Publish to NuGet
         shell: pwsh
         run: |
-          Write-Host "Current directory:"
-          pwd
-
           Write-Host "Looking for nupkg files..."
           $nupkgFiles = Get-ChildItem -Path "XrmSync/nupkg/*.nupkg" -File
           
