@@ -1,0 +1,67 @@
+name: 'Build and Test'
+description: 'Shared build and test steps for XrmSync'
+
+inputs:
+  configuration:
+    description: 'Build configuration (Debug or Release)'
+    required: false
+    default: 'Release'
+  skip-analyzer-tests:
+    description: 'Skip analyzer tests'
+    required: false
+    default: 'false'
+  upload-analyzer-results:
+    description: 'Upload analyzer test results as artifacts'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Set version from CHANGELOG.md
+      shell: pwsh
+      run: ./scripts/Set-VersionFromChangelog.ps1 -ChangelogPath CHANGELOG.md -CsprojPath XrmSync/XrmSync.csproj
+    
+    - name: Restore dependencies
+      shell: pwsh
+      run: dotnet restore XrmSync.sln
+    
+    - name: Build
+      shell: pwsh
+      run: dotnet build XrmSync.sln --no-restore --configuration ${{ inputs.configuration }}
+    
+    - name: Test
+      shell: pwsh
+      run: dotnet test XrmSync.sln --no-build --configuration ${{ inputs.configuration }} --verbosity normal
+    
+    - name: Test analyzers
+      if: inputs.skip-analyzer-tests != 'true'
+      shell: pwsh
+      run: |
+        if ('${{ inputs.upload-analyzer-results }}' -eq 'true') {
+          ./scripts/Test-Samples.ps1 -SkipBuild -OutputNormalizedJson -Configuration ${{ inputs.configuration }}
+        } else {
+          ./scripts/Test-Samples.ps1 -SkipBuild -Configuration ${{ inputs.configuration }}
+        }
+    
+    - name: Upload analyzer JSON results
+      if: inputs.skip-analyzer-tests != 'true' && inputs.upload-analyzer-results == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: analyzer-results
+        path: test-outputs/*.json
+
+    - name: Pack NuGet package
+      shell: pwsh
+      run: dotnet pack XrmSync/XrmSync.csproj --no-build --configuration Release --output XrmSync/nupkg
+      
+    - name: Upload NuGet package artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: XrmSync/nupkg/*.nupkg

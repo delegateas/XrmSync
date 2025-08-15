@@ -10,23 +10,12 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      
+      - name: Build and Test
+        uses: ./.github/actions/build-and-test
         with:
-          dotnet-version: '8.0.x'
-      - name: Set version from CHANGELOG.md
-        shell: pwsh
-        run: ./scripts/Set-VersionFromChangelog.ps1 -ChangelogPath CHANGELOG.md -CsprojPath XrmSync/XrmSync.csproj
-      - name: Restore dependencies
-        run: dotnet restore XrmSync.sln
-      - name: Build
-        run: dotnet build XrmSync.sln --no-restore --configuration Release
-      - name: Test
-        run: dotnet test XrmSync.sln --no-build --configuration Release --verbosity normal
-      - name: Test analyzers
-        shell: pwsh
-        run: ./scripts/Test-Samples.ps1 -SkipBuild -Configuration Release
-      - name: Pack
-        run: dotnet pack XrmSync/XrmSync.csproj --no-build --configuration Release --output XrmSync/nupkg
+          configuration: Release
+      
       - name: Publish to NuGet
+        shell: pwsh
         run: dotnet nuget push XrmSync/nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
