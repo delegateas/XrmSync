@@ -6,7 +6,7 @@
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A .NET 8 command-line tool for synchronizing Dataverse plugins and custom APIs with your local plugin assemblies.
+A command-line tool for synchronizing Dataverse plugins and custom APIs with your local plugin assemblies.
 
 ## Overview
 
