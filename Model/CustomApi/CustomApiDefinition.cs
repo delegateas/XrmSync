@@ -12,9 +12,9 @@ public record CustomApiDefinition : EntityBase
     public required string Description { get; set; }
     public bool IsFunction { get; set; }
     public bool EnabledForWorkflow { get; set; }
-    public BindingType BindingType { get; set; } // TODO: CAN THIS BE NULL!?
+    public BindingType BindingType { get; set; }
     public required string BoundEntityLogicalName { get; set; }
-    public AllowedCustomProcessingStepType AllowedCustomProcessingStepType { get; set; } // TODO: CAN THIS BE NULL!?
+    public AllowedCustomProcessingStepType AllowedCustomProcessingStepType { get; set; }
     public Guid OwnerId { get; set; }
     public bool IsCustomizable { get; set; }
     public bool IsPrivate { get; set; }
