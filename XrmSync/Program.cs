@@ -6,16 +6,18 @@ using XrmSync.AssemblyAnalyzer;
 using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
+using XrmSync.Options;
 using XrmSync.SyncService;
 
 var serviceCollection = new ServiceCollection()
     .ConfigureXrmSync();
 
 var command = new CommandLineBuilder()
-    .SetSyncAction(async (assemblyPath, solutionName, dryRun, logLevel, cancellationToken) =>
+    .SetSyncAction(async (assemblyPath, solutionName, dryRun, logLevel, saveConfig, cancellationToken) =>
     {
         var serviceProvider = serviceCollection
             .AddXrmSyncServices()
+            .AddConfigWriter()
             .AddXrmSyncOptions(builder =>
             {
                 var baseOptions = builder.Build();
@@ -32,6 +34,19 @@ var command = new CommandLineBuilder()
 
         try
         {
+            var options = serviceProvider.GetRequiredService<XrmSyncOptions>();
+            
+            // Handle save-config functionality
+            if (saveConfig is not null)
+            {
+                var configWriter = serviceProvider.GetRequiredService<IConfigWriter>();
+                var configPath = string.IsNullOrWhiteSpace(saveConfig) ? null : saveConfig;
+                await configWriter.SaveConfigAsync(options, configPath, cancellationToken);
+                
+                Console.WriteLine($"Configuration saved to {configPath ?? "appsettings.json"}");
+                return true;
+            }
+
             var pluginSync = serviceProvider.GetRequiredService<PluginSyncService>();
             await pluginSync.Sync(cancellationToken);
             return true;

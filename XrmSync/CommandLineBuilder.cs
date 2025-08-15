@@ -11,6 +11,7 @@ internal record CommandLineOptions
     public required Option<bool> DryRun { get; init; }
     public required Option<LogLevel?> LogLevel { get; init; }
     public required Option<bool> PrettyPrint { get; init; }
+    public required Option<string?> SaveConfig { get; init; }
 }
 
 internal class CommandLineBuilder
@@ -48,6 +49,12 @@ internal class CommandLineBuilder
         {
             Description = "Pretty print the JSON output",
             Required = false
+        },
+        SaveConfig = new("--save-config", "--sc")
+        {
+            Description = "Save current CLI options to appsettings.json (optionally specify a custom file path)",
+            Required = false,
+            Arity = ArgumentArity.ZeroOrOne
         }
     };
 
@@ -58,7 +65,8 @@ internal class CommandLineBuilder
             Options.AssemblyFile,
             Options.SolutionName,
             Options.DryRun,
-            Options.LogLevel
+            Options.LogLevel,
+            Options.SaveConfig
         };
 
         AnalyzeCommand = new ("analyze", "Analyze a plugin assembly and output info as JSON")
@@ -70,7 +78,7 @@ internal class CommandLineBuilder
         SyncCommand.Subcommands.Add(AnalyzeCommand);
     }
 
-    public CommandLineBuilder SetSyncAction(Func<string?, string?, bool?, LogLevel?, CancellationToken, Task<bool>> syncAction)
+    public CommandLineBuilder SetSyncAction(Func<string?, string?, bool?, LogLevel?, string?, CancellationToken, Task<bool>> syncAction)
     {
         SyncCommand.SetAction(async (parseResult, cancellationToken) =>
         {
@@ -78,8 +86,9 @@ internal class CommandLineBuilder
             var solutionName = parseResult.GetValue(Options.SolutionName);
             var dryRun = parseResult.GetValue(Options.DryRun);
             var logLevel = parseResult.GetValue(Options.LogLevel);
+            var saveConfig = parseResult.GetValue(Options.SaveConfig);
 
-            return await syncAction(assemblyPath, solutionName, dryRun, logLevel, cancellationToken)
+            return await syncAction(assemblyPath, solutionName, dryRun, logLevel, saveConfig, cancellationToken)
                 ? 0
                 : 1;
         });

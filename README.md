@@ -74,6 +74,7 @@ xrmsync --dry-run --log-level Debug
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
+| `--save-config` | `--sc` | Save current CLI options to appsettings.json (optionally specify a custom file path) | No |
 
 *Required when not present in appsettings.json
 
@@ -83,8 +84,32 @@ XrmSync supports JSON configuration files that contain all the necessary setting
 
 The XrmSync section allows you to bundle the settings together with other settings in the appsettings.json file. This way, you can manage your configurations in a structured manner.
 
-#### JSON Schema
+#### Generating Configuration Files
 
+You can automatically generate configuration files using the `--save-config` option with any sync command:
+
+# Save current options to appsettings.json (default)
+```bash
+xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config
+```
+
+# Save to a custom file
+```bash
+xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config "my-project.json"
+```
+
+# Save with additional options
+```bash
+xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug --save-config
+```
+
+When using `--save-config`, XrmSync will:
+1. Take all the provided CLI options
+2. Create or update the target configuration file
+3. Merge with existing content if the file already exists
+4. Save the configuration in the proper JSON format
+
+#### JSON Schema
 ```json
 {
 	"XrmSync": {

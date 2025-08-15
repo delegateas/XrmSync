@@ -47,6 +47,11 @@ internal static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddConfigWriter(this IServiceCollection services)
+    {
+        return services.AddSingleton<IConfigWriter, ConfigWriter>();
+    }
+
     public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel> logLevel)
     {
         return services.AddSingleton(sp => LoggerFactory.CreateLogger<ISyncService>(logLevel(sp)));
