@@ -27,10 +27,22 @@ jobs:
       - name: Publish to NuGet
         shell: pwsh
         run: |
+          Write-Host "Current directory:"
           pwd
-          dir XrmSync/
-          dir XrmSync/nupkg/
-          dir XrmSync/nupkg/*.nupkg
+
+          Write-Host "Looking for nupkg files..."
+          $nupkgFiles = Get-ChildItem -Path "XrmSync/nupkg/*.nupkg" -File
+          
+          if ($nupkgFiles.Count -eq 0) {
+            Write-Host "No nupkg files found in XrmSync/nupkg/"
+            exit 1
+          }
+          
+          Write-Host "Found $($nupkgFiles.Count) nupkg file(s):"
+          foreach ($file in $nupkgFiles) {
+            Write-Host "  Full path: $($file.FullName)"
+            Write-Host "  Size: $([math]::Round($file.Length / 1KB, 2)) KB"
+          }
           
           # For automatic triggers (push tags), always publish
           # For manual triggers, only publish if dry_run is explicitly set to false
@@ -40,5 +52,8 @@ jobs:
             Write-Host "Dry run mode - skipping NuGet publish"
           } else {
             Write-Host "Publishing to NuGet..."
-            dotnet nuget push XrmSync/nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+            foreach ($file in $nupkgFiles) {
+              Write-Host "Publishing: $($file.FullName)"
+              dotnet nuget push "$($file.FullName)" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+            }
           }
