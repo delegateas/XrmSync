@@ -18,4 +18,9 @@ jobs:
       
       - name: Publish to NuGet
         shell: pwsh
-        run: dotnet nuget push XrmSync/nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run:
+            pwd
+            dir XrmSync/
+            dir XrmSync/nupkg/
+            dir XrmSync/nupkg/*.nupkg
+            #dotnet nuget push XrmSync/nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
