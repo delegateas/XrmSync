@@ -197,12 +197,12 @@ public class PluginServiceTests
         _customApiWriter.CreateCustomApis(customApis, Arg.Any<List<PluginType>>(), Arg.Any<string>(), Arg.Any<string>()).Returns(createdCustomApis);
 
         var differences = new Differences(
-            new Difference<PluginType>(pluginTypes, [], [], []),
-            new Difference<Step>(pluginSteps, [], [], []),
-            new Difference<Image>(pluginImages, [], [], []),
-            new Difference<CustomApiDefinition>(customApis, [], [], []),
-            new Difference<RequestParameter>(requestParams, [], [], []),
-            new Difference<ResponseProperty>(responseProps, [], [], [])
+            Difference<PluginType>.Empty() with { Creates = pluginTypes },
+            Difference<Step>.Empty() with { Creates = pluginSteps },
+            Difference<Image>.Empty() with { Creates = pluginImages },
+            Difference<CustomApiDefinition>.Empty() with { Creates = customApis },
+            Difference<RequestParameter>.Empty() with { Creates = requestParams },
+            Difference<ResponseProperty>.Empty() with { Creates = responseProps }
         );
 
         // Act
@@ -231,12 +231,12 @@ public class PluginServiceTests
 
         // Act
         _plugin.DoDeletes(new Differences(
-            new Difference<PluginType>([], [], types, []),
-            new Difference<Step>([], [], steps, []),
-            new Difference<Image>([], [], images, []),
-            new Difference<CustomApiDefinition>([], [], apis, []),
-            new Difference<RequestParameter>([], [], reqs, []),
-            new Difference<ResponseProperty>([], [], resps, [])
+            Difference<PluginType>.Empty() with { Deletes = types },
+            Difference<Step>.Empty() with { Deletes = steps },
+            Difference<Image>.Empty() with { Deletes = images },
+            Difference<CustomApiDefinition>.Empty() with { Deletes = apis },
+            Difference<RequestParameter>.Empty() with { Deletes = reqs },
+            Difference<ResponseProperty>.Empty() with { Deletes = resps }
         ));
 
         // Assert
@@ -253,12 +253,12 @@ public class PluginServiceTests
     {
         // Arrange
         var data = new Differences(
-            new Difference<PluginType>([], [], [], []),
-            new Difference<Step>([], [], [], []),
-            new Difference<Image>([], [], [], []),
-            new Difference<CustomApiDefinition>([], [], [], []),
-            new Difference<RequestParameter>([], [], [], []),
-            new Difference<ResponseProperty>([], [], [], [])
+            Difference<PluginType>.Empty(),
+            Difference<Step>.Empty(),
+            Difference<Image>.Empty(),
+            Difference<CustomApiDefinition>.Empty(),
+            Difference<RequestParameter>.Empty(),
+            Difference<ResponseProperty>.Empty()
         );
 
         List<PluginType> pluginTypes = [];
