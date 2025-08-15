@@ -1,10 +1,4 @@
-﻿using Microsoft.Crm.Sdk.Messages;
-using Microsoft.PowerPlatform.Dataverse.Client;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
-using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model.Exceptions;
+﻿using XrmSync.Dataverse.Interfaces;
 
 namespace XrmSync.Dataverse;
 

@@ -1,12 +1,5 @@
-﻿using DG.XrmPluginCore.Enums;
-using Microsoft.PowerPlatform.Dataverse.Client;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
-using XrmSync.Dataverse.Context;
+﻿using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model;
-using XrmSync.Model.Exceptions;
-using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 

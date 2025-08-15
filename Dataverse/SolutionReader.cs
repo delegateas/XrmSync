@@ -1,7 +1,5 @@
-﻿using Microsoft.PowerPlatform.Dataverse.Client;
-using XrmSync.Dataverse.Context;
+﻿using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 

@@ -1,9 +1,5 @@
-using DG.XrmPluginCore.Enums;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model.CustomApi;
 
 namespace XrmSync.Dataverse;
 
