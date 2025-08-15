@@ -1,5 +1,6 @@
 using DG.XrmPluginCore.Enums;
 using Microsoft.Extensions.Logging;
+using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService;
 using XrmSync.SyncService.Comparers;
@@ -38,7 +39,7 @@ public class DifferenceUtilityTests
         var localStep = new Step {
             Name = "LocalStep",
             PluginTypeName = "TestType",
-            ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
+            ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
             Deployment = 0,
@@ -53,7 +54,7 @@ public class DifferenceUtilityTests
         var remoteStep = new Step {
             Name = "RemoteStep",
             PluginTypeName = "TestType",
-            ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
+            ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
             Deployment = 0,
@@ -128,11 +129,11 @@ public class DifferenceUtilityTests
         var localStep = new Step {
             Name = "TestStep",
             PluginTypeName = "TestType",
-            ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
+            ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
-            Deployment = 0,
-            ExecutionMode = DG.XrmPluginCore.Enums.ExecutionMode.Synchronous, // Synchronous
+            Deployment = Deployment.ServerOnly,
+            ExecutionMode = ExecutionMode.Synchronous,
             ExecutionOrder = 1,
             FilteredAttributes = "name,description",
             UserContext = Guid.NewGuid(),
@@ -143,15 +144,15 @@ public class DifferenceUtilityTests
         var remoteStep = new Step {
             Name = "TestStep", // Same name
             PluginTypeName = "TestType",
-            ExecutionStage =  DG.XrmPluginCore.Enums.ExecutionStage.PreOperation, // Different execution stage
+            ExecutionStage =  ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
-            Deployment = 0,
-            ExecutionMode = DG.XrmPluginCore.Enums.ExecutionMode.Asynchronous, // Asynchronous - Different execution mode
+            Deployment = Deployment.ServerOnly,
+            ExecutionMode = ExecutionMode.Synchronous,
             ExecutionOrder = 2, // Different execution order
             FilteredAttributes = "name,description,subject", // Different filtered attributes
             UserContext = Guid.NewGuid(), // Different user context
-            AsyncAutoDelete = false,
+            AsyncAutoDelete = true,
             PluginImages = []
         };
         
@@ -171,31 +172,197 @@ public class DifferenceUtilityTests
         Assert.Equal("TestStep", update.RemoteEntity?.Name);
         Assert.NotEmpty(update.DifferentProperties); // Should have multiple different properties
 
-        // Verify that the differences are detected (ExecutionStage, ExecutionMode, ExecutionOrder, FilteredAttributes, UserContext)
-        var differentProps = update.DifferentProperties.ToArray();
-        var func = update.DifferentProperties.Select(p => p.Compile()).ToArray();
-        Assert.Equal(5, func.Length);
-        var propNames = update.DifferentProperties.Select(p => p.GetMemberName()).ToArray();
-        Assert.Contains(propNames, p => p == "ExecutionStage");
-        Assert.Contains(propNames, p => p == "ExecutionMode");
-        Assert.Contains(propNames, p => p == "ExecutionOrder");
-        Assert.Contains(propNames, p => p == "FilteredAttributes");
-        Assert.Contains(propNames, p => p == "UserContext");
+        // Verify that the differences are detected
+        var funcs = update.DifferentProperties.Select(p => p.Compile()).ToArray();
+        Assert.Equal(4, funcs.Length);
+        var propNames = update.DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
+        Assert.Equal([
+            nameof(Step.AsyncAutoDelete),
+            nameof(Step.ExecutionOrder),
+            nameof(Step.FilteredAttributes),
+            nameof(Step.UserContext)
+        ], propNames);
 
-        var stageComp = func[0];
-        var modeComp = func[1];
-        var orderComp = func[2];
-        var filteredAttributesComp = func[3];
-        var userContextComp = func[4];
+        var orderComp = funcs[0];
+        var filteredAttributesComp = funcs[1];
+        var userContextComp = funcs[2];
+        var asyncComp = funcs[3];
 
         Assert.NotNull(update.RemoteEntity); // Remote entity should not be null
-        Assert.Equal(ExecutionStage.PreValidation, stageComp(update.LocalEntity)); // ExecutionStage
-        Assert.Equal(ExecutionStage.PreOperation, stageComp(update.RemoteEntity)); // Remote ExecutionStage
-        Assert.Equal(ExecutionMode.Synchronous, modeComp(update.LocalEntity)); // ExecutionMode
-        Assert.Equal(ExecutionMode.Asynchronous, modeComp(update.RemoteEntity)); // Remote ExecutionMode
         Assert.Equal(1, orderComp(update.LocalEntity)); // ExecutionOrder
         Assert.Equal(2, orderComp(update.RemoteEntity)); // Remote ExecutionOrder
         Assert.Equal("name,description", filteredAttributesComp(update.LocalEntity)); // FilteredAttributes
         Assert.Equal("name,description,subject", filteredAttributesComp(update.RemoteEntity)); // Remote FilteredAttributes
+        Assert.Equal(localStep.UserContext, userContextComp(update.LocalEntity));
+        Assert.Equal(remoteStep.UserContext, userContextComp(update.RemoteEntity));
+        Assert.False((bool)asyncComp(update.LocalEntity));
+        Assert.True((bool)asyncComp(update.RemoteEntity));
+    }
+
+    [Fact]
+    public void CalculateDifference_UnchangableUpdatesDetected_RequireRecreate()
+    {
+        var localCustomApi = new CustomApiDefinition
+        {
+            Name = "test_custom_api",
+            PluginTypeName = "TestPluginType",
+            UniqueName = "new_test_custom_api",
+            IsFunction = false,
+            EnabledForWorkflow = true,
+            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.SyncAndAsync,
+            BindingType = BindingType.Entity,
+            BoundEntityLogicalName = "account",
+            IsCustomizable = true,
+            OwnerId = Guid.NewGuid(),
+            IsPrivate = false,
+            ExecutePrivilegeName = "new_execute_privilege",
+            Description = "Test Custom API",
+            DisplayName = "Test Custom API"
+        };
+
+        var remoteCustomApi = new CustomApiDefinition
+        {
+            Id = Guid.NewGuid(),
+            Name = "test_custom_api",
+            PluginTypeName = "TestPluginType",
+            UniqueName = "new_test_custom_api",
+            IsFunction = true,
+            EnabledForWorkflow = false,
+            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.AsyncOnly,
+            BindingType = BindingType.EntityCollection,
+            BoundEntityLogicalName = "contact",
+            IsCustomizable = false,
+            OwnerId = Guid.NewGuid(),
+            IsPrivate = false,
+            ExecutePrivilegeName = "new_execute_privilege",
+            Description = "Test Custom API",
+            DisplayName = "Test Custom API"
+        };
+
+        var localData = new CompiledData([], [], [], [localCustomApi], [], []);
+        var remoteData = new CompiledData([], [], [], [remoteCustomApi], [], []);
+
+        // Act
+        var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
+
+        // Assert
+        Assert.Equal([localCustomApi], differences.CustomApis.Creates);
+        Assert.Equal([remoteCustomApi], differences.CustomApis.Deletes);
+        Assert.Empty(differences.CustomApis.UpdatesWithDifferences);
+
+        var recreates = differences.CustomApis.Recreates;
+        Assert.Single(recreates);
+        var recreate = recreates[0];
+        Assert.Equal(localCustomApi, recreate.LocalEntity);
+        Assert.Equal(remoteCustomApi, recreate.RemoteEntity);
+
+        var funcs = recreate.DifferentProperties.Select(p => p.Compile()).ToArray();
+        var propNames = recreate.DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
+        Assert.Equal([
+            nameof(CustomApiDefinition.AllowedCustomProcessingStepType),
+            nameof(CustomApiDefinition.BindingType),
+            nameof(CustomApiDefinition.BoundEntityLogicalName),
+            nameof(CustomApiDefinition.EnabledForWorkflow),
+            nameof(CustomApiDefinition.IsCustomizable),
+            nameof(CustomApiDefinition.IsFunction)
+            ], propNames);
+    }
+
+    [Fact]
+    public void CalculateDifference_UnchangableUpdatesAndChangableDetected_RequiresRecreate()
+    {
+        var localCustomApi = new CustomApiDefinition
+        {
+            Name = "test_custom_api",
+            PluginTypeName = "TestPluginType",
+            UniqueName = "new_test_custom_api",
+            IsFunction = false,
+            EnabledForWorkflow = true,
+            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.SyncAndAsync,
+            BindingType = BindingType.Entity,
+            BoundEntityLogicalName = "account",
+            IsCustomizable = true,
+            OwnerId = Guid.NewGuid(),
+            IsPrivate = false,
+            ExecutePrivilegeName = "new_execute_privilege",
+            Description = "Test Custom API",
+            DisplayName = "Test Custom API"
+        };
+
+        var remoteCustomApi = new CustomApiDefinition
+        {
+            Id = Guid.NewGuid(),
+            Name = "test_custom_api",
+            PluginTypeName = "TestPluginType",
+            UniqueName = "new_test_custom_api",
+            IsFunction = true, // RECREATE
+            EnabledForWorkflow = true,
+            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.SyncAndAsync,
+            BindingType = BindingType.Entity,
+            BoundEntityLogicalName = "account",
+            IsCustomizable = true,
+            OwnerId = Guid.NewGuid(),
+            IsPrivate = true, // UPDATE
+            ExecutePrivilegeName = "new_execute_privilege",
+            Description = "Test Custom API",
+            DisplayName = "Test Custom API"
+        };
+
+        var remoteCustomApiTwo = new CustomApiDefinition
+        {
+            Name = "test_custom_api",
+            PluginTypeName = "TestPluginType",
+            UniqueName = "new_test_custom_api",
+            IsFunction = false,
+            EnabledForWorkflow = true,
+            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.SyncAndAsync,
+            BindingType = BindingType.Entity,
+            BoundEntityLogicalName = "account",
+            IsCustomizable = true,
+            OwnerId = Guid.NewGuid(),
+            IsPrivate = true, // UPDATE
+            ExecutePrivilegeName = "new_execute_privilege",
+            Description = "Test Custom API",
+            DisplayName = "Test Custom API"
+        };
+
+        var localData = new CompiledData([], [], [], [localCustomApi], [], []);
+        var remoteData = new CompiledData([], [], [], [remoteCustomApi], [], []);
+        var remoteDataTwo = new CompiledData([], [], [], [remoteCustomApiTwo], [], []);
+
+        // Act
+        var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
+        var differencesTwo = _differenceUtility.CalculateDifferences(localData, remoteDataTwo);
+
+        // Assert
+        
+        // Local -> Remote, Recreate, no update
+        Assert.Equal([localCustomApi], differences.CustomApis.Creates);
+        Assert.Equal([remoteCustomApi], differences.CustomApis.Deletes);
+        Assert.Empty(differences.CustomApis.UpdatesWithDifferences);
+        Assert.Single(differences.CustomApis.Recreates);
+
+        Assert.Equal(localCustomApi, differences.CustomApis.Recreates[0].LocalEntity);
+        Assert.Equal(remoteCustomApi, differences.CustomApis.Recreates[0].RemoteEntity);
+
+        var propNames = differences.CustomApis.Recreates[0].DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
+        Assert.Equal([
+            nameof(CustomApiDefinition.IsFunction),
+            nameof(CustomApiDefinition.IsPrivate)
+        ], propNames);
+
+        // Local -> RemoteTwo, Update, no recreate
+        Assert.Empty(differencesTwo.CustomApis.Creates);
+        Assert.Empty(differencesTwo.CustomApis.Deletes);
+        Assert.Single(differencesTwo.CustomApis.UpdatesWithDifferences);
+        Assert.Empty(differencesTwo.CustomApis.Recreates);
+
+        Assert.Equal(localCustomApi, differencesTwo.CustomApis.UpdatesWithDifferences[0].LocalEntity);
+        Assert.Equal(remoteCustomApiTwo, differencesTwo.CustomApis.UpdatesWithDifferences[0].RemoteEntity);
+        propNames = differencesTwo.CustomApis.UpdatesWithDifferences[0]
+            .DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
+        Assert.Equal([
+            nameof(CustomApiDefinition.IsPrivate)
+        ], propNames);
     }
 }

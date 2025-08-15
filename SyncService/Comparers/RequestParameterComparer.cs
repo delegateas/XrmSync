@@ -5,14 +5,18 @@ namespace XrmSync.SyncService.Comparers;
 
 public class RequestParameterComparer : BaseComparer<RequestParameter>
 {
-    public override IEnumerable<Expression<Func<RequestParameter, object>>> GetDifferentPropertyNames(RequestParameter x, RequestParameter y)
+    public override IEnumerable<Expression<Func<RequestParameter, object>>> GetDifferentPropertyNames(RequestParameter local, RequestParameter remote)
     {
-        if (x.Name != y.Name) yield return x => x.Name;
-        if (x.DisplayName != y.DisplayName) yield return x => x.DisplayName;
-        if (x.UniqueName != y.UniqueName) yield return x => x.UniqueName;
-        if (x.IsCustomizable != y.IsCustomizable) yield return x => x.IsCustomizable;
-        if (x.Type != y.Type) yield return x => x.Type;
-        if (x.IsOptional != y.IsOptional) yield return x => x.IsOptional;
-        if (x.LogicalEntityName != y.LogicalEntityName) yield return x => x.LogicalEntityName;
+        if (local.Name != remote.Name) yield return x => x.Name;
+        if (local.DisplayName != remote.DisplayName) yield return x => x.DisplayName;
+    }
+
+    public override IEnumerable<Expression<Func<RequestParameter, object>>> GetRequiresRecreate(RequestParameter local, RequestParameter remote)
+    {
+        if (local.UniqueName != remote.UniqueName) yield return local => local.UniqueName;
+        if (local.IsCustomizable != remote.IsCustomizable) yield return local => local.IsCustomizable;
+        if (local.Type != remote.Type) yield return x => x.Type;
+        if (local.IsOptional != remote.IsOptional) yield return x => x.IsOptional;
+        if (local.LogicalEntityName != remote.LogicalEntityName) yield return x => x.LogicalEntityName;
     }
 }

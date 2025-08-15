@@ -6,16 +6,17 @@ namespace XrmSync.SyncService.Comparers;
 
 public abstract class BaseComparer<TEntity> : IEntityComparer<TEntity> where TEntity : EntityBase
 {
-    public abstract IEnumerable<Expression<Func<TEntity, object>>> GetDifferentPropertyNames(TEntity x, TEntity y);
+    public abstract IEnumerable<Expression<Func<TEntity, object>>> GetDifferentPropertyNames(TEntity local, TEntity remote);
+    public virtual IEnumerable<Expression<Func<TEntity, object>>> GetRequiresRecreate(TEntity local, TEntity remote) { return []; }
 
-    public bool Equals(TEntity? x, TEntity? y)
+    public bool Equals(TEntity? local, TEntity? remote)
     {
-        if (ReferenceEquals(x, y)) return true;
-        if (x is null) return false;
-        if (y is null) return false;
-        if (x.GetType() != y.GetType()) return false;
+        if (ReferenceEquals(local, remote)) return true;
+        if (local is null) return false;
+        if (remote is null) return false;
+        if (local.GetType() != remote.GetType()) return false;
 
-        return !GetDifferentPropertyNames(x, y).Any();
+        return !GetDifferentPropertyNames(local, remote).Any() && !GetRequiresRecreate(local, remote).Any();
     }
 
     public int GetHashCode([DisallowNull] TEntity obj)

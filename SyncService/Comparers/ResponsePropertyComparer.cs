@@ -9,9 +9,13 @@ public class ResponsePropertyComparer : BaseComparer<ResponseProperty>
     {
         if (x.Name != y.Name) yield return x => x.Name;
         if (x.DisplayName != y.DisplayName) yield return x => x.DisplayName;
-        if (x.UniqueName != y.UniqueName) yield return x => x.UniqueName;
-        if (x.IsCustomizable != y.IsCustomizable) yield return x => x.IsCustomizable;
-        if (x.Type != y.Type) yield return x => x.Type;
-        if (x.LogicalEntityName != y.LogicalEntityName) yield return x => x.LogicalEntityName;
+    }
+
+    public override IEnumerable<Expression<Func<ResponseProperty, object>>> GetRequiresRecreate(ResponseProperty local, ResponseProperty remote)
+    {
+        if (local.UniqueName != remote.UniqueName) yield return local => local.UniqueName;
+        if (local.IsCustomizable != remote.IsCustomizable) yield return local => local.IsCustomizable;
+        if (local.Type != remote.Type) yield return x => x.Type;
+        if (local.LogicalEntityName != remote.LogicalEntityName) yield return x => x.LogicalEntityName;
     }
 }

@@ -11,26 +11,43 @@ internal static class LoggerExtensions
     public static void Print<TEntity>(this ILogger log, Difference<TEntity> differences, string title, Func<TEntity, string> namePicker) where TEntity : EntityBase
     {
         log.LogInformation("{title} to create: {count}", title, differences.Creates.Count);
-        differences.Creates.ForEach(x => log.LogDebug("  - {name}", namePicker(x)));
+        differences.Creates.ForEach(x =>
+        {
+            var recreate = differences.Recreates.FirstOrDefault(r => r.LocalEntity == x);
+            if (recreate != null)
+            {
+                var props = GetPropNames(recreate);
+                log.LogDebug("  - {name} (recreate) ({props})", namePicker(x), props);
+            }
+            else
+            {
+                log.LogDebug("  - {name}", namePicker(x));
+            }
+        });
 
         log.LogInformation("{title} to update: {count}", title, differences.Updates.Count);
         differences.UpdatesWithDifferences.ForEach(x =>
         {
-            var props = x.DifferentProperties
-                .Select(p =>
-                {
-                    var memberName = p.GetMemberName();
-                    var propGetter = p.Compile();
-                    var localValue = propGetter(x.LocalEntity);
-                    var remoteValue = x.RemoteEntity != null ? propGetter(x.RemoteEntity) : null;
-
-                    return $"{memberName}: \"{remoteValue ?? "<null>"}\" -> \"{localValue ?? "<null>"}\"";
-                });
-            log.LogDebug("  - {name} ({props})", namePicker(x.LocalEntity), string.Join(", ", props));
+            var props = GetPropNames(x);
+            log.LogDebug("  - {name} ({props})", namePicker(x.LocalEntity), props);
         });
 
         log.LogInformation("{title} to delete: {count}", title,differences.Deletes.Count);
         differences.Deletes.ForEach(x => log.LogDebug("  - {name}", namePicker(x)));
+    }
+
+    private static string GetPropNames<TEntity>(EntityDifference<TEntity> diff) where TEntity : EntityBase
+    {
+        return string.Join(", ", diff.DifferentProperties
+            .Select(p =>
+            {
+                var memberName = p.GetMemberName();
+                var propGetter = p.Compile();
+                var localValue = propGetter(diff.LocalEntity);
+                var remoteValue = diff.RemoteEntity != null ? propGetter(diff.RemoteEntity) : null;
+
+                return $"{memberName}: \"{remoteValue ?? "<null>"}\" -> \"{localValue ?? "<null>"}\"";
+            }));
     }
 
     public static string GetMemberName<T>(this Expression<Func<T, object>> lambda)

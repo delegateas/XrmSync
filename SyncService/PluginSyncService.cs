@@ -136,6 +136,7 @@ public class PluginSyncService(
     {
         try
         {
+            // TODO: Unique needs to be aware of prefix. There's a prefix in remote, not in local. Should we add the prefix already when assembly loading?
             log.LogInformation("Loading local assembly and its plugins");
             var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath, cancellationToken);
             log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis locally", localAssembly.Plugins.Count, localAssembly.CustomApis.Count);

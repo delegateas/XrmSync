@@ -15,33 +15,72 @@ public class DifferenceUtility(ILogger log,
     IEntityComparer<RequestParameter> requestComparer,
     IEntityComparer<ResponseProperty> responseComparer) : IDifferenceUtility
 {
-    internal static Difference<T> GetDifference<T>(List<T> list1, List<T> list2, IEntityComparer<T> comparer, Func<T, string>? nameSelector = null) where T : EntityBase
+    internal static Difference<T> GetDifference<T>(List<T> localData, List<T> remoteData, IEntityComparer<T> comparer, Func<T, string>? nameSelector = null) where T : EntityBase
     {
         nameSelector ??= (x) => x.Name;
 
-        var creates = list1
-            .Where(x => !list2.Any(y => nameSelector(x) == nameSelector(y)))
+        var creates = localData
+            .Where(local => !remoteData.Any(remote => nameSelector(local) == nameSelector(remote)))
             .ToList();
 
-        var deletes = list2
-            .Where(x => !list1.Any(y => nameSelector(x) == nameSelector(y)))
+        var deletes = remoteData
+            .Where(remote => !localData.Any(local => nameSelector(remote) == nameSelector(local)))
             .ToList();
 
-        var updates = list1
-            .Select(x =>
+        var matched = localData
+            .Join(remoteData,
+                  local => nameSelector(local),
+                  remote => nameSelector(remote),
+                  (local, remote) => (Local: local, Remote: remote))
+            .Where(x => !comparer.Equals(x.Local, x.Remote))
+            .ToList();
+
+        var updates = matched
+            .Select(match =>
             {
-                var matchingEntity = list2.FirstOrDefault(y => nameSelector(x) == nameSelector(y));
-                if (matchingEntity == null || comparer.Equals(x, matchingEntity))
-                {
-                    return new EntityDifference<T>(x, matchingEntity, []);
-                }
-                var differentProperties = comparer.GetDifferentPropertyNames(x, matchingEntity).ToList();
-                return new EntityDifference<T>(x, matchingEntity, differentProperties);
+                var (localEntity, remoteEntity) = match;
+                var differentProperties = comparer.GetDifferentPropertyNames(localEntity, remoteEntity).ToList();
+                return new EntityDifference<T>(localEntity, remoteEntity, differentProperties);
             })
             .Where(x => x.DifferentProperties.Any())
             .ToList();
 
-        return new (creates, updates, deletes);
+        var recreates = matched
+            .Select(match =>
+            {
+                var (localEntity, remoteEntity) = match;
+                var differentProperties = comparer.GetRequiresRecreate(localEntity, remoteEntity).ToList();
+                return new EntityDifference<T>(localEntity, remoteEntity, differentProperties);
+            })
+            .Where(x => x.DifferentProperties.Any())
+            .ToList();
+
+        // Recreates are considered as both creates and deletes
+        creates.AddRange(recreates.Select(x => x.LocalEntity));
+        deletes.AddRange(recreates.Select(x => x.RemoteEntity));
+
+        // If we have recreates, we should not consider them as updates
+        var updatesWithRecreates = updates
+            .Where(x => recreates.Any(r => r.LocalEntity.Id == x.LocalEntity.Id))
+            .ToList();
+        updates = [.. updates.Except(updatesWithRecreates)];
+
+        // We want to add the update fields to the recreates
+        recreates = recreates.ConvertAll(recreate =>
+        {
+            var matched = updatesWithRecreates.FirstOrDefault(update => nameSelector(recreate.LocalEntity) == nameSelector(update.LocalEntity));
+            if (matched != null)
+            {
+                return new EntityDifference<T>(
+                    recreate.LocalEntity,
+                    recreate.RemoteEntity,
+                    [.. recreate.DifferentProperties, .. matched.DifferentProperties]);
+            }
+
+            return recreate;
+        });
+
+        return new (creates, updates, deletes, recreates);
     }
 
     public Differences CalculateDifferences(CompiledData localData, CompiledData remoteData)

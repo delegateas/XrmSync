@@ -197,12 +197,12 @@ public class PluginServiceTests
         _customApiWriter.CreateCustomApis(customApis, Arg.Any<List<PluginType>>(), Arg.Any<string>(), Arg.Any<string>()).Returns(createdCustomApis);
 
         var differences = new Differences(
-            new Difference<PluginType>(pluginTypes, [], []),
-            new Difference<Step>(pluginSteps, [], []),
-            new Difference<Image>(pluginImages, [], []),
-            new Difference<CustomApiDefinition>(customApis, [], []),
-            new Difference<RequestParameter>(requestParams, [], []),
-            new Difference<ResponseProperty>(responseProps, [], [])
+            new Difference<PluginType>(pluginTypes, [], [], []),
+            new Difference<Step>(pluginSteps, [], [], []),
+            new Difference<Image>(pluginImages, [], [], []),
+            new Difference<CustomApiDefinition>(customApis, [], [], []),
+            new Difference<RequestParameter>(requestParams, [], [], []),
+            new Difference<ResponseProperty>(responseProps, [], [], [])
         );
 
         // Act
@@ -231,12 +231,12 @@ public class PluginServiceTests
 
         // Act
         _plugin.DoDeletes(new Differences(
-            new Difference<PluginType>([], [], types),
-            new Difference<Step>([], [], steps),
-            new Difference<Image>([], [], images),
-            new Difference<CustomApiDefinition>([], [], apis),
-            new Difference<RequestParameter>([], [], reqs),
-            new Difference<ResponseProperty>([], [], resps)
+            new Difference<PluginType>([], [], types, []),
+            new Difference<Step>([], [], steps, []),
+            new Difference<Image>([], [], images, []),
+            new Difference<CustomApiDefinition>([], [], apis, []),
+            new Difference<RequestParameter>([], [], reqs, []),
+            new Difference<ResponseProperty>([], [], resps, [])
         ));
 
         // Assert
@@ -253,12 +253,12 @@ public class PluginServiceTests
     {
         // Arrange
         var data = new Differences(
-            new Difference<PluginType>([], [], []),
-            new Difference<Step>([], [], []),
-            new Difference<Image>([], [], []),
-            new Difference<CustomApiDefinition>([], [], []),
-            new Difference<RequestParameter>([], [], []),
-            new Difference<ResponseProperty>([], [], [])
+            new Difference<PluginType>([], [], [], []),
+            new Difference<Step>([], [], [], []),
+            new Difference<Image>([], [], [], []),
+            new Difference<CustomApiDefinition>([], [], [], []),
+            new Difference<RequestParameter>([], [], [], []),
+            new Difference<ResponseProperty>([], [], [], [])
         );
 
         List<PluginType> pluginTypes = [];
