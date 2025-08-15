@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Model;
+using XrmSync.Options;
 using XrmSync.SyncService;
 using XrmSync.SyncService.Extensions;
 

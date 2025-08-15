@@ -3,7 +3,7 @@ using System.CommandLine;
 
 namespace XrmSync;
 
-internal record Options
+internal record CommandLineOptions
 {
     public required Option<string> AssemblyFile { get; init; }
     public required Option<string> SolutionName { get; init; }
@@ -18,7 +18,7 @@ internal class CommandLineBuilder
     protected RootCommand SyncCommand { get; init; }
     protected Command AnalyzeCommand { get; init; }
 
-    protected Options Options { get; } = new()
+    protected CommandLineOptions Options { get; } = new()
     {
         AssemblyFile = new("--assembly", "-a", "--assembly-file", "--af")
         {

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using XrmSync.Model;
 
-namespace XrmSync;
+namespace XrmSync.Options;
 
 internal class SimpleSyncOptionsBuilder(IConfiguration configuration) : ISyncOptionsBuilder
 {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using XrmSync.Model;
 
-namespace XrmSync;
+namespace XrmSync.Options;
 
 internal interface ISyncOptionsBuilder
 {

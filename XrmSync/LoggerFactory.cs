@@ -8,9 +8,9 @@ internal static class LoggerFactory
     {
         var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
         {
-            builder.AddFilter("Microsoft", LogLevel.Warning)
-                .AddFilter("System", LogLevel.Warning)
-                .AddFilter("XrmSync", logLevel)
+            builder.AddFilter(nameof(Microsoft), LogLevel.Warning)
+                .AddFilter(nameof(System), LogLevel.Warning)
+                .AddFilter(nameof(XrmSync), logLevel)
                 .AddSimpleConsole(options =>
                 {
                     options.IncludeScopes = false;
