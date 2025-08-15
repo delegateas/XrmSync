@@ -50,6 +50,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2-Hybrid", "Samples\2-Hybri
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "4-Full-DAXIF", "Samples\4-Full-DAXIF\4-Full-DAXIF.csproj", "{C086DFFC-1E18-0EE5-AEA6-1EDFD7F7CC50}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "actions", "actions", "{DE4DB358-3ED8-4E7D-8B90-9D321B32C139}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build-and-test", "build-and-test", "{E61B20FB-481B-4D80-BB82-C5038446653F}"
+	ProjectSection(SolutionItems) = preProject
+		.github\actions\build-and-test\action.yml = .github\actions\build-and-test\action.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -112,6 +119,8 @@ Global
 		{17BB0383-BEA9-4B82-BDDD-501D78D2F450} = {F1C44A16-2F38-4436-9FDC-676352B78FD8}
 		{60A71E95-56E4-1BEC-947D-F2E911FDEC7F} = {F1C44A16-2F38-4436-9FDC-676352B78FD8}
 		{C086DFFC-1E18-0EE5-AEA6-1EDFD7F7CC50} = {F1C44A16-2F38-4436-9FDC-676352B78FD8}
+		{DE4DB358-3ED8-4E7D-8B90-9D321B32C139} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{E61B20FB-481B-4D80-BB82-C5038446653F} = {DE4DB358-3ED8-4E7D-8B90-9D321B32C139}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F9480A28-E137-4B10-A81F-7EAA7955B252}
