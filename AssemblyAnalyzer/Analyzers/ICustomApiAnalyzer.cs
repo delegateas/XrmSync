@@ -4,5 +4,5 @@ namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
 public interface ICustomApiAnalyzer
 {
-    List<CustomApiDefinition> GetCustomApis(IEnumerable<Type> types);
+    List<CustomApiDefinition> GetCustomApis(IEnumerable<Type> types, string prefix);
 }

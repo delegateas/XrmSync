@@ -49,7 +49,7 @@ var command = new CommandLineBuilder()
             return false;
         }
     })
-    .SetAnalyzeAction(async (assemblyPath, prettyPrint, cancellationToken) =>
+    .SetAnalyzeAction(async (assemblyPath, publisherPrefix, prettyPrint, cancellationToken) =>
     {
         var serviceProvider = serviceCollection
             .AddAnalyzerServices()
@@ -67,7 +67,7 @@ var command = new CommandLineBuilder()
             try
             {
                 var analyzer = serviceProvider.GetRequiredService<IAssemblyAnalyzer>();
-                var pluginDto = analyzer.AnalyzeAssembly(assemblyPath);
+                var pluginDto = analyzer.AnalyzeAssembly(assemblyPath, publisherPrefix ?? "new");
                 var options = new JsonSerializerOptions(JsonSerializerOptions.Default)
                 {
                     WriteIndented = prettyPrint

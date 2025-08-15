@@ -4,5 +4,5 @@ namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
 public interface IPluginAnalyzer
 {
-    List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types);
+    List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types, string prefix);
 }

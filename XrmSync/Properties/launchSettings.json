@@ -22,19 +22,19 @@
     },
     "AnalyzeSampleDAXIF": {
       "commandName": "Project",
-      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\""
+      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
     },
     "AnalyzeSampleHybrid": {
       "commandName": "Project",
-      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\""
+      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
     },
     "AnalyzeSampleXrmPluginCore": {
       "commandName": "Project",
-      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\3-XrmPluginCore\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\""
+      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\3-XrmPluginCore\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
     },
     "AnalyzeSampleFullDAXIF": {
       "commandName": "Project",
-      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\4-Full-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\""
+      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\4-Full-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
     },
     "XrmSyncHelp": {
       "commandName": "Project",

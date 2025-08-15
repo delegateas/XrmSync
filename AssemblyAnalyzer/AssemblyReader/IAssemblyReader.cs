@@ -4,5 +4,5 @@ namespace XrmSync.AssemblyAnalyzer.AssemblyReader;
 
 public interface IAssemblyReader
 {
-    Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath, CancellationToken cancellationToken);
+    Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken);
 }

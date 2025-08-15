@@ -4,6 +4,6 @@ namespace XrmSync.AssemblyAnalyzer
 {
     public interface IAssemblyAnalyzer
     {
-        AssemblyInfo AnalyzeAssembly(string dllPath);
+        AssemblyInfo AnalyzeAssembly(string dllPath, string prefix);
     }
 }

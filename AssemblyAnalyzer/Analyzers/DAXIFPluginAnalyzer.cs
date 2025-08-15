@@ -12,7 +12,7 @@ using ImageTuple = Tuple<string?, string?, int, string?>;
 
 internal class DAXIFPluginAnalyzer : Analyzer, IPluginAnalyzer
 {
-    public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types)
+    public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types, string prefix)
     {
         var pluginBaseType = types.FirstOrDefault(x => x.Name == "Plugin");
         if (pluginBaseType == null)

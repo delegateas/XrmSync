@@ -88,7 +88,6 @@ public class PluginServiceTests
             Plugins = []
         };
         var solutionName = _options.SolutionName;
-        const string solutionPrefix = "pre";
         var pluginTypes = new List<PluginType> {
             new() {
                 Name = "Type1",
@@ -194,7 +193,7 @@ public class PluginServiceTests
 
         _pluginWriter.CreatePluginTypes(pluginTypes, Arg.Any<Guid>(), Arg.Any<string>()).Returns(createdTypes);
         _pluginWriter.CreatePluginSteps(pluginSteps, Arg.Any<List<PluginType>>(), Arg.Any<string>()).Returns(createdSteps);
-        _customApiWriter.CreateCustomApis(customApis, Arg.Any<List<PluginType>>(), Arg.Any<string>(), Arg.Any<string>()).Returns(createdCustomApis);
+        _customApiWriter.CreateCustomApis(customApis, Arg.Any<List<PluginType>>(), Arg.Any<string>()).Returns(createdCustomApis);
 
         var differences = new Differences(
             Difference<PluginType>.Empty() with { Creates = pluginTypes },
@@ -206,13 +205,13 @@ public class PluginServiceTests
         );
 
         // Act
-        _plugin.DoCreates(differences, [], [], crmAssembly, solutionPrefix);
+        _plugin.DoCreates(differences, [], [], crmAssembly);
 
         // Assert
         _pluginWriter.Received(1).CreatePluginTypes(pluginTypes, crmAssembly.Id, _description.SyncDescription);
         _pluginWriter.Received(1).CreatePluginSteps(pluginSteps, Arg.Is<List<PluginType>>(t => !t.Except(createdTypes).Any()), _description.SyncDescription);
         _pluginWriter.Received(1).CreatePluginImages(pluginImages, Arg.Is<List<Step>>(s => !s.Except(createdSteps).Any()));
-        _customApiWriter.Received(1).CreateCustomApis(customApis, Arg.Is<List<PluginType>>(t => !t.Except(createdTypes).Any()), solutionPrefix, _description.SyncDescription);
+        _customApiWriter.Received(1).CreateCustomApis(customApis, Arg.Is<List<PluginType>>(t => !t.Except(createdTypes).Any()), _description.SyncDescription);
         Assert.Equal(createdCustomApis, crmAssembly.CustomApis);
         _customApiWriter.Received(1).CreateRequestParameters(requestParams, Arg.Is<List<CustomApiDefinition>>(c => !c.Except(createdCustomApis).Any()));
         _customApiWriter.Received(1).CreateResponseProperties(responseProps, Arg.Is<List<CustomApiDefinition>>(c => !c.Except(createdCustomApis).Any()));

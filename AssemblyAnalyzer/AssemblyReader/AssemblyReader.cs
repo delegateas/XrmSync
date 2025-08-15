@@ -17,11 +17,16 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
 {
     private Dictionary<string, AssemblyInfo> assemblyCache = new();
 
-    public async Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath, CancellationToken cancellationToken)
+    public async Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(assemblyDllPath))
         {
             throw new AnalysisException("Assembly DLL path cannot be null or empty");
+        }
+
+        if (string.IsNullOrWhiteSpace(publisherPrefix))
+        {
+            throw new AnalysisException("Publisher prefix cannot be null or empty");
         }
 
         if (assemblyCache.TryGetValue(assemblyDllPath, out var cachedAssemblyInfo))
@@ -31,7 +36,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         }
 
         logger.LogDebug("Reading assembly from {AssemblyDllPath}", assemblyDllPath);
-        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, cancellationToken);
+        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, publisherPrefix, cancellationToken);
 
         // Cache the assembly info
         assemblyCache[assemblyDllPath] = assemblyInfo;
@@ -39,9 +44,9 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         return assemblyInfo;
     }
 
-    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath, CancellationToken cancellationToken)
+    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken)
     {
-        var (filename, args) = await GetExecutionInfoAsync(assemblyDllPath, cancellationToken);
+        var (filename, args) = await GetExecutionInfoAsync(assemblyDllPath, publisherPrefix, cancellationToken);
 
         var result = await RunCommandAsync(filename, args, cancellationToken);
         if (result.ExitCode != 0)
@@ -58,9 +63,9 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         return assemblyInfo ?? throw new AnalysisException("Failed to read plugin type information from assembly");
     }
 
-    private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath, CancellationToken cancellationToken)
+    private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken)
     {
-        var baseArgs = $"analyze --assembly \"{assemblyDllPath}\"";
+        var baseArgs = $"analyze --assembly \"{assemblyDllPath}\" --prefix \"{publisherPrefix}\"";
 
 #if DEBUG
         // In debug, try to invoke the currently executing assembly first

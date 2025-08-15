@@ -42,7 +42,7 @@ public class PluginSyncService(
         log.LogInformation("Connecting to Dataverse at {dataverseUrl}", solutionReader.ConnectedHost);
 
         // Read the data from the local assembly and from Dataverse
-        var (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes, prefix) = await ReadData(cancellationToken);
+        var (localAssembly, crmAssembly, localPluginTypes, crmPluginTypes) = await ReadData(cancellationToken);
 
         // Align the local and remote info, matching IDs
         var (localPluginSteps, crmPluginSteps) = AlignSteps(localAssembly, crmAssembly);
@@ -82,7 +82,7 @@ public class PluginSyncService(
         DoUpdates(differences, crmPluginTypes, crmPluginSteps);
 
         // Create
-        DoCreates(differences, crmPluginTypes, crmPluginSteps, crmAssembly, prefix);
+        DoCreates(differences, crmPluginTypes, crmPluginSteps, crmAssembly);
 
         // Done
         log.LogInformation("Plugin synchronization was completed successfully");
@@ -136,9 +136,11 @@ public class PluginSyncService(
     {
         try
         {
-            // TODO: Unique needs to be aware of prefix. There's a prefix in remote, not in local. Should we add the prefix already when assembly loading?
+            log.LogInformation("Reading solution information for solution \"{solutionName}\"", options.SolutionName);
+            var (solutionId, solutionPrefix) = solutionReader.RetrieveSolution(options.SolutionName);
+
             log.LogInformation("Loading local assembly and its plugins");
-            var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath, cancellationToken);
+            var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath, solutionPrefix, cancellationToken);
             log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis locally", localAssembly.Plugins.Count, localAssembly.CustomApis.Count);
 
             log.LogInformation("Validating plugins to be registered");
@@ -146,7 +148,6 @@ public class PluginSyncService(
             log.LogInformation("Plugins validated");
 
             log.LogInformation("Retrieving registered plugins from Dataverse solution \"{solutionName}\"", options.SolutionName);
-            var (solutionId, solutionPrefix) = solutionReader.RetrieveSolution(options.SolutionName);
             var (crmAssembly, crmPluginTypes) = GetPluginAssembly(solutionId, localAssembly.Name);
             log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis registered in CRM", crmAssembly?.Plugins.Count ?? 0, crmAssembly?.CustomApis.Count ?? 0);
 
@@ -156,7 +157,7 @@ public class PluginSyncService(
                 .Concat(localAssembly.Plugins.ConvertAll(localPlugin => localPlugin.ToPluginType(crmPluginTypes, c => c.Name)))
                 .ToList();
 
-            return new SyncData(localAssembly, crmAssembly, localPluginTypes, crmPluginTypes, solutionPrefix);
+            return new SyncData(localAssembly, crmAssembly, localPluginTypes, crmPluginTypes);
         }
         catch (AnalysisException ex)
         {
@@ -268,12 +269,12 @@ public class PluginSyncService(
         pluginWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
     }
 
-    internal void DoCreates(Differences differences, List<PluginType> dataversePluginTypes, List<Step> dataversePluginSteps, AssemblyInfo dataverseAssembly, string prefix)
+    internal void DoCreates(Differences differences, List<PluginType> dataversePluginTypes, List<Step> dataversePluginSteps, AssemblyInfo dataverseAssembly)
     {
         dataversePluginTypes.AddRange(pluginWriter.CreatePluginTypes(differences.Types.Creates, dataverseAssembly.Id, description.SyncDescription));
         dataversePluginSteps.AddRange(pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates, dataversePluginTypes, description.SyncDescription));
         pluginWriter.CreatePluginImages(differences.PluginImages.Creates, dataversePluginSteps);
-        dataverseAssembly.CustomApis.AddRange(customApiWriter.CreateCustomApis(differences.CustomApis.Creates, dataversePluginTypes, prefix, description.SyncDescription));
+        dataverseAssembly.CustomApis.AddRange(customApiWriter.CreateCustomApis(differences.CustomApis.Creates, dataversePluginTypes, description.SyncDescription));
         customApiWriter.CreateRequestParameters(differences.RequestParameters.Creates, dataverseAssembly.CustomApis);
         customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates, dataverseAssembly.CustomApis);
     }
@@ -301,4 +302,4 @@ public class PluginSyncService(
     }
 }
 
-internal record SyncData(AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly, List<PluginType> LocalPluginTypes, List<PluginType> CrmPluginTypes, string Prefix);
+internal record SyncData(AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly, List<PluginType> LocalPluginTypes, List<PluginType> CrmPluginTypes);

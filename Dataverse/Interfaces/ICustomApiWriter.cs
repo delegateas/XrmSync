@@ -5,7 +5,7 @@ namespace XrmSync.Dataverse.Interfaces;
 
 public interface ICustomApiWriter
 {
-    List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, List<PluginType> pluginTypes, string solutionPrefix, string description);
+    List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, List<PluginType> pluginTypes, string description);
     List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters, List<CustomApiDefinition> customApis);
     List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties, List<CustomApiDefinition> customApis);
     List<CustomApiDefinition> UpdateCustomApis(List<CustomApiDefinition> customApis, List<PluginType> pluginTypes, string description);

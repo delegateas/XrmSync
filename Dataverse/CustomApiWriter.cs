@@ -15,7 +15,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
             { "SolutionUniqueName", options.SolutionName }
     };
 
-    public List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string solutionPrefix, string description)
+    public List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string description)
     {
         if (customApis.Count == 0) return customApis;
 
@@ -24,8 +24,6 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncOption
         {
             var pluginType = pluginTypes.FirstOrDefault(pt => pt.Name == api.PluginTypeName)
                 ?? throw new XrmSyncException($"PluginType '{api.PluginTypeName}' not found for CustomApi '{api.UniqueName}'.");
-
-            api.UniqueName = solutionPrefix + "_" + api.UniqueName;
 
             var entity = new CustomApi
             {

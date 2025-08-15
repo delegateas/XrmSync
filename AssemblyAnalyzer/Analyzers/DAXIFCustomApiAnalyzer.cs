@@ -14,7 +14,7 @@ using ResponsePropertyConfig = Tuple<string?, string?, string?, bool, string?, i
 
 internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
 {
-    public List<CustomApiDefinition> GetCustomApis(IEnumerable<Type> types)
+    public List<CustomApiDefinition> GetCustomApis(IEnumerable<Type> types, string prefix)
     {
         var customApiType = types.FirstOrDefault(x => x.Name == "CustomAPI");
         if (customApiType == null)
@@ -33,7 +33,7 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
 
             return new CustomApiDefinition
             {
-                UniqueName = apiDef.Item1 ?? string.Empty,
+                UniqueName = prefix + "_" + (apiDef.Item1 ?? string.Empty),
                 Name = apiDef.Item1 ?? string.Empty,
                 IsFunction = apiDef.Item2,
                 EnabledForWorkflow = apiDef.Item3 == 1,

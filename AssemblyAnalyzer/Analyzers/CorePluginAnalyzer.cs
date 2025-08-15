@@ -8,7 +8,7 @@ namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
 internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
 {
-    public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types)
+    public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types, string prefix)
     {
         var pluginBaseType = types.FirstOrDefault(t => t.FullName == typeof(IPluginDefinition).FullName);
         if (pluginBaseType is null) return [];

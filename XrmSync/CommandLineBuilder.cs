@@ -7,6 +7,7 @@ internal record Options
 {
     public required Option<string> AssemblyFile { get; init; }
     public required Option<string> SolutionName { get; init; }
+    public required Option<string> Prefix { get; init; }
     public required Option<bool> DryRun { get; init; }
     public required Option<LogLevel?> LogLevel { get; init; }
     public required Option<bool> PrettyPrint { get; init; }
@@ -29,16 +30,21 @@ internal class CommandLineBuilder
             Description = "Name of the solution",
             Arity = ArgumentArity.ExactlyOne
         },
-        DryRun = new("--dry-run", "--dryrun")
+        Prefix = new("--prefix", "--publisher-prefix", "-p")
+        {
+            Description = "Publisher prefix for unique names (Default: new)",
+            Arity = ArgumentArity.ExactlyOne
+        },
+        DryRun = new("--dry-run", "--dryrun", "--dr")
         {
             Description = "Perform a dry run without making changes",
             Required = false
         },
         LogLevel = new ("--log-level", "-l")
             {
-            Description = "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical)"
+            Description = "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) (Default: Information)"
         },
-        PrettyPrint = new("--pretty-print", "-p")
+        PrettyPrint = new("--pretty-print", "--pp")
         {
             Description = "Pretty print the JSON output",
             Required = false
@@ -58,6 +64,7 @@ internal class CommandLineBuilder
         AnalyzeCommand = new ("analyze", "Analyze a plugin assembly and output info as JSON")
         {
             Options.AssemblyFile,
+            Options.Prefix,
             Options.PrettyPrint
         };
         SyncCommand.Subcommands.Add(AnalyzeCommand);
@@ -80,14 +87,15 @@ internal class CommandLineBuilder
         return this;
     }
 
-    public CommandLineBuilder SetAnalyzeAction(Func<string?, bool, CancellationToken, Task<bool>> analyzeAction)
+    public CommandLineBuilder SetAnalyzeAction(Func<string?, string?, bool, CancellationToken, Task<bool>> analyzeAction)
     {
         AnalyzeCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             var assemblyPath = parseResult.GetValue(Options.AssemblyFile);
+            var publisherPrefix = parseResult.GetValue(Options.Prefix);
             var prettyPrint = parseResult.GetValue(Options.PrettyPrint);
 
-            return await analyzeAction(assemblyPath, prettyPrint, cancellationToken)
+            return await analyzeAction(assemblyPath, publisherPrefix, prettyPrint, cancellationToken)
                 ? 0
                 : 1;
         });
