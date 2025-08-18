@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using XrmSync.Model;
+﻿using XrmSync.Model;
 
 namespace XrmSync.Options;
 

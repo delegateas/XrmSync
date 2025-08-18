@@ -13,7 +13,7 @@ public class ConfigWriter(ILogger<ConfigWriter> logger) : IConfigWriter
 {
     public async Task SaveConfigAsync(XrmSyncOptions options, string? filePath = null, CancellationToken cancellationToken = default)
     {
-        var targetFile = filePath ?? "appsettings.json";
+        var targetFile = filePath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json";
         
         logger.LogInformation("Saving configuration to {FilePath}", targetFile);
 

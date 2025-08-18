@@ -14,15 +14,10 @@ internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection ConfigureXrmSync(this IServiceCollection services)
     {
-        return services.AddSingleton<IConfiguration>(_ =>
-        {
-            return new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production"}.json", optional: true)
-                .AddEnvironmentVariables()
-                .Build();
-        });
+        return services
+            .AddSingleton<IConfigReader, ConfigReader>()
+            .AddSingleton<IConfigWriter, ConfigWriter>()
+            .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration());
     }
 
     public static IServiceCollection AddXrmSyncServices(this IServiceCollection services)
@@ -45,11 +40,6 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton(sp => syncOptionsFactory(sp.GetRequiredService<ISyncOptionsBuilder>()));
 
         return services;
-    }
-
-    public static IServiceCollection AddConfigWriter(this IServiceCollection services)
-    {
-        return services.AddSingleton<IConfigWriter, ConfigWriter>();
     }
 
     public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel> logLevel)

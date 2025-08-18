@@ -17,7 +17,6 @@ var command = new CommandLineBuilder()
     {
         var serviceProvider = serviceCollection
             .AddXrmSyncServices()
-            .AddConfigWriter()
             .AddXrmSyncOptions(builder =>
             {
                 var baseOptions = builder.Build();
@@ -43,7 +42,7 @@ var command = new CommandLineBuilder()
                 var configPath = string.IsNullOrWhiteSpace(saveConfig) ? null : saveConfig;
                 await configWriter.SaveConfigAsync(options, configPath, cancellationToken);
                 
-                Console.WriteLine($"Configuration saved to {configPath ?? "appsettings.json"}");
+                Console.WriteLine($"Configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
                 return true;
             }
 
