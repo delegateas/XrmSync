@@ -67,40 +67,60 @@ var command = new CommandLineBuilder()
     })
     .SetAnalyzeAction(async (analyzeOptions, cancellationToken) =>
     {
-        var (assemblyPath, publisherPrefix, prettyPrint) = analyzeOptions;
+        var (assemblyPath, publisherPrefix, prettyPrint, saveConfig) = analyzeOptions;
 
         var serviceProvider = serviceCollection
             .AddAnalyzerServices()
+            .AddAnalysisOptions(builder =>
+            {
+                var baseOptions = builder.Build();
+
+                return new PluginAnalysisOptions(
+                    string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.AssemblyPath : assemblyPath,
+                    string.IsNullOrWhiteSpace(publisherPrefix) ? baseOptions.PublisherPrefix : publisherPrefix,
+                    prettyPrint || baseOptions.PrettyPrint
+                );
+            })
             .AddLogger(_ => LogLevel.Information)
             .BuildServiceProvider();
 
-        return await Task.Run(() =>
+        try
         {
-            if (string.IsNullOrWhiteSpace(assemblyPath))
+            var options = serviceProvider.GetRequiredService<PluginAnalysisOptions>();
+
+            // Handle save-config functionality for analyze command
+            if (saveConfig is not null)
+            {
+                var configWriter = serviceProvider.GetRequiredService<IConfigWriter>();
+                var configPath = string.IsNullOrWhiteSpace(saveConfig) ? null : saveConfig;
+                await configWriter.SaveAnalysisConfigAsync(options, configPath, cancellationToken);
+                    
+                Console.WriteLine($"Analysis configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(options.AssemblyPath))
             {
                 Console.Error.WriteLine("Assembly path is required for analysis.");
                 return false;
             }
 
-            try
+            var analyzer = serviceProvider.GetRequiredService<IAssemblyAnalyzer>();
+            var pluginDto = analyzer.AnalyzeAssembly(options.AssemblyPath, options.PublisherPrefix);
+            var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
             {
-                var analyzer = serviceProvider.GetRequiredService<IAssemblyAnalyzer>();
-                var pluginDto = analyzer.AnalyzeAssembly(assemblyPath, publisherPrefix ?? "new");
-                var options = new JsonSerializerOptions(JsonSerializerOptions.Default)
-                {
-                    WriteIndented = prettyPrint
-                };
+                WriteIndented = options.PrettyPrint
+            };
 
-                var jsonOutput = JsonSerializer.Serialize(pluginDto, options);
-                Console.WriteLine(jsonOutput);
-                return true;
-            }
-            catch (AnalysisException ex)
-            {
-                Console.Error.WriteLine($"Error analyzing assembly: {ex.Message}");
-                return false;
-            }
-        }, cancellationToken);
+            var jsonOutput = JsonSerializer.Serialize(pluginDto, jsonOptions);
+            Console.WriteLine(jsonOutput);
+            return true;
+        }
+        catch (AnalysisException ex)
+        {
+            Console.Error.WriteLine($"Error analyzing assembly: {ex.Message}");
+            return false;
+        }
     })
     .Build();
 

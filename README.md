@@ -68,6 +68,8 @@ xrmsync --dry-run --log-level Debug
 ```
 ### Command Line Options
 
+#### Sync Command
+
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
 | `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
@@ -78,29 +80,52 @@ xrmsync --dry-run --log-level Debug
 
 *Required when not present in appsettings.json
 
+#### Analyze Command
+
+| Option | Short | Description | Required |
+|--------|-------|-------------|----------|
+| `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
+| `--prefix` | `-p` | Publisher prefix for unique names | No (Default: "new") |
+| `--pretty-print` | `--pp` | Pretty print the JSON output | No |
+| `--save-config` | `--sc` | Save current CLI options to appsettings.json (optionally specify a custom file path) | No |
+
+*Required when not present in appsettings.json
+### Assembly Analysis
+
+You can analyze an assembly without connecting to Dataverse:
+```bash
+xrmsync analyze --assembly "path/to/your/plugin.dll" --pretty-print
+```
+
+You can also save analysis configurations:
+```bash
+xrmsync analyze --assembly "path/to/your/plugin.dll" --prefix "contoso" --pretty-print --save-config
+```
+This outputs JSON information about the plugin types, steps, and images found in the assembly.
+
 ### Configuration File Format
 
-XrmSync supports JSON configuration files that contain all the necessary settings for synchronization. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
+XrmSync supports JSON configuration files that contain all the necessary settings for synchronization and analysis. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
 
-The XrmSync section allows you to bundle the settings together with other settings in the appsettings.json file. This way, you can manage your configurations in a structured manner.
+The configuration uses a hierarchical structure under the XrmSync section, separating sync and analysis options under Plugin.Sync and Plugin.Analysis respectively.
 
 #### Generating Configuration Files
 
-You can automatically generate configuration files using the `--save-config` option with any sync command:
+You can automatically generate configuration files using the `--save-config` option with any command:
 
-# Save current options to appsettings.json (default)
+# Save sync options to appsettings.json (default)
 ```bash
 xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config
+```
+
+# Save analysis options to appsettings.json
+```bash
+xrmsync analyze --assembly "MyPlugin.dll" --prefix "contoso" --pretty-print --save-config
 ```
 
 # Save to a custom file
 ```bash
 xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config "my-project.json"
-```
-
-# Save with additional options
-```bash
-xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug --save-config
 ```
 
 When using `--save-config`, XrmSync will:
@@ -110,18 +135,28 @@ When using `--save-config`, XrmSync will:
 4. Save the configuration in the proper JSON format
 
 #### JSON Schema
+
 ```json
 {
-	"XrmSync": {
-		"AssemblyPath": "path/to/your/plugin.dll",
-		"SolutionName": "YourSolutionName",
-		"DryRun": false,
-		"LogLevel": "Information"
-	}
+  "XrmSync": {
+    "Plugin": {
+      "Sync": {
+        "AssemblyPath": "path/to/your/plugin.dll",
+        "SolutionName": "YourSolutionName",
+        "DryRun": false,
+        "LogLevel": "Information"
+      },
+      "Analysis": {
+        "AssemblyPath": "path/to/your/plugin.dll",
+        "PublisherPrefix": "contoso",
+        "PrettyPrint": true
+      }
+    }
+  }
 }
 ```
 
-#### Properties
+#### Sync Properties
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
@@ -130,46 +165,65 @@ When using `--save-config`, XrmSync will:
 | `DryRun` | boolean | Perform a dry run without making changes | false |
 | `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
 
+#### Analysis Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `PublisherPrefix` | string | Publisher prefix for unique names | "new" |
+| `PrettyPrint` | boolean | Pretty print the JSON output | false |
+
 #### Example Configuration Files
 
-**Basic configuration:**
-
+**Basic sync configuration:**
 ```json
 {
-  "AssemblyPath": "MyPlugin.dll",
-  "SolutionName": "MyCustomSolution"
+  "XrmSync": {
+    "Plugin": {
+      "Sync": {
+        "AssemblyPath": "MyPlugin.dll",
+        "SolutionName": "MyCustomSolution"
+      }
+    }
+  }
 }
 ```
 
-**Full configuration with all options:**
+**Full configuration with both sync and analysis:**
 
 ```json
 {
-  "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-  "SolutionName": "MyCustomSolution",
-  "DryRun": true,
-  "LogLevel": "Debug"
+  "XrmSync": {
+    "Plugin": {
+      "Sync": {
+        "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+        "SolutionName": "MyCustomSolution",
+        "DryRun": true,
+        "LogLevel": "Debug"
+      },
+      "Analysis": {
+        "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+        "PublisherPrefix": "contoso",
+        "PrettyPrint": true
+      }
+    }
+  }
 }
 ```
 
-**Relative path example:**
-
+**Analysis-only configuration:**
 ```json
 {
-  "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
-  "SolutionName": "Plugins",
+  "XrmSync": {
+    "Plugin": {
+      "Analysis": {
+        "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
+        "PublisherPrefix": "contoso",
+        "PrettyPrint": false
+      }
+    }
+  }
 }
-```
-
-### Assembly Analysis
-
-You can analyze an assembly without connecting to Dataverse:
-```bash
-xrmsync analyze --assembly "path/to/your/plugin.dll" --pretty-print
-```
-
-This outputs JSON information about the plugin types, steps, and images found in the assembly.
-
 ### Examples
 
 #### Basic synchronization:

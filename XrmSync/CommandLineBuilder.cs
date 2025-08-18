@@ -15,7 +15,7 @@ internal record CommandLineOptions
 }
 
 internal record SyncOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, string? SaveConfig);
-internal record AnalyzeOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint);
+internal record AnalyzeOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint, string? SaveConfig);
 
 internal class CommandLineBuilder
 {
@@ -76,7 +76,8 @@ internal class CommandLineBuilder
         {
             Options.AssemblyFile,
             Options.Prefix,
-            Options.PrettyPrint
+            Options.PrettyPrint,
+            Options.SaveConfig
         };
         SyncCommand.Subcommands.Add(AnalyzeCommand);
     }
@@ -107,8 +108,9 @@ internal class CommandLineBuilder
             var assemblyPath = parseResult.GetValue(Options.AssemblyFile);
             var publisherPrefix = parseResult.GetValue(Options.Prefix);
             var prettyPrint = parseResult.GetValue(Options.PrettyPrint);
+            var saveConfig = parseResult.GetValue(Options.SaveConfig);
 
-            var analyzeOptions = new AnalyzeOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint);
+            var analyzeOptions = new AnalyzeOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint, saveConfig);
             return await analyzeAction(analyzeOptions, cancellationToken)
                 ? 0
                 : 1;
