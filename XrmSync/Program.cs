@@ -13,8 +13,10 @@ var serviceCollection = new ServiceCollection()
     .ConfigureXrmSync();
 
 var command = new CommandLineBuilder()
-    .SetSyncAction(async (assemblyPath, solutionName, dryRun, logLevel, saveConfig, cancellationToken) =>
+    .SetSyncAction(async (syncOptions, cancellationToken) =>
     {
+        var (assemblyPath, solutionName, dryRun, logLevel, saveConfig) = syncOptions;
+
         var serviceProvider = serviceCollection
             .AddXrmSyncServices()
             .AddXrmSyncOptions(builder =>
@@ -63,8 +65,10 @@ var command = new CommandLineBuilder()
             return false;
         }
     })
-    .SetAnalyzeAction(async (assemblyPath, publisherPrefix, prettyPrint, cancellationToken) =>
+    .SetAnalyzeAction(async (analyzeOptions, cancellationToken) =>
     {
+        var (assemblyPath, publisherPrefix, prettyPrint) = analyzeOptions;
+
         var serviceProvider = serviceCollection
             .AddAnalyzerServices()
             .AddLogger(_ => LogLevel.Information)
