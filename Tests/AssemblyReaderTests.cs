@@ -65,6 +65,7 @@ public class AssemblyReaderTests
 
     [Theory]
     [InlineData("1-DAXIF")]
+    [Trait("Category", "AssemblyAnalyzer")]
     //[InlineData("2-Hybrid")] // We can only test against one assembly, since it will be loaded otherwise, figure out a way to unload the assemblies
     //[InlineData("3-XrmPluginCore")]
     //[InlineData("4-Full-DAXIF")]

@@ -18,3 +18,4 @@ jobs:
         with:
           configuration: Release
           upload-analyzer-results: true
+          project: XrmSync.sln

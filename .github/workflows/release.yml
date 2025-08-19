@@ -23,6 +23,7 @@ jobs:
         uses: ./.github/actions/build-and-test
         with:
           configuration: Release
+          skip-analyzer-tests: true
       
       - name: Publish to NuGet
         shell: pwsh
