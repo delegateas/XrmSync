@@ -29,7 +29,7 @@ runs:
     
     - name: Set version from CHANGELOG.md
       shell: pwsh
-      run: ./scripts/Set-VersionFromChangelog.ps1 -ChangelogPath CHANGELOG.md -CsprojPath ${{ inputs.project }}
+      run: ./scripts/Set-VersionFromChangelog.ps1 -ChangelogPath CHANGELOG.md -CsprojPath XrmSync/XrmSync.csproj
     
     - name: Restore dependencies
       shell: pwsh
