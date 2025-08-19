@@ -1,25 +1,22 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using XrmSync;
-using XrmSync.AssemblyAnalyzer;
 using XrmSync.Extensions;
 using XrmSync.Model;
-using XrmSync.Model.Exceptions;
 using XrmSync.Options;
-using XrmSync.SyncService;
+using XrmSync.Actions;
 
 [assembly: InternalsVisibleTo("Tests")]
 
 var serviceCollection = new ServiceCollection();
 
 var command = new CommandLineBuilder()
-    .SetSyncAction(async (cliOptions, cancellationToken) =>
+    .SetPluginSyncServiceProviderFactory(opts =>
     {
-        var (assemblyPath, solutionName, dryRun, logLevel, saveConfig) = cliOptions;
+        var (assemblyPath, solutionName, dryRun, logLevel) = opts;
 
-        var serviceProvider = serviceCollection
+        return serviceCollection
             .AddPluginSyncServices()
             .AddXrmSyncConfiguration(builder =>
             {
@@ -37,54 +34,12 @@ var command = new CommandLineBuilder()
             })
             .AddLogger(sp => sp.GetRequiredService<XrmSyncConfiguration>().Plugin?.Sync?.LogLevel)
             .BuildServiceProvider();
-
-        try
-        {
-            var options = serviceProvider.GetRequiredService<XrmSyncConfiguration>();
-
-            // Validate options before taking further action
-            var validator = serviceProvider.GetRequiredService<IConfigurationValidator>();
-            validator.Validate(options, ConfigurationScope.PluginSync);
-
-            // Handle save-config functionality
-            if (saveConfig is not null)
-            {
-                var syncOptions = options.Plugin?.Sync ?? throw new XrmSyncException("No sync configuration loaded - cannot save");
-                var configWriter = serviceProvider.GetRequiredService<IConfigWriter>();
-                var configPath = string.IsNullOrWhiteSpace(saveConfig) ? null : saveConfig;
-                await configWriter.SavePluginSyncConfigAsync(syncOptions, configPath, cancellationToken);
-                
-                Console.WriteLine($"Configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
-                return true;
-            }
-
-            var pluginSync = serviceProvider.GetRequiredService<PluginSyncService>();
-            await pluginSync.Sync(cancellationToken);
-            return true;
-        }
-        catch (OptionsValidationException ex)
-        {
-            Console.Error.WriteLine($"Configuration validation failed:{Environment.NewLine}{ex.Message}");
-            return false;
-        }
-        catch (XrmSyncException ex)
-        {
-            var log = serviceProvider.GetRequiredService<ILogger>();
-            log.LogError("Error during synchronization: {message}", ex.Message);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            var log = serviceProvider.GetRequiredService<ILogger>();
-            log.LogCritical(ex, "An unexpected error occurred during synchronization");
-            return false;
-        }
     })
-    .SetAnalyzeAction(async (analyzeOptions, cancellationToken) =>
+    .SetPluginAnalyzisServiceProviderFactory(opts =>
     {
-        var (assemblyPath, publisherPrefix, prettyPrint, saveConfig) = analyzeOptions;
+        var (assemblyPath, publisherPrefix, prettyPrint) = opts;
 
-        var serviceProvider = serviceCollection
+        return serviceCollection
             .AddAnalyzerServices()
             .AddXrmSyncConfiguration(builder =>
             {
@@ -101,50 +56,6 @@ var command = new CommandLineBuilder()
             })
             .AddLogger(_ => LogLevel.Information)
             .BuildServiceProvider();
-
-        try
-        {
-            var options = serviceProvider.GetRequiredService<XrmSyncConfiguration>();
-
-            // Validate options before taking further action
-            var validator = serviceProvider.GetRequiredService<IConfigurationValidator>();
-            validator.Validate(options, ConfigurationScope.PluginAnalysis);
-
-            var analyzisOptions = options.Plugin?.Analysis ?? throw new XrmSyncException("No analysis configuration loaded - cannot proceed");
-
-            // Handle save-config functionality for analyze command
-            if (saveConfig is not null)
-            {
-                var configWriter = serviceProvider.GetRequiredService<IConfigWriter>();
-
-                var configPath = string.IsNullOrWhiteSpace(saveConfig) ? null : saveConfig;
-                await configWriter.SaveAnalysisConfigAsync(analyzisOptions, configPath, cancellationToken);
-                    
-                Console.WriteLine($"Analysis configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
-                return true;
-            }
-
-            var analyzer = serviceProvider.GetRequiredService<IAssemblyAnalyzer>();
-            var pluginDto = analyzer.AnalyzeAssembly(analyzisOptions.AssemblyPath, analyzisOptions.PublisherPrefix);
-            var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
-            {
-                WriteIndented = analyzisOptions.PrettyPrint
-            };
-
-            var jsonOutput = JsonSerializer.Serialize(pluginDto, jsonOptions);
-            Console.WriteLine(jsonOutput);
-            return true;
-        }
-        catch (OptionsValidationException ex)
-        {
-            Console.Error.WriteLine($"Configuration validation failed:{Environment.NewLine}{ex.Message}");
-            return false;
-        }
-        catch (AnalysisException ex)
-        {
-            Console.Error.WriteLine($"Error analyzing assembly: {ex.Message}");
-            return false;
-        }
     })
     .Build();
 

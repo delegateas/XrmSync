@@ -1,8 +1,10 @@
-﻿namespace XrmSync.AssemblyAnalyzer
+﻿using XrmSync.Model.Exceptions;
+
+namespace XrmSync.AssemblyAnalyzer
 {
-    public class AnalysisException : Exception
+    public class AnalysisException : XrmSyncException
     {
-        public AnalysisException() : base()
+        public AnalysisException()
         {
         }
 

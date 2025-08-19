@@ -4,7 +4,7 @@ namespace XrmSync.Model.Exceptions;
 
 public class XrmSyncException : Exception
 {
-    public XrmSyncException() : base()
+    public XrmSyncException()
     {
     }
 
@@ -19,7 +19,7 @@ public class XrmSyncException : Exception
 
 public class OptionsValidationException : XrmSyncException
 {
-    public OptionsValidationException() : base()
+    public OptionsValidationException()
     {
     }
 

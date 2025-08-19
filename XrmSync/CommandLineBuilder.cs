@@ -1,5 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
 using System.CommandLine;
+using System.Threading;
+using XrmSync.Actions;
+using XrmSync.Model.Exceptions;
+using XrmSync.Options;
 
 namespace XrmSync;
 
@@ -14,8 +20,8 @@ internal record CommandLineOptions
     public required Option<string?> SaveConfig { get; init; }
 }
 
-internal record SyncCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, string? SaveConfig);
-internal record AnalyzeCLIOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint, string? SaveConfig);
+internal record SyncCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel);
+internal record AnalyzeCLIOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint);
 
 internal class CommandLineBuilder
 {
@@ -82,7 +88,10 @@ internal class CommandLineBuilder
         SyncCommand.Subcommands.Add(AnalyzeCommand);
     }
 
-    public CommandLineBuilder SetSyncAction(Func<SyncCLIOptions, CancellationToken, Task<bool>> syncAction)
+    private const int E_OK = 0;
+    private const int E_ERROR = 1;
+
+    public CommandLineBuilder SetPluginSyncServiceProviderFactory(Func<SyncCLIOptions, IServiceProvider> factory)
     {
         SyncCommand.SetAction(async (parseResult, cancellationToken) =>
         {
@@ -92,16 +101,18 @@ internal class CommandLineBuilder
             var logLevel = parseResult.GetValue(Options.LogLevel);
             var saveConfig = parseResult.GetValue(Options.SaveConfig);
 
-            var syncOptions = new SyncCLIOptions(assemblyPath, solutionName, dryRun, logLevel, saveConfig);
-            return await syncAction(syncOptions, cancellationToken)
-                ? 0
-                : 1;
+            var syncOptions = new SyncCLIOptions(assemblyPath, solutionName, dryRun, logLevel);
+            var serviceProvider = factory.Invoke(syncOptions);
+
+            return await RunAction(serviceProvider, saveConfig, ConfigurationScope.PluginSync, cancellationToken)
+                ? E_OK
+                : E_ERROR;
         });
 
         return this;
     }
 
-    public CommandLineBuilder SetAnalyzeAction(Func<AnalyzeCLIOptions, CancellationToken, Task<bool>> analyzeAction)
+    public CommandLineBuilder SetPluginAnalyzisServiceProviderFactory(Func<AnalyzeCLIOptions, IServiceProvider> factory)
     {
         AnalyzeCommand.SetAction(async (parseResult, cancellationToken) =>
         {
@@ -110,13 +121,41 @@ internal class CommandLineBuilder
             var prettyPrint = parseResult.GetValue(Options.PrettyPrint);
             var saveConfig = parseResult.GetValue(Options.SaveConfig);
 
-            var analyzeOptions = new AnalyzeCLIOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint, saveConfig);
-            return await analyzeAction(analyzeOptions, cancellationToken)
-                ? 0
-                : 1;
+            var analyzeOptions = new AnalyzeCLIOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint);
+            var serviceProvider = factory.Invoke(analyzeOptions);
+
+            return await RunAction(serviceProvider, saveConfig, ConfigurationScope.PluginAnalysis, cancellationToken)
+                ? E_OK
+                : E_ERROR;
         });
 
         return this;
+    }
+
+    private static async Task<bool> RunAction(IServiceProvider serviceProvider, string? saveConfig, ConfigurationScope configurationScope, CancellationToken cancellationToken)
+    {
+        // Validate options before taking further action
+        try
+        {
+            var validator = serviceProvider.GetRequiredService<IConfigurationValidator>();
+            validator.Validate(configurationScope);
+        }
+        catch (OptionsValidationException ex)
+        {
+            Console.Error.WriteLine($"Configuration validation failed:{Environment.NewLine}{ex.Message}");
+            return false;
+        }
+
+        if (saveConfig is not null)
+        {
+            var action = serviceProvider.GetRequiredService<ISaveConfigAction>();
+            return await action.SaveConfigAsync(saveConfig, cancellationToken);
+        }
+        else
+        {
+            var action = serviceProvider.GetRequiredService<IAction>();
+            return await action.RunAction(cancellationToken);
+        }
     }
 
     public RootCommand Build()

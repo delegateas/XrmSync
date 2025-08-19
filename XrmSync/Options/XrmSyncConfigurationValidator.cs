@@ -3,9 +3,9 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Options;
 
-internal class XrmSyncConfigurationValidator : IConfigurationValidator
+internal class XrmSyncConfigurationValidator(XrmSyncConfiguration configuration) : IConfigurationValidator
 {
-    public void Validate(XrmSyncConfiguration configuration, ConfigurationScope scope)
+    public void Validate(ConfigurationScope scope)
     {
         if (scope == ConfigurationScope.None)
         {

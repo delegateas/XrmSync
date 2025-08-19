@@ -14,7 +14,7 @@ internal enum ConfigurationScope
 
 internal interface IConfigurationValidator
 {
-    void Validate(XrmSyncConfiguration options, ConfigurationScope scope);
+    void Validate(ConfigurationScope scope);
 }
 
 internal interface IConfigurationBuilder

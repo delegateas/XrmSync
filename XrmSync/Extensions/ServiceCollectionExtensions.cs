@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using XrmSync.Actions;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Model;
@@ -26,6 +27,9 @@ internal static class ServiceCollectionExtensions
 
     public static IServiceCollection AddPluginSyncServices(this IServiceCollection services)
     {
+        services.AddSingleton<IAction, PluginSyncAction>();
+        services.AddSingleton<ISaveConfigAction, SavePluginSyncConfigAction>();
+
         services.AddSyncService();
         services.AddAssemblyReader();
         services.AddDataverseConnection();
@@ -35,7 +39,12 @@ internal static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAnalyzerServices(this IServiceCollection services)
     {
-        return services.AddAssemblyAnalyzer();
+        services.AddSingleton<IAction, PluginAnalyzisAction>();
+        services.AddSingleton<ISaveConfigAction, SavePluginAnalyzisConfigAction>();
+
+        services.AddAssemblyAnalyzer();
+
+        return services;
     }
 
     public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel?> logLevel)
