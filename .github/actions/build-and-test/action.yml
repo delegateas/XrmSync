@@ -42,7 +42,7 @@ runs:
     - name: Test (with analyzer)
       if: inputs.skip-analyzer-tests != 'true'
       shell: pwsh
-      run: dotnet test Tests/ --no-build --configuration ${{ inputs.configuration }} --verbosity normal'
+      run: dotnet test Tests/ --no-build --configuration ${{ inputs.configuration }} --verbosity normal
 
     - name: Test (without analyzer)
       if: inputs.skip-analyzer-tests == 'true'
