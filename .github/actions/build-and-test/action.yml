@@ -47,7 +47,7 @@ runs:
     - name: Test (without analyzer)
       if: inputs.skip-analyzer-tests == 'true'
       shell: pwsh
-      run: dotnet test Tests/ --no-build --configuration ${{ inputs.configuration }} --verbosity normal --filter 'Category!=AssemblyAnalyzer'
+      run: dotnet test Tests/ --configuration ${{ inputs.configuration }} --verbosity normal --filter 'Category!=AssemblyAnalyzer'
     
     - name: Test analyzers
       if: inputs.skip-analyzer-tests != 'true'
