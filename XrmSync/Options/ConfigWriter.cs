@@ -6,13 +6,13 @@ namespace XrmSync.Options;
 
 public interface IConfigWriter
 {
-    Task SaveConfigAsync(XrmSyncOptions options, string? filePath = null, CancellationToken cancellationToken = default);
+    Task SavePluginSyncConfigAsync(PluginSyncOptions options, string? filePath = null, CancellationToken cancellationToken = default);
     Task SaveAnalysisConfigAsync(PluginAnalysisOptions options, string? filePath = null, CancellationToken cancellationToken = default);
 }
 
 public class ConfigWriter(ILogger<ConfigWriter> logger) : IConfigWriter
 {
-    public async Task SaveConfigAsync(XrmSyncOptions options, string? filePath = null, CancellationToken cancellationToken = default)
+    public async Task SavePluginSyncConfigAsync(PluginSyncOptions options, string? filePath = null, CancellationToken cancellationToken = default)
     {
         var targetFile = filePath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json";
         

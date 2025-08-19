@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
+using System.Configuration;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
@@ -9,10 +10,10 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 
-public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger log, XrmSyncOptions options) : IPluginWriter
+public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger log, XrmSyncConfiguration configuration) : IPluginWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
-            { "SolutionUniqueName", options.SolutionName }
+            { "SolutionUniqueName", configuration.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
     };
 
     public Guid CreatePluginAssembly(string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)

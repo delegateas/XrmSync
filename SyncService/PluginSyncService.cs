@@ -25,9 +25,12 @@ public class PluginSyncService(
     ISolutionReader solutionReader,
     IDifferenceUtility differenceUtility,
     Description description,
-    XrmSyncOptions options,
+    XrmSyncConfiguration configuration,
     ILogger log) : ISyncService
 {
+    private readonly PluginSyncOptions options = configuration.Plugin?.Sync
+        ?? throw new XrmSyncException("Plugin sync options are not configured");
+
     public async Task Sync(CancellationToken cancellationToken)
     {
         log.LogInformation("{header}", description.ToolHeader);

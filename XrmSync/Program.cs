@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using XrmSync;
@@ -9,40 +10,49 @@ using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 using XrmSync.SyncService;
 
-var serviceCollection = new ServiceCollection()
-    .ConfigureXrmSync();
+[assembly: InternalsVisibleTo("Tests")]
+
+var serviceCollection = new ServiceCollection();
 
 var command = new CommandLineBuilder()
-    .SetSyncAction(async (syncOptions, cancellationToken) =>
+    .SetSyncAction(async (cliOptions, cancellationToken) =>
     {
-        var (assemblyPath, solutionName, dryRun, logLevel, saveConfig) = syncOptions;
+        var (assemblyPath, solutionName, dryRun, logLevel, saveConfig) = cliOptions;
 
         var serviceProvider = serviceCollection
-            .AddXrmSyncServices()
-            .AddXrmSyncOptions(builder =>
+            .AddPluginSyncServices()
+            .AddXrmSyncConfiguration(builder =>
             {
                 var baseOptions = builder.Build();
+                var basePluginSyncOptions = baseOptions.Plugin?.Sync;
 
-                return new XrmSyncOptions(
-                    string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.AssemblyPath : assemblyPath,
-                    string.IsNullOrWhiteSpace(solutionName) ? baseOptions.SolutionName : solutionName,
-                    logLevel ?? baseOptions.LogLevel,
-                    dryRun.GetValueOrDefault() || baseOptions.DryRun
+                var pluginSyncOptions = new PluginSyncOptions(
+                    string.IsNullOrWhiteSpace(assemblyPath) ? basePluginSyncOptions?.AssemblyPath ?? string.Empty : assemblyPath,
+                    string.IsNullOrWhiteSpace(solutionName) ? basePluginSyncOptions?.SolutionName ?? string.Empty : solutionName,
+                    logLevel ?? basePluginSyncOptions?.LogLevel ?? XrmSync.LoggerFactory.DefaultLogLevel,
+                    dryRun.GetValueOrDefault() || (baseOptions.Plugin?.Sync?.DryRun ?? false)
                 );
+
+                return new (new (pluginSyncOptions, baseOptions.Plugin?.Analysis));
             })
-            .AddLogger(sp => sp.GetRequiredService<XrmSyncOptions>().LogLevel)
+            .AddLogger(sp => sp.GetRequiredService<XrmSyncConfiguration>().Plugin?.Sync?.LogLevel)
             .BuildServiceProvider();
 
         try
         {
-            var options = serviceProvider.GetRequiredService<XrmSyncOptions>();
-            
+            var options = serviceProvider.GetRequiredService<XrmSyncConfiguration>();
+
+            // Validate options before taking further action
+            var validator = serviceProvider.GetRequiredService<IConfigurationValidator>();
+            validator.Validate(options, ConfigurationScope.PluginSync);
+
             // Handle save-config functionality
             if (saveConfig is not null)
             {
+                var syncOptions = options.Plugin?.Sync ?? throw new XrmSyncException("No sync configuration loaded - cannot save");
                 var configWriter = serviceProvider.GetRequiredService<IConfigWriter>();
                 var configPath = string.IsNullOrWhiteSpace(saveConfig) ? null : saveConfig;
-                await configWriter.SaveConfigAsync(options, configPath, cancellationToken);
+                await configWriter.SavePluginSyncConfigAsync(syncOptions, configPath, cancellationToken);
                 
                 Console.WriteLine($"Configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
                 return true;
@@ -51,6 +61,11 @@ var command = new CommandLineBuilder()
             var pluginSync = serviceProvider.GetRequiredService<PluginSyncService>();
             await pluginSync.Sync(cancellationToken);
             return true;
+        }
+        catch (OptionsValidationException ex)
+        {
+            Console.Error.WriteLine($"Configuration validation failed:{Environment.NewLine}{ex.Message}");
+            return false;
         }
         catch (XrmSyncException ex)
         {
@@ -71,50 +86,59 @@ var command = new CommandLineBuilder()
 
         var serviceProvider = serviceCollection
             .AddAnalyzerServices()
-            .AddAnalysisOptions(builder =>
+            .AddXrmSyncConfiguration(builder =>
             {
                 var baseOptions = builder.Build();
+                var baseAnalyzerOptions = baseOptions.Plugin?.Analysis;
 
-                return new PluginAnalysisOptions(
-                    string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.AssemblyPath : assemblyPath,
-                    string.IsNullOrWhiteSpace(publisherPrefix) ? baseOptions.PublisherPrefix : publisherPrefix,
-                    prettyPrint || baseOptions.PrettyPrint
+                var pluginAnalyzisOptions = new PluginAnalysisOptions(
+                    string.IsNullOrWhiteSpace(assemblyPath) ? baseAnalyzerOptions?.AssemblyPath ?? string.Empty : assemblyPath,
+                    string.IsNullOrWhiteSpace(publisherPrefix) ? baseAnalyzerOptions?.PublisherPrefix ?? string.Empty : publisherPrefix,
+                    prettyPrint || (baseAnalyzerOptions?.PrettyPrint ?? false)
                 );
+
+                return new (new (baseOptions.Plugin?.Sync, pluginAnalyzisOptions));
             })
             .AddLogger(_ => LogLevel.Information)
             .BuildServiceProvider();
 
         try
         {
-            var options = serviceProvider.GetRequiredService<PluginAnalysisOptions>();
+            var options = serviceProvider.GetRequiredService<XrmSyncConfiguration>();
+
+            // Validate options before taking further action
+            var validator = serviceProvider.GetRequiredService<IConfigurationValidator>();
+            validator.Validate(options, ConfigurationScope.PluginAnalysis);
+
+            var analyzisOptions = options.Plugin?.Analysis ?? throw new XrmSyncException("No analysis configuration loaded - cannot proceed");
 
             // Handle save-config functionality for analyze command
             if (saveConfig is not null)
             {
                 var configWriter = serviceProvider.GetRequiredService<IConfigWriter>();
+
                 var configPath = string.IsNullOrWhiteSpace(saveConfig) ? null : saveConfig;
-                await configWriter.SaveAnalysisConfigAsync(options, configPath, cancellationToken);
+                await configWriter.SaveAnalysisConfigAsync(analyzisOptions, configPath, cancellationToken);
                     
                 Console.WriteLine($"Analysis configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
                 return true;
             }
 
-            if (string.IsNullOrWhiteSpace(options.AssemblyPath))
-            {
-                Console.Error.WriteLine("Assembly path is required for analysis.");
-                return false;
-            }
-
             var analyzer = serviceProvider.GetRequiredService<IAssemblyAnalyzer>();
-            var pluginDto = analyzer.AnalyzeAssembly(options.AssemblyPath, options.PublisherPrefix);
+            var pluginDto = analyzer.AnalyzeAssembly(analyzisOptions.AssemblyPath, analyzisOptions.PublisherPrefix);
             var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
             {
-                WriteIndented = options.PrettyPrint
+                WriteIndented = analyzisOptions.PrettyPrint
             };
 
             var jsonOutput = JsonSerializer.Serialize(pluginDto, jsonOptions);
             Console.WriteLine(jsonOutput);
             return true;
+        }
+        catch (OptionsValidationException ex)
+        {
+            Console.Error.WriteLine($"Configuration validation failed:{Environment.NewLine}{ex.Message}");
+            return false;
         }
         catch (AnalysisException ex)
         {

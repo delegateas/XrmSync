@@ -14,8 +14,8 @@ internal record CommandLineOptions
     public required Option<string?> SaveConfig { get; init; }
 }
 
-internal record SyncOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, string? SaveConfig);
-internal record AnalyzeOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint, string? SaveConfig);
+internal record SyncCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, string? SaveConfig);
+internal record AnalyzeCLIOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint, string? SaveConfig);
 
 internal class CommandLineBuilder
 {
@@ -82,7 +82,7 @@ internal class CommandLineBuilder
         SyncCommand.Subcommands.Add(AnalyzeCommand);
     }
 
-    public CommandLineBuilder SetSyncAction(Func<SyncOptions, CancellationToken, Task<bool>> syncAction)
+    public CommandLineBuilder SetSyncAction(Func<SyncCLIOptions, CancellationToken, Task<bool>> syncAction)
     {
         SyncCommand.SetAction(async (parseResult, cancellationToken) =>
         {
@@ -92,7 +92,7 @@ internal class CommandLineBuilder
             var logLevel = parseResult.GetValue(Options.LogLevel);
             var saveConfig = parseResult.GetValue(Options.SaveConfig);
 
-            var syncOptions = new SyncOptions(assemblyPath, solutionName, dryRun, logLevel, saveConfig);
+            var syncOptions = new SyncCLIOptions(assemblyPath, solutionName, dryRun, logLevel, saveConfig);
             return await syncAction(syncOptions, cancellationToken)
                 ? 0
                 : 1;
@@ -101,7 +101,7 @@ internal class CommandLineBuilder
         return this;
     }
 
-    public CommandLineBuilder SetAnalyzeAction(Func<AnalyzeOptions, CancellationToken, Task<bool>> analyzeAction)
+    public CommandLineBuilder SetAnalyzeAction(Func<AnalyzeCLIOptions, CancellationToken, Task<bool>> analyzeAction)
     {
         AnalyzeCommand.SetAction(async (parseResult, cancellationToken) =>
         {
@@ -110,7 +110,7 @@ internal class CommandLineBuilder
             var prettyPrint = parseResult.GetValue(Options.PrettyPrint);
             var saveConfig = parseResult.GetValue(Options.SaveConfig);
 
-            var analyzeOptions = new AnalyzeOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint, saveConfig);
+            var analyzeOptions = new AnalyzeCLIOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint, saveConfig);
             return await analyzeAction(analyzeOptions, cancellationToken)
                 ? 0
                 : 1;

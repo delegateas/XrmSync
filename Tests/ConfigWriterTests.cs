@@ -24,7 +24,7 @@ public class ConfigWriterTests
         var tempFile = Path.GetTempFileName();
         File.Delete(tempFile); // Ensure file doesn't exist
         
-        var options = new XrmSyncOptions(
+        var options = new PluginSyncOptions(
             AssemblyPath: "test.dll",
             SolutionName: "TestSolution",
             LogLevel: LogLevel.Debug,
@@ -34,7 +34,7 @@ public class ConfigWriterTests
         try
         {
             // Act
-            await _configWriter.SaveConfigAsync(options, tempFile);
+            await _configWriter.SavePluginSyncConfigAsync(options, tempFile);
 
             // Assert
             Assert.True(File.Exists(tempFile));
@@ -43,10 +43,12 @@ public class ConfigWriterTests
             var config = JsonSerializer.Deserialize<JsonElement>(content);
             
             var xrmSyncSection = config.GetProperty("XrmSync");
-            Assert.Equal("test.dll", xrmSyncSection.GetProperty("AssemblyPath").GetString());
-            Assert.Equal("TestSolution", xrmSyncSection.GetProperty("SolutionName").GetString());
-            Assert.Equal("Debug", xrmSyncSection.GetProperty("LogLevel").GetString());
-            Assert.True(xrmSyncSection.GetProperty("DryRun").GetBoolean());
+            var pluginSection = xrmSyncSection.GetProperty("Plugin");
+            var syncSection = pluginSection.GetProperty("Sync");
+            Assert.Equal("test.dll", syncSection.GetProperty("AssemblyPath").GetString());
+            Assert.Equal("TestSolution", syncSection.GetProperty("SolutionName").GetString());
+            Assert.Equal("Debug", syncSection.GetProperty("LogLevel").GetString());
+            Assert.True(syncSection.GetProperty("DryRun").GetBoolean());
         }
         finally
         {
@@ -69,7 +71,7 @@ public class ConfigWriterTests
         """;
         await File.WriteAllTextAsync(tempFile, existingContent);
         
-        var options = new XrmSyncOptions(
+        var options = new PluginSyncOptions(
             AssemblyPath: "test.dll",
             SolutionName: "TestSolution",
             LogLevel: LogLevel.Information,
@@ -79,7 +81,7 @@ public class ConfigWriterTests
         try
         {
             // Act
-            await _configWriter.SaveConfigAsync(options, tempFile);
+            await _configWriter.SavePluginSyncConfigAsync(options, tempFile);
 
             // Assert
             var content = await File.ReadAllTextAsync(tempFile);
@@ -91,10 +93,12 @@ public class ConfigWriterTests
             
             // Check XrmSync section is added
             var xrmSyncSection = config.GetProperty("XrmSync");
-            Assert.Equal("test.dll", xrmSyncSection.GetProperty("AssemblyPath").GetString());
-            Assert.Equal("TestSolution", xrmSyncSection.GetProperty("SolutionName").GetString());
-            Assert.Equal("Information", xrmSyncSection.GetProperty("LogLevel").GetString());
-            Assert.False(xrmSyncSection.GetProperty("DryRun").GetBoolean());
+            var pluginSection = xrmSyncSection.GetProperty("Plugin");
+            var syncSection = pluginSection.GetProperty("Sync");
+            Assert.Equal("test.dll", syncSection.GetProperty("AssemblyPath").GetString());
+            Assert.Equal("TestSolution", syncSection.GetProperty("SolutionName").GetString());
+            Assert.Equal("Information", syncSection.GetProperty("LogLevel").GetString());
+            Assert.False(syncSection.GetProperty("DryRun").GetBoolean());
         }
         finally
         {
@@ -114,7 +118,7 @@ public class ConfigWriterTests
         if (File.Exists(defaultFile))
             File.Delete(defaultFile);
         
-        var options = new XrmSyncOptions(
+        var options = new PluginSyncOptions(
             AssemblyPath: "test.dll",
             SolutionName: "TestSolution",
             LogLevel: LogLevel.Warning,
@@ -124,7 +128,7 @@ public class ConfigWriterTests
         try
         {
             // Act
-            await _configWriter.SaveConfigAsync(options);
+            await _configWriter.SavePluginSyncConfigAsync(options);
 
             // Assert
             Assert.True(File.Exists(defaultFile));
@@ -133,10 +137,12 @@ public class ConfigWriterTests
             var config = JsonSerializer.Deserialize<JsonElement>(content);
             
             var xrmSyncSection = config.GetProperty("XrmSync");
-            Assert.Equal("test.dll", xrmSyncSection.GetProperty("AssemblyPath").GetString());
-            Assert.Equal("TestSolution", xrmSyncSection.GetProperty("SolutionName").GetString());
-            Assert.Equal("Warning", xrmSyncSection.GetProperty("LogLevel").GetString());
-            Assert.False(xrmSyncSection.GetProperty("DryRun").GetBoolean());
+            var pluginSection = xrmSyncSection.GetProperty("Plugin");
+            var syncSection = pluginSection.GetProperty("Sync");
+            Assert.Equal("test.dll", syncSection.GetProperty("AssemblyPath").GetString());
+            Assert.Equal("TestSolution", syncSection.GetProperty("SolutionName").GetString());
+            Assert.Equal("Warning", syncSection.GetProperty("LogLevel").GetString());
+            Assert.False(syncSection.GetProperty("DryRun").GetBoolean());
         }
         finally
         {

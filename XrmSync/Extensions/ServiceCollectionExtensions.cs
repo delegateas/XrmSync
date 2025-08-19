@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
@@ -12,15 +11,20 @@ namespace XrmSync.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection ConfigureXrmSync(this IServiceCollection services)
+    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, Func<IConfigurationBuilder, XrmSyncConfiguration> syncOptionsFactory)
     {
-        return services
+        services
             .AddSingleton<IConfigReader, ConfigReader>()
             .AddSingleton<IConfigWriter, ConfigWriter>()
-            .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration());
+            .AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
+            .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())
+            .AddSingleton<IConfigurationBuilder, XrmSyncConfigurationBuilder>()
+            .AddSingleton(sp => syncOptionsFactory(sp.GetRequiredService<IConfigurationBuilder>()));
+
+        return services;
     }
 
-    public static IServiceCollection AddXrmSyncServices(this IServiceCollection services)
+    public static IServiceCollection AddPluginSyncServices(this IServiceCollection services)
     {
         services.AddSyncService();
         services.AddAssemblyReader();
@@ -34,23 +38,7 @@ internal static class ServiceCollectionExtensions
         return services.AddAssemblyAnalyzer();
     }
 
-    public static IServiceCollection AddXrmSyncOptions(this IServiceCollection services, Func<ISyncOptionsBuilder, XrmSyncOptions> syncOptionsFactory)
-    {
-        services.AddSingleton<ISyncOptionsBuilder, SimpleSyncOptionsBuilder>();
-        services.AddSingleton(sp => syncOptionsFactory(sp.GetRequiredService<ISyncOptionsBuilder>()));
-
-        return services;
-    }
-
-    public static IServiceCollection AddAnalysisOptions(this IServiceCollection services, Func<IAnalysisOptionsBuilder, PluginAnalysisOptions> analysisOptionsFactory)
-    {
-        services.AddSingleton<IAnalysisOptionsBuilder, SimpleAnalysisOptionsBuilder>();
-        services.AddSingleton(sp => analysisOptionsFactory(sp.GetRequiredService<IAnalysisOptionsBuilder>()));
-
-        return services;
-    }
-
-    public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel> logLevel)
+    public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel?> logLevel)
     {
         return services.AddSingleton(sp => LoggerFactory.CreateLogger<ISyncService>(logLevel(sp)));
     }

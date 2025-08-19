@@ -12,9 +12,9 @@ public class DryRunDataverseWriter : IDataverseWriter
 {
     private readonly ILogger logger;
 
-    public DryRunDataverseWriter(XrmSyncOptions options, ILogger logger)
+    public DryRunDataverseWriter(XrmSyncConfiguration configuration, ILogger logger)
     {
-        if (!options.DryRun)
+        if (!configuration.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
         {
             throw new XrmSyncException("This writer is intended for dry runs only.");
         }
