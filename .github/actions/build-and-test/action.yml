@@ -68,7 +68,7 @@ runs:
 
     - name: Pack NuGet package
       shell: pwsh
-      run: dotnet pack ${{ inputs.project }} --no-build --configuration Release --output XrmSync/nupkg
+      run: dotnet pack XrmSync/XrmSync.csproj --no-build --configuration Release --output XrmSync/nupkg
       
     - name: Upload NuGet package artifact
       uses: actions/upload-artifact@v4
