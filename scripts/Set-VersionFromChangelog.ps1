@@ -7,7 +7,7 @@ param(
 $changelog = Get-Content $ChangelogPath
 # Match lines like: ### v1.0.0-rc.1 - xx xxxx 2025
 
-$regex = '^### v([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9\-\.]+)?)'
+$regex = '^### v?([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9\-\.]+)?)'
 $resolved = Resolve-Path $CsprojPath
 
 $versionLine = $changelog | Where-Object { $_ -match $regex } | Select-Object -First 1
