@@ -1,4 +1,5 @@
 ﻿using DG.XrmPluginCore.Enums;
+using System.Xml.Linq;
 using XrmSync.Model.CustomApi;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;
@@ -29,57 +30,61 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
         return [..customApiTypes
         .Select(pluginType =>
         {
-            var (apiDef, apiMeta, reqParams, resProps) = GetRegistrationFromType<Tuple<MainCustomAPIConfig, ExtendedCustomAPIConfig, IEnumerable<RequestParameterConfig>, IEnumerable<ResponsePropertyConfig>>>(MethodName, pluginType);
+            var (mainConfig, extendedConfig, reqParams, resProps) = GetRegistrationFromType<Tuple<MainCustomAPIConfig, ExtendedCustomAPIConfig, IEnumerable<RequestParameterConfig>, IEnumerable<ResponsePropertyConfig>>>(MethodName, pluginType);
 
-            var (pluginTypeName, isFunction, enabledForWorkflow, allowedCustomProcessingStepType, bindingType, boundLogicalEntityName) = apiDef;
-            var (_, ownerIdStr, _, isCustomizable, isPrivate, executePrivilegeName, description) = apiMeta;
+            var (UniqueName, IsFunction, EnabledForWorkflow, AllowedCustomProcessingStepType, BindingType, BoundEntityLogicalName) = mainConfig;
+            var (PluginType, OwnerId, OwnerType, IsCustomizable, IsPrivate, ExecutePrivilegeName, Description) = extendedConfig;
 
-            pluginTypeName ??= string.Empty;
+            PluginType ??= string.Empty;
 
             var definition = new CustomApiDefinition
             {
-                PluginType = new PluginType { Name = pluginTypeName },
+                PluginType = new PluginType { Name = PluginType },
 
-                UniqueName = prefix + "_" + pluginTypeName,
-                Name = pluginTypeName,
-                DisplayName = pluginTypeName, // No explicit display name in tuple, fallback to name
+                UniqueName = prefix + "_" + UniqueName,
+                Name = UniqueName ?? string.Empty,
+                DisplayName = UniqueName ?? string.Empty, // No explicit display name in tuple, fallback to name
                 
-                IsFunction = isFunction,
-                EnabledForWorkflow = enabledForWorkflow == 1,
-                AllowedCustomProcessingStepType = (AllowedCustomProcessingStepType)allowedCustomProcessingStepType,
-                BindingType = (BindingType)bindingType,
-                BoundEntityLogicalName = boundLogicalEntityName ?? string.Empty,
+                IsFunction = IsFunction,
+                EnabledForWorkflow = EnabledForWorkflow == 1,
+                AllowedCustomProcessingStepType = (AllowedCustomProcessingStepType)AllowedCustomProcessingStepType,
+                BindingType = (BindingType)BindingType,
+                BoundEntityLogicalName = BoundEntityLogicalName ?? string.Empty,
 
-                OwnerId = Guid.TryParse(ownerIdStr, out var ownerId) ? ownerId : Guid.Empty,
-                IsCustomizable = isCustomizable,
-                IsPrivate = isPrivate,
-                ExecutePrivilegeName = executePrivilegeName ?? string.Empty,
-                Description = description ?? string.Empty,
-
-
+                OwnerId = Guid.TryParse(OwnerId, out var ownerId) ? ownerId : Guid.Empty,
+                IsCustomizable = IsCustomizable,
+                IsPrivate = IsPrivate,
+                ExecutePrivilegeName = ExecutePrivilegeName ?? string.Empty,
+                Description = Description ?? string.Empty
             };
 
-            definition.RequestParameters = reqParams?.Select(p => new RequestParameter
-            {
-                CustomApi = definition,
-                Name = p.Item1 ?? string.Empty,
-                UniqueName = p.Item2 ?? string.Empty,
-                DisplayName = p.Item3 ?? string.Empty,
-                IsCustomizable = p.Item4,
-                IsOptional = p.Item5,
-                LogicalEntityName = p.Item6 ?? string.Empty,
-                Type = (CustomApiParameterType)p.Item7
+            definition.RequestParameters = reqParams?.Select(p => {
+                var (Name, UniqueName, DisplayName, IsCustomizable, IsOptional, LogicalEntityName, Type) = p;
+                return new RequestParameter
+                {
+                    CustomApi = definition,
+                    Name = Name ?? string.Empty,
+                    UniqueName = UniqueName ?? string.Empty,
+                    DisplayName = DisplayName ?? string.Empty,
+                    IsCustomizable = IsCustomizable,
+                    IsOptional = IsOptional,
+                    LogicalEntityName = LogicalEntityName ?? string.Empty,
+                    Type = (CustomApiParameterType)p.Item7
+                };
             }).ToList() ?? [];
 
-            definition.ResponseProperties = resProps?.Select(r => new ResponseProperty
-            {
-                CustomApi = definition,
-                Name = r.Item1 ?? string.Empty,
-                UniqueName = r.Item2 ?? string.Empty,
-                DisplayName = r.Item3 ?? string.Empty,
-                IsCustomizable = r.Item4,
-                LogicalEntityName = r.Item5 ?? string.Empty,
-                Type = (CustomApiParameterType)r.Item6
+            definition.ResponseProperties = resProps?.Select(r => {
+                var (Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type) = r;
+                return new ResponseProperty
+                {
+                    CustomApi = definition,
+                    Name = Name ?? string.Empty,
+                    UniqueName = UniqueName ?? string.Empty,
+                    DisplayName = DisplayName ?? string.Empty,
+                    IsCustomizable = IsCustomizable,
+                    LogicalEntityName = LogicalEntityName ?? string.Empty,
+                    Type = (CustomApiParameterType)Type
+                };
             }).ToList() ?? [];
 
             return definition;
