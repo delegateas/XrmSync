@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using XrmSync.AssemblyAnalyzer;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
@@ -24,7 +25,8 @@ internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, XrmSyncConfigura
                 var pluginDto = analyzer.AnalyzeAssembly(analyzisOptions.AssemblyPath, analyzisOptions.PublisherPrefix);
                 var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
                 {
-                    WriteIndented = analyzisOptions.PrettyPrint
+                    WriteIndented = analyzisOptions.PrettyPrint,
+                    ReferenceHandler = ReferenceHandler.Preserve
                 };
 
                 var jsonOutput = JsonSerializer.Serialize(pluginDto, jsonOptions);

@@ -13,20 +13,18 @@ internal static class LoggerExtensions
         log.LogInformation("{title} to create: {count}", title, differences.Creates.Count);
         differences.Creates.ForEach(x =>
         {
-            var recreate = differences.Recreates.FirstOrDefault(r => r.LocalEntity == x);
-            if (recreate != null)
+            var props = GetPropNames(x);
+            if (!string.IsNullOrEmpty(props))
             {
-                var props = GetPropNames(recreate);
-                log.LogDebug("  - {name} (recreate) ({props})", namePicker(x), props);
-            }
-            else
+                log.LogDebug("  - {name} (recreate) ({props})", namePicker(x.LocalEntity), props);
+            } else
             {
-                log.LogDebug("  - {name}", namePicker(x));
+                log.LogDebug("  - {name}", namePicker(x.LocalEntity));
             }
         });
 
         log.LogInformation("{title} to update: {count}", title, differences.Updates.Count);
-        differences.UpdatesWithDifferences.ForEach(x =>
+        differences.Updates.ForEach(x =>
         {
             var props = GetPropNames(x);
             log.LogDebug("  - {name} ({props})", namePicker(x.LocalEntity), props);

@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<Description>()
             .AddSingleton<IDifferenceUtility, DifferenceUtility>()
             .AddSingleton<IPluginValidator, PluginValidator.PluginValidator>()
-            .AddSingleton<IEntityComparer<PluginType>, PluginTypeComparer>()
+            .AddSingleton<IEntityComparer<PluginDefinition>, PluginDefinitionComparer>()
             .AddSingleton<IEntityComparer<Step>, PluginStepComparer>()
             .AddSingleton<IEntityComparer<Image>, PluginImageComparer>()
             .AddSingleton<IEntityComparer<CustomApiDefinition>, CustomApiComparer>()

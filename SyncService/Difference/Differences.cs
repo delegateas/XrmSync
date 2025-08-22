@@ -4,7 +4,7 @@ using XrmSync.Model.Plugin;
 namespace XrmSync.SyncService.Difference;
 
 public record Differences(
-    Difference<PluginType> Types,
+    Difference<PluginDefinition> Types,
     Difference<Step> PluginSteps,
     Difference<Image> PluginImages,
     Difference<CustomApiDefinition> CustomApis,

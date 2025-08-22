@@ -1,5 +1,6 @@
 using DG.XrmPluginCore.Enums;
 using Microsoft.Extensions.Logging;
+using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService;
@@ -19,7 +20,7 @@ public class DifferenceUtilityTests
         var description = new Description();
         _differenceUtility = new DifferenceUtility(
             logger,
-            new PluginTypeComparer(),
+            new PluginDefinitionComparer(),
             new PluginStepComparer(),
             new PluginImageComparer(),
             new CustomApiComparer(description),
@@ -32,13 +33,13 @@ public class DifferenceUtilityTests
     public void CalculateDifferences_ReturnsCorrectDifferences()
     {
         // Arrange
-        var localType = new PluginType { Name = "LocalType", Id = Guid.NewGuid() };
-        var remoteType = new PluginType { Name = "RemoteType", Id = Guid.NewGuid() };
-        var sharedType = new PluginType { Name = "SharedType", Id = Guid.NewGuid() };
+        var localType = new PluginDefinition { Name = "LocalType", PluginSteps = [] };
+        var remoteType = new PluginDefinition { Name = "RemoteType", Id = Guid.NewGuid(), PluginSteps = [] };
+        var sharedType = new PluginDefinition { Name = "SharedType", Id = Guid.NewGuid(), PluginSteps = [] };
         
         var localStep = new Step {
             Name = "LocalStep",
-            PluginTypeName = "TestType",
+            PluginType = localType,
             ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
@@ -50,62 +51,87 @@ public class DifferenceUtilityTests
             AsyncAutoDelete = false,
             PluginImages = []
         };
-        
-        var remoteStep = new Step {
+        localType.PluginSteps.Add(localStep);
+
+        var localImage = new Image
+        {
+            Name = "LocalImage",
+            ImageType = ImageType.PreImage,
+            Attributes = "",
+            EntityAlias = "account",
+            Step = localStep
+        };
+        localStep.PluginImages.Add(localImage);
+
+        var remoteStep = localStep with
+        {
+            Id = Guid.NewGuid(),
             Name = "RemoteStep",
-            PluginTypeName = "TestType",
-            ExecutionStage = ExecutionStage.PreValidation,
-            EventOperation = "Create",
-            LogicalName = "account",
-            Deployment = 0,
-            ExecutionMode = 0,
-            ExecutionOrder = 1,
-            FilteredAttributes = "",
-            UserContext = Guid.NewGuid(),
-            AsyncAutoDelete = false,
+            PluginType = remoteType,
             PluginImages = []
+        };
+        remoteType.PluginSteps.Add(remoteStep);
+
+        var remoteImage = localImage with
+        {
+            Id = Guid.NewGuid(),
+            Name = "RemoteImage",
+            Step = remoteStep
+        };
+        remoteStep.PluginImages.Add(remoteImage);
+
+        var localData = new AssemblyInfo
+        {
+            Id = Guid.Empty,
+            DllPath = "local.dll",
+            Hash = Guid.NewGuid().ToString(),
+            Name = "LocalAssembly",
+            Version = "1.0.0",
+            CustomApis = [],
+            Plugins = [localType, sharedType]
         };
 
-        var localData = new CompiledData(
-            [localType, sharedType],
-            [localStep],
-            [],
-            [],
-            [],
-            []
-        );
-        
-        var remoteData = new CompiledData(
-            [remoteType, sharedType],
-            [remoteStep],
-            [],
-            [],
-            [],
-            []
-        );
+        var remoteData = localData with
+        {
+            Plugins = [remoteType, sharedType]
+        };
 
         // Act
         var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
 
         // Assert
         Assert.Single(differences.Types.Creates);
-        Assert.Equal("LocalType", differences.Types.Creates[0].Name);
+        Assert.Equal("LocalType", differences.Types.Creates[0].LocalEntity.Name);
         Assert.Single(differences.Types.Deletes);
         Assert.Equal("RemoteType", differences.Types.Deletes[0].Name);
+        Assert.Empty(differences.Types.Updates);
         
         Assert.Single(differences.PluginSteps.Creates);
-        Assert.Equal("LocalStep", differences.PluginSteps.Creates[0].Name);
+        Assert.Equal("LocalStep", differences.PluginSteps.Creates[0].LocalEntity.Name);
         Assert.Single(differences.PluginSteps.Deletes);
         Assert.Equal("RemoteStep", differences.PluginSteps.Deletes[0].Name);
+        Assert.Empty(differences.PluginSteps.Updates);
 
-        Assert.Empty(differences.PluginSteps.UpdatesWithDifferences);
+        Assert.Single(differences.PluginImages.Creates);
+        Assert.Equal("LocalImage", differences.PluginImages.Creates[0].LocalEntity.Name);
+        Assert.Single(differences.PluginImages.Deletes);
+        Assert.Equal("RemoteImage", differences.PluginImages.Deletes[0].Name);
+        Assert.Empty(differences.PluginImages.Updates);
     }
 
     [Fact]
     public void CalculateDifferences_EmptyData_ReturnsEmptyDifferences()
     {
         // Arrange
-        var emptyData = new CompiledData([], [], [], [], [], []);
+        var emptyData = new AssemblyInfo {
+            Id = Guid.Empty,
+            DllPath = string.Empty,
+            Hash = string.Empty,
+            Name = string.Empty,
+            Version = string.Empty,
+            CustomApis = [],
+            Plugins = []
+        };
 
         // Act
         var differences = _differenceUtility.CalculateDifferences(emptyData, emptyData);
@@ -126,9 +152,13 @@ public class DifferenceUtilityTests
     public void CalculateDifferences_UpdatesDetected_ReturnsUpdates()
     {
         // Arrange
+        var localType = new PluginDefinition { Name = "LocalType", Id = Guid.NewGuid(), PluginSteps = [] };
+        var remoteType = localType with { Name = "RemoteType", PluginSteps = [] };
+
         var localStep = new Step {
+            Id = Guid.NewGuid(),
             Name = "TestStep",
-            PluginTypeName = "TestType",
+            PluginType = localType,
             ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
@@ -140,24 +170,33 @@ public class DifferenceUtilityTests
             AsyncAutoDelete = false,
             PluginImages = []
         };
-        
-        var remoteStep = new Step {
-            Name = "TestStep", // Same name
-            PluginTypeName = "TestType",
-            ExecutionStage =  ExecutionStage.PreValidation,
-            EventOperation = "Create",
-            LogicalName = "account",
-            Deployment = Deployment.ServerOnly,
-            ExecutionMode = ExecutionMode.Synchronous,
+        localType.PluginSteps.Add(localStep);
+
+        var remoteStep = localStep with
+        {
+            PluginType = remoteType,
             ExecutionOrder = 2, // Different execution order
             FilteredAttributes = "name,description,subject", // Different filtered attributes
             UserContext = Guid.NewGuid(), // Different user context
-            AsyncAutoDelete = true,
-            PluginImages = []
+            AsyncAutoDelete = true // Different async auto delete
         };
-        
-        var localData = new CompiledData([], [localStep], [], [], [], []);
-        var remoteData = new CompiledData([], [remoteStep], [], [], [], []);
+        remoteType.PluginSteps.Add(remoteStep);
+
+        var localData = new AssemblyInfo
+        {
+            Id = Guid.Empty,
+            DllPath = "local.dll",
+            Hash = Guid.NewGuid().ToString(),
+            Name = "LocalAssembly",
+            Version = "1.0.0",
+            CustomApis = [],
+            Plugins = [localType]
+        };
+
+        var remoteData = localData with
+        {
+            Plugins = [remoteType]
+        };
 
         // Act
         var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
@@ -165,9 +204,9 @@ public class DifferenceUtilityTests
         // Assert
         Assert.Empty(differences.PluginSteps.Creates);
         Assert.Empty(differences.PluginSteps.Deletes);
-        Assert.Single(differences.PluginSteps.UpdatesWithDifferences);
+        Assert.Single(differences.PluginSteps.Updates);
 
-        var update = differences.PluginSteps.UpdatesWithDifferences[0];
+        var update = differences.PluginSteps.Updates[0];
         Assert.Equal("TestStep", update.LocalEntity.Name);
         Assert.Equal("TestStep", update.RemoteEntity?.Name);
         Assert.NotEmpty(update.DifferentProperties); // Should have multiple different properties
@@ -204,8 +243,9 @@ public class DifferenceUtilityTests
     {
         var localCustomApi = new CustomApiDefinition
         {
+            Id = Guid.NewGuid(),
             Name = "test_custom_api",
-            PluginTypeName = "TestPluginType",
+            PluginType = new PluginType { Id = Guid.NewGuid(), Name = "Type1" },
             UniqueName = "new_test_custom_api",
             IsFunction = false,
             EnabledForWorkflow = true,
@@ -220,44 +260,48 @@ public class DifferenceUtilityTests
             DisplayName = "Test Custom API"
         };
 
-        var remoteCustomApi = new CustomApiDefinition
+        var remoteCustomApi = localCustomApi with
         {
-            Id = Guid.NewGuid(),
-            Name = "test_custom_api",
-            PluginTypeName = "TestPluginType",
-            UniqueName = "new_test_custom_api",
-            IsFunction = true,
+            PluginType = localCustomApi.PluginType with { },
             EnabledForWorkflow = false,
             AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.AsyncOnly,
             BindingType = BindingType.EntityCollection,
             BoundEntityLogicalName = "contact",
             IsCustomizable = false,
-            OwnerId = Guid.NewGuid(),
-            IsPrivate = false,
-            ExecutePrivilegeName = "new_execute_privilege",
-            Description = "Test Custom API",
-            DisplayName = "Test Custom API"
+            IsFunction = true
         };
 
-        var localData = new CompiledData([], [], [], [localCustomApi], [], []);
-        var remoteData = new CompiledData([], [], [], [remoteCustomApi], [], []);
+        var localData = new AssemblyInfo
+        {
+            Id = Guid.Empty,
+            DllPath = "local.dll",
+            Hash = Guid.NewGuid().ToString(),
+            Name = "LocalAssembly",
+            Version = "1.0.0",
+            CustomApis = [localCustomApi],
+            Plugins = []
+        };
+
+        var remoteData = localData with
+        {
+            CustomApis = [remoteCustomApi]
+        };
 
         // Act
         var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
 
         // Assert
-        Assert.Equal([localCustomApi], differences.CustomApis.Creates);
         Assert.Equal([remoteCustomApi], differences.CustomApis.Deletes);
-        Assert.Empty(differences.CustomApis.UpdatesWithDifferences);
+        Assert.Empty(differences.CustomApis.Updates);
 
-        var recreates = differences.CustomApis.Recreates;
-        Assert.Single(recreates);
-        var recreate = recreates[0];
-        Assert.Equal(localCustomApi, recreate.LocalEntity);
-        Assert.Equal(remoteCustomApi, recreate.RemoteEntity);
+        var creates = differences.CustomApis.Creates;
+        Assert.Single(creates);
+        var create = creates[0];
+        Assert.Equal(localCustomApi, create.LocalEntity);
+        Assert.Equal(remoteCustomApi, create.RemoteEntity);
 
-        var funcs = recreate.DifferentProperties.Select(p => p.Compile()).ToArray();
-        var propNames = recreate.DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
+        var funcs = create.DifferentProperties.Select(p => p.Compile()).ToArray();
+        var propNames = create.DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
         Assert.Equal([
             nameof(CustomApiDefinition.AllowedCustomProcessingStepType),
             nameof(CustomApiDefinition.BindingType),
@@ -273,8 +317,9 @@ public class DifferenceUtilityTests
     {
         var localCustomApi = new CustomApiDefinition
         {
+            Id = Guid.NewGuid(),
             Name = "test_custom_api",
-            PluginTypeName = "TestPluginType",
+            PluginType = new PluginType { Id = Guid.NewGuid(), Name = "Type" },
             UniqueName = "new_test_custom_api",
             IsFunction = false,
             EnabledForWorkflow = true,
@@ -289,46 +334,39 @@ public class DifferenceUtilityTests
             DisplayName = "Test Custom API"
         };
 
-        var remoteCustomApi = new CustomApiDefinition
+        var remoteCustomApi = localCustomApi with
         {
-            Id = Guid.NewGuid(),
-            Name = "test_custom_api",
-            PluginTypeName = "TestPluginType",
-            UniqueName = "new_test_custom_api",
+            PluginType = localCustomApi.PluginType with { },
             IsFunction = true, // RECREATE
-            EnabledForWorkflow = true,
-            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.SyncAndAsync,
-            BindingType = BindingType.Entity,
-            BoundEntityLogicalName = "account",
-            IsCustomizable = true,
-            OwnerId = Guid.NewGuid(),
-            IsPrivate = true, // UPDATE
-            ExecutePrivilegeName = "new_execute_privilege",
-            Description = "Test Custom API",
-            DisplayName = "Test Custom API"
+            IsPrivate = true // UPDATE
         };
 
-        var remoteCustomApiTwo = new CustomApiDefinition
+        var remoteCustomApiTwo = localCustomApi with
         {
-            Name = "test_custom_api",
-            PluginTypeName = "TestPluginType",
-            UniqueName = "new_test_custom_api",
-            IsFunction = false,
-            EnabledForWorkflow = true,
-            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.SyncAndAsync,
-            BindingType = BindingType.Entity,
-            BoundEntityLogicalName = "account",
-            IsCustomizable = true,
-            OwnerId = Guid.NewGuid(),
-            IsPrivate = true, // UPDATE
-            ExecutePrivilegeName = "new_execute_privilege",
-            Description = "Test Custom API",
-            DisplayName = "Test Custom API"
+            PluginType = localCustomApi.PluginType with { },
+            IsPrivate = true // UPDATE
         };
 
-        var localData = new CompiledData([], [], [], [localCustomApi], [], []);
-        var remoteData = new CompiledData([], [], [], [remoteCustomApi], [], []);
-        var remoteDataTwo = new CompiledData([], [], [], [remoteCustomApiTwo], [], []);
+        var localData = new AssemblyInfo
+        {
+            Id = Guid.Empty,
+            DllPath = "local.dll",
+            Hash = Guid.NewGuid().ToString(),
+            Name = "LocalAssembly",
+            Version = "1.0.0",
+            CustomApis = [localCustomApi],
+            Plugins = []
+        };
+
+        var remoteData = localData with
+        {
+            CustomApis = [remoteCustomApi]
+        };
+
+        var remoteDataTwo = localData with
+        {
+            CustomApis = [remoteCustomApiTwo]
+        };
 
         // Act
         var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
@@ -337,15 +375,14 @@ public class DifferenceUtilityTests
         // Assert
         
         // Local -> Remote, Recreate, no update
-        Assert.Equal([localCustomApi], differences.CustomApis.Creates);
+        Assert.Single(differences.CustomApis.Creates);
         Assert.Equal([remoteCustomApi], differences.CustomApis.Deletes);
-        Assert.Empty(differences.CustomApis.UpdatesWithDifferences);
-        Assert.Single(differences.CustomApis.Recreates);
+        Assert.Empty(differences.CustomApis.Updates);
 
-        Assert.Equal(localCustomApi, differences.CustomApis.Recreates[0].LocalEntity);
-        Assert.Equal(remoteCustomApi, differences.CustomApis.Recreates[0].RemoteEntity);
+        Assert.Equal(localCustomApi, differences.CustomApis.Creates[0].LocalEntity);
+        Assert.Equal(remoteCustomApi, differences.CustomApis.Creates[0].RemoteEntity);
 
-        var propNames = differences.CustomApis.Recreates[0].DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
+        var propNames = differences.CustomApis.Creates[0].DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
         Assert.Equal([
             nameof(CustomApiDefinition.IsFunction),
             nameof(CustomApiDefinition.IsPrivate)
@@ -354,12 +391,11 @@ public class DifferenceUtilityTests
         // Local -> RemoteTwo, Update, no recreate
         Assert.Empty(differencesTwo.CustomApis.Creates);
         Assert.Empty(differencesTwo.CustomApis.Deletes);
-        Assert.Single(differencesTwo.CustomApis.UpdatesWithDifferences);
-        Assert.Empty(differencesTwo.CustomApis.Recreates);
+        Assert.Single(differencesTwo.CustomApis.Updates);
 
-        Assert.Equal(localCustomApi, differencesTwo.CustomApis.UpdatesWithDifferences[0].LocalEntity);
-        Assert.Equal(remoteCustomApiTwo, differencesTwo.CustomApis.UpdatesWithDifferences[0].RemoteEntity);
-        propNames = differencesTwo.CustomApis.UpdatesWithDifferences[0]
+        Assert.Equal(localCustomApi, differencesTwo.CustomApis.Updates[0].LocalEntity);
+        Assert.Equal(remoteCustomApiTwo, differencesTwo.CustomApis.Updates[0].RemoteEntity);
+        propNames = differencesTwo.CustomApis.Updates[0]
             .DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
         Assert.Equal([
             nameof(CustomApiDefinition.IsPrivate)

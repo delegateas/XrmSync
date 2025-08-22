@@ -6,7 +6,7 @@ namespace XrmSync.Model.Plugin;
 
 public record Step : EntityBase
 {
-    public required string PluginTypeName { get; set; }
+    public required PluginDefinition PluginType { get; set; }
     public required ExecutionStage ExecutionStage { get; set; }
     public required string EventOperation { get; set; }
     public required string LogicalName { get; set; }

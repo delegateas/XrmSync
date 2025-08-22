@@ -21,7 +21,7 @@ public class CustomApiComparer(Description description) : BaseComparer<CustomApi
         if (!DescriptionEquals(local, remote)) yield return x => x.Description;
         if (local.IsPrivate != remote.IsPrivate) yield return x => x.IsPrivate;
         if (local.ExecutePrivilegeName != remote.ExecutePrivilegeName) yield return x => x.ExecutePrivilegeName;
-        if (local.PluginTypeName != remote.PluginTypeName) yield return x => x.PluginTypeName;
+        if (local.PluginType.Name != remote.PluginType.Name) yield return x => x.PluginType;
     }
 
     public override IEnumerable<Expression<Func<CustomApiDefinition, object>>> GetRequiresRecreate(CustomApiDefinition local, CustomApiDefinition remote)

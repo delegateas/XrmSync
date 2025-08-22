@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace XrmSync.Model;
 
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 public record EntityBase
 {
+    [JsonIgnore]
     public Guid Id { get; set; }
 
     public required string Name { get; set; }

@@ -3,10 +3,10 @@ using XrmSync.Model.CustomApi;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
-// MainCustomAPIConfig      : UniqueName, IsFunction, EnabledForWorkflow, AllowedCustomProcessingStepType, BindingType, BoundEntityLogicalName
-using MainCustomAPIConfig = Tuple<string?, bool, int, int, int, string?>;
 // ExtendedCustomAPIConfig  : PluginType, OwnerId, OwnerType, IsCustomizable, IsPrivate, ExecutePrivilegeName, Description
 using ExtendedCustomAPIConfig = Tuple<string?, string?, string?, bool, bool, string?, string?>;
+// MainCustomAPIConfig      : UniqueName, IsFunction, EnabledForWorkflow, AllowedCustomProcessingStepType, BindingType, BoundEntityLogicalName
+using MainCustomAPIConfig = Tuple<string?, bool, int, int, int, string?>;
 // RequestParameterConfig   : Name, UniqueName, DisplayName, IsCustomizable, IsOptional, LogicalEntityName, Type
 using RequestParameterConfig = Tuple<string?, string?, string?, bool, bool, string?, int>;
 // ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
@@ -31,47 +31,58 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
         {
             var (apiDef, apiMeta, reqParams, resProps) = GetRegistrationFromType<Tuple<MainCustomAPIConfig, ExtendedCustomAPIConfig, IEnumerable<RequestParameterConfig>, IEnumerable<ResponsePropertyConfig>>>(MethodName, pluginType);
 
-            return new CustomApiDefinition
+            var (pluginTypeName, isFunction, enabledForWorkflow, allowedCustomProcessingStepType, bindingType, boundLogicalEntityName) = apiDef;
+            var (_, ownerIdStr, _, isCustomizable, isPrivate, executePrivilegeName, description) = apiMeta;
+
+            pluginTypeName ??= string.Empty;
+
+            var definition = new CustomApiDefinition
             {
-                UniqueName = prefix + "_" + (apiDef.Item1 ?? string.Empty),
-                Name = apiDef.Item1 ?? string.Empty,
-                IsFunction = apiDef.Item2,
-                EnabledForWorkflow = apiDef.Item3 == 1,
-                AllowedCustomProcessingStepType = (AllowedCustomProcessingStepType)apiDef.Item4,
-                BindingType = (BindingType)apiDef.Item5,
-                BoundEntityLogicalName = apiDef.Item6 ?? string.Empty,
+                PluginType = new PluginType { Name = pluginTypeName },
 
-                PluginTypeName = apiMeta.Item1 ?? string.Empty,
-                OwnerId = Guid.TryParse(apiMeta.Item2, out var ownerId) ? ownerId : Guid.Empty,
-                IsCustomizable = apiMeta.Item4,
-                IsPrivate = apiMeta.Item5,
-                ExecutePrivilegeName = apiMeta.Item6 ?? string.Empty,
-                Description = apiMeta.Item7 ?? string.Empty,
-                DisplayName = apiDef.Item1 ?? string.Empty, // No explicit display name in tuple, fallback to name
+                UniqueName = prefix + "_" + pluginTypeName,
+                Name = pluginTypeName,
+                DisplayName = pluginTypeName, // No explicit display name in tuple, fallback to name
+                
+                IsFunction = isFunction,
+                EnabledForWorkflow = enabledForWorkflow == 1,
+                AllowedCustomProcessingStepType = (AllowedCustomProcessingStepType)allowedCustomProcessingStepType,
+                BindingType = (BindingType)bindingType,
+                BoundEntityLogicalName = boundLogicalEntityName ?? string.Empty,
 
-                RequestParameters = reqParams?.Select(p => new RequestParameter
-                {
-                    Name = p.Item1 ?? string.Empty,
-                    UniqueName = p.Item2 ?? string.Empty,
-                    DisplayName = p.Item3 ?? string.Empty,
-                    IsCustomizable = p.Item4,
-                    IsOptional = p.Item5,
-                    LogicalEntityName = p.Item6 ?? string.Empty,
-                    Type = (CustomApiParameterType)p.Item7,
-                    CustomApiName = apiDef.Item1 ?? string.Empty
-                }).ToList() ?? [],
+                OwnerId = Guid.TryParse(ownerIdStr, out var ownerId) ? ownerId : Guid.Empty,
+                IsCustomizable = isCustomizable,
+                IsPrivate = isPrivate,
+                ExecutePrivilegeName = executePrivilegeName ?? string.Empty,
+                Description = description ?? string.Empty,
 
-                ResponseProperties = resProps?.Select(r => new ResponseProperty
-                {
-                    Name = r.Item1 ?? string.Empty,
-                    UniqueName = r.Item2 ?? string.Empty,
-                    DisplayName = r.Item3 ?? string.Empty,
-                    IsCustomizable = r.Item4,
-                    LogicalEntityName = r.Item5 ?? string.Empty,
-                    Type = (CustomApiParameterType)r.Item6,
-                    CustomApiName = apiDef.Item1 ?? string.Empty
-                }).ToList() ?? []
+
             };
+
+            definition.RequestParameters = reqParams?.Select(p => new RequestParameter
+            {
+                CustomApi = definition,
+                Name = p.Item1 ?? string.Empty,
+                UniqueName = p.Item2 ?? string.Empty,
+                DisplayName = p.Item3 ?? string.Empty,
+                IsCustomizable = p.Item4,
+                IsOptional = p.Item5,
+                LogicalEntityName = p.Item6 ?? string.Empty,
+                Type = (CustomApiParameterType)p.Item7
+            }).ToList() ?? [];
+
+            definition.ResponseProperties = resProps?.Select(r => new ResponseProperty
+            {
+                CustomApi = definition,
+                Name = r.Item1 ?? string.Empty,
+                UniqueName = r.Item2 ?? string.Empty,
+                DisplayName = r.Item3 ?? string.Empty,
+                IsCustomizable = r.Item4,
+                LogicalEntityName = r.Item5 ?? string.Empty,
+                Type = (CustomApiParameterType)r.Item6
+            }).ToList() ?? [];
+
+            return definition;
         })];
     }
 }

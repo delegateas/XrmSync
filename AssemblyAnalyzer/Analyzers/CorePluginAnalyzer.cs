@@ -16,24 +16,27 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
         var validTypes = types
             .Where(t => t.IsAssignableTo(pluginBaseType) && t.GetConstructor(Type.EmptyTypes) != null && !t.IsAbstract);
 
-        return [.. validTypes
-            .SelectMany(t => GetPluginSteps(t)
-                    .GroupBy(s => s.PluginTypeName)
-                    .Select(g => new PluginDefinition
-                    {
-                        Name = g.Key,
-                        PluginSteps = [.. g]
-                    }))];
+        return [.. validTypes.Select(t => {
+            var pluginDefinition = new PluginDefinition
+            {
+                Name = t.FullName ?? string.Empty,
+                PluginSteps = []
+            };
+
+            pluginDefinition.PluginSteps = [.. GetPluginSteps(t, pluginDefinition)];
+
+            return pluginDefinition;
+        }) ];
     }
 
-    private static IEnumerable<Step> GetPluginSteps(Type pluginType)
+    private static IEnumerable<Step> GetPluginSteps(Type pluginType, PluginDefinition pluginDefinition)
     {
         return GetRegistrationFromType<IEnumerable>(nameof(IPluginDefinition.GetRegistrations), pluginType)
             .Cast<object>()
-            .Select(r => ConvertRegistrationToStep(r, pluginType));
+            .Select(r => ConvertRegistrationToStep(r, pluginDefinition));
     }
 
-    private static Step ConvertRegistrationToStep(object registration, Type pluginType)
+    private static Step ConvertRegistrationToStep(object registration, PluginDefinition pluginDefinition)
     {        
         // Use type-safe reflection to safely extract properties
         var entityLogicalName = GetRegistrationValue(registration, x => x.EntityLogicalName) ?? string.Empty;
@@ -47,12 +50,12 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
         var asyncAutoDelete = GetRegistrationValue(registration, x => x.AsyncAutoDelete);
         var imageSpecs = GetRegistrationValue<IEnumerable>(registration, x => x.ImageSpecifications) ?? Enumerable.Empty<object>();
 
-        var stepName = StepName(pluginType.FullName ?? string.Empty, executionMode, executionStage, eventOperation, entityLogicalName);
+        var stepName = StepName(pluginDefinition.Name, executionMode, executionStage, eventOperation, entityLogicalName);
 
-        return new Step
+        var step = new Step
         {
             Name = stepName,
-            PluginTypeName = pluginType.FullName ?? string.Empty,
+            PluginType = pluginDefinition,
             ExecutionStage = executionStage,
             EventOperation = eventOperation,
             LogicalName = entityLogicalName,
@@ -62,19 +65,23 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
             FilteredAttributes = filteredAttributes,
             UserContext = impersonatingUserId.GetValueOrDefault(),
             AsyncAutoDelete = asyncAutoDelete,
-            PluginImages = [.. imageSpecs.Cast<object>().Select(i => ConvertImageSpecification(i, stepName))]
+            PluginImages = []
         };
+
+        step.PluginImages = [.. imageSpecs.Cast<object>().Select(i => ConvertImageSpecification(i, step))];
+
+        return step;
     }
 
-    private static Image ConvertImageSpecification(object imageSpec, string stepName)
+    private static Image ConvertImageSpecification(object imageSpec, Step pluginStep)
     {        
         return new Image
         {
+            Step = pluginStep,
             Name = GetImageValue(imageSpec, x => x.ImageName) ?? string.Empty,
             ImageType = GetImageValue(imageSpec, x => x.ImageType),
             Attributes = GetImageValue(imageSpec, x => x.Attributes) ?? string.Empty,
-            EntityAlias = GetImageValue(imageSpec, x => x.EntityAlias) ?? string.Empty,
-            PluginStepName = stepName
+            EntityAlias = GetImageValue(imageSpec, x => x.EntityAlias) ?? string.Empty
         };
     }
 

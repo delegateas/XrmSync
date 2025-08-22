@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using XrmSync.Model;
 
 namespace XrmSync.AssemblyAnalyzer.AssemblyReader;
@@ -56,7 +57,10 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         }
 
         // Process the output
-        var assemblyInfo = JsonSerializer.Deserialize<AssemblyInfo>(result.Output);
+        var assemblyInfo = JsonSerializer.Deserialize<AssemblyInfo>(result.Output, new JsonSerializerOptions
+        {
+            ReferenceHandler = ReferenceHandler.Preserve
+        });
 
         logger.LogInformation("Local assembly read successfully: {AssemblyName} version {Version}", assemblyInfo?.Name, assemblyInfo?.Version);
 

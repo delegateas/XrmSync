@@ -62,11 +62,11 @@ internal class PluginValidator(IPluginReader pluginReader) : IPluginValidator
         exceptions.AddRange(deleteWithPostImagesPLugins.Select(x => new ValidationException($"Plugin {x.Name}: Delete events does not support post-images")));
 
         var stepsGroupedByMessageStageAndEntity =
-            pluginSteps.GroupBy(x => (x.PluginTypeName, x.EventOperation, x.ExecutionStage, x.LogicalName))
+            pluginSteps.GroupBy(x => (x.PluginType, x.EventOperation, x.ExecutionStage, x.LogicalName))
             .Where(g => g.Count() > 1)
             .Select(g => g.First())
             .ToList();
-        exceptions.AddRange(stepsGroupedByMessageStageAndEntity.Select(x => new ValidationException($"Plugin {x.Name}: Multiple registrations on the same message, stage and entity are not allowed")));
+        exceptions.AddRange(stepsGroupedByMessageStageAndEntity.Select(x => new ValidationException($"Plugin {x.Name}: Multiple registrations on the same message, stage and entity are not allowed in the same plugin type")));
 
         var userContextDoesNotExistPlugins = pluginReader.GetMissingUserContexts(pluginSteps);
         exceptions.AddRange(userContextDoesNotExistPlugins.Select(x => new ValidationException($"Plugin {x.Name}: Defined user context is not in the system")));

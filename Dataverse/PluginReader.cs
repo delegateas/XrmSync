@@ -28,25 +28,26 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                 }).FirstOrDefault();
     }
 
-    public List<Model.Plugin.PluginType> GetPluginTypes(Guid assemblyId)
+    public List<PluginDefinition> GetPluginTypes(Guid assemblyId)
     {
         using var xrm = new DataverseContext(serviceClient);
 
         return [.. (from pt in xrm.PluginTypeSet
                 where pt.PluginAssemblyId != null && pt.PluginAssemblyId.Id == assemblyId
-                select new Model.Plugin.PluginType
+                select new PluginDefinition
                 {
                     Id = pt.Id,
-                    Name = pt.Name ?? string.Empty
+                    Name = pt.Name ?? string.Empty,
+                    PluginSteps = new List<Step>()
                 })];
     }
 
-    public ILookup<Guid, Step> GetPluginSteps(Guid solutionId, IEnumerable<Guid> pluginTypeIds)
+    public List<Step> GetPluginSteps(IEnumerable<PluginDefinition> pluginTypes, Guid solutionId)
     {
-        if (!pluginTypeIds.Any())
+        if (!pluginTypes.Any())
         {
-            // If no pluginTypeIds are provided, return an empty lookup
-            return Enumerable.Empty<KeyValuePair<Guid, Step>>().ToLookup(k => k.Key, k => k.Value);
+            // If no plugin types are provided, return an empty list
+            return [];
         }
 
         // Create QueryExpression for SdkMessageProcessingStep
@@ -68,16 +69,11 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
         };
 
         // Add condition for pluginTypeIds
-        query.Criteria.AddCondition(SdkMessageProcessingStep.Fields.PluginTypeId, ConditionOperator.In, [.. pluginTypeIds]);
+        query.Criteria.AddCondition(SdkMessageProcessingStep.Fields.PluginTypeId, ConditionOperator.In, [.. pluginTypes.Select(p => p.Id)]);
 
         // Join with SolutionComponent
         var solutionComponentLink = query.AddLink(SolutionComponent.EntityLogicalName, SdkMessageProcessingStep.Fields.SdkMessageProcessingStepId, SolutionComponent.Fields.ObjectId);
         solutionComponentLink.LinkCriteria.AddCondition(SolutionComponent.Fields.SolutionId, ConditionOperator.Equal, solutionId);
-
-        // Join with PluginType
-        var pluginTypeLink = query.AddLink(Context.PluginType.EntityLogicalName, SdkMessageProcessingStep.Fields.PluginTypeId, Context.PluginType.Fields.PluginTypeId);
-        pluginTypeLink.Columns = new ColumnSet(Context.PluginType.Fields.Name);
-        pluginTypeLink.EntityAlias = "pt";
 
         // Join with SdkMessage
         var sdkMessageLink = query.AddLink(SdkMessage.EntityLogicalName, SdkMessageProcessingStep.Fields.SdkMessageId, SdkMessage.Fields.SdkMessageId);
@@ -102,12 +98,31 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
 
         var results = reader.RetrieveMultiple(query);
         var groupedSteps = results.GroupBy(entity => entity.Id);
+
         return groupedSteps.Select(group =>
         {
             var entity = group.FirstOrDefault()
                 ?? throw new XrmSyncException("No steps found but ID returned: " + group.Key);
 
-            var stepName = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.Name) ?? string.Empty;
+            var pluginType = pluginTypes.FirstOrDefault(pt => pt.Id == entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.PluginTypeId)?.Id)
+                ?? throw new XrmSyncException("Plugin type not found for step: " + entity.GetAttributeValue<string>(SdkMessageProcessingStep.Fields.Name));
+
+            var step = new Step
+            {
+                Id = entity.GetAttributeValue<Guid>(SdkMessageProcessingStep.Fields.Id),
+                Name = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.Name) ?? string.Empty,
+                PluginType = pluginType,
+                ExecutionStage = (ExecutionStage)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Stage)?.Value ?? 0),
+                EventOperation = entity.GetAttributeValue<AliasedValue>($"ms.{SdkMessage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
+                LogicalName = entity.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}")?.Value?.ToString() ?? string.Empty,
+                Deployment = (Deployment)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.SupportedDeployment)?.Value ?? 0),
+                ExecutionMode = (ExecutionMode)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Mode)?.Value ?? 0),
+                ExecutionOrder = entity.GetAttributeValue<int>(SdkMessageProcessingStep.Fields.Rank),
+                FilteredAttributes = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.FilteringAttributes) ?? string.Empty,
+                UserContext = entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.ImpersonatingUserId)?.Id ?? Guid.Empty,
+                AsyncAutoDelete = entity.GetAttributeValue<bool?>(SdkMessageProcessingStep.Fields.AsyncAutoDelete) ?? false,
+                PluginImages = []
+            };
 
             var images = group
                 .Where(e => e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Id}") != null)
@@ -118,27 +133,13 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                     EntityAlias = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.EntityAlias}")?.Value?.ToString() ?? string.Empty,
                     Attributes = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Attributes1}")?.Value?.ToString() ?? string.Empty,
                     ImageType = (ImageType)((e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.ImageType}")?.Value as OptionSetValue)?.Value ?? 0),
-                    PluginStepName = stepName
-                }).ToList();
+                    Step = step
+                });
 
-            return (entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.PluginTypeId)?.Id ?? Guid.Empty, new Step
-            {
-                Id = entity.GetAttributeValue<Guid>(SdkMessageProcessingStep.Fields.Id),
-                Name = stepName,
-                PluginTypeName = entity.GetAttributeValue<AliasedValue>($"pt.{Context.PluginType.Fields.Name}")?.Value?.ToString() ?? string.Empty,
-                ExecutionStage = (ExecutionStage)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Stage)?.Value ?? 0),
-                EventOperation = entity.GetAttributeValue<AliasedValue>($"ms.{SdkMessage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
-                LogicalName = entity.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}")?.Value?.ToString() ?? string.Empty,
-                Deployment = (Deployment)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.SupportedDeployment)?.Value ?? 0),
-                ExecutionMode = (ExecutionMode)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Mode)?.Value ?? 0),
-                ExecutionOrder = entity.GetAttributeValue<int>(SdkMessageProcessingStep.Fields.Rank),
-                FilteredAttributes = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.FilteringAttributes) ?? string.Empty,
-                UserContext = entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.ImpersonatingUserId)?.Id ?? Guid.Empty,
-                AsyncAutoDelete = entity.GetAttributeValue<bool?>(SdkMessageProcessingStep.Fields.AsyncAutoDelete) ?? false,
-                PluginImages = images
-            });
-        })
-        .ToLookup(step => step.Item1, step => step.Item2);
+            step.PluginImages = [.. images];
+
+            return step;
+        }).ToList();
     }
 
     public IEnumerable<Step> GetMissingUserContexts(IEnumerable<Step> pluginSteps)

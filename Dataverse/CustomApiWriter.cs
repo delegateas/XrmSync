@@ -15,16 +15,13 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
             { "SolutionUniqueName", configuration.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
     };
 
-    public List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string description)
+    public List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, string description)
     {
         if (customApis.Count == 0) return customApis;
 
         log.LogInformation("Creating {Count} Custom APIs in Dataverse.", customApis.Count);
         customApis.ForEach(api =>
         {
-            var pluginType = pluginTypes.FirstOrDefault(pt => pt.Name == api.PluginTypeName)
-                ?? throw new XrmSyncException($"PluginType '{api.PluginTypeName}' not found for CustomApi '{api.UniqueName}'.");
-
             var entity = new CustomApi
             {
                 Name = api.Name,
@@ -36,7 +33,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
                 BindingType = (CustomApi_BindingType)api.BindingType,
                 BoundEntityLogicalName = api.BoundEntityLogicalName,
                 AllowedCustomProcessingStepType = (CustomApi_AllowedCustomProcessingStepType)api.AllowedCustomProcessingStepType,
-                PluginTypeId = new EntityReference(PluginType.EntityLogicalName, pluginType.Id),
+                PluginTypeId = new EntityReference(Context.PluginType.EntityLogicalName, api.PluginType.Id),
                 IsCustomizable = new BooleanManagedProperty(api.IsCustomizable),
                 IsPrivate = api.IsPrivate,
                 ExecutePrivilegeName = api.ExecutePrivilegeName
@@ -53,26 +50,23 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
         return customApis;
     }
 
-    public List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters, List<CustomApiDefinition> customApis)
+    public List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters)
     {
-        if (requestParameters.Count == 0) return requestParameters;
+        if (requestParameters.Count == 0) return [];
 
         log.LogInformation("Creating {Count} Custom API Request Parameters in Dataverse.", requestParameters.Count);
         requestParameters.ForEach(param =>
         {
-            var api = customApis.FirstOrDefault(a => a.Name == param.CustomApiName)
-                ?? throw new XrmSyncException($"CustomApi '{param.CustomApiName}' not found for request parameter '{param.UniqueName}'.");
-
             var entity = new CustomApiRequestParameter
             {
+                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, param.CustomApi.Id),
                 Name = param.Name,
                 UniqueName = param.UniqueName,
-                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, api.Id),
                 DisplayName = param.DisplayName,
                 IsCustomizable = new BooleanManagedProperty(param.IsCustomizable),
                 IsOptional = param.IsOptional,
                 LogicalEntityName = param.LogicalEntityName,
-                Type = (CustomApiFieldType?)param.Type
+                Type = (CustomApiFieldType)param.Type
             };
 
             param.Id = writer.Create(entity, Parameters);
@@ -81,25 +75,22 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
         return requestParameters;
     }
 
-    public List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties, List<CustomApiDefinition> customApis)
+    public List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties)
     {
         if (responseProperties.Count == 0) return responseProperties;
 
         log.LogInformation("Creating {Count} Custom API Response Properties in Dataverse.", responseProperties.Count);
         responseProperties.ForEach(prop =>
         {
-            var api = customApis.FirstOrDefault(a => a.Name == prop.CustomApiName)
-                            ?? throw new XrmSyncException($"CustomApi '{prop.CustomApiName}' not found for response property '{prop.UniqueName}'.");
-
             var entity = new CustomApiResponseProperty
             {
                 Name = prop.Name,
                 UniqueName = prop.UniqueName,
-                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, api.Id),
+                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, prop.CustomApi.Id),
                 DisplayName = prop.DisplayName,
                 IsCustomizable = new BooleanManagedProperty(prop.IsCustomizable),
                 LogicalEntityName = prop.LogicalEntityName,
-                Type = (CustomApiFieldType?)prop.Type
+                Type = (CustomApiFieldType)prop.Type
             };
 
             prop.Id = writer.Create(entity, Parameters);
@@ -108,13 +99,10 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
         return responseProperties;
     }
 
-    public List<CustomApiDefinition> UpdateCustomApis(List<CustomApiDefinition> customApis, List<Model.Plugin.PluginType> pluginTypes, string description)
+    public List<CustomApiDefinition> UpdateCustomApis(List<CustomApiDefinition> customApis, string description)
     {
         var updateRequests = customApis.ConvertAll(api =>
         {
-            var pluginType = pluginTypes.FirstOrDefault(pt => pt.Name == api.PluginTypeName)
-                ?? throw new XrmSyncException($"PluginType '{api.PluginTypeName}' not found for CustomApi '{api.UniqueName}'.");
-
             var definition = new CustomApi
             {
                 Id = api.Id,
@@ -125,7 +113,7 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
                 BindingType = (CustomApi_BindingType)api.BindingType,
                 BoundEntityLogicalName = api.BoundEntityLogicalName,
                 AllowedCustomProcessingStepType = (CustomApi_AllowedCustomProcessingStepType)api.AllowedCustomProcessingStepType,
-                PluginTypeId = new EntityReference(PluginType.EntityLogicalName, pluginType.Id),
+                PluginTypeId = new EntityReference(Context.PluginType.EntityLogicalName, api.PluginType.Id),
                 IsCustomizable = new BooleanManagedProperty(api.IsCustomizable),
                 IsPrivate = api.IsPrivate,
                 ExecutePrivilegeName = api.ExecutePrivilegeName

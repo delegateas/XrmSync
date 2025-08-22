@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
-using System.Configuration;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
@@ -69,9 +68,9 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         }
     }
 
-    public void DeletePluginTypes(IEnumerable<Model.Plugin.PluginType> pluginTypes)
+    public void DeletePluginTypes(IEnumerable<PluginDefinition> pluginTypes)
     {
-        var deleteRequests = pluginTypes.ToDeleteRequests(Context.PluginType.EntityLogicalName).ToList();
+        var deleteRequests = pluginTypes.ToDeleteRequests(PluginType.EntityLogicalName).ToList();
 
         if (deleteRequests.Count > 0)
         {
@@ -103,23 +102,17 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         }
     }
 
-    public void UpdatePluginImages(IEnumerable<Image> pluginImages, List<Step> pluginSteps)
+    public void UpdatePluginImages(IEnumerable<Image> pluginImages)
     {
         var pluginImageReqs = pluginImages
-            .Select(x =>
+            .Select(image => new SdkMessageProcessingStepImage()
             {
-                var stepRef = pluginSteps.FirstOrDefault(s => s.Name == x.PluginStepName)
-                    ?? throw new XrmSyncException($"Plugin step '{x.PluginStepName}' not found in the provided steps.");
-                
-                return new SdkMessageProcessingStepImage()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    EntityAlias = x.EntityAlias,
-                    ImageType = (SdkMessageProcessingStepImage_ImageType)x.ImageType,
-                    Attributes1 = x.Attributes,
-                    SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, stepRef.Id),
-                };
+                Id = image.Id,
+                Name = image.Name,
+                EntityAlias = image.EntityAlias,
+                ImageType = (SdkMessageProcessingStepImage_ImageType)image.ImageType,
+                Attributes1 = image.Attributes,
+                SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, image.Step.Id),
             }).ToList();
 
         if (pluginImageReqs.Count > 0)
@@ -129,14 +122,14 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         }
     }
 
-    public List<Model.Plugin.PluginType> CreatePluginTypes(List<Model.Plugin.PluginType> pluginTypes, Guid assemblyId, string description)
+    public List<PluginDefinition> CreatePluginTypes(List<PluginDefinition> pluginTypes, Guid assemblyId, string description)
     {
         if (pluginTypes.Count == 0) return pluginTypes;
 
         log.LogInformation("Creating {Count} plugin types in Dataverse.", pluginTypes.Count);
         pluginTypes.ForEach(pluginType =>
         {
-            var entity = new Context.PluginType
+            var entity = new PluginType
             {
                 Name = pluginType.Name,
                 TypeName = pluginType.Name,
@@ -151,7 +144,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         return pluginTypes;
     }
 
-    public List<Step> CreatePluginSteps(List<Step> pluginSteps, List<Model.Plugin.PluginType> pluginTypes, string description)
+    public List<Step> CreatePluginSteps(List<Step> pluginSteps, string description)
     {
         if (pluginSteps.Count == 0) return pluginSteps;
 
@@ -163,8 +156,6 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
         pluginSteps.ForEach(step =>
         {
-            var pluginType = pluginTypes.First(type => type.Name == step.PluginTypeName);
-
             var (messageId, messageFilterReference) = GetMessageFilterReference(step, messageFilterIds);
 
             var impersonatingUserReference = step.UserContext == Guid.Empty
@@ -178,7 +169,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
                 Rank = step.ExecutionOrder,
                 Mode = (SdkMessageProcessingStep_Mode)step.ExecutionMode,
 #pragma warning disable CS0612 // Type or member is obsolete
-                PluginTypeId = new EntityReference(Context.PluginType.EntityLogicalName, pluginType.Id),
+                PluginTypeId = new EntityReference(Context.PluginType.EntityLogicalName, step.PluginType.Id),
 #pragma warning restore CS0612 // Type or member is obsolete
                 Stage = (SdkMessageProcessingStep_Stage)step.ExecutionStage,
                 FilteringAttributes = step.FilteredAttributes,
@@ -195,24 +186,21 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         return pluginSteps;
     }
 
-    public List<Image> CreatePluginImages(List<Image> pluginImages, List<Step> pluginSteps)
+    public List<Image> CreatePluginImages(List<Image> pluginImages)
     {
         if (pluginImages.Count == 0) return pluginImages;
 
         log.LogInformation("Creating {Count} plugin images in Dataverse.", pluginImages.Count);
         pluginImages.ForEach(image =>
         {
-            var pluginStep = pluginSteps.First(step => step.Name == image.PluginStepName);
-            var messagePropertyName = MessageReader.GetMessagePropertyName(pluginStep.EventOperation);
-
             var entity = new SdkMessageProcessingStepImage
             {
                 Name = image.Name,
                 EntityAlias = image.EntityAlias,
                 ImageType = (SdkMessageProcessingStepImage_ImageType)image.ImageType,
                 Attributes1 = image.Attributes,
-                MessagePropertyName = messagePropertyName,
-                SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, pluginStep.Id)
+                MessagePropertyName = MessageReader.GetMessagePropertyName(image.Step.EventOperation),
+                SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, image.Step.Id)
             };
 
             image.Id = writer.Create(entity, Parameters);

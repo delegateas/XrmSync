@@ -2,9 +2,7 @@
 
 namespace XrmSync.SyncService.Difference;
 
-public record Difference<T>(List<T> Creates, List<EntityDifference<T>> UpdatesWithDifferences, List<T> Deletes, List<EntityDifference<T>> Recreates) where T : EntityBase
+public record Difference<TEntity>(List<EntityDifference<TEntity>> Creates, List<EntityDifference<TEntity>> Updates, List<TEntity> Deletes) where TEntity : EntityBase
 {
-    public List<T> Updates { get; } = UpdatesWithDifferences.ConvertAll(x => x.LocalEntity);
-
-    public static Difference<T> Empty() => new([], [], [], []);
+    public static Difference<TEntity> Empty => new([], [], []);
 }
