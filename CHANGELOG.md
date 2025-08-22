@@ -6,6 +6,7 @@
   - Publisher prefix validation (format, length requirements for Dataverse)
   - Validation occurs before save-config and before main operations
   - Clear error messages with detailed validation feedback
+* Refactoring of the internal model to better reflect the actual data and not drag around a large number of loosely coupled lists.
 
 ### v1.0.0-preview.1 - 15 August 2025
 * Initial version
