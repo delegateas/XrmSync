@@ -4,11 +4,11 @@ using System.Collections;
 using System.Linq.Expressions;
 using XrmSync.Model.Plugin;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers;
+namespace XrmSync.AssemblyAnalyzer.Analyzers.XrmPluginCore;
 
-internal class CorePluginAnalyzer : CoreAnalyzer, IPluginAnalyzer
+internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
 {
-    public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types, string prefix)
+    public List<PluginDefinition> AnalyzeTypes(IEnumerable<Type> types, string prefix)
     {
         var pluginBaseType = types.FirstOrDefault(t => t.FullName == typeof(IPluginDefinition).FullName);
         if (pluginBaseType is null) return [];

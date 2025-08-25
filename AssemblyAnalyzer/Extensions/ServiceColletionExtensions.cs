@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 using XrmSync.AssemblyAnalyzer.Analyzers;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
 
@@ -15,10 +16,29 @@ public static class ServiceColletionExtensions
     {
         return services
             .AddSingleton<IAssemblyAnalyzer, AssemblyAnalyzer>()
-            .AddSingleton<IPluginAnalyzer, DAXIFPluginAnalyzer>()
-            .AddSingleton<IPluginAnalyzer, CorePluginAnalyzer>()
-            .AddSingleton<ICustomApiAnalyzer, DAXIFCustomApiAnalyzer>()
-            .AddSingleton<ICustomApiAnalyzer, CoreCustomApiAnalyzer>()
-            ;
+            .AddAnalyzers();
+    }
+
+    public static IServiceCollection AddAnalyzers(this IServiceCollection services)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+
+        // Find all types that implement IAnalyzer<T>
+        var analyzerTypes = assembly.GetTypes()
+            .Where(type => type is { IsClass: true, IsAbstract: false } &&
+                type.GetInterfaces().Any(i => i.IsGenericType &&
+                    i.GetGenericTypeDefinition() == typeof(IAnalyzer<>)))
+            .ToList();
+
+        foreach (var analyzerType in analyzerTypes)
+        {
+            // Get the specific IValidationRule<T> interface this type implements
+            var analyzerInterface = analyzerType.GetInterfaces()
+                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAnalyzer<>));
+
+            services.AddSingleton(analyzerInterface, analyzerType);
+        }
+
+        return services;
     }
 }

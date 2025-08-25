@@ -1,7 +1,8 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using XrmSync.AssemblyAnalyzer;
-using XrmSync.AssemblyAnalyzer.Analyzers;
+using XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;
+using XrmSync.AssemblyAnalyzer.Analyzers.XrmPluginCore;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
 
 namespace Tests;

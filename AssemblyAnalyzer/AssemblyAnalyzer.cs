@@ -4,11 +4,13 @@ using System.Runtime.CompilerServices;
 using XrmSync.Model;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.AssemblyAnalyzer.Analyzers;
+using XrmSync.Model.Plugin;
+using XrmSync.Model.CustomApi;
 
 [assembly: InternalsVisibleTo("Tests")]
 namespace XrmSync.AssemblyAnalyzer;
 
-public class AssemblyAnalyzer(IEnumerable<IPluginAnalyzer> pluginAnalyzers, IEnumerable<ICustomApiAnalyzer> customApiAnalyzers) : IAssemblyAnalyzer
+public class AssemblyAnalyzer(IEnumerable<IAnalyzer<PluginDefinition>> pluginAnalyzers, IEnumerable<IAnalyzer<CustomApiDefinition>> customApiAnalyzers) : IAssemblyAnalyzer
 {
     public AssemblyInfo AnalyzeAssembly(string dllPath, string prefix)
     {
@@ -35,8 +37,8 @@ public class AssemblyAnalyzer(IEnumerable<IPluginAnalyzer> pluginAnalyzers, IEnu
             Version = assemblyVersion,
             Hash = hash,
             DllPath = dllFullPath,
-            Plugins = [.. pluginAnalyzers.SelectMany(a => a.GetPluginDefinitions(types, prefix)).OrderBy(d => d.Name)],
-            CustomApis = [.. customApiAnalyzers.SelectMany(a => a.GetCustomApis(types, prefix)).OrderBy(d => d.Name)],
+            Plugins = [.. pluginAnalyzers.SelectMany(a => a.AnalyzeTypes(types, prefix)).OrderBy(d => d.Name)],
+            CustomApis = [.. customApiAnalyzers.SelectMany(a => a.AnalyzeTypes(types, prefix)).OrderBy(d => d.Name)],
         };
     }
 }

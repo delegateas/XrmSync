@@ -2,7 +2,7 @@
 using System.Xml.Linq;
 using XrmSync.Model.CustomApi;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers;
+namespace XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;
 
 // ExtendedCustomAPIConfig  : PluginType, OwnerId, OwnerType, IsCustomizable, IsPrivate, ExecutePrivilegeName, Description
 using ExtendedCustomAPIConfig = Tuple<string?, string?, string?, bool, bool, string?, string?>;
@@ -13,9 +13,9 @@ using RequestParameterConfig = Tuple<string?, string?, string?, bool, bool, stri
 // ResponsePropertyConfig   : Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type
 using ResponsePropertyConfig = Tuple<string?, string?, string?, bool, string?, int>;
 
-internal class DAXIFCustomApiAnalyzer : Analyzer, ICustomApiAnalyzer
+internal class DAXIFCustomApiAnalyzer : Analyzer, IAnalyzer<CustomApiDefinition>
 {
-    public List<CustomApiDefinition> GetCustomApis(IEnumerable<Type> types, string prefix)
+    public List<CustomApiDefinition> AnalyzeTypes(IEnumerable<Type> types, string prefix)
     {
         var customApiType = types.FirstOrDefault(x => x.Name == "CustomAPI");
         if (customApiType == null)

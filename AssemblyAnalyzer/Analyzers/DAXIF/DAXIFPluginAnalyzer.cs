@@ -2,7 +2,7 @@
 using System;
 using XrmSync.Model.Plugin;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers;
+namespace XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;
 
 // ExtendedStepConfig   : Deployment, ExecutionMode, Name, ExecutionOrder, FilteredAttributes, UserContext
 using ExtendedStepConfig = Tuple<int, int, string?, int, string?, string?>;
@@ -11,9 +11,9 @@ using ImageTuple = Tuple<string?, string?, int, string?>;
 // StepConfig           : className, ExecutionStage, EventOperation, LogicalName
 using StepConfig = Tuple<string?, int, string?, string?>;
 
-internal class DAXIFPluginAnalyzer : Analyzer, IPluginAnalyzer
+internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
 {
-    public List<PluginDefinition> GetPluginDefinitions(IEnumerable<Type> types, string prefix)
+    public List<PluginDefinition> AnalyzeTypes(IEnumerable<Type> types, string prefix)
     {
         var pluginBaseType = types.FirstOrDefault(x => x.Name == "Plugin");
         if (pluginBaseType == null)

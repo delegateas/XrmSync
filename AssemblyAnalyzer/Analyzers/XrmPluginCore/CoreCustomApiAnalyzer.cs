@@ -4,11 +4,11 @@ using System.Collections;
 using System.Linq.Expressions;
 using XrmSync.Model.CustomApi;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers;
+namespace XrmSync.AssemblyAnalyzer.Analyzers.XrmPluginCore;
 
-internal class CoreCustomApiAnalyzer : CoreAnalyzer, ICustomApiAnalyzer
+internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefinition>
 {
-    public List<CustomApiDefinition> GetCustomApis(IEnumerable<Type> types, string prefix)
+    public List<CustomApiDefinition> AnalyzeTypes(IEnumerable<Type> types, string prefix)
     {
         var customApiBaseType = types.FirstOrDefault(t => t.FullName == typeof(ICustomApiDefinition).FullName);
 
