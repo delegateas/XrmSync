@@ -137,9 +137,10 @@ public class PluginSyncService(
             var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath, solutionPrefix, cancellationToken);
             log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis locally", localAssembly.Plugins.Count, localAssembly.CustomApis.Count);
 
-            log.LogInformation("Validating plugins to be registered");
+            log.LogInformation("Validating plugins and custom apis to be registered");
             pluginValidator.Validate(localAssembly.Plugins);
-            log.LogInformation("Plugins validated");
+            pluginValidator.Validate(localAssembly.CustomApis);
+            log.LogInformation("Plugins and custom apis validated");
 
             log.LogInformation("Retrieving registered plugins from Dataverse solution \"{solutionName}\"", options.SolutionName);
             var crmAssembly = GetPluginAssembly(solutionId, localAssembly.Name);

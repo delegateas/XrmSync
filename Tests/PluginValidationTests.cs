@@ -2,9 +2,9 @@ using NSubstitute;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.SyncService.Exceptions;
 using XrmSync.Model.Plugin;
-using XrmSync.Model;
 using XrmSync.SyncService.PluginValidator;
 using DG.XrmPluginCore.Enums;
+using XrmSync.Model.CustomApi;
 
 namespace Tests;
 
@@ -186,5 +186,63 @@ public class PluginValidationTests
 
         // Act & Assert
         validator.Validate([pluginType1, pluginType2]);
+    }
+
+    [Fact]
+    public void ValidateCustomAPI_ThrowsException_BoundWithoutEntity()
+    {
+        // Arrange
+        var customAPI = new CustomApiDefinition
+        {
+            Name = "TestBoundAPI",
+            DisplayName = "TestBoundAPI",
+            UniqueName = "new_TestBoundAPI",
+            BindingType = BindingType.Entity, // or similar enum value indicating bound
+            BoundEntityLogicalName = string.Empty, // or string.Empty - this is the violation
+            Description = "A test bound custom API",
+            IsFunction = false,
+            IsPrivate = false,
+            IsCustomizable = true,
+            EnabledForWorkflow = false,
+            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.AsyncOnly,
+            ExecutePrivilegeName = string.Empty,
+            PluginType = new PluginType { Name = "TestPluginType", Id = Guid.NewGuid() }
+        };
+
+        var pluginReader = Substitute.For<IPluginReader>();
+        var validator = new PluginValidator(pluginReader);
+
+        // Act & Assert
+        var ex = Assert.Throws<ValidationException>(() => validator.Validate([customAPI]));
+        Assert.Contains("Bound Custom API must specify an entity type", ex.Message);
+    }
+
+    [Fact]
+    public void ValidateCustomAPI_ThrowsException_UnboundWithEntity()
+    {
+        // Arrange
+        var customAPI = new CustomApiDefinition
+        {
+            Name = "TestUnboundAPI",
+            DisplayName = "TestUnboundAPI",
+            UniqueName = "new_TestUnboundAPI",
+            BindingType = 0, // Unbound has type Global, which isn't mapped in the enum
+            BoundEntityLogicalName = "account", // or similar entity name - this is the violation
+            Description = "A test unbound custom API",
+            IsFunction = false,
+            IsPrivate = false,
+            IsCustomizable = true,
+            EnabledForWorkflow = false,
+            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.AsyncOnly,
+            ExecutePrivilegeName = string.Empty,
+            PluginType = new PluginType { Name = "TestPluginType", Id = Guid.NewGuid() }
+        };
+
+        var pluginReader = Substitute.For<IPluginReader>();
+        var validator = new PluginValidator(pluginReader);
+
+        // Act & Assert
+        var ex = Assert.Throws<ValidationException>(() => validator.Validate([customAPI]));
+        Assert.Contains("Unbound Custom API cannot specify an entity type", ex.Message);
     }
 }
