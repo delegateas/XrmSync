@@ -1,15 +1,65 @@
-using NSubstitute;
-using XrmSync.Dataverse.Interfaces;
-using XrmSync.SyncService.Exceptions;
-using XrmSync.Model.Plugin;
-using XrmSync.SyncService.PluginValidator;
 using DG.XrmPluginCore.Enums;
+using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
+using XrmSync.Dataverse;
+using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model.CustomApi;
+using XrmSync.Model.Plugin;
+using XrmSync.SyncService.Exceptions;
+using XrmSync.SyncService.Extensions;
+using XrmSync.SyncService.PluginValidator;
+using XrmSync.SyncService.PluginValidator.Rules;
+using XrmSync.SyncService.PluginValidator.Rules.CustomApi;
+using XrmSync.SyncService.PluginValidator.Rules.Plugin;
 
 namespace Tests;
 
 public class PluginValidationTests
 {
+    private static IPluginValidator CreateValidator(IPluginReader? pluginReader = null)
+    {
+        var services = new ServiceCollection();
+        
+        // Register validation rules using the extension method
+        services.AddValidationRules();
+        
+        // Register mock or provided plugin reader
+        var mockPluginReader = pluginReader ?? Substitute.For<IPluginReader>();
+        services.AddSingleton(mockPluginReader);
+        
+        // Register the validator
+        services.AddSingleton<IPluginValidator, PluginValidator>();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        return serviceProvider.GetRequiredService<IPluginValidator>();
+    }
+
+    [Fact]
+    public void ValidationRules_AreDiscovered_Correctly()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddValidationRules();
+
+        // Register mock or provided plugin reader
+        services.AddSingleton(Substitute.For<IPluginReader>());
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Act & Assert - Verify Step validation rules are registered
+        var stepRules = serviceProvider.GetServices<IValidationRule<Step>>().ToList();
+        Assert.NotEmpty(stepRules);
+        Assert.Contains(stepRules, r => r is AsyncPreOperationRule);
+        Assert.Contains(stepRules, r => r is PreImageInPreStageRule);
+        Assert.Contains(stepRules, r => r is DuplicateRegistrationRule);
+
+        // Act & Assert - Verify CustomApi validation rules are registered
+        var customApiRules = serviceProvider.GetServices<IValidationRule<CustomApiDefinition>>().ToList();
+        Assert.NotEmpty(customApiRules);
+        Assert.Contains(customApiRules, r => r is BoundApiEntityRule);
+        Assert.Contains(customApiRules, r => r is UnboundApiEntityRule);
+    }
+
     [Fact]
     public void ValidatePlugins_ThrowsException_ForPreOperationAsync()
     {
@@ -34,7 +84,7 @@ public class PluginValidationTests
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
-        var validator = new PluginValidator(pluginReader);
+        var validator = CreateValidator(pluginReader);
 
         // Act & Assert
         var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
@@ -81,13 +131,14 @@ public class PluginValidationTests
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
-        var validator = new PluginValidator(pluginReader);
+        var validator = CreateValidator(pluginReader);
 
         // Act & Assert
         var ex = Assert.Throws<AggregateException>(() => validator.Validate([pluginType]));
-        Assert.Contains("Pre execution stages does not support asynchronous execution mode", ex.InnerExceptions[0].Message);
-        Assert.Contains("Associate/Disassociate events can't have filtered attributes", ex.InnerExceptions[1].Message);
-        Assert.Contains("Associate/Disassociate events must target all entities", ex.InnerExceptions[2].Message);
+        var messages = ex.InnerExceptions.Select(e => e.Message).ToList();
+        Assert.Contains(messages, x => x.Contains("Pre execution stages does not support asynchronous execution mode"));
+        Assert.Contains(messages, x => x.Contains("Plugin Step2: Associate/Disassociate events can't have filtered attributes"));
+        Assert.Contains(messages, x => x.Contains("Plugin Step2: Associate/Disassociate events must target all entities"));
     }
 
     [Fact]
@@ -131,7 +182,7 @@ public class PluginValidationTests
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
-        var validator = new PluginValidator(pluginReader);
+        var validator = CreateValidator(pluginReader);
 
         // Act & Assert
         var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
@@ -182,7 +233,7 @@ public class PluginValidationTests
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
-        var validator = new PluginValidator(pluginReader);
+        var validator = CreateValidator(pluginReader);
 
         // Act & Assert
         validator.Validate([pluginType1, pluginType2]);
@@ -209,8 +260,7 @@ public class PluginValidationTests
             PluginType = new PluginType { Name = "TestPluginType", Id = Guid.NewGuid() }
         };
 
-        var pluginReader = Substitute.For<IPluginReader>();
-        var validator = new PluginValidator(pluginReader);
+        var validator = CreateValidator();
 
         // Act & Assert
         var ex = Assert.Throws<ValidationException>(() => validator.Validate([customAPI]));
@@ -238,8 +288,7 @@ public class PluginValidationTests
             PluginType = new PluginType { Name = "TestPluginType", Id = Guid.NewGuid() }
         };
 
-        var pluginReader = Substitute.For<IPluginReader>();
-        var validator = new PluginValidator(pluginReader);
+        var validator = CreateValidator();
 
         // Act & Assert
         var ex = Assert.Throws<ValidationException>(() => validator.Validate([customAPI]));
