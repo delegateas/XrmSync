@@ -7,7 +7,7 @@ using XrmSync.SyncService.Extensions;
 
 namespace XrmSync.SyncService.Difference;
 
-public class DifferenceUtility(ILogger log,
+public class DifferenceUtility(ILogger<DifferenceUtility> log,
     IEntityComparer<PluginDefinition> pluginDefinitionComparer,
     IEntityComparer<Step> pluginStepComparer,
     IEntityComparer<Image> pluginImageComparer,

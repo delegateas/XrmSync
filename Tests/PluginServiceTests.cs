@@ -8,14 +8,13 @@ using XrmSync.Model.Plugin;
 using XrmSync.Model;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
 using XrmSync.SyncService.Difference;
-using Microsoft.Crm.Sdk.Messages;
 using DG.XrmPluginCore.Enums;
 
 namespace Tests;
 
 public class PluginServiceTests
 {
-    private readonly ILogger _logger = Substitute.For<ILogger>();
+    private readonly ILogger<PluginSyncService> _logger = Substitute.For<ILogger<PluginSyncService>>();
     private readonly IPluginReader _pluginReader = Substitute.For<IPluginReader>();
     private readonly IPluginWriter _pluginWriter = Substitute.For<IPluginWriter>();
     private readonly IPluginValidator _pluginValidator = Substitute.For<IPluginValidator>();

@@ -4,8 +4,6 @@ using Microsoft.Extensions.Logging;
 using XrmSync;
 using XrmSync.Extensions;
 using XrmSync.Model;
-using XrmSync.Options;
-using XrmSync.Actions;
 
 [assembly: InternalsVisibleTo("Tests")]
 
@@ -26,7 +24,7 @@ var command = new CommandLineBuilder()
                 var pluginSyncOptions = new PluginSyncOptions(
                     string.IsNullOrWhiteSpace(assemblyPath) ? basePluginSyncOptions?.AssemblyPath ?? string.Empty : assemblyPath,
                     string.IsNullOrWhiteSpace(solutionName) ? basePluginSyncOptions?.SolutionName ?? string.Empty : solutionName,
-                    logLevel ?? basePluginSyncOptions?.LogLevel ?? XrmSync.LoggerFactory.DefaultLogLevel,
+                    logLevel ?? basePluginSyncOptions?.LogLevel ?? LogLevel.Information,
                     dryRun.GetValueOrDefault() || (baseOptions.Plugin?.Sync?.DryRun ?? false)
                 );
 

@@ -11,9 +11,9 @@ namespace XrmSync.Dataverse;
 public sealed class DataverseWriter : IDataverseWriter
 {
     private readonly ServiceClient serviceClient;
-    private readonly ILogger logger;
+    private readonly ILogger<DataverseWriter> logger;
 
-    public DataverseWriter(ServiceClient serviceClient, ILogger logger, XrmSyncConfiguration configuration)
+    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, XrmSyncConfiguration configuration)
     {
         if (configuration.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
         {

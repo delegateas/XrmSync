@@ -76,7 +76,8 @@ xrmsync --dry-run --log-level Debug
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
-| `--save-config` | `--sc` | Save current CLI options to appsettings.json (optionally specify a custom file path) | No |
+| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
+| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
 *Required when not present in appsettings.json
 
@@ -87,7 +88,8 @@ xrmsync --dry-run --log-level Debug
 | `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
 | `--prefix` | `-p` | Publisher prefix for unique names | No (Default: "new") |
 | `--pretty-print` | `--pp` | Pretty print the JSON output | No |
-| `--save-config` | `--sc` | Save current CLI options to appsettings.json (optionally specify a custom file path) | No |
+| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
+| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
 *Required when not present in appsettings.json
 ### Assembly Analysis
@@ -125,7 +127,7 @@ xrmsync analyze --assembly "MyPlugin.dll" --prefix "contoso" --pretty-print --sa
 
 # Save to a custom file
 ```bash
-xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config "my-project.json"
+xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config --save-config-to "my-project.json"
 ```
 
 When using `--save-config`, XrmSync will:

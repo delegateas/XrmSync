@@ -17,7 +17,8 @@ internal record CommandLineOptions
     public required Option<bool> DryRun { get; init; }
     public required Option<LogLevel?> LogLevel { get; init; }
     public required Option<bool> PrettyPrint { get; init; }
-    public required Option<string?> SaveConfig { get; init; }
+    public required Option<bool> SaveConfig { get; init; }
+    public required Option<string?> SaveConfigTo { get; init; }
 }
 
 internal record SyncCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel);
@@ -61,9 +62,13 @@ internal class CommandLineBuilder
         },
         SaveConfig = new("--save-config", "--sc")
         {
-            Description = "Save current CLI options to appsettings.json (optionally specify a custom file path)",
-            Required = false,
-            Arity = ArgumentArity.ZeroOrOne
+            Description = "Save current CLI options to appsettings.json",
+            Required = false
+        },
+        SaveConfigTo = new ("--save-config-to")
+        {
+            Description = "If --save-config is set, save to this file instead of appsettings.json",
+            Required = false
         }
     };
 
@@ -75,7 +80,8 @@ internal class CommandLineBuilder
             Options.SolutionName,
             Options.DryRun,
             Options.LogLevel,
-            Options.SaveConfig
+            Options.SaveConfig,
+            Options.SaveConfigTo
         };
 
         AnalyzeCommand = new ("analyze", "Analyze a plugin assembly and output info as JSON")
@@ -83,7 +89,8 @@ internal class CommandLineBuilder
             Options.AssemblyFile,
             Options.Prefix,
             Options.PrettyPrint,
-            Options.SaveConfig
+            Options.SaveConfig,
+            Options.SaveConfigTo
         };
         SyncCommand.Subcommands.Add(AnalyzeCommand);
     }
@@ -100,11 +107,12 @@ internal class CommandLineBuilder
             var dryRun = parseResult.GetValue(Options.DryRun);
             var logLevel = parseResult.GetValue(Options.LogLevel);
             var saveConfig = parseResult.GetValue(Options.SaveConfig);
+            var saveConfigTo = saveConfig ? parseResult.GetValue(Options.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json"  : null;
 
             var syncOptions = new SyncCLIOptions(assemblyPath, solutionName, dryRun, logLevel);
             var serviceProvider = factory.Invoke(syncOptions);
 
-            return await RunAction(serviceProvider, saveConfig, ConfigurationScope.PluginSync, cancellationToken)
+            return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginSync, cancellationToken)
                 ? E_OK
                 : E_ERROR;
         });
@@ -120,11 +128,12 @@ internal class CommandLineBuilder
             var publisherPrefix = parseResult.GetValue(Options.Prefix);
             var prettyPrint = parseResult.GetValue(Options.PrettyPrint);
             var saveConfig = parseResult.GetValue(Options.SaveConfig);
+            var saveConfigTo = saveConfig ? parseResult.GetValue(Options.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
 
             var analyzeOptions = new AnalyzeCLIOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint);
             var serviceProvider = factory.Invoke(analyzeOptions);
 
-            return await RunAction(serviceProvider, saveConfig, ConfigurationScope.PluginAnalysis, cancellationToken)
+            return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginAnalysis, cancellationToken)
                 ? E_OK
                 : E_ERROR;
         });

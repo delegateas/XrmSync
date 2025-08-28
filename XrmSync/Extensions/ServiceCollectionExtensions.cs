@@ -49,6 +49,22 @@ internal static class ServiceCollectionExtensions
 
     public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel?> logLevel)
     {
-        return services.AddSingleton(sp => LoggerFactory.CreateLogger<ISyncService>(logLevel(sp)));
+        services.AddSingleton(sp =>
+            LoggerFactory.Create(builder =>
+            {
+                builder.AddFilter(nameof(Microsoft), LogLevel.Warning)
+                    .AddFilter(nameof(System), LogLevel.Warning)
+                    .AddFilter(nameof(XrmSync), logLevel(sp) ?? LogLevel.Information)
+                    .AddSimpleConsole(options =>
+                    {
+                        options.IncludeScopes = false;
+                        options.SingleLine = true;
+                        options.TimestampFormat = "hh:mm:ss ";
+                    });
+            }));
+
+        services.AddSingleton(typeof(ILogger<>), typeof(SyncLogger<>));
+
+        return services;
     }
 }

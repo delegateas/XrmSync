@@ -6,7 +6,7 @@ using XrmSync.SyncService;
 
 namespace XrmSync.Actions;
 
-internal class PluginSyncAction(PluginSyncService pluginSync, ILogger log) : IAction
+internal class PluginSyncAction(PluginSyncService pluginSync, ILogger<PluginSyncAction> log) : IAction
 {
     public async Task<bool> RunAction(CancellationToken cancellationToken)
     {

@@ -9,7 +9,7 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 
-public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger log, XrmSyncConfiguration configuration) : IPluginWriter
+public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger<PluginWriter> log, XrmSyncConfiguration configuration) : IPluginWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", configuration.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }

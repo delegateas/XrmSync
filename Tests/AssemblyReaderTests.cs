@@ -9,7 +9,7 @@ namespace Tests;
 
 public class AssemblyReaderTests
 {
-    private readonly ILogger _logger = Substitute.For<ILogger>();
+    private readonly ILogger<AssemblyReader> _logger = Substitute.For<ILogger<AssemblyReader>>();
     private readonly AssemblyReader _assemblyReader;
 
     public AssemblyReaderTests()

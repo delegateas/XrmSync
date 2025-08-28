@@ -25,7 +25,7 @@ public class PluginSyncService(
     IDifferenceUtility differenceUtility,
     Description description,
     XrmSyncConfiguration configuration,
-    ILogger log) : ISyncService
+    ILogger<PluginSyncService> log) : ISyncService
 {
     private readonly PluginSyncOptions options = configuration.Plugin?.Sync
         ?? throw new XrmSyncException("Plugin sync options are not configured");
