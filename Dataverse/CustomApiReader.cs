@@ -68,11 +68,12 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
         return grouped.Select(group =>
         {
             var customApi = group.First();
-            var definition = new CustomApiDefinition
+            return new CustomApiDefinition
             {
                 Id = customApi.Id,
                 Name = customApi.GetAttributeValue<string>(CustomApi.Fields.Name),
-                PluginType = new Model.CustomApi.PluginType {
+                PluginType = new Model.CustomApi.PluginType
+                {
                     Id = customApi.GetAttributeValue<EntityReference>(CustomApi.Fields.PluginTypeId)?.Id ?? Guid.Empty,
                     Name = customApi.GetAttributeValue<AliasedValue>($"pt.{Context.PluginType.Fields.Name}").Value as string ?? string.Empty
                 },
@@ -87,16 +88,40 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
                 OwnerId = customApi.GetAttributeValue<EntityReference>(CustomApi.Fields.OwnerId)?.Id ?? Guid.Empty,
                 IsCustomizable = customApi.GetAttributeValue<BooleanManagedProperty>(CustomApi.Fields.IsCustomizable).Value,
                 IsPrivate = customApi.GetAttributeValue<bool>(CustomApi.Fields.IsPrivate),
-                ExecutePrivilegeName = customApi.GetAttributeValue<string?>(CustomApi.Fields.ExecutePrivilegeName) ?? string.Empty
-            };
+                ExecutePrivilegeName = customApi.GetAttributeValue<string?>(CustomApi.Fields.ExecutePrivilegeName) ?? string.Empty,
 
-            definition.RequestParameters = [.. group
+                RequestParameters = [.. GetRequestParameters(group)],
+                ResponseProperties = [.. GetResponseProperties(group)]
+            };
+        })
+        .ToList();
+    }
+
+    private static IEnumerable<ResponseProperty> GetResponseProperties(IGrouping<Guid, Entity> group)
+    {
+        return group
+                .Where(e => e.Contains($"resp.{CustomApiResponseProperty.PrimaryIdAttribute}"))
+                .GroupBy(e => e.GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.PrimaryIdAttribute}").Value as Guid? ?? Guid.Empty)
+                .Select(e => new ResponseProperty
+                {
+                    Id = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.PrimaryIdAttribute}").Value as Guid? ?? Guid.Empty,
+                    Name = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.Name}").Value as string ?? string.Empty,
+                    DisplayName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.DisplayName}").Value as string ?? string.Empty,
+                    UniqueName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.UniqueName}").Value as string ?? string.Empty,
+                    LogicalEntityName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.LogicalEntityName}")?.Value as string ?? string.Empty,
+                    Type = (CustomApiParameterType)(((e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.Type}").Value as OptionSetValue)?.Value) ?? 0),
+                    IsCustomizable = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.IsCustomizable}").Value as bool? ?? false,
+                });
+    }
+
+    private static IEnumerable<RequestParameter> GetRequestParameters(IGrouping<Guid, Entity> group)
+    {
+        return group
                 .Where(e => e.Contains($"req.{CustomApiRequestParameter.PrimaryIdAttribute}"))
                 .GroupBy(e => e.GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.PrimaryIdAttribute}").Value as Guid? ?? Guid.Empty)
                 .Select(e => new RequestParameter
                 {
                     Id = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.PrimaryIdAttribute}").Value as Guid? ?? Guid.Empty,
-                    CustomApi = definition,
                     Name = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.Name}").Value as string ?? string.Empty,
                     DisplayName = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.DisplayName}").Value as string ?? string.Empty,
                     UniqueName = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.UniqueName}").Value as string ?? string.Empty,
@@ -104,25 +129,6 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
                     Type = (CustomApiParameterType)(((e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.Type}").Value as OptionSetValue)?.Value) ?? 0),
                     IsOptional = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.IsOptional}").Value as bool? ?? false,
                     IsCustomizable = e.First().GetAttributeValue<AliasedValue>($"req.{CustomApiRequestParameter.Fields.IsCustomizable}").Value as bool? ?? false,
-                }) ];
-
-            definition.ResponseProperties = [.. group
-                .Where(e => e.Contains($"resp.{CustomApiResponseProperty.PrimaryIdAttribute}"))
-                .GroupBy(e => e.GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.PrimaryIdAttribute}").Value as Guid? ?? Guid.Empty)
-                .Select(e => new ResponseProperty
-                {
-                    Id = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.PrimaryIdAttribute}").Value as Guid? ?? Guid.Empty,
-                    CustomApi = definition,
-                    Name = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.Name}").Value as string ?? string.Empty,
-                    DisplayName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.DisplayName}").Value as string ?? string.Empty,
-                    UniqueName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.UniqueName}").Value as string ?? string.Empty,
-                    LogicalEntityName = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.LogicalEntityName}")?.Value as string ?? string.Empty,
-                    Type = (CustomApiParameterType)(((e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.Type}").Value as OptionSetValue)?.Value) ?? 0),
-                    IsCustomizable = e.First().GetAttributeValue<AliasedValue>($"resp.{CustomApiResponseProperty.Fields.IsCustomizable}").Value as bool? ?? false,
-                }) ];
-
-            return definition;
-        })
-        .ToList();
+                });
     }
 }

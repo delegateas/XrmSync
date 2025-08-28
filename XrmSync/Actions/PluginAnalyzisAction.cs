@@ -25,8 +25,7 @@ internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, XrmSyncConfigura
                 var pluginDto = analyzer.AnalyzeAssembly(analyzisOptions.AssemblyPath, analyzisOptions.PublisherPrefix);
                 var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
                 {
-                    WriteIndented = analyzisOptions.PrettyPrint,
-                    ReferenceHandler = ReferenceHandler.Preserve
+                    WriteIndented = analyzisOptions.PrettyPrint
                 };
 
                 var jsonOutput = JsonSerializer.Serialize(pluginDto, jsonOptions);

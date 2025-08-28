@@ -37,7 +37,7 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, IAnalyzer<CustomApiDefinition>
 
             PluginType ??= string.Empty;
 
-            var definition = new CustomApiDefinition
+            return new CustomApiDefinition
             {
                 PluginType = new PluginType { Name = PluginType },
 
@@ -55,39 +55,45 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, IAnalyzer<CustomApiDefinition>
                 IsCustomizable = IsCustomizable,
                 IsPrivate = IsPrivate,
                 ExecutePrivilegeName = ExecutePrivilegeName ?? string.Empty,
-                Description = Description ?? string.Empty
+                Description = Description ?? string.Empty,
+
+                RequestParameters = GetRequestParameters(reqParams),
+                ResponseProperties = GetResponseProperties(resProps)
             };
-
-            definition.RequestParameters = reqParams?.Select(p => {
-                var (Name, UniqueName, DisplayName, IsCustomizable, IsOptional, LogicalEntityName, Type) = p;
-                return new RequestParameter
-                {
-                    CustomApi = definition,
-                    Name = Name ?? string.Empty,
-                    UniqueName = UniqueName ?? string.Empty,
-                    DisplayName = DisplayName ?? string.Empty,
-                    IsCustomizable = IsCustomizable,
-                    IsOptional = IsOptional,
-                    LogicalEntityName = LogicalEntityName ?? string.Empty,
-                    Type = (CustomApiParameterType)p.Item7
-                };
-            }).ToList() ?? [];
-
-            definition.ResponseProperties = resProps?.Select(r => {
-                var (Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type) = r;
-                return new ResponseProperty
-                {
-                    CustomApi = definition,
-                    Name = Name ?? string.Empty,
-                    UniqueName = UniqueName ?? string.Empty,
-                    DisplayName = DisplayName ?? string.Empty,
-                    IsCustomizable = IsCustomizable,
-                    LogicalEntityName = LogicalEntityName ?? string.Empty,
-                    Type = (CustomApiParameterType)Type
-                };
-            }).ToList() ?? [];
-
-            return definition;
         })];
+    }
+
+    private static List<RequestParameter> GetRequestParameters(IEnumerable<RequestParameterConfig> reqParams)
+    {
+        return reqParams?.Select(p =>
+        {
+            var (Name, UniqueName, DisplayName, IsCustomizable, IsOptional, LogicalEntityName, Type) = p;
+            return new RequestParameter
+            {
+                Name = Name ?? string.Empty,
+                UniqueName = UniqueName ?? string.Empty,
+                DisplayName = DisplayName ?? string.Empty,
+                IsCustomizable = IsCustomizable,
+                IsOptional = IsOptional,
+                LogicalEntityName = LogicalEntityName ?? string.Empty,
+                Type = (CustomApiParameterType)p.Item7
+            };
+        }).ToList() ?? [];
+    }
+
+    private static List<ResponseProperty> GetResponseProperties(IEnumerable<ResponsePropertyConfig> resProps)
+    {
+        return resProps?.Select(r => {
+            var (Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type) = r;
+            return new ResponseProperty
+            {
+                Name = Name ?? string.Empty,
+                UniqueName = UniqueName ?? string.Empty,
+                DisplayName = DisplayName ?? string.Empty,
+                IsCustomizable = IsCustomizable,
+                LogicalEntityName = LogicalEntityName ?? string.Empty,
+                Type = (CustomApiParameterType)Type
+            };
+        }).ToList() ?? [];
     }
 }

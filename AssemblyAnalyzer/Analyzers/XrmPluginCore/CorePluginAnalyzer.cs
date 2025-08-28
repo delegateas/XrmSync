@@ -16,27 +16,21 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
         var validTypes = types
             .Where(t => t.IsAssignableTo(pluginBaseType) && t.GetConstructor(Type.EmptyTypes) != null && !t.IsAbstract);
 
-        return [.. validTypes.Select(t => {
-            var pluginDefinition = new PluginDefinition
+        return [.. validTypes.Select(t => new PluginDefinition
             {
                 Name = t.FullName ?? string.Empty,
-                PluginSteps = []
-            };
-
-            pluginDefinition.PluginSteps = [.. GetPluginSteps(t, pluginDefinition)];
-
-            return pluginDefinition;
-        }) ];
+                PluginSteps = [.. GetPluginSteps(t, t.FullName ?? string.Empty)]
+            }) ];
     }
 
-    private static IEnumerable<Step> GetPluginSteps(Type pluginType, PluginDefinition pluginDefinition)
+    private static IEnumerable<Step> GetPluginSteps(Type pluginType, string pluginDefinitionName)
     {
         return GetRegistrationFromType<IEnumerable>(nameof(IPluginDefinition.GetRegistrations), pluginType)
             .Cast<object>()
-            .Select(r => ConvertRegistrationToStep(r, pluginDefinition));
+            .Select(r => ConvertRegistrationToStep(r, pluginDefinitionName));
     }
 
-    private static Step ConvertRegistrationToStep(object registration, PluginDefinition pluginDefinition)
+    private static Step ConvertRegistrationToStep(object registration, string pluginDefinitionName)
     {        
         // Use type-safe reflection to safely extract properties
         var entityLogicalName = GetRegistrationValue(registration, x => x.EntityLogicalName) ?? string.Empty;
@@ -50,12 +44,11 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
         var asyncAutoDelete = GetRegistrationValue(registration, x => x.AsyncAutoDelete);
         var imageSpecs = GetRegistrationValue<IEnumerable>(registration, x => x.ImageSpecifications) ?? Enumerable.Empty<object>();
 
-        var stepName = StepName(pluginDefinition.Name, executionMode, executionStage, eventOperation, entityLogicalName);
+        var stepName = StepName(pluginDefinitionName, executionMode, executionStage, eventOperation, entityLogicalName);
 
-        var step = new Step
+        return new Step
         {
             Name = stepName,
-            PluginType = pluginDefinition,
             ExecutionStage = executionStage,
             EventOperation = eventOperation,
             LogicalName = entityLogicalName,
@@ -65,25 +58,17 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
             FilteredAttributes = filteredAttributes,
             UserContext = impersonatingUserId.GetValueOrDefault(),
             AsyncAutoDelete = asyncAutoDelete,
-            PluginImages = []
-        };
-
-        step.PluginImages = [.. imageSpecs.Cast<object>().Select(i => ConvertImageSpecification(i, step))];
-
-        return step;
-    }
-
-    private static Image ConvertImageSpecification(object imageSpec, Step pluginStep)
-    {        
-        return new Image
-        {
-            Step = pluginStep,
-            Name = GetImageValue(imageSpec, x => x.ImageName) ?? string.Empty,
-            ImageType = GetImageValue(imageSpec, x => x.ImageType),
-            Attributes = GetImageValue(imageSpec, x => x.Attributes) ?? string.Empty,
-            EntityAlias = GetImageValue(imageSpec, x => x.EntityAlias) ?? string.Empty
+            PluginImages = [.. imageSpecs.Cast<object>().Select(i => ConvertImageSpecification(i))]
         };
     }
+
+    private static Image ConvertImageSpecification(object imageSpec) => new ()
+    {
+        Name = GetImageValue(imageSpec, x => x.ImageName) ?? string.Empty,
+        ImageType = GetImageValue(imageSpec, x => x.ImageType),
+        Attributes = GetImageValue(imageSpec, x => x.Attributes) ?? string.Empty,
+        EntityAlias = GetImageValue(imageSpec, x => x.EntityAlias) ?? string.Empty
+    };
 
     private static T? GetRegistrationValue<T>(object obj, Expression<Func<IPluginStepConfig, T>> propertyExpression) =>
         GetPropertyValue(obj, propertyExpression);

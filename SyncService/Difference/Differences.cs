@@ -5,9 +5,9 @@ namespace XrmSync.SyncService.Difference;
 
 public record Differences(
     Difference<PluginDefinition> Types,
-    Difference<Step> PluginSteps,
-    Difference<Image> PluginImages,
+    Difference<Step, PluginDefinition> PluginSteps,
+    Difference<Image, Step> PluginImages,
     Difference<CustomApiDefinition> CustomApis,
-    Difference<RequestParameter> RequestParameters,
-    Difference<ResponseProperty> ResponseProperties
+    Difference<RequestParameter, CustomApiDefinition> RequestParameters,
+    Difference<ResponseProperty, CustomApiDefinition> ResponseProperties
 );

@@ -33,13 +33,16 @@ public class DifferenceUtilityTests
     public void CalculateDifferences_ReturnsCorrectDifferences()
     {
         // Arrange
-        var localType = new PluginDefinition { Name = "LocalType", PluginSteps = [] };
-        var remoteType = new PluginDefinition { Name = "RemoteType", Id = Guid.NewGuid(), PluginSteps = [] };
-        var sharedType = new PluginDefinition { Name = "SharedType", Id = Guid.NewGuid(), PluginSteps = [] };
-        
+        var localImage = new Image
+        {
+            Name = "LocalImage",
+            ImageType = ImageType.PreImage,
+            Attributes = "",
+            EntityAlias = "account"
+        };
+
         var localStep = new Step {
             Name = "LocalStep",
-            PluginType = localType,
             ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
@@ -49,36 +52,24 @@ public class DifferenceUtilityTests
             FilteredAttributes = "",
             UserContext = Guid.NewGuid(),
             AsyncAutoDelete = false,
-            PluginImages = []
+            PluginImages = [ localImage ]
         };
-        localType.PluginSteps.Add(localStep);
-
-        var localImage = new Image
-        {
-            Name = "LocalImage",
-            ImageType = ImageType.PreImage,
-            Attributes = "",
-            EntityAlias = "account",
-            Step = localStep
-        };
-        localStep.PluginImages.Add(localImage);
-
-        var remoteStep = localStep with
-        {
-            Id = Guid.NewGuid(),
-            Name = "RemoteStep",
-            PluginType = remoteType,
-            PluginImages = []
-        };
-        remoteType.PluginSteps.Add(remoteStep);
+        var localType = new PluginDefinition { Name = "LocalType", PluginSteps = [ localStep ] };
 
         var remoteImage = localImage with
         {
             Id = Guid.NewGuid(),
-            Name = "RemoteImage",
-            Step = remoteStep
+            Name = "RemoteImage"
         };
-        remoteStep.PluginImages.Add(remoteImage);
+        
+        var remoteStep = localStep with
+        {
+            Id = Guid.NewGuid(),
+            Name = "RemoteStep",
+            PluginImages = [ remoteImage ]
+        };
+        var remoteType = new PluginDefinition { Name = "RemoteType", Id = Guid.NewGuid(), PluginSteps = [ remoteStep ] };
+        var sharedType = new PluginDefinition { Name = "SharedType", Id = Guid.NewGuid(), PluginSteps = [] };
 
         var localData = new AssemblyInfo
         {
@@ -101,21 +92,21 @@ public class DifferenceUtilityTests
 
         // Assert
         Assert.Single(differences.Types.Creates);
-        Assert.Equal("LocalType", differences.Types.Creates[0].LocalEntity.Name);
+        Assert.Equal("LocalType", differences.Types.Creates[0].Local.Name);
         Assert.Single(differences.Types.Deletes);
         Assert.Equal("RemoteType", differences.Types.Deletes[0].Name);
         Assert.Empty(differences.Types.Updates);
         
         Assert.Single(differences.PluginSteps.Creates);
-        Assert.Equal("LocalStep", differences.PluginSteps.Creates[0].LocalEntity.Name);
+        Assert.Equal("LocalStep", differences.PluginSteps.Creates[0].Local.Entity.Name);
         Assert.Single(differences.PluginSteps.Deletes);
-        Assert.Equal("RemoteStep", differences.PluginSteps.Deletes[0].Name);
+        Assert.Equal("RemoteStep", differences.PluginSteps.Deletes[0].Entity.Name);
         Assert.Empty(differences.PluginSteps.Updates);
 
         Assert.Single(differences.PluginImages.Creates);
-        Assert.Equal("LocalImage", differences.PluginImages.Creates[0].LocalEntity.Name);
+        Assert.Equal("LocalImage", differences.PluginImages.Creates[0].Local.Entity.Name);
         Assert.Single(differences.PluginImages.Deletes);
-        Assert.Equal("RemoteImage", differences.PluginImages.Deletes[0].Name);
+        Assert.Equal("RemoteImage", differences.PluginImages.Deletes[0].Entity.Name);
         Assert.Empty(differences.PluginImages.Updates);
     }
 
@@ -152,13 +143,9 @@ public class DifferenceUtilityTests
     public void CalculateDifferences_UpdatesDetected_ReturnsUpdates()
     {
         // Arrange
-        var localType = new PluginDefinition { Name = "LocalType", Id = Guid.NewGuid(), PluginSteps = [] };
-        var remoteType = localType with { Name = "RemoteType", PluginSteps = [] };
-
         var localStep = new Step {
             Id = Guid.NewGuid(),
             Name = "TestStep",
-            PluginType = localType,
             ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
@@ -170,17 +157,16 @@ public class DifferenceUtilityTests
             AsyncAutoDelete = false,
             PluginImages = []
         };
-        localType.PluginSteps.Add(localStep);
+        var localType = new PluginDefinition { Name = "LocalType", Id = Guid.NewGuid(), PluginSteps = [ localStep ] };
 
         var remoteStep = localStep with
         {
-            PluginType = remoteType,
             ExecutionOrder = 2, // Different execution order
             FilteredAttributes = "name,description,subject", // Different filtered attributes
             UserContext = Guid.NewGuid(), // Different user context
             AsyncAutoDelete = true // Different async auto delete
         };
-        remoteType.PluginSteps.Add(remoteStep);
+        var remoteType = localType with { Name = "RemoteType", PluginSteps = [ remoteStep ] };
 
         var localData = new AssemblyInfo
         {
@@ -207,8 +193,12 @@ public class DifferenceUtilityTests
         Assert.Single(differences.PluginSteps.Updates);
 
         var update = differences.PluginSteps.Updates[0];
-        Assert.Equal("TestStep", update.LocalEntity.Name);
-        Assert.Equal("TestStep", update.RemoteEntity?.Name);
+        Assert.Equal(localStep, update.Local.Entity);
+        Assert.Equal(localType, update.Local.Parent);
+        Assert.Equal(remoteStep, update.Remote?.Entity);
+        Assert.Equal(remoteType, update.Remote?.Parent);
+        Assert.Equal("TestStep", update.Local.Entity.Name);
+        Assert.Equal("TestStep", update.Remote?.Entity.Name);
         Assert.NotEmpty(update.DifferentProperties); // Should have multiple different properties
 
         // Verify that the differences are detected
@@ -227,15 +217,15 @@ public class DifferenceUtilityTests
         var userContextComp = funcs[2];
         var asyncComp = funcs[3];
 
-        Assert.NotNull(update.RemoteEntity); // Remote entity should not be null
-        Assert.Equal(1, orderComp(update.LocalEntity)); // ExecutionOrder
-        Assert.Equal(2, orderComp(update.RemoteEntity)); // Remote ExecutionOrder
-        Assert.Equal("name,description", filteredAttributesComp(update.LocalEntity)); // FilteredAttributes
-        Assert.Equal("name,description,subject", filteredAttributesComp(update.RemoteEntity)); // Remote FilteredAttributes
-        Assert.Equal(localStep.UserContext, userContextComp(update.LocalEntity));
-        Assert.Equal(remoteStep.UserContext, userContextComp(update.RemoteEntity));
-        Assert.False((bool)asyncComp(update.LocalEntity));
-        Assert.True((bool)asyncComp(update.RemoteEntity));
+        Assert.NotNull(update.Remote); // Remote entity should not be null
+        Assert.Equal(1, orderComp(update.Local.Entity)); // ExecutionOrder
+        Assert.Equal(2, orderComp(update.Remote.Entity)); // Remote ExecutionOrder
+        Assert.Equal("name,description", filteredAttributesComp(update.Local.Entity)); // FilteredAttributes
+        Assert.Equal("name,description,subject", filteredAttributesComp(update.Remote.Entity)); // Remote FilteredAttributes
+        Assert.Equal(localStep.UserContext, userContextComp(update.Local.Entity));
+        Assert.Equal(remoteStep.UserContext, userContextComp(update.Remote.Entity));
+        Assert.False((bool)asyncComp(update.Local.Entity));
+        Assert.True((bool)asyncComp(update.Remote.Entity));
     }
 
     [Fact]
@@ -297,8 +287,8 @@ public class DifferenceUtilityTests
         var creates = differences.CustomApis.Creates;
         Assert.Single(creates);
         var create = creates[0];
-        Assert.Equal(localCustomApi, create.LocalEntity);
-        Assert.Equal(remoteCustomApi, create.RemoteEntity);
+        Assert.Equal(localCustomApi, create.Local);
+        Assert.Equal(remoteCustomApi, create.Remote);
 
         var funcs = create.DifferentProperties.Select(p => p.Compile()).ToArray();
         var propNames = create.DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
@@ -379,8 +369,8 @@ public class DifferenceUtilityTests
         Assert.Equal([remoteCustomApi], differences.CustomApis.Deletes);
         Assert.Empty(differences.CustomApis.Updates);
 
-        Assert.Equal(localCustomApi, differences.CustomApis.Creates[0].LocalEntity);
-        Assert.Equal(remoteCustomApi, differences.CustomApis.Creates[0].RemoteEntity);
+        Assert.Equal(localCustomApi, differences.CustomApis.Creates[0].Local);
+        Assert.Equal(remoteCustomApi, differences.CustomApis.Creates[0].Remote);
 
         var propNames = differences.CustomApis.Creates[0].DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
         Assert.Equal([
@@ -393,8 +383,8 @@ public class DifferenceUtilityTests
         Assert.Empty(differencesTwo.CustomApis.Deletes);
         Assert.Single(differencesTwo.CustomApis.Updates);
 
-        Assert.Equal(localCustomApi, differencesTwo.CustomApis.Updates[0].LocalEntity);
-        Assert.Equal(remoteCustomApiTwo, differencesTwo.CustomApis.Updates[0].RemoteEntity);
+        Assert.Equal(localCustomApi, differencesTwo.CustomApis.Updates[0].Local);
+        Assert.Equal(remoteCustomApiTwo, differencesTwo.CustomApis.Updates[0].Remote);
         propNames = differencesTwo.CustomApis.Updates[0]
             .DifferentProperties.Select(p => p.GetMemberName()).Order().ToArray();
         Assert.Equal([

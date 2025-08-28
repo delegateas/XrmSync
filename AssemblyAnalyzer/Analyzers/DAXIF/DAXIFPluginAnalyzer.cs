@@ -45,18 +45,14 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
             .Select(pluginType => {
                 var pluginTuples = GetRegistrationFromType<IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>>(MethodName, pluginType);
 
-                var def = new PluginDefinition {
+                return new PluginDefinition {
                     Name = pluginType.FullName ?? string.Empty,
-                    PluginSteps = []
+                    PluginSteps = [.. GetSteps(pluginTuples)]
                 };
-
-                def.PluginSteps = [.. GetSteps(pluginTuples, def)];
-
-                return def;
             })];
     }
 
-    private static IEnumerable<Step> GetSteps(IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>> pluginTuples, PluginDefinition pluginType)
+    private static IEnumerable<Step> GetSteps(IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>> pluginTuples)
     {
         return pluginTuples.Select(tuple =>
         {
@@ -64,7 +60,7 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
             var (deployment, mode, notUsedStepname, executionOrder, filteredAttr, userIdStr) = tuple.Item2;
             var stepName = StepName(className ?? string.Empty, (ExecutionMode)mode, (ExecutionStage)stage, eventOp ?? string.Empty, logicalName);
 
-            var step = new Step
+            return new Step
             {
                 Name = stepName,
                 ExecutionStage = (ExecutionStage)stage,
@@ -76,17 +72,12 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
                 EventOperation = eventOp ?? string.Empty,
                 LogicalName = logicalName ?? string.Empty,
                 AsyncAutoDelete = false,
-                PluginImages = [],
-                PluginType = pluginType
+                PluginImages = [.. GetImages(tuple.Item3)]
             };
-
-            step.PluginImages = [.. GetImages(tuple.Item3, step)];
-
-            return step;
         });
     }
 
-    private static IEnumerable<Image> GetImages(IEnumerable<ImageTuple> imageTuples, Step step)
+    private static IEnumerable<Image> GetImages(IEnumerable<ImageTuple> imageTuples)
     {
         return imageTuples
             .Select(image =>
@@ -98,8 +89,7 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
                     Name = iName ?? string.Empty,
                     EntityAlias = iAlias ?? string.Empty,
                     ImageType = (ImageType)iType,
-                    Attributes = iAttr ?? string.Empty,
-                    Step = step
+                    Attributes = iAttr ?? string.Empty
                 };
             });
     }

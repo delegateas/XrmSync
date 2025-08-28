@@ -4,7 +4,6 @@ namespace XrmSync.Model.CustomApi;
 
 public record ResponseProperty : EntityBase
 {
-    public required CustomApiDefinition CustomApi { get; set; }
     public required string UniqueName { get; set; }
     public required string DisplayName { get; set; }
     public required bool IsCustomizable { get; set; }

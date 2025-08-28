@@ -2,9 +2,9 @@
 
 namespace XrmSync.SyncService.PluginValidator.Rules;
 
-internal interface IValidationRule<T> where T : EntityBase
+internal interface IValidationRule<TEntity>
 {
     string ErrorMessage { get; }
 
-    IEnumerable<T> GetViolations(IEnumerable<T> items);
+    IEnumerable<TEntity> GetViolations(IEnumerable<TEntity> items);
 }

@@ -15,12 +15,12 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
             { "SolutionUniqueName", configuration.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
     };
 
-    public List<CustomApiDefinition> CreateCustomApis(List<CustomApiDefinition> customApis, string description)
+    public ICollection<CustomApiDefinition> CreateCustomApis(ICollection<CustomApiDefinition> customApis, string description)
     {
         if (customApis.Count == 0) return customApis;
 
         log.LogInformation("Creating {Count} Custom APIs in Dataverse.", customApis.Count);
-        customApis.ForEach(api =>
+        foreach (var api in customApis)
         {
             var entity = new CustomApi
             {
@@ -45,21 +45,21 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
             }
 
             api.Id = writer.Create(entity, Parameters);
-        });
+        }
 
         return customApis;
     }
 
-    public List<RequestParameter> CreateRequestParameters(List<RequestParameter> requestParameters)
+    public ICollection<ParentReference<RequestParameter, CustomApiDefinition>> CreateRequestParameters(ICollection<ParentReference<RequestParameter, CustomApiDefinition>> requestParameters)
     {
         if (requestParameters.Count == 0) return [];
 
         log.LogInformation("Creating {Count} Custom API Request Parameters in Dataverse.", requestParameters.Count);
-        requestParameters.ForEach(param =>
+        foreach (var (param, customApi) in requestParameters)
         {
             var entity = new CustomApiRequestParameter
             {
-                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, param.CustomApi.Id),
+                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, customApi.Id),
                 Name = param.Name,
                 UniqueName = param.UniqueName,
                 DisplayName = param.DisplayName,
@@ -70,23 +70,23 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
             };
 
             param.Id = writer.Create(entity, Parameters);
-        });
+        }
 
         return requestParameters;
     }
 
-    public List<ResponseProperty> CreateResponseProperties(List<ResponseProperty> responseProperties)
+    public ICollection<ParentReference<ResponseProperty, CustomApiDefinition>> CreateResponseProperties(ICollection<ParentReference<ResponseProperty, CustomApiDefinition>> responseProperties)
     {
         if (responseProperties.Count == 0) return responseProperties;
 
         log.LogInformation("Creating {Count} Custom API Response Properties in Dataverse.", responseProperties.Count);
-        responseProperties.ForEach(prop =>
+        foreach (var (prop, customApi) in responseProperties)
         {
             var entity = new CustomApiResponseProperty
             {
                 Name = prop.Name,
                 UniqueName = prop.UniqueName,
-                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, prop.CustomApi.Id),
+                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, customApi.Id),
                 DisplayName = prop.DisplayName,
                 IsCustomizable = new BooleanManagedProperty(prop.IsCustomizable),
                 LogicalEntityName = prop.LogicalEntityName,
@@ -94,14 +94,14 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
             };
 
             prop.Id = writer.Create(entity, Parameters);
-        });
+        }
 
         return responseProperties;
     }
 
-    public List<CustomApiDefinition> UpdateCustomApis(List<CustomApiDefinition> customApis, string description)
+    public void UpdateCustomApis(ICollection<CustomApiDefinition> customApis, string description)
     {
-        var updateRequests = customApis.ConvertAll(api =>
+        var updateRequests = customApis.Select(api =>
         {
             var definition = new CustomApi
             {
@@ -125,19 +125,17 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
             }
 
             return definition;
-        });
+        }).ToList();
 
         if (updateRequests.Count > 0)
         {
             writer.UpdateMultiple(updateRequests);
         }
-
-        return customApis;
     }
 
-    public List<RequestParameter> UpdateRequestParameters(List<RequestParameter> requestParameters)
+    public void UpdateRequestParameters(ICollection<RequestParameter> requestParameters)
     {
-        var updateRequests = requestParameters.ConvertAll(param => new CustomApiRequestParameter()
+        var updateRequests = requestParameters.Select(param => new CustomApiRequestParameter()
         {
             Id = param.Id,
             DisplayName = param.DisplayName,
@@ -145,29 +143,25 @@ public class CustomApiWriter(IDataverseWriter writer, ILogger log, XrmSyncConfig
             IsOptional = param.IsOptional,
             LogicalEntityName = param.LogicalEntityName,
             Type = (CustomApiFieldType?)param.Type
-        });
+        }).ToList();
 
         if (updateRequests.Count > 0)
             writer.UpdateMultiple(updateRequests);
-
-        return requestParameters;
     }
 
-    public List<ResponseProperty> UpdateResponseProperties(List<ResponseProperty> responseProperties)
+    public void UpdateResponseProperties(ICollection<ResponseProperty> responseProperties)
     {
-        var updateRequests = responseProperties.ConvertAll(prop => new CustomApiResponseProperty()
+        var updateRequests = responseProperties.Select(prop => new CustomApiResponseProperty()
         {
             Id = prop.Id,
             DisplayName = prop.DisplayName,
             IsCustomizable = new BooleanManagedProperty(prop.IsCustomizable),
             LogicalEntityName = prop.LogicalEntityName,
             Type = (CustomApiFieldType?)prop.Type
-        });
+        }).ToList();
 
         if (updateRequests.Count > 0)
             writer.UpdateMultiple(updateRequests);
-
-        return responseProperties;
     }
 
     public void DeleteCustomApiDefinitions(IEnumerable<CustomApiDefinition> customApis)

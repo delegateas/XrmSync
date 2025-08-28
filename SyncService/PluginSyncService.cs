@@ -201,14 +201,16 @@ public class PluginSyncService(
 
     private List<PluginDefinition> GetPluginTypes(Guid solutionId, Guid assemblyId)
     {
+        // TODO: Combine these into a single call like CustomAPI
         var pluginDefinitions = pluginReader.GetPluginTypes(assemblyId);
         var pluginSteps = pluginReader.GetPluginSteps(pluginDefinitions, solutionId);
-
-        return pluginDefinitions.ConvertAll(def =>
+        pluginSteps.ForEach(reference =>
         {
-            def.PluginSteps = [.. pluginSteps.Where(s => s.PluginType.Id == def.Id)];
-            return def;
+            var (step, plugin) = reference;
+            plugin.PluginSteps.Add(step);
         });
+
+        return pluginDefinitions;
     }
 
     private AssemblyInfo UpsertAssembly(AssemblyInfo localAssembly, AssemblyInfo? remoteAssembly)
@@ -255,31 +257,31 @@ public class PluginSyncService(
 
     internal void DoCreates(Differences differences, AssemblyInfo dataverseAssembly)
     {
-        pluginWriter.CreatePluginTypes(differences.Types.Creates.ConvertAll(c => c.LocalEntity), dataverseAssembly.Id, description.SyncDescription);
-        pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates.ConvertAll(c => c.LocalEntity), description.SyncDescription);
-        pluginWriter.CreatePluginImages(differences.PluginImages.Creates.ConvertAll(c => c.LocalEntity));
-        customApiWriter.CreateCustomApis(differences.CustomApis.Creates.ConvertAll(c => c.LocalEntity), description.SyncDescription);
-        customApiWriter.CreateRequestParameters(differences.RequestParameters.Creates.ConvertAll(c => c.LocalEntity));
-        customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates.ConvertAll(c => c.LocalEntity));
+        pluginWriter.CreatePluginTypes(differences.Types.Creates.ConvertAll(c => c.Local), dataverseAssembly.Id, description.SyncDescription);
+        pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates.ConvertAll(c => c.Local), description.SyncDescription);
+        pluginWriter.CreatePluginImages(differences.PluginImages.Creates.ConvertAll(c => c.Local));
+        customApiWriter.CreateCustomApis(differences.CustomApis.Creates.ConvertAll(c => c.Local), description.SyncDescription);
+        customApiWriter.CreateRequestParameters(differences.RequestParameters.Creates.ConvertAll(c => c.Local));
+        customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates.ConvertAll(c => c.Local));
     }
 
     internal void DoUpdates(Differences differences)
     {
-        pluginWriter.UpdatePluginSteps(differences.PluginSteps.Updates.ConvertAll(c => c.LocalEntity), description.SyncDescription);
-        pluginWriter.UpdatePluginImages(differences.PluginImages.Updates.ConvertAll(c => c.LocalEntity));
-        customApiWriter.UpdateCustomApis(differences.CustomApis.Updates.ConvertAll(c => c.LocalEntity), description.SyncDescription);
-        customApiWriter.UpdateRequestParameters(differences.RequestParameters.Updates.ConvertAll(c => c.LocalEntity));
-        customApiWriter.UpdateResponseProperties(differences.ResponseProperties.Updates.ConvertAll(c => c.LocalEntity));
+        pluginWriter.UpdatePluginSteps(differences.PluginSteps.Updates.ConvertAll(c => c.Local.Entity), description.SyncDescription);
+        pluginWriter.UpdatePluginImages(differences.PluginImages.Updates.ConvertAll(c => c.Local));
+        customApiWriter.UpdateCustomApis(differences.CustomApis.Updates.ConvertAll(c => c.Local), description.SyncDescription);
+        customApiWriter.UpdateRequestParameters(differences.RequestParameters.Updates.ConvertAll(c => c.Local.Entity));
+        customApiWriter.UpdateResponseProperties(differences.ResponseProperties.Updates.ConvertAll(c => c.Local.Entity));
     }
 
     internal void DoDeletes(Differences differences)
     {
         // Delete in the correct order: images first, then steps, then custom api components, finally types
-        pluginWriter.DeletePluginImages(differences.PluginImages.Deletes);
-        pluginWriter.DeletePluginSteps(differences.PluginSteps.Deletes);
+        pluginWriter.DeletePluginImages(differences.PluginImages.Deletes.ConvertAll(d => d.Entity));
+        pluginWriter.DeletePluginSteps(differences.PluginSteps.Deletes.ConvertAll(d => d.Entity));
 
-        customApiWriter.DeleteCustomApiRequestParameters(differences.RequestParameters.Deletes);
-        customApiWriter.DeleteCustomApiResponseProperties(differences.ResponseProperties.Deletes);
+        customApiWriter.DeleteCustomApiRequestParameters(differences.RequestParameters.Deletes.ConvertAll(d => d.Entity));
+        customApiWriter.DeleteCustomApiResponseProperties(differences.ResponseProperties.Deletes.ConvertAll(d => d.Entity));
         customApiWriter.DeleteCustomApiDefinitions(differences.CustomApis.Deletes);
 
         pluginWriter.DeletePluginTypes(differences.Types.Deletes);

@@ -8,6 +8,8 @@ using XrmSync.Model.Plugin;
 using XrmSync.Model;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
 using XrmSync.SyncService.Difference;
+using Microsoft.Crm.Sdk.Messages;
+using DG.XrmPluginCore.Enums;
 
 namespace Tests;
 
@@ -87,108 +89,99 @@ public class PluginServiceTests
             Version = "1.0.0.0",
             Plugins = []
         };
-        
-        var pluginTypes = new List<PluginDefinition> {
-            new() {
+
+        var pluginType =
+            new PluginDefinition
+            {
                 Name = "Type1",
                 Id = Guid.NewGuid(),
-                PluginSteps = []
-            }
-        };
-        var pluginSteps = new List<Step> {
-            new() {
-                Name = "Step1",
-                PluginType = pluginTypes[0],
-                ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
-                EventOperation = "Update",
-                LogicalName = "account",
-                Deployment = 0,
-                ExecutionMode = 0,
-                ExecutionOrder = 1,
-                FilteredAttributes = string.Empty,
-                UserContext = Guid.NewGuid(),
-                AsyncAutoDelete = false,
-                PluginImages = []
-            }
-        };
-        pluginTypes[0].PluginSteps = pluginSteps;
+                PluginSteps = [
+                    new() {
+                        Name = "Step1",
+                        ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
+                        EventOperation = "Update",
+                        LogicalName = "account",
+                        Deployment = 0,
+                        ExecutionMode = 0,
+                        ExecutionOrder = 1,
+                        FilteredAttributes = string.Empty,
+                        UserContext = Guid.NewGuid(),
+                        AsyncAutoDelete = false,
+                        PluginImages = [
+                            new() {
+                                Name = "Image1",
+                                EntityAlias = "alias",
+                                ImageType = 0,
+                                Attributes = string.Empty
+                            }
+                        ]
+                    }
+                ]
+            };
 
-        var pluginImages = new List<Image> {
-            new() {
-                Name = "Image1",
-                Step = pluginSteps[0],
-                EntityAlias = "alias",
-                ImageType = 0,
-                Attributes = string.Empty
-            }
-        };
-        pluginSteps[0].PluginImages = pluginImages;
+        List<PluginDefinition> pluginTypes = [ pluginType ];
+        var pluginSteps = pluginType.PluginSteps.ConvertAll(s => new ParentReference<Step, PluginDefinition>(s, pluginType));
+        var pluginImages = pluginSteps.SelectMany(s => s.Entity.PluginImages.Select(i => new ParentReference<Image, Step>(i, s.Entity))).ToList();
 
-        var customApis = new List<CustomApiDefinition>()
-        {
-            new() {
+        var customApi =
+            new CustomApiDefinition
+            {
                 Name = "CustomApi1",
                 UniqueName = "customapi_testapi",
                 Description = "Test API",
                 DisplayName = "Test API",
                 BoundEntityLogicalName = "account",
                 ExecutePrivilegeName = "prvTestExecute",
-                PluginType = new PluginType { Name = "CustomApiType", Id = Guid.NewGuid() }
-            }
-        };
+                PluginType = new PluginType { Name = "CustomApiType", Id = Guid.NewGuid() },
+                RequestParameters = [
+                    new() {
+                        Name = "TestParameter",
+                        UniqueName = "test_parameter",
+                        Type = 0,
+                        DisplayName = "Test Parameter",
+                        LogicalEntityName = "account",
+                        IsCustomizable = false,
+                        IsOptional = false
+                    }
+                ],
+                ResponseProperties = [
+                    new() {
+                        Name = "TestResponse",
+                        UniqueName = "test_response",
+                        Type = 0,
+                        DisplayName = "Test Response",
+                        LogicalEntityName = "account",
+                        IsCustomizable = false
+                    }
+                ]
+            };
 
-        var requestParams = new List<RequestParameter> {
-            new() {
-                Name = "TestParameter",
-                UniqueName = "test_parameter",
-                CustomApi = customApis[0],
-                Type = 0,
-                DisplayName = "Test Parameter",
-                LogicalEntityName = "account",
-                IsCustomizable = false,
-                IsOptional = false
-            }
-        };
-        customApis[0].RequestParameters = requestParams;
-
-        var responseProps = new List<ResponseProperty> {
-            new() {
-                Name = "TestResponse",
-                UniqueName = "test_response",
-                CustomApi = customApis[0],
-                Type = 0,
-                DisplayName = "Test Response",
-                LogicalEntityName = "account",
-                IsCustomizable = false
-            }
-        };
-        customApis[0].ResponseProperties = responseProps;
+        List<CustomApiDefinition> customApis = [ customApi ];
+        var requestParams = customApi.RequestParameters.ConvertAll(r => new ParentReference<RequestParameter, CustomApiDefinition>(r, customApi));
+        var responseProps = customApi.ResponseProperties.ConvertAll(r => new ParentReference<ResponseProperty, CustomApiDefinition>(r, customApi));
 
         var createdTypes = new List<PluginDefinition> {
             new() {
                 Name = "CreatedType",
                 Id = Guid.NewGuid(),
-                PluginSteps = []
+                PluginSteps = [
+                    new() {
+                        Name = "CreatedStep",
+                        ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
+                        EventOperation = "Update",
+                        LogicalName = "account",
+                        Deployment = 0,
+                        ExecutionMode = 0,
+                        ExecutionOrder = 1,
+                        FilteredAttributes = string.Empty,
+                        UserContext = Guid.NewGuid(),
+                        AsyncAutoDelete = false,
+                        PluginImages = []
+                    }
+                ]
             }
         };
-
-        var createdSteps = new List<Step> {
-            new() {
-                Name = "CreatedStep",
-                PluginType = createdTypes[0],
-                ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
-                EventOperation = "Update",
-                LogicalName = "account",
-                Deployment = 0,
-                ExecutionMode = 0,
-                ExecutionOrder = 1,
-                FilteredAttributes = string.Empty,
-                UserContext = Guid.NewGuid(),
-                AsyncAutoDelete = false,
-                PluginImages = []
-            }
-        };
-        createdTypes[0].PluginSteps = createdSteps;
+        var createdSteps = createdTypes.SelectMany(t => t.PluginSteps.Select(s => new ParentReference<Step, PluginDefinition>(s, t))).ToList();
 
         var createdCustomApis = new List<CustomApiDefinition> {
             new() {
@@ -199,67 +192,104 @@ public class PluginServiceTests
                 DisplayName = "Created API",
                 BoundEntityLogicalName = "account",
                 ExecutePrivilegeName = "prvCreatedExecute",
-                PluginType = customApis[0].PluginType
+                PluginType = new () { Name = "CreatedApiType", Id = Guid.NewGuid() },
             }
         };
 
-        _pluginWriter.CreatePluginTypes(pluginTypes, Arg.Any<Guid>(), Arg.Any<string>()).Returns(createdTypes);
-        _pluginWriter.CreatePluginSteps(pluginSteps, Arg.Any<string>()).Returns(createdSteps);
-        _customApiWriter.CreateCustomApis(customApis, Arg.Any<string>()).Returns(createdCustomApis);
+        _pluginWriter.CreatePluginTypes(pluginTypes.ArgMatches(), Arg.Any<Guid>(), Arg.Any<string>()).Returns(createdTypes);
+        _pluginWriter.CreatePluginSteps(pluginSteps.ArgMatches(), Arg.Any<string>()).Returns(createdSteps);
+        _customApiWriter.CreateCustomApis(customApis.ArgMatches(), Arg.Any<string>()).Returns(createdCustomApis);
 
         var differences = new Differences(
-            Difference<PluginDefinition>.Empty with { Creates = pluginTypes.ConvertAll(EntityDifference<PluginDefinition>.FromLocal) },
-            Difference<Step>.Empty with { Creates = pluginSteps.ConvertAll(EntityDifference<Step>.FromLocal) },
-            Difference<Image>.Empty with { Creates = pluginImages.ConvertAll(EntityDifference<Image>.FromLocal) },
-            Difference<CustomApiDefinition>.Empty with { Creates = customApis.ConvertAll(EntityDifference<CustomApiDefinition>.FromLocal) },
-            Difference<RequestParameter>.Empty with { Creates = requestParams.ConvertAll(EntityDifference<RequestParameter>.FromLocal) },
-            Difference<ResponseProperty>.Empty with { Creates = responseProps.ConvertAll(EntityDifference<ResponseProperty>.FromLocal) }
+            Difference<PluginDefinition>.Empty with {
+                Creates = [ EntityDifference<PluginDefinition>.FromLocal(pluginType) ]
+            },
+            Difference<Step, PluginDefinition>.Empty with {
+                Creates = [.. pluginSteps.Select(EntityDifference<Step, PluginDefinition>.FromLocal)]
+            },
+            Difference<Image, Step>.Empty with {
+                Creates = [.. pluginImages.Select(EntityDifference<Image, Step>.FromLocal)]
+            },
+            Difference<CustomApiDefinition>.Empty with {
+                Creates = [ EntityDifference<CustomApiDefinition>.FromLocal(customApi) ]
+            },
+            Difference<RequestParameter, CustomApiDefinition>.Empty with {
+                Creates = [.. requestParams.Select(EntityDifference<RequestParameter, CustomApiDefinition>.FromLocal) ]
+            },
+            Difference<ResponseProperty, CustomApiDefinition>.Empty with {
+                Creates = [.. responseProps.Select(EntityDifference<ResponseProperty, CustomApiDefinition>.FromLocal)]
+            }
         );
 
         // Act
         _plugin.DoCreates(differences, crmAssembly);
 
         // Assert
-        _pluginWriter.Received(1).CreatePluginTypes(ArgMatches(pluginTypes), crmAssembly.Id, _description.SyncDescription);
-        _pluginWriter.Received(1).CreatePluginSteps(ArgMatches(pluginSteps), _description.SyncDescription);
-        _pluginWriter.Received(1).CreatePluginImages(ArgMatches(pluginImages));
-        _customApiWriter.Received(1).CreateCustomApis(ArgMatches(customApis), _description.SyncDescription);
-        _customApiWriter.Received(1).CreateRequestParameters(ArgMatches(requestParams));
-        _customApiWriter.Received(1).CreateResponseProperties(ArgMatches(responseProps));
-    }
-
-    private static List<T> ArgMatches<T>(List<T> expected)
-    {
-        return Arg.Is<List<T>>(actual => !expected.Except(actual).Any() && !actual.Except(expected).Any());
+        _pluginWriter.Received(1).CreatePluginTypes(pluginTypes.ArgMatches(), crmAssembly.Id, _description.SyncDescription);
+        _pluginWriter.Received(1).CreatePluginSteps(pluginSteps.ArgMatches(), _description.SyncDescription);
+        _pluginWriter.Received(1).CreatePluginImages(pluginImages.ArgMatches());
+        _customApiWriter.Received(1).CreateCustomApis(customApis.ArgMatches(), _description.SyncDescription);
+        _customApiWriter.Received(1).CreateRequestParameters(requestParams.ArgMatches());
+        _customApiWriter.Received(1).CreateResponseProperties(responseProps.ArgMatches());
     }
 
     [Fact]
     public void DeletePlugins_CallsWriter()
     {
         // Arrange
-        var types = new List<PluginDefinition>();
-        var steps = new List<Step>();
-        var images = new List<Image>();
-        var apis = new List<CustomApiDefinition>();
-        var reqs = new List<RequestParameter>();
-        var resps = new List<ResponseProperty>();
+        Image image = new ()
+        {
+            Name = "Image1",
+            EntityAlias = "alias",
+            ImageType = ImageType.PreImage,
+            Attributes = string.Empty
+        };
+
+        Step step = new ()
+        {
+            Name = "Step1",
+            ExecutionStage = ExecutionStage.PreOperation,
+            ExecutionMode = ExecutionMode.Asynchronous,
+            EventOperation = "Update",
+            LogicalName = "account",
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = string.Empty,
+            UserContext = Guid.NewGuid(),
+            AsyncAutoDelete = false,
+            PluginImages = [ image ]
+        };
+
+        PluginDefinition type = new()
+        {
+            Name = "Type1",
+            Id = Guid.NewGuid(),
+            PluginSteps = [step]
+        };
+
+        List<PluginDefinition> types = [ type ];
+        List<ParentReference<Step, PluginDefinition>> steps = [ new(step, type) ];
+        List<ParentReference<Image, Step>> images = [ new(image, step) ];
+        List<CustomApiDefinition> apis = [];
+        List<ParentReference<RequestParameter, CustomApiDefinition>> reqs = [];
+        List<ParentReference<ResponseProperty, CustomApiDefinition>> resps = [];
 
         // Act
         _plugin.DoDeletes(new Differences(
             Difference<PluginDefinition>.Empty with { Deletes = types },
-            Difference<Step>.Empty with { Deletes = steps },
-            Difference<Image>.Empty with { Deletes = images },
+            Difference<Step, PluginDefinition>.Empty with { Deletes = steps },
+            Difference<Image, Step>.Empty with { Deletes = images },
             Difference<CustomApiDefinition>.Empty with { Deletes = apis },
-            Difference<RequestParameter>.Empty with { Deletes = reqs },
-            Difference<ResponseProperty>.Empty with { Deletes = resps }
+            Difference<RequestParameter, CustomApiDefinition>.Empty with { Deletes = reqs },
+            Difference<ResponseProperty, CustomApiDefinition>.Empty with { Deletes = resps }
         ));
 
         // Assert
-        _pluginWriter.Received(1).DeletePluginImages(images);
-        _pluginWriter.Received(1).DeletePluginSteps(steps);
+        _pluginWriter.Received(1).DeletePluginImages(images.ConvertAll(i => i.Entity).ArgMatches());
+        _pluginWriter.Received(1).DeletePluginSteps(steps.ConvertAll(s => s.Entity).ArgMatches());
         _pluginWriter.Received(1).DeletePluginTypes(types);
-        _customApiWriter.Received(1).DeleteCustomApiRequestParameters(reqs);
-        _customApiWriter.Received(1).DeleteCustomApiResponseProperties(resps);
+        _customApiWriter.Received(1).DeleteCustomApiRequestParameters(reqs.ConvertAll(r => r.Entity).ArgMatches());
+        _customApiWriter.Received(1).DeleteCustomApiResponseProperties(resps.ConvertAll(r => r.Entity).ArgMatches());
         _customApiWriter.Received(1).DeleteCustomApiDefinitions(apis);
     }
 
@@ -269,21 +299,21 @@ public class PluginServiceTests
         // Arrange
         var data = new Differences(
             Difference<PluginDefinition>.Empty,
-            Difference<Step>.Empty,
-            Difference<Image>.Empty,
+            Difference<Step, PluginDefinition>.Empty,
+            Difference<Image, Step>.Empty,
             Difference<CustomApiDefinition>.Empty,
-            Difference<RequestParameter>.Empty,
-            Difference<ResponseProperty>.Empty
+            Difference<RequestParameter, CustomApiDefinition>.Empty,
+            Difference<ResponseProperty, CustomApiDefinition>.Empty
         );
 
         // Act
         _plugin.DoUpdates(data);
 
         // Assert
-        _pluginWriter.Received(1).UpdatePluginSteps(ArgMatches(data.PluginSteps.Updates.ConvertAll(upd => upd.LocalEntity)), _description.SyncDescription);
-        _pluginWriter.Received(1).UpdatePluginImages(ArgMatches(data.PluginImages.Updates.ConvertAll(upd => upd.LocalEntity)));
-        _customApiWriter.Received(1).UpdateCustomApis(ArgMatches(data.CustomApis.Updates.ConvertAll(upd => upd.LocalEntity)), _description.SyncDescription);
-        _customApiWriter.Received(1).UpdateRequestParameters(ArgMatches(data.RequestParameters.Updates.ConvertAll(upd => upd.LocalEntity)));
-        _customApiWriter.Received(1).UpdateResponseProperties(ArgMatches(data.ResponseProperties.Updates.ConvertAll(upd => upd.LocalEntity)));
+        _pluginWriter.Received(1).UpdatePluginSteps(data.PluginSteps.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches(), _description.SyncDescription);
+        _pluginWriter.Received(1).UpdatePluginImages(data.PluginImages.Updates.ConvertAll(upd => upd.Local).ArgMatches());
+        _customApiWriter.Received(1).UpdateCustomApis(data.CustomApis.Updates.ConvertAll(upd => upd.Local).ArgMatches(), _description.SyncDescription);
+        _customApiWriter.Received(1).UpdateRequestParameters(data.RequestParameters.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches());
+        _customApiWriter.Received(1).UpdateResponseProperties(data.ResponseProperties.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches());
     }
 }

@@ -42,7 +42,7 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                 })];
     }
 
-    public List<Step> GetPluginSteps(IEnumerable<PluginDefinition> pluginTypes, Guid solutionId)
+    public List<ParentReference<Step, PluginDefinition>> GetPluginSteps(IEnumerable<PluginDefinition> pluginTypes, Guid solutionId)
     {
         if (!pluginTypes.Any())
         {
@@ -107,11 +107,21 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
             var pluginType = pluginTypes.FirstOrDefault(pt => pt.Id == entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.PluginTypeId)?.Id)
                 ?? throw new XrmSyncException("Plugin type not found for step: " + entity.GetAttributeValue<string>(SdkMessageProcessingStep.Fields.Name));
 
-            var step = new Step
+            var images = group
+                .Where(e => e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Id}") != null)
+                .Select(e => new Image
+                {
+                    Id = Guid.Parse(e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Id}")?.Value?.ToString() ?? string.Empty),
+                    Name = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
+                    EntityAlias = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.EntityAlias}")?.Value?.ToString() ?? string.Empty,
+                    Attributes = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Attributes1}")?.Value?.ToString() ?? string.Empty,
+                    ImageType = (ImageType)((e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.ImageType}")?.Value as OptionSetValue)?.Value ?? 0)
+                });
+
+            return new ParentReference<Step, PluginDefinition>(new Step
             {
                 Id = entity.GetAttributeValue<Guid>(SdkMessageProcessingStep.Fields.Id),
                 Name = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.Name) ?? string.Empty,
-                PluginType = pluginType,
                 ExecutionStage = (ExecutionStage)(entity.GetAttributeValue<OptionSetValue>(SdkMessageProcessingStep.Fields.Stage)?.Value ?? 0),
                 EventOperation = entity.GetAttributeValue<AliasedValue>($"ms.{SdkMessage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
                 LogicalName = entity.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}")?.Value?.ToString() ?? string.Empty,
@@ -121,24 +131,8 @@ public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) 
                 FilteredAttributes = entity.GetAttributeValue<string?>(SdkMessageProcessingStep.Fields.FilteringAttributes) ?? string.Empty,
                 UserContext = entity.GetAttributeValue<EntityReference>(SdkMessageProcessingStep.Fields.ImpersonatingUserId)?.Id ?? Guid.Empty,
                 AsyncAutoDelete = entity.GetAttributeValue<bool?>(SdkMessageProcessingStep.Fields.AsyncAutoDelete) ?? false,
-                PluginImages = []
-            };
-
-            var images = group
-                .Where(e => e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Id}") != null)
-                .Select(e => new Image
-                {
-                    Id = Guid.Parse(e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Id}")?.Value?.ToString() ?? string.Empty),
-                    Name = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Name}")?.Value?.ToString() ?? string.Empty,
-                    EntityAlias = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.EntityAlias}")?.Value?.ToString() ?? string.Empty,
-                    Attributes = e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.Attributes1}")?.Value?.ToString() ?? string.Empty,
-                    ImageType = (ImageType)((e.GetAttributeValue<AliasedValue>($"pi.{SdkMessageProcessingStepImage.Fields.ImageType}")?.Value as OptionSetValue)?.Value ?? 0),
-                    Step = step
-                });
-
-            step.PluginImages = [.. images];
-
-            return step;
+                PluginImages = [.. images]
+            }, pluginType);
         }).ToList();
     }
 

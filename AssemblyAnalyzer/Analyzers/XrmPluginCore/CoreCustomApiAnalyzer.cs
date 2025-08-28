@@ -22,12 +22,7 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
     {
         var registration = GetRegistrationFromType<object>(nameof(ICustomApiDefinition.GetRegistration), customApiType);
 
-        return ConvertRegistrationToCustomApi(registration, customApiType, prefix);
-    }
-
-    private static CustomApiDefinition ConvertRegistrationToCustomApi(object registration, Type customApiType, string prefix)
-    {
-        var definition = new CustomApiDefinition
+        return new CustomApiDefinition
         {
             PluginType = new PluginType { Name = customApiType.FullName ?? string.Empty },
             Name = GetConfigValue(registration, x => x.Name) ?? string.Empty,
@@ -43,16 +38,14 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
             AllowedCustomProcessingStepType = GetConfigValue(registration, x => x.AllowedCustomProcessingStepType),
             OwnerId = GetConfigValue(registration, x => x.OwnerId) ?? Guid.Empty,
             IsCustomizable = GetConfigValue(registration, x => x.IsCustomizable),
-            IsPrivate = GetConfigValue(registration, x => x.IsPrivate)
+            IsPrivate = GetConfigValue(registration, x => x.IsPrivate),
+
+            RequestParameters = [.. ConvertRequestParameters(GetConfigValue<IEnumerable>(registration, x => x.RequestParameters))],
+            ResponseProperties = [.. ConvertResponseProperties(GetConfigValue<IEnumerable>(registration, x => x.ResponseProperties))]
         };
-
-        definition.RequestParameters = [.. ConvertRequestParameters(GetConfigValue<IEnumerable>(registration, x => x.RequestParameters), definition)];
-        definition.ResponseProperties = [.. ConvertResponseProperties(GetConfigValue<IEnumerable>(registration, x => x.ResponseProperties), definition)];
-
-        return definition;
     }
 
-    private static IEnumerable<RequestParameter> ConvertRequestParameters(IEnumerable? requestParameters, CustomApiDefinition customApi)
+    private static IEnumerable<RequestParameter> ConvertRequestParameters(IEnumerable? requestParameters)
     {
         if (requestParameters == null)
         {
@@ -62,7 +55,6 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
             .Cast<object>()
             .Select(param => new RequestParameter
             {
-                CustomApi = customApi,
                 Name = GetRequestValue(param, x => x.Name) ?? string.Empty,
                 DisplayName = GetRequestValue(param, x => x.DisplayName) ?? string.Empty,
                 UniqueName = GetRequestValue(param, x => x.UniqueName) ?? string.Empty,
@@ -73,7 +65,7 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
             });
     }
 
-    private static IEnumerable<ResponseProperty> ConvertResponseProperties(IEnumerable? responseProperties, CustomApiDefinition customApi)
+    private static IEnumerable<ResponseProperty> ConvertResponseProperties(IEnumerable? responseProperties)
     {
         if (responseProperties == null)
         {
@@ -83,7 +75,6 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
             .Cast<object>()
             .Select(prop => new ResponseProperty
             {
-                CustomApi = customApi,
                 Name = GetResponseValue(prop, x => x.Name) ?? string.Empty,
                 DisplayName = GetResponseValue(prop, x => x.DisplayName) ?? string.Empty,
                 UniqueName = GetResponseValue(prop, x => x.UniqueName) ?? string.Empty,

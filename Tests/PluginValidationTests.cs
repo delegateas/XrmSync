@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using XrmSync.Dataverse;
 using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService.Exceptions;
@@ -49,9 +50,18 @@ public class PluginValidationTests
         // Act & Assert - Verify Step validation rules are registered
         var stepRules = serviceProvider.GetServices<IValidationRule<Step>>().ToList();
         Assert.NotEmpty(stepRules);
+        Assert.Contains(stepRules, r => r is AssociateDisassociateEntityRule);
+        Assert.Contains(stepRules, r => r is AssociateDisassociateFilterRule);
+        Assert.Contains(stepRules, r => r is AssociateDisassociateImageRule);
         Assert.Contains(stepRules, r => r is AsyncPreOperationRule);
+        Assert.Contains(stepRules, r => r is CreatePreImageRule);
+        Assert.Contains(stepRules, r => r is DeletePostImageRule);
+        Assert.Contains(stepRules, r => r is MissingUserContextRule);
         Assert.Contains(stepRules, r => r is PreImageInPreStageRule);
-        Assert.Contains(stepRules, r => r is DuplicateRegistrationRule);
+
+        var stepWithParentRules = serviceProvider.GetServices<IValidationRule<ParentReference<Step, PluginDefinition>>>().ToList();
+        Assert.NotEmpty(stepWithParentRules);
+        Assert.Contains(stepWithParentRules, r => r is DuplicateRegistrationRule);
 
         // Act & Assert - Verify CustomApi validation rules are registered
         var customApiRules = serviceProvider.GetServices<IValidationRule<CustomApiDefinition>>().ToList();
@@ -64,23 +74,27 @@ public class PluginValidationTests
     public void ValidatePlugins_ThrowsException_ForPreOperationAsync()
     {
         // Arrange
-        var pluginStep = new Step
+        var pluginType = new PluginDefinition
         {
-            Name = "TestStep",
-            PluginType = new PluginDefinition { Name = "TestType", PluginSteps = [], Id = Guid.NewGuid() },
-            ExecutionStage = ExecutionStage.PreOperation, // Pre
-            ExecutionMode = ExecutionMode.Asynchronous, // Async
-            EventOperation = "Update",
-            LogicalName = "account",
-            Deployment = 0,
-            ExecutionOrder = 1,
-            FilteredAttributes = string.Empty,
-            UserContext = Guid.NewGuid(),
-            AsyncAutoDelete = false,
-            PluginImages = []
+            Name = "TestType",
+            Id = Guid.NewGuid(),
+            PluginSteps = [
+                new Step
+                {
+                    Name = "TestStep",
+                    ExecutionStage = ExecutionStage.PreOperation, // Pre
+                    ExecutionMode = ExecutionMode.Asynchronous, // Async
+                    EventOperation = "Update",
+                    LogicalName = "account",
+                    Deployment = 0,
+                    ExecutionOrder = 1,
+                    FilteredAttributes = string.Empty,
+                    UserContext = Guid.NewGuid(),
+                    AsyncAutoDelete = false,
+                    PluginImages = []
+                }
+                ]
         };
-        var pluginType = pluginStep.PluginType;
-        pluginType.PluginSteps.Add(pluginStep);
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
@@ -98,7 +112,6 @@ public class PluginValidationTests
         var pluginStep1 = new Step
         {
             Name = "Step1",
-            PluginType = new PluginDefinition { Name = "Type1", PluginSteps = [], Id = Guid.NewGuid() },
             ExecutionStage = ExecutionStage.PreOperation,
             ExecutionMode = ExecutionMode.Asynchronous,
             EventOperation = "Update",
@@ -114,7 +127,6 @@ public class PluginValidationTests
         var pluginStep2 = new Step
         {
             Name = "Step2",
-            PluginType = pluginStep1.PluginType,
             ExecutionStage = ExecutionStage.PreOperation,
             ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Associate",
@@ -126,8 +138,12 @@ public class PluginValidationTests
             AsyncAutoDelete = false,
             PluginImages = []
         };
-        var pluginType = pluginStep1.PluginType;
-        pluginType.PluginSteps = [pluginStep1, pluginStep2];
+
+        var pluginType = new PluginDefinition {
+            Name = "Type1",
+            Id = Guid.NewGuid(),
+            PluginSteps = [ pluginStep1, pluginStep2 ]
+        };
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
@@ -148,7 +164,6 @@ public class PluginValidationTests
         var pluginStep1 = new Step
         {
             Name = "Step1",
-            PluginType = new PluginDefinition { Name = "Type1", PluginSteps = [], Id = Guid.NewGuid() },
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Update",
@@ -164,7 +179,6 @@ public class PluginValidationTests
         var pluginStep2 = new Step
         {
             Name = "Step2",
-            PluginType = pluginStep1.PluginType,
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Update",
@@ -177,8 +191,11 @@ public class PluginValidationTests
             PluginImages = []
         };
 
-        var pluginType = pluginStep1.PluginType;
-        pluginType.PluginSteps = [pluginStep1, pluginStep2];
+        var pluginType = new PluginDefinition {
+            Name = "Type1",
+            Id = Guid.NewGuid(),
+            PluginSteps = [pluginStep1, pluginStep2]
+        };
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
@@ -196,7 +213,6 @@ public class PluginValidationTests
         var pluginStep1 = new Step
         {
             Name = "Step1",
-            PluginType = new PluginDefinition { Name = "Type1", PluginSteps = [], Id = Guid.NewGuid() },
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Update",
@@ -212,7 +228,6 @@ public class PluginValidationTests
         var pluginStep2 = new Step
         {
             Name = "Step2",
-            PluginType = new PluginDefinition { Name = "Type2", PluginSteps = [], Id = Guid.NewGuid() },
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
             EventOperation = "Update",
@@ -225,11 +240,9 @@ public class PluginValidationTests
             PluginImages = []
         };
 
-        var pluginType1 = pluginStep1.PluginType;
-        pluginType1.PluginSteps = [pluginStep1];
+        var pluginType1 = new PluginDefinition { Name = "Type1", Id = Guid.NewGuid(), PluginSteps = [pluginStep1] };
 
-        var pluginType2 = pluginStep2.PluginType;
-        pluginType2.PluginSteps = [pluginStep2];
+        var pluginType2 = new PluginDefinition { Name = "Type1", Id = Guid.NewGuid(), PluginSteps = [pluginStep2] };
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);

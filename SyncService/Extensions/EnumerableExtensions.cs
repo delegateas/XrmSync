@@ -5,10 +5,12 @@ namespace XrmSync.SyncService.Extensions;
 
 internal static class EnumerableExtensions
 {
-    public static Difference<TEntity> Flatten<TEntity>(this IEnumerable<Difference<TEntity>> differences) where TEntity : EntityBase
+    public static Difference<TEntity, TParent> Flatten<TEntity, TParent>(this IEnumerable<Difference<TEntity, TParent>> differences)
+        where TEntity : EntityBase
+        where TParent : EntityBase
     {
-        return differences.Aggregate(Difference<TEntity>.Empty,
-            (acc, diff) => new Difference<TEntity>(
+        return differences.Aggregate(Difference<TEntity, TParent>.Empty,
+            (acc, diff) => new Difference<TEntity, TParent>(
                 [.. acc.Creates, .. diff.Creates],
                 [.. acc.Updates, .. diff.Updates],
                 [.. acc.Deletes, .. diff.Deletes]

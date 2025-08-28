@@ -57,10 +57,7 @@ internal class AssemblyReader(ILogger logger) : IAssemblyReader
         }
 
         // Process the output
-        var assemblyInfo = JsonSerializer.Deserialize<AssemblyInfo>(result.Output, new JsonSerializerOptions
-        {
-            ReferenceHandler = ReferenceHandler.Preserve
-        });
+        var assemblyInfo = JsonSerializer.Deserialize<AssemblyInfo>(result.Output);
 
         logger.LogInformation("Local assembly read successfully: {AssemblyName} version {Version}", assemblyInfo?.Name, assemblyInfo?.Version);
 
