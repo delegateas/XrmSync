@@ -59,7 +59,7 @@ internal static class ServiceCollectionExtensions
                     {
                         options.IncludeScopes = false;
                         options.SingleLine = true;
-                        options.TimestampFormat = "hh:mm:ss ";
+                        options.TimestampFormat = "HH:mm:ss ";
                     });
             }));
 
