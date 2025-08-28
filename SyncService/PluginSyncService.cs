@@ -128,56 +128,69 @@ public class PluginSyncService(
 
     private async Task<SyncData> ReadData(CancellationToken cancellationToken)
     {
+        log.LogInformation("Reading solution information for solution \"{solutionName}\"", options.SolutionName);
+        var (solutionId, solutionPrefix) = solutionReader.RetrieveSolution(options.SolutionName);
+
+        var localAssembly = await ReadLocalAssembly(solutionPrefix, cancellationToken);
+
+        ValidateAssemblyOrThrow(localAssembly);
+
+        var crmAssembly = ReadDataverseAssembly(solutionId, localAssembly);
+
+        return new SyncData(localAssembly, crmAssembly);
+    }
+
+    private async Task<AssemblyInfo> ReadLocalAssembly(string solutionPrefix, CancellationToken cancellationToken)
+    {
         try
         {
-            log.LogInformation("Reading solution information for solution \"{solutionName}\"", options.SolutionName);
-            var (solutionId, solutionPrefix) = solutionReader.RetrieveSolution(options.SolutionName);
-
             log.LogInformation("Loading local assembly and its plugins");
             var localAssembly = await assemblyReader.ReadAssemblyAsync(options.AssemblyPath, solutionPrefix, cancellationToken);
             log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis locally", localAssembly.Plugins.Count, localAssembly.CustomApis.Count);
 
-            log.LogInformation("Validating plugins and custom apis to be registered");
-            pluginValidator.Validate(localAssembly.Plugins);
-            pluginValidator.Validate(localAssembly.CustomApis);
-            log.LogInformation("Plugins and custom apis validated");
-
-            log.LogInformation("Retrieving registered plugins from Dataverse solution \"{solutionName}\"", options.SolutionName);
-            var crmAssembly = GetPluginAssembly(solutionId, localAssembly.Name);
-            log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis registered in CRM", crmAssembly?.Plugins.Count ?? 0, crmAssembly?.CustomApis.Count ?? 0);
-
-            return new SyncData(localAssembly, crmAssembly);
+            return localAssembly;
         }
         catch (AnalysisException ex)
         {
-            log.LogCritical(ex, "Failed to analyze local assembly. Ensure the assembly is valid and contains plugins.");
-            throw new XrmSyncException("Failed to analyse local assembly", ex);
+            throw new XrmSyncException("Failed to analyze local assembly. Ensure the assembly is valid and contains plugins.", ex);
+        }
+        catch (AggregateException ex)
+        {
+            throw new XrmSyncException("Failed to read local assembly. Ensure the assembly is valid and contains plugins.", ex);
+        }
+    }
+
+    private AssemblyInfo? ReadDataverseAssembly(Guid solutionId, AssemblyInfo localAssembly)
+    {
+        log.LogInformation("Retrieving registered plugins from Dataverse solution \"{solutionName}\"", options.SolutionName);
+        var crmAssembly = GetPluginAssembly(solutionId, localAssembly.Name);
+        log.LogInformation("Identified {pluginCount} plugins and {customApiCount} custom apis registered in CRM", crmAssembly?.Plugins.Count ?? 0, crmAssembly?.CustomApis.Count ?? 0);
+        return crmAssembly;
+    }
+
+    private void ValidateAssemblyOrThrow(AssemblyInfo assemblyInfo)
+    {
+        try
+        {
+            log.LogInformation("Validating plugins and custom apis to be registered");
+            pluginValidator.Validate(assemblyInfo.Plugins);
+            pluginValidator.Validate(assemblyInfo.CustomApis);
+            log.LogInformation("Plugins and custom apis validated");
         }
         catch (ValidationException ex)
         {
-            log.LogError(ex, "Validation failed for the plugins in the assembly. Ensure the plugins are valid and compatible with Dataverse.");
+            log.LogError("Validation failed for the plugins in the assembly:");
+            log.LogError(" - {0}", ex.Message);
             throw new XrmSyncException("Validation failed for the plugins in the assembly", ex);
         }
         catch (AggregateException ex)
         {
-            log.LogError("An error occurred while reading the assembly or plugins. Ensure the assembly is valid and contains plugins.");
+            log.LogError("Validation failed for the plugins in the assembly:");
             foreach (var inner in ex.InnerExceptions)
             {
-                if (inner is AnalysisException analysisEx)
-                {
-                    log.LogError("Analysis error: {Message}", analysisEx.Message);
-                }
-                else if (inner is ValidationException validationEx)
-                {
-                    log.LogError("Validation error: {message}", validationEx.Message);
-                }
-                else
-                {
-                    log.LogCritical(inner, "Unexpected error:");
-                }
+                log.LogError(" - {0}", inner.Message);
             }
-
-            throw new XrmSyncException("Failed to read data", ex);
+            throw new XrmSyncException("Validation failed for the plugins in the assembly", ex);
         }
     }
 

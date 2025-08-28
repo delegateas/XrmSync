@@ -1,3 +1,6 @@
+### v1.0.0-preview.4 - 28 August 2025
+* Logging: More clear error message on validation failure
+
 ### v1.0.0-preview.3 - 28 August 2025
 * Fix: --save-config was not working as expected
 * Refactor: When logging in Information level or above, use XrmSync as the category, otherwise use the full typename
