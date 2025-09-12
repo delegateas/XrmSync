@@ -16,16 +16,17 @@ public class DifferenceUtilityTests
 
     public DifferenceUtilityTests()
     {
-        var logger = new LoggerFactory().CreateLogger<DifferenceCalculator>();
+        var logger = new LoggerFactory().CreateLogger<PrintService>();
         var description = new Description();
+        XrmSyncConfiguration configuration = new(new(new PluginSyncOptions("path", "solution", LogLevel.Information, true), null));
         _differenceUtility = new DifferenceCalculator(
-            logger,
             new PluginDefinitionComparer(),
             new PluginStepComparer(),
             new PluginImageComparer(),
             new CustomApiComparer(description),
             new RequestParameterComparer(),
-            new ResponsePropertyComparer()
+            new ResponsePropertyComparer(),
+            new PrintService(logger, configuration)
         );
     }
 
