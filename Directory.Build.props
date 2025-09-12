@@ -1,0 +1,14 @@
+<Project>
+  
+  <!-- Enable NuGet package lock files for deterministic builds and CI caching -->
+  <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+  </PropertyGroup>
+
+  <!-- Ensure lock files are generated in CI mode -->
+  <PropertyGroup Condition="'$(CI)' == 'true' OR '$(GITHUB_ACTIONS)' == 'true'">
+    <RestoreLockedMode>true</RestoreLockedMode>
+  </PropertyGroup>
+
+</Project>

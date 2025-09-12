@@ -31,9 +31,19 @@ runs:
       shell: pwsh
       run: ./scripts/Set-VersionFromChangelog.ps1 -ChangelogPath CHANGELOG.md -CsprojPath XrmSync/XrmSync.csproj
     
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: nuget-${{ runner.os }}-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          nuget-${{ runner.os }}-
+
     - name: Restore dependencies
       shell: pwsh
-      run: dotnet restore ${{ inputs.project }}
+      run: dotnet restore ${{ inputs.project }} --locked-mode
+      env:
+        CI: true
     
     - name: Build
       shell: pwsh
