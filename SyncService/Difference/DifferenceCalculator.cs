@@ -7,18 +7,19 @@ using XrmSync.SyncService.Extensions;
 
 namespace XrmSync.SyncService.Difference;
 
-public class DifferenceUtility(ILogger<DifferenceUtility> log,
+public class DifferenceCalculator(
     IEntityComparer<PluginDefinition> pluginDefinitionComparer,
     IEntityComparer<Step> pluginStepComparer,
     IEntityComparer<Image> pluginImageComparer,
     IEntityComparer<CustomApiDefinition> customApiComparer,
     IEntityComparer<RequestParameter> requestComparer,
-    IEntityComparer<ResponseProperty> responseComparer) : IDifferenceUtility
+    IEntityComparer<ResponseProperty> responseComparer,
+    IPrintService printer) : IDifferenceCalculator
 {
     public Differences CalculateDifferences(AssemblyInfo localData, AssemblyInfo? remoteData)
     {
         var pluginTypeDifference = GetDifference(localData.Plugins, remoteData?.Plugins ?? [], pluginDefinitionComparer);
-        log.Print(pluginTypeDifference, "Types", x => x.Name);
+        printer.Print(pluginTypeDifference, "Types", x => x.Name);
 
         var pluginStepsDifference =
             GetDifferences(localData, remoteData,
@@ -26,7 +27,7 @@ public class DifferenceUtility(ILogger<DifferenceUtility> log,
                 plugin => plugin?.PluginSteps.Select(step => new ParentReference<Step, PluginDefinition>(step, plugin)),
                 pluginStepComparer,
                 true);
-        log.Print(pluginStepsDifference, "Plugin Steps", x => x.Entity.Name);
+        printer.Print(pluginStepsDifference, "Plugin Steps", x => x.Entity.Name);
 
         var pluginImagesDifference =
             localData.Plugins
@@ -43,25 +44,25 @@ public class DifferenceUtility(ILogger<DifferenceUtility> log,
                 p => p?.PluginSteps?.SelectMany(step => step.PluginImages.Select(img => new ParentReference<Image, Step>(img, step)))))
             .Flatten();
 
-        log.Print(pluginImagesDifference, "Plugin Images", x => $"[{x.Entity.Name}] {x.Parent.Name}");
+        printer.Print(pluginImagesDifference, "Plugin Images", x => $"[{x.Entity.Name}] {x.Parent.Name}");
 
         var customApiDifference =
             GetDifference(localData.CustomApis, remoteData?.CustomApis ?? [], customApiComparer);
-        log.Print(customApiDifference, "Custom APIs", x => x.Name);
+        printer.Print(customApiDifference, "Custom APIs", x => x.Name);
 
         var customApiRequestDifference =
             GetDifferences(localData, remoteData,
                 d => d?.CustomApis,
                 api => api?.RequestParameters.Select(param => new ParentReference<RequestParameter, CustomApiDefinition>(param, api)),
                 requestComparer, true);
-        log.Print(customApiRequestDifference, "Custom API Request Parameters", x => x.Entity.Name);
+        printer.Print(customApiRequestDifference, "Custom API Request Parameters", x => x.Entity.Name);
 
         var customApiResponseDifference =
             GetDifferences(localData, remoteData,
                 d => d?.CustomApis,
                 api => api?.ResponseProperties.Select(prop => new ParentReference<ResponseProperty, CustomApiDefinition>(prop, api)),
                 responseComparer, true);
-        log.Print(customApiResponseDifference, "Custom API Response Properties", x => x.Entity.Name);
+        printer.Print(customApiResponseDifference, "Custom API Response Properties", x => x.Entity.Name);
 
         return new(pluginTypeDifference,
             pluginStepsDifference, pluginImagesDifference,

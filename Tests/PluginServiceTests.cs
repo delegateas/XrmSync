@@ -22,7 +22,7 @@ public class PluginServiceTests
     private readonly ICustomApiWriter _customApiWriter = Substitute.For<ICustomApiWriter>();
     private readonly IAssemblyReader _assemblyReader = Substitute.For<IAssemblyReader>();
     private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
-    private readonly IDifferenceUtility _differenceUtility = Substitute.For<IDifferenceUtility>();
+    private readonly IDifferenceCalculator _differenceUtility = Substitute.For<IDifferenceCalculator>();
     private readonly Description _description = new();
     private readonly XrmSyncConfiguration _options = new(new(new(string.Empty, "solution", LogLevel.Information, false), null));
 

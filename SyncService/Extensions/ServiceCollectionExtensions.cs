@@ -16,7 +16,8 @@ public static class ServiceCollectionExtensions
         return services
             .AddSingleton<PluginSyncService>()
             .AddSingleton<Description>()
-            .AddSingleton<IDifferenceUtility, DifferenceUtility>()
+            .AddSingleton<IDifferenceCalculator, DifferenceCalculator>()
+            .AddSingleton<IPrintService, PrintService>()
             .AddSingleton<IPluginValidator, PluginValidator.PluginValidator>()
             .AddValidationRules() // Auto-discover validation rules
             .AddSingleton<IEntityComparer<PluginDefinition>, PluginDefinitionComparer>()

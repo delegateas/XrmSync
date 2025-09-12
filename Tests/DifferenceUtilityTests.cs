@@ -12,13 +12,13 @@ namespace Tests;
 
 public class DifferenceUtilityTests
 {
-    private readonly DifferenceUtility _differenceUtility;
+    private readonly DifferenceCalculator _differenceUtility;
 
     public DifferenceUtilityTests()
     {
-        var logger = new LoggerFactory().CreateLogger<DifferenceUtility>();
+        var logger = new LoggerFactory().CreateLogger<DifferenceCalculator>();
         var description = new Description();
-        _differenceUtility = new DifferenceUtility(
+        _differenceUtility = new DifferenceCalculator(
             logger,
             new PluginDefinitionComparer(),
             new PluginStepComparer(),

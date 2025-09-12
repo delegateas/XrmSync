@@ -2,7 +2,7 @@
 
 namespace XrmSync.SyncService.Difference;
 
-public interface IDifferenceUtility
+public interface IDifferenceCalculator
 {
     Differences CalculateDifferences(AssemblyInfo localData, AssemblyInfo? remoteData);
 }

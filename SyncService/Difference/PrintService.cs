@@ -1,14 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 using XrmSync.Model;
-using XrmSync.Model.Exceptions;
-using XrmSync.SyncService.Difference;
+using XrmSync.SyncService.Extensions;
 
-namespace XrmSync.SyncService.Extensions;
+namespace XrmSync.SyncService.Difference;
 
-internal static class LoggerExtensions
+internal class PrintService(ILogger<PrintService> log, XrmSyncConfiguration configuration) : IPrintService
 {
-    public static void Print<TEntity>(this ILogger log, Difference<TEntity> differences, string title, Func<TEntity, string> namePicker)
+    private readonly LogLevel LogLevel = configuration.Plugin?.Sync?.DryRun == true ? LogLevel.Information : LogLevel.Debug;
+
+    public void Print<TEntity>(Difference<TEntity> differences, string title, Func<TEntity, string> namePicker)
         where TEntity : EntityBase
     {
         var creates = differences.Creates
@@ -25,11 +26,10 @@ internal static class LoggerExtensions
             [.. deletes]
         );
 
-        log.Print(wrappedDifference, title, r => namePicker(r.Entity));
+        Print(wrappedDifference, title, r => namePicker(r.Entity));
     }
 
-    public static void Print<TEntity, TParent>(this ILogger log,
-        Difference<TEntity, TParent> differences,
+    public void Print<TEntity, TParent>(Difference<TEntity, TParent> differences,
         string title,
         Func<ParentReference<TEntity, TParent>, string> namePicker)
         where TEntity : EntityBase
@@ -41,11 +41,11 @@ internal static class LoggerExtensions
             var props = GetPropNames(x.Local.Entity, x.Remote?.Entity, x.DifferentProperties);
             if (!string.IsNullOrEmpty(props))
             {
-                log.LogDebug("  - {name} (recreate) ({props})", namePicker(x.Local), props);
+                log.Log(LogLevel, "  - {name} (recreate) ({props})", namePicker(x.Local), props);
             }
             else
             {
-                log.LogDebug("  - {name}", namePicker(x.Local));
+                log.Log(LogLevel, "  - {name}", namePicker(x.Local));
             }
         });
 
@@ -53,14 +53,14 @@ internal static class LoggerExtensions
         differences.Updates.ForEach(x =>
         {
             var props = GetPropNames(x.Local.Entity, x.Remote?.Entity, x.DifferentProperties);
-            log.LogDebug("  - {name} ({props})", namePicker(x.Local), props);
+            log.Log(LogLevel, "  - {name} ({props})", namePicker(x.Local), props);
         });
 
         log.LogInformation("{title} to delete: {count}", title, differences.Deletes.Count);
-        differences.Deletes.ForEach(x => log.LogDebug("  - {name}", namePicker(x)));
+        differences.Deletes.ForEach(x => log.Log(LogLevel, "  - {name}", namePicker(x)));
     }
 
-    private static string GetPropNames<TEntity>(TEntity localEntity, TEntity remoteEntity, IEnumerable<Expression<Func<TEntity, object>>> differentProperties)
+    private static string GetPropNames<TEntity>(TEntity localEntity, TEntity? remoteEntity, IEnumerable<Expression<Func<TEntity, object>>> differentProperties)
     {
         return string.Join(", ", differentProperties
             .Select(p =>
@@ -72,20 +72,5 @@ internal static class LoggerExtensions
 
                 return $"{memberName}: \"{remoteValue ?? "<null>"}\" -> \"{localValue ?? "<null>"}\"";
             }));
-    }
-
-    public static string GetMemberName<T>(this Expression<Func<T, object>> lambda)
-    {
-        var body = lambda.Body as MemberExpression;
-        if (body == null)
-        {
-            var ubody = lambda.Body as UnaryExpression ?? throw new XrmSyncException("Expression is not a member access");
-            body = ubody.Operand as MemberExpression;
-        }
-
-        if (body == null)
-            throw new XrmSyncException("Expression is not a member access");
-
-        return body.Member.Name;
     }
 }

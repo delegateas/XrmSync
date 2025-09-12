@@ -22,7 +22,7 @@ public class PluginSyncService(
     ICustomApiWriter customApiWriter,
     IAssemblyReader assemblyReader,
     ISolutionReader solutionReader,
-    IDifferenceUtility differenceUtility,
+    IDifferenceCalculator differenceUtility,
     Description description,
     XrmSyncConfiguration configuration,
     ILogger<PluginSyncService> log) : ISyncService

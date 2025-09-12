@@ -1,5 +1,6 @@
 ### v1.0.0-preview.5 - 12 September 2025
 * Logging: Make dry-run less scary by prefixing output in writers with [DRY-RUN]
+* Logging: Increase the log-level of some messages to Information when running in dry-run mode
 
 ### v1.0.0-preview.4 - 28 August 2025
 * Logging: More clear error message on validation failure
