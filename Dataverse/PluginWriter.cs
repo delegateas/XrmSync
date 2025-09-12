@@ -15,6 +15,8 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
             { "SolutionUniqueName", configuration.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
     };
 
+    private readonly string LogPrefix = configuration.Plugin?.Sync?.DryRun == true ? "[DRY RUN] " : string.Empty;
+
     public Guid CreatePluginAssembly(string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
     {
         var entity = new PluginAssembly
@@ -52,7 +54,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
         if (deleteRequests.Count > 0)
         {
-            log.LogInformation("Deleting {count} plugin images in Dataverse", deleteRequests.Count);
+            log.LogInformation("{prefix}Deleting {count} plugin images in Dataverse", LogPrefix, deleteRequests.Count);
             writer.PerformAsBulk(deleteRequests);
         }
     }
@@ -63,7 +65,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
         if (deleteRequests.Count > 0)
         {
-            log.LogInformation("Deleting {count} plugin steps in Dataverse", deleteRequests.Count);
+            log.LogInformation("{prefix}Deleting {count} plugin steps in Dataverse", LogPrefix, deleteRequests.Count);
             writer.PerformAsBulk(deleteRequests);
         }
     }
@@ -74,7 +76,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
         if (deleteRequests.Count > 0)
         {
-            log.LogInformation("Deleting {count} plugin types in Dataverse", deleteRequests.Count);
+            log.LogInformation("{prefix}Deleting {count} plugin types in Dataverse", LogPrefix, deleteRequests.Count);
             writer.PerformAsBulk(deleteRequests);
         }
     }
@@ -97,7 +99,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
         if (pluginStepReqs.Count > 0)
         {
-            log.LogInformation("Updating {count} plugin steps in Dataverse", pluginStepReqs.Count);
+            log.LogInformation("{prefix}Updating {count} plugin steps in Dataverse", LogPrefix, pluginStepReqs.Count);
             writer.UpdateMultiple(pluginStepReqs);
         }
     }
@@ -121,7 +123,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
         if (pluginImageReqs.Count > 0)
         {
-            log.LogInformation("Updating {count} plugin images in Dataverse", pluginImageReqs.Count);
+            log.LogInformation("{prefix}Updating {count} plugin images in Dataverse", LogPrefix, pluginImageReqs.Count);
             writer.UpdateMultiple(pluginImageReqs);
         }
     }
@@ -130,7 +132,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
     {
         if (pluginTypes.Count == 0) return pluginTypes;
 
-        log.LogInformation("Creating {Count} plugin types in Dataverse.", pluginTypes.Count);
+        log.LogInformation("{prefix}Creating {Count} plugin types in Dataverse.", LogPrefix, pluginTypes.Count);
         foreach (var pluginType in pluginTypes)
         {
             var entity = new PluginType
@@ -152,7 +154,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
     {
         if (pluginSteps.Count == 0) return pluginSteps;
 
-        log.LogInformation("Creating {Count} plugin steps in Dataverse.", pluginSteps.Count);
+        log.LogInformation("{prefix}Creating {Count} plugin steps in Dataverse.", LogPrefix, pluginSteps.Count);
         var eventOperations = pluginSteps.Select(step => step.Entity.EventOperation).Distinct();
         var stepLogicalNames = pluginSteps.Select(step => step.Entity.LogicalName).Distinct();
         
@@ -194,7 +196,7 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
     {
         if (pluginImages.Count == 0) return pluginImages;
 
-        log.LogInformation("Creating {Count} plugin images in Dataverse.", pluginImages.Count);
+        log.LogInformation("{prefix}Creating {Count} plugin images in Dataverse.", LogPrefix, pluginImages.Count);
         foreach (var (image, step) in pluginImages)
         {
             var entity = new SdkMessageProcessingStepImage
