@@ -1,3 +1,7 @@
+### v1.0.0-preview.6 - 16 September 2025
+* Fix: Validation of filtering on Associate/Disassociate messages was wrong
+* Logging: Add CI Mode to prefix warnings and errors for better visibility in CI logs
+
 ### v1.0.0-preview.5 - 12 September 2025
 * Logging: Make dry-run less scary by prefixing output in writers with [DRY-RUN]
 * Logging: Increase the log-level of some messages to Information when running in dry-run mode
