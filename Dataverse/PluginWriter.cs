@@ -17,37 +17,6 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
 
     private readonly string LogPrefix = configuration.Plugin?.Sync?.DryRun == true ? "[DRY RUN] " : string.Empty;
 
-    public Guid CreatePluginAssembly(string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
-    {
-        var entity = new PluginAssembly
-        {
-            Name = pluginName,
-            Content = GetBase64StringFromFile(dllPath),
-            SourceHash = sourceHash,
-            IsolationMode = PluginAssembly_IsolationMode.Sandbox,
-            Version = assemblyVersion,
-            Description = description
-        };
-
-        return writer.Create(entity, Parameters);
-    }
-
-    public void UpdatePluginAssembly(Guid assemblyId, string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
-    {
-        var entity = new PluginAssembly()
-        {
-            Id = assemblyId,
-            Name = pluginName,
-            Content = GetBase64StringFromFile(dllPath),
-            SourceHash = sourceHash,
-            IsolationMode = PluginAssembly_IsolationMode.Sandbox,
-            Version = assemblyVersion,
-            Description = description
-        };
-
-        writer.Update(entity);
-    }
-
     public void DeletePluginImages(IEnumerable<Image> pluginImages)
     {
         var deleteRequests = pluginImages.ToDeleteRequests(SdkMessageProcessingStepImage.EntityLogicalName).ToList();
@@ -234,17 +203,5 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         }
 
         return (opMessageFilters.MessageId, new EntityReference(SdkMessageFilter.EntityLogicalName, messageFilterId));
-    }
-
-    private static string GetBase64StringFromFile(string dllPath)
-    {
-        // Reads the file at dllPath and returns its contents as a Base64 string
-        if (string.IsNullOrWhiteSpace(dllPath))
-            throw new XrmSyncException("DLL path must not be null or empty.");
-        if (!File.Exists(dllPath))
-            throw new XrmSyncException($"DLL file not found: {dllPath}");
-
-        byte[] fileBytes = File.ReadAllBytes(dllPath);
-        return Convert.ToBase64String(fileBytes);
     }
 }

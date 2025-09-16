@@ -5,9 +5,6 @@ namespace XrmSync.Dataverse.Interfaces;
 
 public interface IPluginWriter
 {
-    Guid CreatePluginAssembly(string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description);
-    void UpdatePluginAssembly(Guid assemblyId, string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description);
-
     ICollection<PluginDefinition> CreatePluginTypes(ICollection<PluginDefinition> pluginTypes, Guid assemblyId, string description);
     void DeletePluginTypes(IEnumerable<PluginDefinition> pluginTypes);
 

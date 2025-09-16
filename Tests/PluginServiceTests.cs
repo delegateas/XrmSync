@@ -15,6 +15,8 @@ namespace Tests;
 public class PluginServiceTests
 {
     private readonly ILogger<PluginSyncService> _logger = Substitute.For<ILogger<PluginSyncService>>();
+    private readonly IPluginAssemblyReader _pluginAssemblyReader = Substitute.For<IPluginAssemblyReader>();
+    private readonly IPluginAssemblyWriter _pluginAssemblyWriter = Substitute.For<IPluginAssemblyWriter>();
     private readonly IPluginReader _pluginReader = Substitute.For<IPluginReader>();
     private readonly IPluginWriter _pluginWriter = Substitute.For<IPluginWriter>();
     private readonly IPluginValidator _pluginValidator = Substitute.For<IPluginValidator>();
@@ -30,7 +32,7 @@ public class PluginServiceTests
 
     public PluginServiceTests()
     {
-        _plugin = new PluginSyncService(_pluginReader, _pluginWriter, _pluginValidator, _customApiReader, _customApiWriter, _assemblyReader, _solutionReader, _differenceUtility, _description, _options, _logger);
+        _plugin = new PluginSyncService(_pluginAssemblyReader, _pluginAssemblyWriter, _pluginReader, _pluginWriter, _pluginValidator, _customApiReader, _customApiWriter, _assemblyReader, _solutionReader, _differenceUtility, _description, _options, _logger);
     }
 
     [Fact]
@@ -45,7 +47,7 @@ public class PluginServiceTests
             Plugins = []
         };
         var expectedId = Guid.NewGuid();
-        _pluginWriter.CreatePluginAssembly(assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription)
+        _pluginAssemblyWriter.CreatePluginAssembly(assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription)
             .Returns(expectedId);
 
         // Act
@@ -53,7 +55,7 @@ public class PluginServiceTests
 
         // Assert
         Assert.Equal(expectedId, result.Id);
-        _pluginWriter.Received(1).CreatePluginAssembly(assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription);
+        _pluginAssemblyWriter.Received(1).CreatePluginAssembly(assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription);
     }
 
     [Fact]
@@ -73,7 +75,7 @@ public class PluginServiceTests
         _plugin.UpdatePluginAssembly(assemblyId, assembly);
 
         // Assert
-        _pluginWriter.Received(1).UpdatePluginAssembly(assemblyId, assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription);
+        _pluginAssemblyWriter.Received(1).UpdatePluginAssembly(assemblyId, assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription);
     }
 
     [Fact]

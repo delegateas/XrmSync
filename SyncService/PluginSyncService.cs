@@ -4,7 +4,6 @@ using XrmSync.AssemblyAnalyzer;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
-using XrmSync.Model.CustomApi;
 using XrmSync.Model.Exceptions;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService.Difference;
@@ -15,6 +14,8 @@ using XrmSync.SyncService.PluginValidator;
 namespace XrmSync.SyncService;
 
 public class PluginSyncService(
+    IPluginAssemblyReader pluginAssemblyReader,
+    IPluginAssemblyWriter pluginAssemblyWriter,
     IPluginReader pluginReader,
     IPluginWriter pluginWriter,
     IPluginValidator pluginValidator,
@@ -196,7 +197,7 @@ public class PluginSyncService(
 
     internal AssemblyInfo? GetPluginAssembly(Guid solutionId, string assemblyName)
     {
-        var assemblyInfo = pluginReader.GetPluginAssembly(solutionId, assemblyName);
+        var assemblyInfo = pluginAssemblyReader.GetPluginAssembly(solutionId, assemblyName);
         if (assemblyInfo == null)
         {
             log.LogInformation("Assembly {assemblyName} not found in CRM, creating new assembly", assemblyName);
@@ -228,24 +229,27 @@ public class PluginSyncService(
 
     private AssemblyInfo UpsertAssembly(AssemblyInfo localAssembly, AssemblyInfo? remoteAssembly)
     {
+        var prefix = options.DryRun ? "[DRY RUN] " : string.Empty;
+
         if (remoteAssembly == null)
         {
-            log.LogInformation("Creating assembly {assemblyName}", localAssembly.Name);
+            log.LogInformation("{prefix}Creating assembly {assemblyName}", prefix, localAssembly.Name);
             remoteAssembly = CreatePluginAssembly(localAssembly);
         }
         else if (new Version(remoteAssembly.Version) < new Version(localAssembly.Version))
         {
-            log.LogInformation("Registered assembly version {RemoteVersion} is lower than local assembly version {LocalVersion}, updating", remoteAssembly.Version, localAssembly.Version);
+            log.LogInformation("{prefix}Registered assembly version {RemoteVersion} is lower than local assembly version {LocalVersion}, updating",
+                prefix, remoteAssembly.Version, localAssembly.Version);
             UpdatePluginAssembly(remoteAssembly.Id, localAssembly);
         }
         else if (remoteAssembly.Hash != localAssembly.Hash)
         {
-            log.LogInformation("Registered assembly hash does not match local assembly hash, updating");
+            log.LogInformation("{prefix}Registered assembly hash does not match local assembly hash, updating", prefix);
             UpdatePluginAssembly(remoteAssembly.Id, localAssembly);
         }
         else
         {
-            log.LogInformation("Assembly {assemblyName} already exists in CRM with matching version and hash, skipping update", remoteAssembly.Name);
+            log.LogInformation("{prefix}Assembly {assemblyName} already exists in CRM with matching version and hash, skipping update", prefix,remoteAssembly.Name);
         }
 
         return remoteAssembly;
@@ -254,7 +258,7 @@ public class PluginSyncService(
     internal AssemblyInfo CreatePluginAssembly(AssemblyInfo localAssembly)
     {
         if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
-        var assemblyId = pluginWriter.CreatePluginAssembly(localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
+        var assemblyId = pluginAssemblyWriter.CreatePluginAssembly(localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
         return localAssembly with {
             Id = assemblyId,
             Plugins = [],
@@ -265,7 +269,7 @@ public class PluginSyncService(
     internal void UpdatePluginAssembly(Guid assemblyId, AssemblyInfo localAssembly)
     {
         if (localAssembly.DllPath is null) throw new XrmSyncException("Assembly DLL path is null. Ensure the assembly has been read correctly.");
-        pluginWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
+        pluginAssemblyWriter.UpdatePluginAssembly(assemblyId, localAssembly.Name, localAssembly.DllPath, localAssembly.Hash, localAssembly.Version, description.SyncDescription);
     }
 
     internal void DoCreates(Differences differences, AssemblyInfo dataverseAssembly)

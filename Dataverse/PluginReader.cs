@@ -12,22 +12,6 @@ namespace XrmSync.Dataverse;
 
 public class PluginReader(IDataverseReader reader, ServiceClient serviceClient) : IPluginReader
 {
-    public AssemblyInfo? GetPluginAssembly(Guid solutionId, string assemblyName)
-    {
-        using var xrm = new DataverseContext(serviceClient);
-
-        return (from pa in xrm.PluginAssemblySet
-                join sc in xrm.SolutionComponentSet on pa.Id equals sc.ObjectId
-                where sc.SolutionId != null && sc.SolutionId.Id == solutionId && pa.Name == assemblyName
-                select new AssemblyInfo
-                {
-                    Id = pa.Id,
-                    Name = pa.Name ?? string.Empty,
-                    Version = pa.Version ?? string.Empty,
-                    Hash = pa.SourceHash ?? string.Empty,
-                }).FirstOrDefault();
-    }
-
     public List<PluginDefinition> GetPluginTypes(Guid assemblyId)
     {
         using var xrm = new DataverseContext(serviceClient);
