@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
 using System.CommandLine;
-using System.Threading;
 using XrmSync.Actions;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
@@ -19,9 +17,10 @@ internal record CommandLineOptions
     public required Option<bool> PrettyPrint { get; init; }
     public required Option<bool> SaveConfig { get; init; }
     public required Option<string?> SaveConfigTo { get; init; }
+    public required Option<bool> CIMode { get; init; }
 }
 
-internal record SyncCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel);
+internal record SyncCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, bool CIMode);
 internal record AnalyzeCLIOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint);
 
 internal class CommandLineBuilder
@@ -69,6 +68,11 @@ internal class CommandLineBuilder
         {
             Description = "If --save-config is set, save to this file instead of appsettings.json",
             Required = false
+        },
+        CIMode = new ("--ci", "--ci-mode")
+        {
+            Description = "Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems",
+            Required = false
         }
     };
 
@@ -81,7 +85,8 @@ internal class CommandLineBuilder
             Options.DryRun,
             Options.LogLevel,
             Options.SaveConfig,
-            Options.SaveConfigTo
+            Options.SaveConfigTo,
+            Options.CIMode
         };
 
         AnalyzeCommand = new ("analyze", "Analyze a plugin assembly and output info as JSON")
@@ -108,8 +113,9 @@ internal class CommandLineBuilder
             var logLevel = parseResult.GetValue(Options.LogLevel);
             var saveConfig = parseResult.GetValue(Options.SaveConfig);
             var saveConfigTo = saveConfig ? parseResult.GetValue(Options.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json"  : null;
+            var ciMode = parseResult.GetValue(Options.CIMode);
 
-            var syncOptions = new SyncCLIOptions(assemblyPath, solutionName, dryRun, logLevel);
+            var syncOptions = new SyncCLIOptions(assemblyPath, solutionName, dryRun, logLevel, ciMode);
             var serviceProvider = factory.Invoke(syncOptions);
 
             return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginSync, cancellationToken)

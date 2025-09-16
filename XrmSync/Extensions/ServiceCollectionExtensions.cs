@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using XrmSync.Actions;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
+using XrmSync.Logging;
 using XrmSync.Model;
 using XrmSync.Options;
-using XrmSync.SyncService;
 using XrmSync.SyncService.Extensions;
 
 namespace XrmSync.Extensions;
@@ -47,7 +48,7 @@ internal static class ServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel?> logLevel)
+    public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel?> logLevel, bool ciMode)
     {
         services.AddSingleton(sp =>
             LoggerFactory.Create(builder =>
@@ -55,11 +56,13 @@ internal static class ServiceCollectionExtensions
                 builder.AddFilter(nameof(Microsoft), LogLevel.Warning)
                     .AddFilter(nameof(System), LogLevel.Warning)
                     .AddFilter(nameof(XrmSync), logLevel(sp) ?? LogLevel.Information)
-                    .AddSimpleConsole(options =>
+                    .AddConsole(options => options.FormatterName = "ci-console")
+                    .AddConsoleFormatter<CIConsoleFormatter, CIConsoleFormatterOptions>(options =>
                     {
                         options.IncludeScopes = false;
                         options.SingleLine = true;
                         options.TimestampFormat = "HH:mm:ss ";
+                        options.CIMode = ciMode;
                     });
             }));
 

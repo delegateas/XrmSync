@@ -12,7 +12,7 @@ var serviceCollection = new ServiceCollection();
 var command = new CommandLineBuilder()
     .SetPluginSyncServiceProviderFactory(opts =>
     {
-        var (assemblyPath, solutionName, dryRun, logLevel) = opts;
+        var (assemblyPath, solutionName, dryRun, logLevel, ciMode) = opts;
 
         return serviceCollection
             .AddPluginSyncServices()
@@ -25,12 +25,15 @@ var command = new CommandLineBuilder()
                     string.IsNullOrWhiteSpace(assemblyPath) ? basePluginSyncOptions?.AssemblyPath ?? string.Empty : assemblyPath,
                     string.IsNullOrWhiteSpace(solutionName) ? basePluginSyncOptions?.SolutionName ?? string.Empty : solutionName,
                     logLevel ?? basePluginSyncOptions?.LogLevel ?? LogLevel.Information,
-                    dryRun.GetValueOrDefault() || (baseOptions.Plugin?.Sync?.DryRun ?? false)
+                    dryRun.GetValueOrDefault() || (basePluginSyncOptions?.DryRun ?? false)
                 );
 
                 return new (new (pluginSyncOptions, baseOptions.Plugin?.Analysis));
             })
-            .AddLogger(sp => sp.GetRequiredService<XrmSyncConfiguration>().Plugin?.Sync?.LogLevel)
+            .AddLogger(
+                sp => sp.GetRequiredService<XrmSyncConfiguration>().Plugin?.Sync?.LogLevel,
+                ciMode
+            )
             .BuildServiceProvider();
     })
     .SetPluginAnalyzisServiceProviderFactory(opts =>
@@ -52,7 +55,7 @@ var command = new CommandLineBuilder()
 
                 return new (new (baseOptions.Plugin?.Sync, pluginAnalyzisOptions));
             })
-            .AddLogger(_ => LogLevel.Information)
+            .AddLogger(_ => LogLevel.Information, false)
             .BuildServiceProvider();
     })
     .Build();

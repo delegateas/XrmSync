@@ -17,7 +17,7 @@ internal class PluginSyncAction(PluginSyncService pluginSync, ILogger<PluginSync
         }
         catch (OptionsValidationException ex)
         {
-            Console.Error.WriteLine($"Configuration validation failed:{Environment.NewLine}{ex.Message}");
+            log.LogCritical("Configuration validation failed:{nl}{message}", Environment.NewLine, ex.Message);
             return false;
         }
         catch (XrmSyncException ex)

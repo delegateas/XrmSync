@@ -129,7 +129,7 @@ public class OptionsValidationTests
     public void AnalysisOptionsValidator_ValidOptions_PassesValidation()
     {
         // Arrange
-        
+
         // Create a test DLL file
         var tempFile = Path.GetTempFileName();
         File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
@@ -244,7 +244,7 @@ public class OptionsValidationTests
     public void AnalysisOptionsValidator_ValidPublisherPrefixes_PassValidation(string publisherPrefix)
     {
         // Arrange
-        
+
         // Create a test DLL file
         var tempFile = Path.GetTempFileName();
         File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));

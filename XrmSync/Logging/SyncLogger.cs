@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using XrmSync.Model;
 
-namespace XrmSync;
+namespace XrmSync.Logging;
 
 internal class SyncLogger<T> : ILogger<T>
 {
