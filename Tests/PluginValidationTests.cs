@@ -253,6 +253,48 @@ public class PluginValidationTests
     }
 
     [Fact]
+    public void ValidatePlugins_NoException_AssociateWithEmptyOrNullFilter()
+    {
+        // Arrange
+        var pluginStep1 = new Step
+        {
+            Name = "Step1",
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
+            EventOperation = "Associate",
+            LogicalName = "",
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = "",
+            UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
+            PluginImages = []
+        };
+
+        var pluginStep2 = new Step
+        {
+            Name = "Step1",
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
+            EventOperation = "Disassociate",
+            LogicalName = "",
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = null!,
+            UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
+            PluginImages = []
+        };
+
+        var pluginType1 = new PluginDefinition { Name = "Type", Id = Guid.NewGuid(), PluginSteps = [pluginStep1, pluginStep2] };
+
+        var validator = CreateValidator();
+
+        // Act & Assert
+        validator.Validate([pluginType1]);
+    }
+
+    [Fact]
     public void ValidateCustomAPI_ThrowsException_BoundWithoutEntity()
     {
         // Arrange

@@ -9,8 +9,9 @@ internal class AssociateDisassociateFilterRule : IValidationRule<Step>
 
     public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
     {
-        var adSteps = items.Where(x => x.EventOperation == nameof(EventOperation.Associate) || x.EventOperation == nameof(EventOperation.Disassociate));
-        
-        return adSteps.Where(x => x.FilteredAttributes != null);
+        var adSteps = items.Where(x => x.EventOperation == nameof(EventOperation.Associate)
+            || x.EventOperation == nameof(EventOperation.Disassociate));
+
+        return adSteps.Where(x => !string.IsNullOrWhiteSpace(x.FilteredAttributes));
     }
 }

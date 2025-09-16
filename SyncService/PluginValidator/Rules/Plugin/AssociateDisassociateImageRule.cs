@@ -11,6 +11,6 @@ internal class AssociateDisassociateImageRule : IValidationRule<Step>
     {
         var adSteps = items.Where(x => x.EventOperation == nameof(EventOperation.Associate) || x.EventOperation == nameof(EventOperation.Disassociate));
         
-        return adSteps.Where(x => x.PluginImages.Any());
+        return adSteps.Where(x => x.PluginImages.Count != 0);
     }
 }
