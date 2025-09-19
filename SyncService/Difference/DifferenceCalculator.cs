@@ -97,10 +97,17 @@ public class DifferenceCalculator(
         where TParent : EntityBase
     {
         var differences = entitySelector(localData)?
-            .Select(local => GetDifference([.. dataSelector(local) ?? []], [.. dataSelector(entitySelector(remoteData)?.FirstOrDefault(r => r.Id == local.Id)) ?? []], comparer))
+            .Select(local => GetDifference(
+                [.. dataSelector(local) ?? []],
+                [.. dataSelector(entitySelector(remoteData)?.FirstOrDefault(r => r.Id == local.Id)) ?? []],
+                comparer))
             ?? [];
 
-        return (includeDeletes ? differences.Concat(GetRemotesToDelete(localData, remoteData, entitySelector, dataSelector)) : differences).Flatten();
+        var deletes = includeDeletes
+            ? GetRemotesToDelete(localData, remoteData, entitySelector, dataSelector)
+            : [];
+
+        return differences.Concat(deletes).Flatten();
     }
 
     private static Difference<TEntity> GetDifference<TEntity>(List<TEntity> localData, List<TEntity> remoteData, IEntityComparer<TEntity> comparer)
@@ -162,9 +169,17 @@ public class DifferenceCalculator(
         where TEntity : EntityBase
         where TParent : EntityBase
     {
-        var creates = localData.Where(local => local.Entity.Id == Guid.Empty).Select(EntityDifference<TEntity, TParent>.FromLocal);
-        var deletes = remoteData.ExceptBy(localData.Select(x => x.Entity.Id), x => x.Entity.Id);
+        // Create anything that's missing an ID locally (i.e. we couldn't map it to a remote entity)
+        var creates = localData
+            .Where(local => local.Entity.Id == Guid.Empty)
+            .Select(EntityDifference<TEntity, TParent>.FromLocal);
 
+        // Delete anything that doesn't have a matching entry in the local data (i.e. it doesn't exist locally)
+        var deletes = remoteData
+            .ExceptBy(localData.Select(x => x.Entity.Id), x => x.Entity.Id);
+
+        // Join local and remote data to find potential updates.
+        // Filter away those that are identical
         var matched = localData
             .Join(remoteData,
                   local => local.Entity.Id,
@@ -173,6 +188,7 @@ public class DifferenceCalculator(
             .Where(x => !comparer.Equals(x.Local.Entity, x.Remote.Entity))
             .ToList();
 
+        // Updates can be handled by calling an update, this is different from entity to entity
         var updates = matched
             .Select(match =>
             {
@@ -183,6 +199,7 @@ public class DifferenceCalculator(
             .Where(x => x.DifferentProperties.Any())
             .ToList();
 
+        // If we can't update the field in Dataverse we have to Delete/Create instead
         var recreates = matched
             .Select(match =>
             {

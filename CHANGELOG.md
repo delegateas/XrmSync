@@ -1,3 +1,6 @@
+### v1.0.0-preview.7 - 19 September 2025
+* Logging: Colorize the loglevel only not the full line of text
+
 ### v1.0.0-preview.6 - 16 September 2025
 * Fix: Validation of filtering on Associate/Disassociate messages was wrong
 * Logging: Add CI Mode to prefix warnings and errors for better visibility in CI logs

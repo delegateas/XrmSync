@@ -36,17 +36,6 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
             _ => null
         };
 
-        // Apply colors if needed
-        var consoleColors = GetLogLevelConsoleColors(logEntry.LogLevel);
-        if (consoleColors.Foreground.HasValue)
-        {
-            textWriter.Write($"\u001b[38;5;{(int)consoleColors.Foreground.Value}m");
-        }
-        if (consoleColors.Background.HasValue)
-        {
-            textWriter.Write($"\u001b[48;5;{(int)consoleColors.Background.Value}m");
-        }
-
         // Write CI prefix first if needed
         if (ciPrefix != null)
         {
@@ -62,8 +51,8 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
             textWriter.Write(timestamp);
         }
 
-        // Write log level
-        textWriter.Write(GetLogLevelString(logEntry.LogLevel));
+        // Write loglevel
+        textWriter.Write(GetColorizedLogLevelString(logEntry.LogLevel));
         textWriter.Write(' ');
 
         // Write category
@@ -80,14 +69,25 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
             textWriter.Write(logEntry.Exception.ToString());
         }
 
-        // Reset colors
-        if (consoleColors.Foreground.HasValue || consoleColors.Background.HasValue)
-        {
-            textWriter.Write("\u001b[0m");
-        }
-
         // Write newline
         textWriter.WriteLine();
+    }
+
+    private string GetColorizedLogLevelString(LogLevel logLevel)
+    {
+        // Apply colors if needed
+        var consoleColors = GetLogLevelConsoleColors(logLevel);
+
+        var fgColor = consoleColors.Foreground.HasValue
+            ? $"\u001b[38;5;{(int)consoleColors.Foreground.Value}m" : string.Empty;
+        var bgColor = consoleColors.Background.HasValue
+            ? $"\u001b[48;5;{(int)consoleColors.Background.Value}m" : string.Empty;
+        var esc = (consoleColors.Foreground.HasValue || consoleColors.Background.HasValue)
+            ? "\u001b[0m" : string.Empty;
+
+        var level = GetLogLevelString(logLevel);
+
+        return $"{fgColor}{bgColor}{level}{esc}";
     }
 
     private static string GetLogLevelString(LogLevel logLevel)
@@ -124,7 +124,7 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
         {
             LogLevel.Trace => new ConsoleColors(ConsoleColor.DarkGray, ConsoleColor.Black),
             LogLevel.Debug => new ConsoleColors(ConsoleColor.Gray, ConsoleColor.Black),
-            LogLevel.Information => new ConsoleColors(ConsoleColor.White, ConsoleColor.Black),
+            LogLevel.Information => new ConsoleColors(ConsoleColor.DarkGreen, ConsoleColor.Black),
             LogLevel.Warning => new ConsoleColors(ConsoleColor.Yellow, ConsoleColor.Black),
             LogLevel.Error => new ConsoleColors(ConsoleColor.Black, ConsoleColor.DarkRed),
             LogLevel.Critical => new ConsoleColors(ConsoleColor.White, ConsoleColor.DarkRed),
