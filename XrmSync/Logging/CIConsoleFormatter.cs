@@ -26,45 +26,66 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
     {
         var message = logEntry.Formatter(logEntry.State, logEntry.Exception);
         if (message == null) return;
+        WriteInternal(logEntry, textWriter, message, false);
 
-        // Check if CI mode is enabled and this is a warning or error
-        var ciPrefix = logEntry.LogLevel switch
+        if (_formatterOptions.CIMode)
         {
-            LogLevel.Warning when _formatterOptions.CIMode => "##[warning]",
-            LogLevel.Error when _formatterOptions.CIMode => "##[error]",
-            LogLevel.Critical when _formatterOptions.CIMode => "##[error]", // Treat critical as error for CI purposes
-            _ => null
-        };
+            WriteInternal(logEntry, textWriter, message, true);
+        }
+    }
 
-        // Write CI prefix first if needed
-        if (ciPrefix != null)
+    private void WriteInternal<TState>(LogEntry<TState> logEntry, TextWriter textWriter, string message, bool ciMode)
+    {
+        if (ciMode)
         {
+            // Check if CI mode is enabled and this is a warning or error
+            var ciPrefix = logEntry.LogLevel switch
+            {
+                LogLevel.Warning => "##[warning]",
+                LogLevel.Error => "##[error]",
+                LogLevel.Critical => "##[error]", // Treat critical as error for CI purposes
+                _ => null
+            };
+
+            if (ciPrefix is null)
+            {
+                // Not a warning or error, skip CI output
+                return;
+            }
+
+            // Otherwise write CI prefix first if needed
             textWriter.Write(ciPrefix);
         }
-
-        // Write timestamp if configured
-        var timestampFormat = _formatterOptions.TimestampFormat;
-        if (!string.IsNullOrEmpty(timestampFormat))
+        else
         {
-            var timestamp = GetCurrentDateTime().ToString(timestampFormat);
-            textWriter.Write(timestamp);
+            // Write timestamp if configured (do not write timestamp in CI mode)
+            var timestampFormat = _formatterOptions.TimestampFormat;
+            if (!string.IsNullOrEmpty(timestampFormat))
+            {
+                var timestamp = GetCurrentDateTime().ToString(timestampFormat);
+                textWriter.Write(timestamp);
+            }
         }
 
         // Write loglevel
-        textWriter.Write(GetColorizedLogLevelString(logEntry.LogLevel));
+        var logLevelString = ciMode ? logEntry.LogLevel.ToString().ToUpper() : GetColorizedLogLevelString(logEntry.LogLevel);
+        textWriter.Write(logLevelString);
         textWriter.Write(' ');
 
         // Write category
-        textWriter.Write(logEntry.Category);
-        textWriter.Write(' ');
+        if (!ciMode)
+        {
+            textWriter.Write(logEntry.Category);
+            textWriter.Write(' ');
+        }
 
         // Write the message
         textWriter.Write(message);
 
         // Write exception if present
-        if (logEntry.Exception != null)
+        if (!ciMode && logEntry.Exception is not null)
         {
-            textWriter.Write(' ');
+            textWriter.WriteLine();
             textWriter.Write(logEntry.Exception.ToString());
         }
 
@@ -86,7 +107,7 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
 
         var level = GetLogLevelString(logLevel);
 
-        return $"{fgColor}{bgColor}{level}{esc}";
+        return fgColor + bgColor + level + esc;
     }
 
     private static string GetLogLevelString(LogLevel logLevel)
@@ -101,11 +122,6 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
             LogLevel.Critical => "crit",
             _ => throw new ArgumentOutOfRangeException(nameof(logLevel))
         };
-    }
-
-    private DateTimeOffset GetCurrentDateTime()
-    {
-        return _formatterOptions.UseUtcTimestamp ? DateTimeOffset.UtcNow : DateTimeOffset.Now;
     }
 
     private ConsoleColors GetLogLevelConsoleColors(LogLevel logLevel)
@@ -129,6 +145,11 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
             LogLevel.Critical => new ConsoleColors(ConsoleColor.White, ConsoleColor.DarkRed),
             _ => new ConsoleColors(null, null)
         };
+    }
+
+    private DateTimeOffset GetCurrentDateTime()
+    {
+        return _formatterOptions.UseUtcTimestamp ? DateTimeOffset.UtcNow : DateTimeOffset.Now;
     }
 
     public void Dispose()

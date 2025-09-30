@@ -27,7 +27,7 @@ internal class PluginSyncAction(PluginSyncService pluginSync, ILogger<PluginSync
         }
         catch (Exception ex)
         {
-            log.LogCritical(ex, "An unexpected error occurred during synchronization");
+            log.LogCritical(ex, "An unexpected error occurred during synchronization: {message}", ex.Message);
             return false;
         }
     }
