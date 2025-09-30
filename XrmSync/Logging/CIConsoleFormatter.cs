@@ -40,7 +40,6 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
         if (ciPrefix != null)
         {
             textWriter.Write(ciPrefix);
-            textWriter.Write(' ');
         }
 
         // Write timestamp if configured
