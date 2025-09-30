@@ -1,3 +1,6 @@
+### v1.0.0-preview.8 - 30 September 2025
+* Fix: Bug when creating plugin steps with empty entity names
+
 ### v1.0.0-preview.7 - 19 September 2025
 * Logging: Colorize the loglevel only not the full line of text
 
