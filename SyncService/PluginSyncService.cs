@@ -70,12 +70,16 @@ public class PluginSyncService(
         log.LogInformation("Plugin synchronization was completed successfully");
     }
 
-    private static void AlignPluginsIds(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
+    private void AlignPluginsIds(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
     {
         crmAssembly?.Plugins.ForEach(crmPlugin =>
         {
             var localPlugin = localAssembly.Plugins.SingleOrDefault(x => x.Name == crmPlugin.Name);
-            if (localPlugin is null) return;
+            if (localPlugin is null)
+            {
+                log.LogTrace("Local plugin \"{plugin}\" not found, skipping ID alignment", crmPlugin.Name);
+                return;
+            }
 
             localPlugin.Id = crmPlugin.Id;
 
@@ -83,14 +87,22 @@ public class PluginSyncService(
             crmPlugin.PluginSteps.ForEach(crmStep =>
             {
                 var localStep = localPlugin.PluginSteps.SingleOrDefault(x => x.Name == crmStep.Name);
-                if (localStep is null) return;
+                if (localStep is null)
+                {
+                    log.LogTrace("Local step \"{step}\" for plugin \"{plugin}\" not found, skipping ID alignment", crmStep.Name, crmPlugin.Name);
+                    return;
+                }
                 
                 localStep.Id = crmStep.Id;
 
                 crmStep.PluginImages.ForEach(crmImage =>
                 {
                     var localImage = localStep.PluginImages.SingleOrDefault(x => x.Name == crmImage.Name);
-                    if (localImage is null) return;
+                    if (localImage is null)
+                    {
+                        log.LogTrace("Local image \"{image}\" for step \"{step}\" in plugin \"{plugin}\" not found, skipping ID alignment", crmImage.Name, crmStep.Name, crmPlugin.Name);
+                        return;
+                    }
 
                     localImage.Id = crmImage.Id;
                 });

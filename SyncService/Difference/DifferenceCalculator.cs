@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using XrmSync.Model;
+﻿using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService.Comparers;
@@ -27,6 +26,7 @@ public class DifferenceCalculator(
                 plugin => plugin?.PluginSteps.Select(step => new ParentReference<Step, PluginDefinition>(step, plugin)),
                 pluginStepComparer,
                 true);
+
         printer.Print(pluginStepsDifference, "Plugin Steps", x => x.Entity.Name);
 
         var pluginImagesDifference =
