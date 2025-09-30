@@ -124,8 +124,8 @@ public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer,
         if (pluginSteps.Count == 0) return pluginSteps;
 
         log.LogInformation("{prefix}Creating {Count} plugin steps in Dataverse.", LogPrefix, pluginSteps.Count);
-        var eventOperations = pluginSteps.Select(step => step.Entity.EventOperation).Distinct();
-        var stepLogicalNames = pluginSteps.Select(step => step.Entity.LogicalName).Distinct();
+        var eventOperations = pluginSteps.Select(step => step.Entity.EventOperation).Distinct().Where(s => !string.IsNullOrWhiteSpace(s));
+        var stepLogicalNames = pluginSteps.Select(step => step.Entity.LogicalName).Distinct().Where(s => !string.IsNullOrWhiteSpace(s));
         
         var messageFilterIds = messageReader.GetMessageFilters(eventOperations, stepLogicalNames);
 
