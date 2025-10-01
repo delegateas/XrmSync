@@ -226,6 +226,8 @@ When using `--save-config`, XrmSync will:
     }
   }
 }
+```
+
 ### Examples
 
 #### Basic synchronization:
