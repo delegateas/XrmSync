@@ -873,7 +873,7 @@
       "XrmPluginCore.Abstractions": {
         "type": "Transitive",
         "resolved": "1.0.0",
-        "contentHash": "BKWENnDreXx+SExRjoYYUiyIeI1/TG711CEd9QO7kkzx8cPbsM66/NuE8vy02uR2WyJ9hYxYlCvwLp4PPgiThA=="
+        "contentHash": "uOSz5JiPJtr3iMfjLPz1OD6XkpMJB4PrsUpArtVsvfeGjwI3hCD9kMHuM3D1WVubsipJ3GfUmn4HA8yYEyZGew=="
       },
       "assemblyanalyzer": {
         "type": "Project",
