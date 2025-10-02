@@ -8,7 +8,7 @@ using XrmSync.Model.Plugin;
 using XrmSync.Model;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
 using XrmSync.SyncService.Difference;
-using DG.XrmPluginCore.Enums;
+using XrmPluginCore.Enums;
 
 namespace Tests;
 
@@ -99,7 +99,7 @@ public class PluginServiceTests
                 PluginSteps = [
                     new() {
                         Name = "Step1",
-                        ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
+                        ExecutionStage = ExecutionStage.PreValidation,
                         EventOperation = "Update",
                         LogicalName = "account",
                         Deployment = 0,
@@ -168,7 +168,7 @@ public class PluginServiceTests
                 PluginSteps = [
                     new() {
                         Name = "CreatedStep",
-                        ExecutionStage = DG.XrmPluginCore.Enums.ExecutionStage.PreValidation,
+                        ExecutionStage = ExecutionStage.PreValidation,
                         EventOperation = "Update",
                         LogicalName = "account",
                         Deployment = 0,

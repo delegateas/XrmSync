@@ -1,3 +1,6 @@
+### v1.0.0-preview.9 - x October 2025
+* Update: XrmPluginCore has been updated, we can now sync Plugin and CustomAPIs that have the same base class
+
 ### v1.0.0-preview.8 - 30 September 2025
 * Fix: Bug when creating plugin steps with empty entity names
 

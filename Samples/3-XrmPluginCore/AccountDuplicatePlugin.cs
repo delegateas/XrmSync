@@ -1,6 +1,6 @@
 using BusinessDomain.Context;
-using DG.XrmPluginCore;
-using DG.XrmPluginCore.Enums;
+using XrmPluginCore;
+using XrmPluginCore.Enums;
 
 namespace SamplePlugins 
 {

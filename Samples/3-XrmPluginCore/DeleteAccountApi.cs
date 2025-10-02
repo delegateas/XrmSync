@@ -1,12 +1,11 @@
 namespace SamplePlugins
 {
     using System;
-    using DG.XrmPluginCore;
-    using DG.XrmPluginCore.Enums;
-    using Microsoft.Xrm.Sdk;
+    using XrmPluginCore;
+    using XrmPluginCore.Enums;
 
     // Another NEW CustomAPI - will be a CREATE difference
-    public class DeleteAccountApi : CustomAPI
+    public class DeleteAccountApi : Plugin
     {
         public DeleteAccountApi()
         {

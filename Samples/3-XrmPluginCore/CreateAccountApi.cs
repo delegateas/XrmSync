@@ -1,11 +1,11 @@
 ﻿namespace SamplePlugins
 {
     using System;
-    using DG.XrmPluginCore;
-    using DG.XrmPluginCore.Enums;
+    using XrmPluginCore;
+    using XrmPluginCore.Enums;
     using Microsoft.Xrm.Sdk;
 
-    public class CreateAccountApi : CustomAPI
+    public class CreateAccountApi : Plugin
     {
         public CreateAccountApi()
         {

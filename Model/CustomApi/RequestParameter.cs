@@ -1,4 +1,4 @@
-using DG.XrmPluginCore.Enums;
+using XrmPluginCore.Enums;
 
 namespace XrmSync.Model.CustomApi;
 

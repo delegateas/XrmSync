@@ -8,11 +8,11 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Delegate.XrmPluginCore.Abstractions" Version="1.0.0-preview.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
 		<PackageReference Include="System.Text.Json">
 			<Version>9.0.6</Version>
 		</PackageReference>
+		<PackageReference Include="XrmPluginCore.Abstractions" Version="1.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Model\Model.csproj" />

@@ -1,5 +1,5 @@
-﻿using DG.XrmPluginCore;
-using DG.XrmPluginCore.Interfaces.CustomApi;
+﻿using XrmPluginCore;
+using XrmPluginCore.Interfaces.CustomApi;
 using System.Collections;
 using System.Linq.Expressions;
 using XrmSync.Model.CustomApi;
@@ -15,34 +15,41 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
         var validTypes = types
             .Where(t => t.IsAssignableTo(customApiBaseType) && !t.IsAbstract && t.GetConstructor(Type.EmptyTypes) != null);
 
-        return [.. validTypes.Select(t => GetCustomApiDefinition(t, prefix))];
+        return [.. AnalyzeTypesInner(validTypes, prefix)];
     }
 
-    private static CustomApiDefinition GetCustomApiDefinition(Type customApiType, string prefix)
+    private static IEnumerable<CustomApiDefinition> AnalyzeTypesInner(IEnumerable<Type> types, string prefix)
     {
-        var registration = GetRegistrationFromType<object>(nameof(ICustomApiDefinition.GetRegistration), customApiType);
-
-        return new CustomApiDefinition
+        foreach (var customApiType in types)
         {
-            PluginType = new PluginType { Name = customApiType.FullName ?? string.Empty },
-            Name = GetConfigValue(registration, x => x.Name) ?? string.Empty,
-            DisplayName = GetConfigValue(registration, x => x.DisplayName) ?? string.Empty,
-            UniqueName = prefix + "_" + (GetConfigValue(registration, x => x.UniqueName) ?? string.Empty),
+            var registration = GetRegistrationFromType<object>(nameof(ICustomApiDefinition.GetRegistration), customApiType);
+            if (registration is null)
+            {
+                continue;
+            }
 
-            BoundEntityLogicalName = GetConfigValue(registration, x => x.BoundEntityLogicalName) ?? string.Empty,
-            Description = GetConfigValue(registration, x => x.Description) ?? string.Empty,
-            IsFunction = GetConfigValue(registration, x => x.IsFunction),
-            EnabledForWorkflow = GetConfigValue(registration, x => x.EnabledForWorkflow),
-            BindingType = GetConfigValue(registration, x => x.BindingType),
-            ExecutePrivilegeName = GetConfigValue(registration, x => x.ExecutePrivilegeName) ?? string.Empty,
-            AllowedCustomProcessingStepType = GetConfigValue(registration, x => x.AllowedCustomProcessingStepType),
-            OwnerId = GetConfigValue(registration, x => x.OwnerId) ?? Guid.Empty,
-            IsCustomizable = GetConfigValue(registration, x => x.IsCustomizable),
-            IsPrivate = GetConfigValue(registration, x => x.IsPrivate),
+            yield return new CustomApiDefinition
+            {
+                PluginType = new PluginType { Name = customApiType.FullName ?? string.Empty },
+                Name = GetConfigValue(registration, x => x.Name) ?? string.Empty,
+                DisplayName = GetConfigValue(registration, x => x.DisplayName) ?? string.Empty,
+                UniqueName = prefix + "_" + (GetConfigValue(registration, x => x.UniqueName) ?? string.Empty),
 
-            RequestParameters = [.. ConvertRequestParameters(GetConfigValue<IEnumerable>(registration, x => x.RequestParameters))],
-            ResponseProperties = [.. ConvertResponseProperties(GetConfigValue<IEnumerable>(registration, x => x.ResponseProperties))]
-        };
+                BoundEntityLogicalName = GetConfigValue(registration, x => x.BoundEntityLogicalName) ?? string.Empty,
+                Description = GetConfigValue(registration, x => x.Description) ?? string.Empty,
+                IsFunction = GetConfigValue(registration, x => x.IsFunction),
+                EnabledForWorkflow = GetConfigValue(registration, x => x.EnabledForWorkflow),
+                BindingType = GetConfigValue(registration, x => x.BindingType),
+                ExecutePrivilegeName = GetConfigValue(registration, x => x.ExecutePrivilegeName) ?? string.Empty,
+                AllowedCustomProcessingStepType = GetConfigValue(registration, x => x.AllowedCustomProcessingStepType),
+                OwnerId = GetConfigValue(registration, x => x.OwnerId) ?? Guid.Empty,
+                IsCustomizable = GetConfigValue(registration, x => x.IsCustomizable),
+                IsPrivate = GetConfigValue(registration, x => x.IsPrivate),
+
+                RequestParameters = [.. ConvertRequestParameters(GetConfigValue<IEnumerable>(registration, x => x.RequestParameters))],
+                ResponseProperties = [.. ConvertResponseProperties(GetConfigValue<IEnumerable>(registration, x => x.ResponseProperties))]
+            };
+        }
     }
 
     private static IEnumerable<RequestParameter> ConvertRequestParameters(IEnumerable? requestParameters)

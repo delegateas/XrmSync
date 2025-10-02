@@ -1,12 +1,12 @@
 namespace SamplePlugins
 {
-    using DG.XrmPluginCore;
-    using DG.XrmPluginCore.Enums;
+    using XrmPluginCore;
+    using XrmPluginCore.Enums;
     using Microsoft.Xrm.Sdk;
     using System;
 
     // NEW CustomAPI - will be a CREATE difference (doesn't exist in SamplePlugins)
-    public class UpdateAccountApi : CustomAPI
+    public class UpdateAccountApi : Plugin
     {
         public UpdateAccountApi()
         {

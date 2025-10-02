@@ -1,4 +1,4 @@
-using DG.XrmPluginCore.Enums;
+using XrmPluginCore.Enums;
 using XrmSync.Model.Plugin;
 
 namespace XrmSync.SyncService.PluginValidator.Rules.Plugin;

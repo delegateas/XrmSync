@@ -1,10 +1,10 @@
-﻿using DG.XrmPluginCore.Enums;
+﻿using XrmPluginCore.Enums;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers;
 
 internal abstract class Analyzer
 {
-    protected static T GetRegistrationFromType<T>(string methodName, Type pluginType) where T : class
+    protected static T? GetRegistrationFromType<T>(string methodName, Type pluginType) where T : class
     {
         var getRegistrationMethod = pluginType.GetMethod(methodName)
             ?? throw new AnalysisException($"Type {pluginType.FullName} does not have a {methodName} method");
@@ -12,8 +12,7 @@ internal abstract class Analyzer
         var instance = Activator.CreateInstance(pluginType)
             ?? throw new AnalysisException($"Failed to create instance of type {pluginType.FullName}");
 
-        return getRegistrationMethod.Invoke(instance, null) as T
-            ?? throw new AnalysisException($"{methodName}() returned null for type {pluginType.FullName}");
+        return getRegistrationMethod.Invoke(instance, null) as T;
     }
 
     protected static string StepName(string className, ExecutionMode executionMode, ExecutionStage executionStage, string eventOperation, string? entityLogicalName)

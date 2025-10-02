@@ -84,11 +84,6 @@
           "Microsoft.PowerPlatform.Dataverse.Client": "1.2.7"
         }
       },
-      "Delegate.XrmPluginCore.Abstractions": {
-        "type": "Transitive",
-        "resolved": "1.0.0-preview.1",
-        "contentHash": "eST6I6uujvuGiqCusObOdaPU5ba+yc0gCC0H6sAxdHucZS7BthSQE6/PL07dueT4RSrun/wF6ZkhRPDi/cbmBA=="
-      },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
         "resolved": "6.0.0",
@@ -1629,6 +1624,11 @@
           "System.Xml.XmlDocument": "4.3.0"
         }
       },
+      "XrmPluginCore.Abstractions": {
+        "type": "Transitive",
+        "resolved": "1.0.0",
+        "contentHash": "BKWENnDreXx+SExRjoYYUiyIeI1/TG711CEd9QO7kkzx8cPbsM66/NuE8vy02uR2WyJ9hYxYlCvwLp4PPgiThA=="
+      },
       "xunit.abstractions": {
         "type": "Transitive",
         "resolved": "2.0.3",
@@ -1677,9 +1677,9 @@
       "assemblyanalyzer": {
         "type": "Project",
         "dependencies": {
-          "Delegate.XrmPluginCore.Abstractions": "[1.0.0-preview.1, )",
           "Microsoft.Extensions.Logging.Abstractions": "[9.0.6, )",
           "System.Text.Json": "[9.0.6, )",
+          "XrmPluginCore.Abstractions": "[1.0.0, )",
           "XrmSync.Model": "[1.0.0, )"
         }
       },
@@ -1704,8 +1704,8 @@
       "XrmSync.Model": {
         "type": "Project",
         "dependencies": {
-          "Delegate.XrmPluginCore.Abstractions": "[1.0.0-preview.1, )",
-          "Microsoft.Extensions.Logging.Abstractions": "[9.0.6, )"
+          "Microsoft.Extensions.Logging.Abstractions": "[9.0.6, )",
+          "XrmPluginCore.Abstractions": "[1.0.0, )"
         }
       },
       "XrmSync.SyncService": {

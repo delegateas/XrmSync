@@ -1,4 +1,4 @@
-﻿using DG.XrmPluginCore.Enums;
+﻿using XrmPluginCore.Enums;
 using System;
 using System.Collections.Generic;
 

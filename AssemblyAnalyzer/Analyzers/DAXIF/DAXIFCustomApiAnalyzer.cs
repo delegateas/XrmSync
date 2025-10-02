@@ -1,5 +1,6 @@
-﻿using DG.XrmPluginCore.Enums;
+﻿using System.Reflection;
 using System.Xml.Linq;
+using XrmPluginCore.Enums;
 using XrmSync.Model.CustomApi;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;
@@ -30,7 +31,9 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, IAnalyzer<CustomApiDefinition>
         return [..customApiTypes
         .Select(pluginType =>
         {
-            var (mainConfig, extendedConfig, reqParams, resProps) = GetRegistrationFromType<Tuple<MainCustomAPIConfig, ExtendedCustomAPIConfig, IEnumerable<RequestParameterConfig>, IEnumerable<ResponsePropertyConfig>>>(MethodName, pluginType);
+            var (mainConfig, extendedConfig, reqParams, resProps) =
+                GetRegistrationFromType<Tuple<MainCustomAPIConfig, ExtendedCustomAPIConfig, IEnumerable<RequestParameterConfig>, IEnumerable<ResponsePropertyConfig>>>(MethodName, pluginType)
+                ?? throw new AnalysisException($"{MethodName}() returned null for type {pluginType.FullName}");
 
             var (UniqueName, IsFunction, EnabledForWorkflow, AllowedCustomProcessingStepType, BindingType, BoundEntityLogicalName) = mainConfig;
             var (PluginType, OwnerId, OwnerType, IsCustomizable, IsPrivate, ExecutePrivilegeName, Description) = extendedConfig;

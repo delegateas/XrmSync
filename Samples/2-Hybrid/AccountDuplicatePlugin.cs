@@ -1,9 +1,9 @@
 using BusinessDomain.Context;
-using CorePlugin = DG.XrmPluginCore.Plugin;
-using EO = DG.XrmPluginCore.Enums.EventOperation;
-using ES = DG.XrmPluginCore.Enums.ExecutionStage;
-using IT = DG.XrmPluginCore.Enums.ImageType;
-using Context = DG.XrmPluginCore.LocalPluginContext;
+using CorePlugin = XrmPluginCore.Plugin;
+using EO = XrmPluginCore.Enums.EventOperation;
+using ES = XrmPluginCore.Enums.ExecutionStage;
+using IT = XrmPluginCore.Enums.ImageType;
+using Context = XrmPluginCore.LocalPluginContext;
 
 namespace SamplePlugins
 {

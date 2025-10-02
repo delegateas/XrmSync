@@ -1,4 +1,4 @@
-using DG.XrmPluginCore.Enums;
+using XrmPluginCore.Enums;
 using Microsoft.Extensions.Logging;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;

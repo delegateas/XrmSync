@@ -1,4 +1,4 @@
-using DG.XrmPluginCore.Enums;
+using XrmPluginCore.Enums;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using XrmSync.Dataverse.Context;

@@ -1,4 +1,4 @@
-using DG.XrmPluginCore.Enums;
+using XrmPluginCore.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using XrmSync.Dataverse;

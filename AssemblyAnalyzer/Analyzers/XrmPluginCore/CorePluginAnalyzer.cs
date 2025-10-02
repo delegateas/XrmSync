@@ -1,5 +1,5 @@
-﻿using DG.XrmPluginCore;
-using DG.XrmPluginCore.Interfaces.Plugin;
+﻿using XrmPluginCore;
+using XrmPluginCore.Interfaces.Plugin;
 using System.Collections;
 using System.Linq.Expressions;
 using XrmSync.Model.Plugin;
@@ -16,17 +16,34 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
         var validTypes = types
             .Where(t => t.IsAssignableTo(pluginBaseType) && t.GetConstructor(Type.EmptyTypes) != null && !t.IsAbstract);
 
-        return [.. validTypes.Select(t => new PluginDefinition
+        return [.. AnalyzeTypesInner(validTypes)];
+    }
+
+    private static IEnumerable<PluginDefinition> AnalyzeTypesInner(IEnumerable<Type> types)
+    {
+        foreach (var pluginType in types)
+        {
+            var pluginDefinitionName = pluginType.FullName ?? string.Empty;
+            var steps = GetPluginSteps(pluginType, pluginDefinitionName);
+
+            if (!steps.Any())
             {
-                Name = t.FullName ?? string.Empty,
-                PluginSteps = [.. GetPluginSteps(t, t.FullName ?? string.Empty)]
-            }) ];
+                continue;
+            }
+
+            yield return new PluginDefinition
+            {
+                Name = pluginDefinitionName,
+                PluginSteps = [.. steps]
+            };
+        }
     }
 
     private static IEnumerable<Step> GetPluginSteps(Type pluginType, string pluginDefinitionName)
     {
-        return GetRegistrationFromType<IEnumerable>(nameof(IPluginDefinition.GetRegistrations), pluginType)
-            .Cast<object>()
+        var registrations = GetRegistrationFromType<IEnumerable>(nameof(IPluginDefinition.GetRegistrations), pluginType)?.Cast<object>() ?? [];
+
+        return registrations
             .Select(r => ConvertRegistrationToStep(r, pluginDefinitionName));
     }
 

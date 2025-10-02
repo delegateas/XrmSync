@@ -1,4 +1,4 @@
-﻿using DG.XrmPluginCore.Enums;
+﻿using XrmPluginCore.Enums;
 using System;
 using XrmSync.Model.Plugin;
 
@@ -43,7 +43,9 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
 
         return [.. validPlugins
             .Select(pluginType => {
-                var pluginTuples = GetRegistrationFromType<IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>>(MethodName, pluginType);
+                var pluginTuples =
+                    GetRegistrationFromType<IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>>(MethodName, pluginType)
+                    ?? throw new AnalysisException($"{MethodName}() returned null for type {pluginType.FullName}");
 
                 return new PluginDefinition {
                     Name = pluginType.FullName ?? string.Empty,
