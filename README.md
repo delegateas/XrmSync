@@ -342,4 +342,4 @@ For issues, questions, or contributions, please visit the [GitHub repository](ht
 
 ---
 
-**Copyright (c) 2025 Delegate A/S**
+**Copyright (c) 2025 Context& A/S**
