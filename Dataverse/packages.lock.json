@@ -831,7 +831,7 @@
       "XrmPluginCore.Abstractions": {
         "type": "Transitive",
         "resolved": "1.0.0",
-        "contentHash": "uOSz5JiPJtr3iMfjLPz1OD6XkpMJB4PrsUpArtVsvfeGjwI3hCD9kMHuM3D1WVubsipJ3GfUmn4HA8yYEyZGew=="
+        "contentHash": "996+PNSvtXfu4ZeFCJ/hhjQuAXP4I2cJifRXsKvqbEnpY7lF9IBNGoHTqKiefIlEsrFRsSGf5kiJo+oPW/NZqw=="
       },
       "XrmSync.Model": {
         "type": "Project",
