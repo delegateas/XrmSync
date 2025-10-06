@@ -5,7 +5,7 @@ namespace XrmSync.SyncService.PluginValidator.Rules.Plugin;
 
 internal class PreImageInPreStageRule : IValidationRule<Step>
 {
-    public string ErrorMessage => "Pre execution stages does not support post-images";
+    public string ErrorMessage(Step item) => "Pre-execution stages do not support post-images";
 
     public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
     {

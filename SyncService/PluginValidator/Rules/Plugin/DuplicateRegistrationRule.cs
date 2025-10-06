@@ -5,7 +5,8 @@ namespace XrmSync.SyncService.PluginValidator.Rules.Plugin;
 
 internal class DuplicateRegistrationRule : IValidationRule<ParentReference<Step, PluginDefinition>>
 {
-    public string ErrorMessage => "Multiple registrations on the same message, stage and entity are not allowed in the same plugin type";
+    public string ErrorMessage(ParentReference<Step, PluginDefinition> _) =>
+        "Multiple registrations on the same message, stage and entity are not allowed in the same plugin type";
 
     public IEnumerable<ParentReference<Step, PluginDefinition>> GetViolations(IEnumerable<ParentReference<Step, PluginDefinition>> items)
     {

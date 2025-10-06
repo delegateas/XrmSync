@@ -21,6 +21,12 @@
           "Castle.Core": "5.1.1"
         }
       },
+      "XrmPluginCore.Abstractions": {
+        "type": "Direct",
+        "requested": "[1.0.0, )",
+        "resolved": "1.0.0",
+        "contentHash": "996+PNSvtXfu4ZeFCJ/hhjQuAXP4I2cJifRXsKvqbEnpY7lF9IBNGoHTqKiefIlEsrFRsSGf5kiJo+oPW/NZqw=="
+      },
       "xunit": {
         "type": "Direct",
         "requested": "[2.5.3, )",
@@ -1623,11 +1629,6 @@
           "System.Xml.ReaderWriter": "4.3.0",
           "System.Xml.XmlDocument": "4.3.0"
         }
-      },
-      "XrmPluginCore.Abstractions": {
-        "type": "Transitive",
-        "resolved": "1.0.0",
-        "contentHash": "996+PNSvtXfu4ZeFCJ/hhjQuAXP4I2cJifRXsKvqbEnpY7lF9IBNGoHTqKiefIlEsrFRsSGf5kiJo+oPW/NZqw=="
       },
       "xunit.abstractions": {
         "type": "Transitive",

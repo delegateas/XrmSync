@@ -4,7 +4,7 @@ namespace XrmSync.SyncService.PluginValidator.Rules.CustomApi;
 
 internal class UnboundApiEntityRule : IValidationRule<CustomApiDefinition>
 {
-    public string ErrorMessage => "Unbound Custom API cannot specify an entity type";
+    public string ErrorMessage(CustomApiDefinition _) => "Unbound Custom API cannot specify an entity type";
 
     public IEnumerable<CustomApiDefinition> GetViolations(IEnumerable<CustomApiDefinition> items)
     {

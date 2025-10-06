@@ -5,7 +5,7 @@ namespace XrmSync.SyncService.PluginValidator.Rules.Plugin;
 
 internal class CreatePreImageRule : IValidationRule<Step>
 {
-    public string ErrorMessage => "Create events does not support pre-images";
+    public string ErrorMessage(Step item) => item.EventOperation + " events do not support pre-images";
 
     public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
     {

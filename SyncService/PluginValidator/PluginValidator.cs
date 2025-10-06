@@ -14,7 +14,7 @@ internal class PluginValidator(IServiceProvider serviceProvider) : IPluginValida
         return rules.SelectMany(rule =>
         {
             var violatingItems = rule.GetViolations(items);
-            return violatingItems.Select(x => new ValidationException($"{prefix} {nameOf(x)}: {rule.ErrorMessage}"));
+            return violatingItems.Select(x => new ValidationException($"{prefix} {nameOf(x)}: {rule.ErrorMessage(x)}"));
         });
     }
 

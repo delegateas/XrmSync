@@ -1,7 +1,6 @@
 using XrmPluginCore.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using XrmSync.Dataverse;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;
@@ -20,17 +19,17 @@ public class PluginValidationTests
     private static IPluginValidator CreateValidator(IPluginReader? pluginReader = null)
     {
         var services = new ServiceCollection();
-        
+
         // Register validation rules using the extension method
         services.AddValidationRules();
-        
+
         // Register mock or provided plugin reader
         var mockPluginReader = pluginReader ?? Substitute.For<IPluginReader>();
         services.AddSingleton(mockPluginReader);
-        
+
         // Register the validator
         services.AddSingleton<IPluginValidator, PluginValidator>();
-        
+
         var serviceProvider = services.BuildServiceProvider();
         return serviceProvider.GetRequiredService<IPluginValidator>();
     }
@@ -52,12 +51,12 @@ public class PluginValidationTests
         Assert.NotEmpty(stepRules);
         Assert.Contains(stepRules, r => r is AssociateDisassociateEntityRule);
         Assert.Contains(stepRules, r => r is AssociateDisassociateFilterRule);
-        Assert.Contains(stepRules, r => r is AssociateDisassociateImageRule);
         Assert.Contains(stepRules, r => r is AsyncPreOperationRule);
         Assert.Contains(stepRules, r => r is CreatePreImageRule);
         Assert.Contains(stepRules, r => r is DeletePostImageRule);
         Assert.Contains(stepRules, r => r is MissingUserContextRule);
         Assert.Contains(stepRules, r => r is PreImageInPreStageRule);
+        Assert.Contains(stepRules, r => r is AllowImageRule);
 
         var stepWithParentRules = serviceProvider.GetServices<IValidationRule<ParentReference<Step, PluginDefinition>>>().ToList();
         Assert.NotEmpty(stepWithParentRules);
@@ -71,7 +70,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidatePlugins_ThrowsException_ForPreOperationAsync()
+    public void ValidatePlugins_ThrowsException_ForAsyncPreOperation()
     {
         // Arrange
         var pluginType = new PluginDefinition
@@ -84,7 +83,7 @@ public class PluginValidationTests
                     Name = "TestStep",
                     ExecutionStage = ExecutionStage.PreOperation, // Pre
                     ExecutionMode = ExecutionMode.Asynchronous, // Async
-                    EventOperation = "Update",
+                    EventOperation = nameof(EventOperation.Update),
                     LogicalName = "account",
                     Deployment = 0,
                     ExecutionOrder = 1,
@@ -102,7 +101,7 @@ public class PluginValidationTests
 
         // Act & Assert
         var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
-        Assert.Contains("Pre execution stages does not support asynchronous execution mode", ex.Message);
+        Assert.Contains("Pre-execution stages do not support asynchronous execution mode", ex.Message);
     }
 
     [Fact]
@@ -114,7 +113,7 @@ public class PluginValidationTests
             Name = "Step1",
             ExecutionStage = ExecutionStage.PreOperation,
             ExecutionMode = ExecutionMode.Asynchronous,
-            EventOperation = "Update",
+            EventOperation = nameof(EventOperation.Update),
             LogicalName = "account",
             Deployment = 0,
             ExecutionOrder = 1,
@@ -129,7 +128,7 @@ public class PluginValidationTests
             Name = "Step2",
             ExecutionStage = ExecutionStage.PreOperation,
             ExecutionMode = ExecutionMode.Synchronous,
-            EventOperation = "Associate",
+            EventOperation = nameof(EventOperation.Associate),
             LogicalName = "notempty",
             Deployment = 0,
             ExecutionOrder = 1,
@@ -139,10 +138,11 @@ public class PluginValidationTests
             PluginImages = []
         };
 
-        var pluginType = new PluginDefinition {
+        var pluginType = new PluginDefinition
+        {
             Name = "Type1",
             Id = Guid.NewGuid(),
-            PluginSteps = [ pluginStep1, pluginStep2 ]
+            PluginSteps = [pluginStep1, pluginStep2]
         };
 
         var pluginReader = Substitute.For<IPluginReader>();
@@ -152,9 +152,9 @@ public class PluginValidationTests
         // Act & Assert
         var ex = Assert.Throws<AggregateException>(() => validator.Validate([pluginType]));
         var messages = ex.InnerExceptions.Select(e => e.Message).ToList();
-        Assert.Contains(messages, x => x.Contains("Pre execution stages does not support asynchronous execution mode"));
-        Assert.Contains(messages, x => x.Contains("Plugin Step2: Associate/Disassociate events can't have filtered attributes"));
-        Assert.Contains(messages, x => x.Contains("Plugin Step2: Associate/Disassociate events must target all entities"));
+        Assert.Contains(messages, x => x.Contains("Pre-execution stages do not support asynchronous execution mode"));
+        Assert.Contains(messages, x => x.Contains("Plugin Step2: Associate event can't have filtered attributes"));
+        Assert.Contains(messages, x => x.Contains("Plugin Step2: Associate event must target all entities"));
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class PluginValidationTests
             Name = "Step1",
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
-            EventOperation = "Update",
+            EventOperation = nameof(EventOperation.Update),
             LogicalName = "account",
             Deployment = 0,
             ExecutionOrder = 1,
@@ -181,7 +181,7 @@ public class PluginValidationTests
             Name = "Step2",
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
-            EventOperation = "Update",
+            EventOperation = nameof(EventOperation.Update),
             LogicalName = "account",
             Deployment = 0,
             ExecutionOrder = 2,
@@ -191,7 +191,8 @@ public class PluginValidationTests
             PluginImages = []
         };
 
-        var pluginType = new PluginDefinition {
+        var pluginType = new PluginDefinition
+        {
             Name = "Type1",
             Id = Guid.NewGuid(),
             PluginSteps = [pluginStep1, pluginStep2]
@@ -215,7 +216,7 @@ public class PluginValidationTests
             Name = "Step1",
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
-            EventOperation = "Update",
+            EventOperation = nameof(EventOperation.Update),
             LogicalName = "account",
             Deployment = 0,
             ExecutionOrder = 1,
@@ -230,7 +231,7 @@ public class PluginValidationTests
             Name = "Step2",
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
-            EventOperation = "Update",
+            EventOperation = nameof(EventOperation.Update),
             LogicalName = "account",
             Deployment = 0,
             ExecutionOrder = 2,
@@ -252,8 +253,10 @@ public class PluginValidationTests
         validator.Validate([pluginType1, pluginType2]);
     }
 
-    [Fact]
-    public void ValidatePlugins_NoException_AssociateWithEmptyOrNullFilter()
+    [Theory]
+    [InlineData("", "")]
+    [InlineData("", null)]
+    public void ValidatePlugins_NoException_AssociateDisassociateWithEmptyOrNullFilter(string logicalName, string filteredAttributes)
     {
         // Arrange
         var pluginStep1 = new Step
@@ -261,11 +264,11 @@ public class PluginValidationTests
             Name = "Step1",
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
-            EventOperation = "Associate",
-            LogicalName = "",
+            EventOperation = nameof(EventOperation.Associate),
+            LogicalName = logicalName,
             Deployment = 0,
             ExecutionOrder = 1,
-            FilteredAttributes = "",
+            FilteredAttributes = filteredAttributes,
             UserContext = Guid.Empty,
             AsyncAutoDelete = false,
             PluginImages = []
@@ -273,14 +276,14 @@ public class PluginValidationTests
 
         var pluginStep2 = new Step
         {
-            Name = "Step1",
+            Name = "Step2",
             ExecutionStage = ExecutionStage.PostOperation,
             ExecutionMode = ExecutionMode.Synchronous,
-            EventOperation = "Disassociate",
-            LogicalName = "",
+            EventOperation = nameof(EventOperation.Disassociate),
+            LogicalName = logicalName,
             Deployment = 0,
             ExecutionOrder = 1,
-            FilteredAttributes = null!,
+            FilteredAttributes = filteredAttributes,
             UserContext = Guid.Empty,
             AsyncAutoDelete = false,
             PluginImages = []
@@ -294,18 +297,20 @@ public class PluginValidationTests
         validator.Validate([pluginType1]);
     }
 
-    [Fact]
-    public void ValidateCustomAPI_ThrowsException_BoundWithoutEntity()
+    [Theory]
+    [InlineData(BindingType.Entity, "", "Bound Custom API must specify an entity type")]
+    [InlineData((BindingType)0, "account", "Unbound Custom API cannot specify an entity type")] // 0 represents Global/Unbound
+    public void ValidateCustomAPI_ThrowsException_ForInvalidEntityBinding(BindingType bindingType, string boundEntityLogicalName, string expectedErrorMessage)
     {
         // Arrange
         var customAPI = new CustomApiDefinition
         {
-            Name = "TestBoundAPI",
-            DisplayName = "TestBoundAPI",
-            UniqueName = "new_TestBoundAPI",
-            BindingType = BindingType.Entity, // or similar enum value indicating bound
-            BoundEntityLogicalName = string.Empty, // or string.Empty - this is the violation
-            Description = "A test bound custom API",
+            Name = "TestAPI",
+            DisplayName = "TestAPI",
+            UniqueName = "new_TestAPI",
+            BindingType = bindingType,
+            BoundEntityLogicalName = boundEntityLogicalName,
+            Description = "A test custom API",
             IsFunction = false,
             IsPrivate = false,
             IsCustomizable = true,
@@ -319,34 +324,701 @@ public class PluginValidationTests
 
         // Act & Assert
         var ex = Assert.Throws<ValidationException>(() => validator.Validate([customAPI]));
-        Assert.Contains("Bound Custom API must specify an entity type", ex.Message);
+        Assert.Contains(expectedErrorMessage, ex.Message);
+    }
+
+    [Theory]
+    [InlineData(nameof(EventOperation.Create))]
+    public void ValidatePlugins_ThrowsException_ForCreateOperationsWithPreImage(string eventOperation)
+    {
+        // Arrange - Create-type operations should not support pre-images
+        var pluginStep = new Step
+        {
+            Name = $"{eventOperation}StepWithPreImage",
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
+            EventOperation = eventOperation,
+            LogicalName = "account",
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = string.Empty,
+            UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
+            PluginImages = [
+                new Image
+                {
+                    Name = "PreImage",
+                    Id = Guid.NewGuid(),
+                    EntityAlias = "PreImage",
+                    ImageType = ImageType.PreImage,
+                    Attributes = "name,accountnumber"
+                }
+            ]
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = [pluginStep]
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert
+        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        Assert.Contains("Create events do not support pre-images", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(nameof(EventOperation.Delete))]
+    public void ValidatePlugins_ThrowsException_ForDeleteOperationsWithPostImage(string eventOperation)
+    {
+        // Arrange - Delete-type operations should not support post-images
+        var pluginStep = new Step
+        {
+            Name = $"{eventOperation}StepWithPostImage",
+            ExecutionStage = ExecutionStage.PostOperation, // Use PostOperation to avoid triggering PreImageInPreStageRule
+            ExecutionMode = ExecutionMode.Synchronous,
+            EventOperation = eventOperation,
+            LogicalName = "account",
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = string.Empty,
+            UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
+            PluginImages = [
+                new Image
+                {
+                    Name = "PostImage",
+                    Id = Guid.NewGuid(),
+                    EntityAlias = "PostImage",
+                    ImageType = ImageType.PostImage,
+                    Attributes = "name,accountnumber"
+                }
+            ]
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = [pluginStep]
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert
+        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        Assert.Contains("Delete events do not support post-images", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(ExecutionStage.PreValidation)]
+    [InlineData(ExecutionStage.PreOperation)]
+    public void ValidatePlugins_ThrowsException_ForPreStagesWithPostImage(ExecutionStage executionStage)
+    {
+        // Arrange - Pre-execution stages should not support post-images
+        var pluginStep = new Step
+        {
+            Name = $"{executionStage}WithPostImage",
+            ExecutionStage = executionStage,
+            ExecutionMode = ExecutionMode.Synchronous,
+            EventOperation = nameof(EventOperation.Update),
+            LogicalName = "account",
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = "name",
+            UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
+            PluginImages = [
+                new Image
+                {
+                    Name = "PostImage",
+                    Id = Guid.NewGuid(),
+                    EntityAlias = "PostImage",
+                    ImageType = ImageType.PostImage,
+                    Attributes = "name,accountnumber"
+                }
+            ]
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = [pluginStep]
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert
+        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        Assert.Contains("Pre-execution stages do not support post-images", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(nameof(EventOperation.Update))]
+    [InlineData(nameof(EventOperation.Merge))]
+    [InlineData(nameof(EventOperation.SetState))]
+    public void ValidatePlugins_NoException_ForUpdateOperationsWithBothImageTypes(string eventOperation)
+    {
+        // Arrange - Update-type operations should support both pre and post images
+        // Create separate plugin types to avoid duplicate registration violation
+        var pluginTypeWithPreImage = new PluginDefinition
+        {
+            Name = "TestPluginPre",
+            Id = Guid.NewGuid(),
+            PluginSteps = [
+                new Step
+                {
+                    Name = $"{eventOperation}StepWithPreImage",
+                    ExecutionStage = ExecutionStage.PostOperation,
+                    ExecutionMode = ExecutionMode.Synchronous,
+                    EventOperation = eventOperation,
+                    LogicalName = "account",
+                    Deployment = 0,
+                    ExecutionOrder = 1,
+                    FilteredAttributes = "name",
+                    UserContext = Guid.Empty,
+                    AsyncAutoDelete = false,
+                    PluginImages = [
+                        new Image
+                        {
+                            Name = "PreImage",
+                            Id = Guid.NewGuid(),
+                            EntityAlias = "PreImage",
+                            ImageType = ImageType.PreImage,
+                            Attributes = "name,accountnumber"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var pluginTypeWithPostImage = new PluginDefinition
+        {
+            Name = "TestPluginPost",
+            Id = Guid.NewGuid(),
+            PluginSteps = [
+                new Step
+                {
+                    Name = $"{eventOperation}StepWithPostImage",
+                    ExecutionStage = ExecutionStage.PostOperation,
+                    ExecutionMode = ExecutionMode.Synchronous,
+                    EventOperation = eventOperation,
+                    LogicalName = "contact", // Different entity to avoid duplicate registration
+                    Deployment = 0,
+                    ExecutionOrder = 1,
+                    FilteredAttributes = "fullname",
+                    UserContext = Guid.Empty,
+                    AsyncAutoDelete = false,
+                    PluginImages = [
+                        new Image
+                        {
+                            Name = "PostImage",
+                            Id = Guid.NewGuid(),
+                            EntityAlias = "PostImage",
+                            ImageType = ImageType.PostImage,
+                            Attributes = "fullname,emailaddress1"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert - Should not throw any exceptions
+        validator.Validate([pluginTypeWithPreImage]);
+        validator.Validate([pluginTypeWithPostImage]);
     }
 
     [Fact]
-    public void ValidateCustomAPI_ThrowsException_UnboundWithEntity()
+    public void ValidatePlugins_NoException_ForValidImageConfigurations()
     {
-        // Arrange
-        var customAPI = new CustomApiDefinition
+        // Arrange - Valid image configurations should pass
+        var pluginSteps = new[]
         {
-            Name = "TestUnboundAPI",
-            DisplayName = "TestUnboundAPI",
-            UniqueName = "new_TestUnboundAPI",
-            BindingType = 0, // Unbound has type Global, which isn't mapped in the enum
-            BoundEntityLogicalName = "account", // or similar entity name - this is the violation
-            Description = "A test unbound custom API",
-            IsFunction = false,
-            IsPrivate = false,
-            IsCustomizable = true,
-            EnabledForWorkflow = false,
-            AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.AsyncOnly,
-            ExecutePrivilegeName = string.Empty,
-            PluginType = new PluginType { Name = "TestPluginType", Id = Guid.NewGuid() }
+            // Create with post-image is valid
+            new Step
+            {
+                Name = "CreateWithPostImage",
+                ExecutionStage = ExecutionStage.PostOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Create),
+                LogicalName = "account",
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = string.Empty,
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = [
+                    new Image
+                    {
+                        Name = "PostImage",
+                        Id = Guid.NewGuid(),
+                        EntityAlias = "PostImage",
+                        ImageType = ImageType.PostImage,
+                        Attributes = "name,accountnumber"
+                    }
+                ]
+            },
+            // Delete with pre-image is valid
+            new Step
+            {
+                Name = "DeleteWithPreImage",
+                ExecutionStage = ExecutionStage.PreOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Delete),
+                LogicalName = "contact", // Different entity to avoid duplicate registration
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = string.Empty,
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = [
+                    new Image
+                    {
+                        Name = "PreImage",
+                        Id = Guid.NewGuid(),
+                        EntityAlias = "PreImage",
+                        ImageType = ImageType.PreImage,
+                        Attributes = "fullname,emailaddress1"
+                    }
+                ]
+            },
+            // Update with pre-image in post-operation is valid
+            new Step
+            {
+                Name = "UpdateWithPreImagePost",
+                ExecutionStage = ExecutionStage.PostOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Update),
+                LogicalName = "account",
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = "name",
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = [
+                    new Image
+                    {
+                        Name = "PreImage",
+                        Id = Guid.NewGuid(),
+                        EntityAlias = "PreImage",
+                        ImageType = ImageType.PreImage,
+                        Attributes = "name,accountnumber"
+                    }
+                ]
+            },
+            // Update with post-image in post-operation is valid (different entity)
+            new Step
+            {
+                Name = "UpdateWithPostImagePost",
+                ExecutionStage = ExecutionStage.PostOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Update),
+                LogicalName = "contact", // Different entity to avoid duplicate registration
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = "fullname",
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = [
+                    new Image
+                    {
+                        Name = "PostImage",
+                        Id = Guid.NewGuid(),
+                        EntityAlias = "PostImage",
+                        ImageType = ImageType.PostImage,
+                        Attributes = "fullname,emailaddress1"
+                    }
+                ]
+            },
+            // Update with pre-image in pre-operation is valid (different entity)
+            new Step
+            {
+                Name = "UpdateWithPreImagePre",
+                ExecutionStage = ExecutionStage.PreOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Update),
+                LogicalName = "lead", // Different entity to avoid duplicate registration
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = "subject",
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = [
+                    new Image
+                    {
+                        Name = "PreImage",
+                        Id = Guid.NewGuid(),
+                        EntityAlias = "PreImage",
+                        ImageType = ImageType.PreImage,
+                        Attributes = "subject,lastname"
+                    }
+                ]
+            }
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = pluginSteps.ToList()
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert - Should not throw any exceptions
+        validator.Validate([pluginType]);
+    }
+
+    [Fact]
+    public void ValidatePlugins_NoException_ForStepsWithoutImages()
+    {
+        // Arrange - Steps without images should always be valid regardless of stage/operation
+        var pluginSteps = new[]
+        {
+            new Step
+            {
+                Name = "CreateWithoutImages",
+                ExecutionStage = ExecutionStage.PostOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Create),
+                LogicalName = "account",
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = string.Empty,
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = []
+            },
+            new Step
+            {
+                Name="DeleteWithoutImages",
+                ExecutionStage = ExecutionStage.PreOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Delete),
+                LogicalName = "account",
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = string.Empty,
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = []
+            },
+            new Step
+            {
+                Name = "UpdatePreValidationWithoutImages",
+                ExecutionStage = ExecutionStage.PreValidation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Update),
+                LogicalName = "account",
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = "name",
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = []
+            }
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = pluginSteps.ToList()
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert - Should not throw any exceptions
+        validator.Validate([pluginType]);
+    }
+
+    [Fact]
+    public void ValidatePlugins_ThrowsAggregateException_ForMultipleImageViolations()
+    {
+        // Arrange - Multiple image validation violations should be aggregated
+        var pluginSteps = new[]
+        {
+            // Invalid: Create with pre-image
+            new Step
+            {
+                Name = "CreateWithInvalidPreImage",
+                ExecutionStage = ExecutionStage.PostOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Create),
+                LogicalName = "account",
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = string.Empty,
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = [
+                    new Image
+                    {
+                        Name = "PreImage",
+                        Id = Guid.NewGuid(),
+                        EntityAlias = "PreImage",
+                        ImageType = ImageType.PreImage,
+                        Attributes = "name"
+                    }
+                ]
+            },
+            // Invalid: Delete with post-image
+            new Step
+            {
+                Name = "DeleteWithInvalidPostImage",
+                ExecutionStage = ExecutionStage.PreOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Delete),
+                LogicalName = "account",
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = string.Empty,
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = [
+                    new Image
+                    {
+                        Name = "PostImage",
+                        Id = Guid.NewGuid(),
+                        EntityAlias = "PostImage",
+                        ImageType = ImageType.PostImage,
+                        Attributes = "name"
+                    }
+                ]
+            },
+            // Invalid: Pre-operation with post-image
+            new Step
+            {
+                Name = "PreOpWithInvalidPostImage",
+                ExecutionStage = ExecutionStage.PreOperation,
+                ExecutionMode = ExecutionMode.Synchronous,
+                EventOperation = nameof(EventOperation.Update),
+                LogicalName = "account",
+                Deployment = 0,
+                ExecutionOrder = 1,
+                FilteredAttributes = "name",
+                UserContext = Guid.Empty,
+                AsyncAutoDelete = false,
+                PluginImages = [
+                    new Image
+                    {
+                        Name = "PostImage",
+                        Id = Guid.NewGuid(),
+                        EntityAlias = "PostImage",
+                        ImageType = ImageType.PostImage,
+                        Attributes = "name"
+                    }
+                ]
+            }
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = pluginSteps.ToList()
         };
 
         var validator = CreateValidator();
 
         // Act & Assert
-        var ex = Assert.Throws<ValidationException>(() => validator.Validate([customAPI]));
-        Assert.Contains("Unbound Custom API cannot specify an entity type", ex.Message);
+        var ex = Assert.Throws<AggregateException>(() => validator.Validate([pluginType]));
+        var messages = ex.InnerExceptions.Select(e => e.Message).ToList();
+
+        Assert.Contains(messages, x => x.Contains("Create events do not support pre-images"));
+        Assert.Contains(messages, x => x.Contains("Delete events do not support post-images"));
+        Assert.Contains(messages, x => x.Contains("Pre-execution stages do not support post-images"));
+    }
+
+    [Theory]
+    [MemberData(nameof(GetIllegalEventOperationsWithImages))]
+    public void ValidatePlugins_ThrowsException_ForIllegalEventOperationsWithImages(string eventOperation)
+    {
+        // Arrange - Operations not explicitly allowed to support images should not support images
+        var pluginStepWithPreImage = new Step
+        {
+            Name = $"{eventOperation}StepWithPreImage",
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
+            EventOperation = eventOperation,
+            LogicalName = string.Empty,
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = string.Empty,
+            UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
+            PluginImages = [
+                new Image
+                {
+                    Name = "PreImage",
+                    Id = Guid.NewGuid(),
+                    EntityAlias = "PreImage",
+                    ImageType = ImageType.PreImage,
+                    Attributes = "name"
+                }
+            ]
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = [pluginStepWithPreImage]
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert - Should throw validation exception indicating images are not supported
+        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        Assert.EndsWith(eventOperation + " message does not support entity images", ex.Message);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSupportPreImages))]
+    public void ValidatePlugins_NoException_ForLegalEventOperationsWithPreImages(string eventOperation)
+    {
+        // Arrange - Operations not explicitly allowed to support images should not support images
+        var pluginStepWithPreImage = new Step
+        {
+            Name = $"{eventOperation}StepWithPreImage",
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
+            EventOperation = eventOperation,
+            LogicalName = string.Empty,
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = string.Empty,
+            UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
+            PluginImages = [
+                new Image
+                {
+                    Name = "PreImage",
+                    Id = Guid.NewGuid(),
+                    EntityAlias = "PreImage",
+                    ImageType = ImageType.PreImage,
+                    Attributes = "name"
+                }
+            ]
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = [pluginStepWithPreImage]
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert
+        validator.Validate([pluginType]);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetSupportPostImages))]
+    public void ValidatePlugins_NoException_ForLegalEventOperationsWithPostImages(string eventOperation)
+    {
+        // Arrange - Operations not explicitly allowed to support images should not support images
+        var pluginStepWithPostImage = new Step
+        {
+            Name = $"{eventOperation}StepWithPostImage",
+            ExecutionStage = ExecutionStage.PostOperation,
+            ExecutionMode = ExecutionMode.Synchronous,
+            EventOperation = eventOperation,
+            LogicalName = string.Empty,
+            Deployment = 0,
+            ExecutionOrder = 1,
+            FilteredAttributes = string.Empty,
+            UserContext = Guid.Empty,
+            AsyncAutoDelete = false,
+            PluginImages = [
+                new Image
+                {
+                    Name = "PostImage",
+                    Id = Guid.NewGuid(),
+                    EntityAlias = "PostImage",
+                    ImageType = ImageType.PostImage,
+                    Attributes = "name"
+                }
+            ]
+        };
+
+        var pluginType = new PluginDefinition
+        {
+            Name = "TestPlugin",
+            Id = Guid.NewGuid(),
+            PluginSteps = [pluginStepWithPostImage]
+        };
+
+        var validator = CreateValidator();
+
+        // Act & Assert
+        validator.Validate([pluginType]);
+    }
+
+    /// <summary>
+    /// Generates test data for event operations that should not support images.
+    /// Based on Microsoft documentation: https://learn.microsoft.com/en-us/power-apps/developer/data-platform/register-plug-in#define-entity-images
+    /// Only Create, Delete, Update, and some related operations support images.
+    /// </summary>
+    public static IEnumerable<object[]> GetIllegalEventOperationsWithImages()
+    {
+        // Operations that explicitly support images according to Microsoft documentation
+        var validImageOperations = new HashSet<string>
+        {
+            // Allowed operations for images according to Microsoft documentation
+            nameof(EventOperation.Create),
+            nameof(EventOperation.Delete),
+            nameof(EventOperation.DeliverIncoming),
+            nameof(EventOperation.DeliverPromote),
+            nameof(EventOperation.Merge),
+            nameof(EventOperation.Route),
+            nameof(EventOperation.Send),
+            nameof(EventOperation.SetState),
+            nameof(EventOperation.Update)
+        };
+
+        // Get all EventOperation enum values and return those that should not support images
+        var allEventOperations = Enum.GetNames(typeof(EventOperation));
+        
+        return allEventOperations
+            .Where(op => !validImageOperations.Contains(op))
+            .Select(op => new object[] { op })
+            .ToArray(); // Force evaluation to help with test discovery
+    }
+
+    public static IEnumerable<object[]> GetSupportPreImages()
+    {
+        return [
+            [ nameof(EventOperation.Delete) ],
+            [ nameof(EventOperation.DeliverIncoming) ],
+            [ nameof(EventOperation.DeliverPromote) ],
+            [ nameof(EventOperation.Merge) ],
+            [ nameof(EventOperation.Route) ],
+            [ nameof(EventOperation.Send) ],
+            [ nameof(EventOperation.SetState) ],
+            [ nameof(EventOperation.Update) ]
+        ];
+    }
+
+    public static IEnumerable<object[]> GetSupportPostImages()
+    {
+        return [
+            [ nameof(EventOperation.Create) ],
+            [ nameof(EventOperation.DeliverIncoming) ],
+            [ nameof(EventOperation.DeliverPromote) ],
+            [ nameof(EventOperation.Merge) ],
+            [ nameof(EventOperation.Route) ],
+            [ nameof(EventOperation.Send) ],
+            [ nameof(EventOperation.SetState) ],
+            [ nameof(EventOperation.Update) ]
+        ];
     }
 }

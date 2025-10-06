@@ -5,7 +5,7 @@ namespace XrmSync.SyncService.PluginValidator.Rules.Plugin;
 
 internal class DeletePostImageRule : IValidationRule<Step>
 {
-    public string ErrorMessage => "Delete events does not support post-images";
+    public string ErrorMessage(Step item) => item.EventOperation + " events do not support post-images";
 
     public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
     {
