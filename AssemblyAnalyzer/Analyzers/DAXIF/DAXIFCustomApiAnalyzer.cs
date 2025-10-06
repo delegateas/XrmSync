@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using System.Xml.Linq;
-using XrmPluginCore.Enums;
+﻿using XrmPluginCore.Enums;
 using XrmSync.Model.CustomApi;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;

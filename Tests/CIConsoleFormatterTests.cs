@@ -1,10 +1,5 @@
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.DependencyInjection;
 using XrmSync.Logging;
-using XrmSync.Model;
-using System.IO;
 
 namespace Tests;
 

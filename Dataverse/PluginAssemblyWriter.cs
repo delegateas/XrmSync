@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using XrmSync.Dataverse.Context;
+﻿using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;

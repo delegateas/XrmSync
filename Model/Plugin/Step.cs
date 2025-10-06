@@ -1,6 +1,4 @@
 ﻿using XrmPluginCore.Enums;
-using System;
-using System.Collections.Generic;
 
 namespace XrmSync.Model.Plugin;
 

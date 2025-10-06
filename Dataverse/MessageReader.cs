@@ -1,6 +1,4 @@
-﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
-using XrmSync.Dataverse.Context;
+﻿using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
 
 namespace XrmSync.Dataverse;

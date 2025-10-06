@@ -1,6 +1,4 @@
-﻿
-using System;
-using BusinessDomain.Context;
+﻿using BusinessDomain.Context;
 
 namespace SamplePlugins {
     public class AccountPlugin : Plugin {

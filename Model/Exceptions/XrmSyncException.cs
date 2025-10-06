@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace XrmSync.Model.Exceptions;
+﻿namespace XrmSync.Model.Exceptions;
 
 public class XrmSyncException : Exception
 {

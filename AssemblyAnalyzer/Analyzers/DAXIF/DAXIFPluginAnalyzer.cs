@@ -1,5 +1,4 @@
 ﻿using XrmPluginCore.Enums;
-using System;
 using XrmSync.Model.Plugin;
 
 namespace XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;

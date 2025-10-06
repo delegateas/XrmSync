@@ -1,13 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 using XrmSync.AssemblyAnalyzer;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
-using XrmSync.SyncService;
 
 namespace XrmSync.Actions;
 

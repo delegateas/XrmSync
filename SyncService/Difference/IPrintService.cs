@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using XrmSync.Model;
+﻿using XrmSync.Model;
 
 namespace XrmSync.SyncService.Difference;
 

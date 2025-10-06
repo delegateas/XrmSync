@@ -1,7 +1,6 @@
 namespace SamplePlugins
 {
     using System;
-    using Microsoft.Xrm.Sdk;
 
     // Another NEW CustomAPI - will be a CREATE difference
     public class DeleteAccountApi : CustomAPI

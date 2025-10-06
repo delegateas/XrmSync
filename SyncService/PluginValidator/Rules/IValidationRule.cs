@@ -1,6 +1,4 @@
-﻿using XrmSync.Model;
-
-namespace XrmSync.SyncService.PluginValidator.Rules;
+﻿namespace XrmSync.SyncService.PluginValidator.Rules;
 
 internal interface IValidationRule<TEntity>
 {
