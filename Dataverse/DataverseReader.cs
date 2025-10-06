@@ -1,122 +1,89 @@
-﻿using Microsoft.Crm.Sdk.Messages;
-using Microsoft.PowerPlatform.Dataverse.Client;
+﻿using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
+using System.Linq.Expressions;
+using XrmSync.Dataverse.Context;
+using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
 public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseReader
 {
-    public Entity Retrieve(string logicalName, Guid id, ColumnSet columnSet)
-    {
-        if (id == Guid.Empty)
-        {
-            throw new XrmSyncException("The provided ID is empty.");
-        }
+    private readonly Lazy<DataverseContext> _lazyContext = new(() => new DataverseContext(serviceClient));
+    private readonly Lazy<string> _lazyConnectedHost = new(serviceClient.ConnectedOrgUriActual.GetLeftPart(UriPartial.Authority));
 
-        return serviceClient.Retrieve(logicalName, id, columnSet);
+    private DataverseContext DataverseContext => _lazyContext.Value;
+
+    public string ConnectedHost => _lazyConnectedHost.Value;
+
+    public IQueryable<SolutionComponent> SolutionComponents => DataverseContext.SolutionComponentSet;
+
+    public IQueryable<PluginAssembly> PluginAssemblies => DataverseContext.PluginAssemblySet;
+
+    public IQueryable<CustomApi> CustomApis => DataverseContext.CustomApiSet;
+
+    public IQueryable<CustomApiRequestParameter> CustomApiRequestParameters => DataverseContext.CustomApiRequestParameterSet;
+
+    public IQueryable<CustomApiResponseProperty> CustomApiResponseProperties => DataverseContext.CustomApiResponsePropertySet;
+
+    public IQueryable<PluginType> PluginTypes => DataverseContext.PluginTypeSet;
+
+    public IQueryable<SdkMessage> SdkMessages => DataverseContext.SdkMessageSet;
+
+    public IQueryable<SdkMessageFilter> SdkMessageFilters => DataverseContext.SdkMessageFilterSet;
+
+    public IQueryable<Solution> Solutions => DataverseContext.SolutionSet;
+
+    public IQueryable<Publisher> Publishers => DataverseContext.PublisherSet;
+
+    public IQueryable<SystemUser> SystemUsers => DataverseContext.SystemUserSet;
+
+    public List<TEntity> RetrieveByColumn<TEntity, TValue>(
+        Expression<Func<TEntity, TValue?>> inColumn,
+        IEnumerable<TValue> values,
+        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
+    {
+        return RetrieveByColumn(inColumn, values, [], columns);
     }
 
-    public Entity RetrieveFirstMatch(QueryExpression query)
+    public List<TEntity> RetrieveByColumn<TEntity>(
+        Expression<Func<TEntity, EntityReference?>> inColumn,
+        IEnumerable<Guid> ids,
+        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
     {
-        query.TopCount = 1;
-        var entities = serviceClient.RetrieveMultiple(query).Entities;
-        if (entities.Count == 0)
-        {
-            throw new XrmSyncException($"No entities of type '{query.EntityName}' found with the given query.\n{ConvertQueryToString(query)}");
-        }
-        return entities.First();
+        return RetrieveByColumn(inColumn, ids, [], columns);
     }
 
-    public bool Exists(string logicalName, Guid id)
+    public List<TEntity> RetrieveByColumn<TEntity, TInValue, TValue>(
+        Expression<Func<TEntity, TInValue?>> inColumn,
+        IEnumerable<TValue> values,
+        IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
+        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
     {
-        var entity = serviceClient.Retrieve(logicalName, id, new ColumnSet(null));
-        return entity.Id != Guid.Empty;
+        if (!values.Any())
+        {
+            return [];
+        }
+
+        var query = GetFilterByValuesQueryExpresion(inColumn, values, additionalConditions, columns);
+
+        var result = serviceClient.RetrieveMultiple(query);
+        return [.. result.Entities.Select(e => e.ToEntity<TEntity>())];
     }
 
-    public Entity? RetrieveFirstOrDefault(QueryExpression query)
+    private static QueryExpression GetFilterByValuesQueryExpresion<TEntity, TInValue, TValue>(
+        Expression<Func<TEntity, TInValue?>> inColumn,
+        IEnumerable<TValue?> values,
+        IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
+        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
     {
-        query.TopCount = 1;
-        var entities = serviceClient.RetrieveMultiple(query).Entities;
-        if (entities.Count == 0)
-        {
-            return null;
-        }
-        return entities.First();
-    }
+        var instance = Activator.CreateInstance<TEntity>();
+        var query = new QueryExpression(instance.LogicalName);
+        query.ColumnSet.AddColumns([.. columns.Select(c => c.GetColumnName())]);
+        query.Criteria.AddCondition(inColumn.GetColumnName(), ConditionOperator.In, [.. values]);
+        query.AddConditions(additionalConditions);
 
-    public List<Entity> RetrieveMultiple(QueryExpression queryExpression)
-    {
-        // Define the fetch attributes.
-        // Set the number of records per page to retrieve.
-        const int fetchCount = 5000;
-        // Initialize the page number.
-        var pageNumber = 1;
-        // Specify the current paging cookie. For retrieving the first page, 
-        // pagingCookie should be null.
-        string? pagingCookie = null;
-
-        var result = new List<Entity>();
-
-        while (true)
-        {
-            queryExpression.PageInfo = BuildPagingCookie(fetchCount, pageNumber, pagingCookie);
-            RetrieveMultipleRequest fetchRequest = new RetrieveMultipleRequest
-            {
-                Query = queryExpression
-            };
-
-            var response = (RetrieveMultipleResponse)serviceClient.Execute(fetchRequest);
-
-            var returnCollection = response.EntityCollection;
-            // Casting entity collection to typed list
-            result.AddRange(returnCollection.Entities.ToList());
-
-            if (returnCollection.MoreRecords)
-            {
-                // Increment the page number to retrieve the next page.
-                pageNumber++;
-
-                // Set the paging cookie to the paging cookie returned from current results.                            
-                pagingCookie = returnCollection.PagingCookie;
-            }
-            else
-            {
-                // If no more records in the result nodes, exit the loop.
-                break;
-            }
-        }
-        return result;
-    }
-    private static PagingInfo BuildPagingCookie(int fetchCount, int pageNumber, string? pagingCookie)
-    {
-        return new PagingInfo
-        {
-            Count = fetchCount,
-            PageNumber = pageNumber,
-            ReturnTotalRecordCount = true,
-            PagingCookie = pagingCookie
-        };
-    }
-
-    private string ConvertQueryToString(QueryExpression query)
-    {
-        try
-        {
-            var conversionRequest = new QueryExpressionToFetchXmlRequest
-            {
-                Query = query
-            };
-            var conversionResponse = (QueryExpressionToFetchXmlResponse)serviceClient.Execute(conversionRequest);
-            var fetchXml = conversionResponse.FetchXml;
-            return fetchXml;
-        }
-        catch (Exception)
-        {
-            return "Unable to convert query to fetchXML";
-        }
+        return query;
     }
 }

@@ -28,51 +28,39 @@ public class MessageReader(IDataverseReader reader) : IMessageReader
         if (!messageNames.Any())
             return [];
 
-        var query = new QueryExpression(SdkMessage.EntityLogicalName)
+        // Get relevant messages
+        var messages = reader.RetrieveByColumn<SdkMessage, string>(
+            m => m.Name,
+            messageNames,
+            m => m.Name
+        ).ConvertAll(m => new
         {
-            ColumnSet = new ColumnSet(SdkMessage.Fields.Name)
-        };
+            m.Id,
+            m.Name
+        });
 
-        var filter = new FilterExpression();
-        filter.AddCondition(SdkMessage.Fields.Name, ConditionOperator.In, [.. messageNames]);
-        query.Criteria = filter;
-
-        if (entityNames.Any())
+        // Get relevant message filters for the selected entities
+        var messageFilters = reader.RetrieveByColumn<SdkMessageFilter, string>(
+            mf => mf.PrimaryObjectTypeCode,
+            entityNames,
+            mf => mf.PrimaryObjectTypeCode,
+            mf => mf.SdkMessageId
+        ).ToLookup(mf => mf.SdkMessageId?.Id ?? Guid.Empty, mf => new
         {
-            var messageFilterLink = query.AddLink(SdkMessageFilter.EntityLogicalName, SdkMessage.PrimaryIdAttribute, SdkMessageFilter.Fields.SdkMessageId, JoinOperator.LeftOuter);
-            messageFilterLink.Columns = new ColumnSet(
-                SdkMessageFilter.PrimaryIdAttribute,
-                SdkMessageFilter.Fields.PrimaryObjectTypeCode
-            );
-            messageFilterLink.EntityAlias = "mf";
-            messageFilterLink.LinkCriteria.AddCondition(SdkMessageFilter.Fields.PrimaryObjectTypeCode, ConditionOperator.In, [.. entityNames]);
-        }
+            mf.Id,
+            mf.PrimaryObjectTypeCode
+        });
 
-        return reader.RetrieveMultiple(query)
-            .GroupBy(e => e.Id)
-            .Select(group =>
-            {
-                var message = group.First();
-                var messageId = message.Id;
-                var messageName = message.GetAttributeValue<string>(SdkMessage.Fields.Name);
-
-                // PrimaryObject -> MessageFilterId
-                var messageFilterIds = group
-                    .Where(g => g.Contains($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}"))
-                    .ToDictionary(
-                        g => g.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.Fields.PrimaryObjectTypeCode}")?.Value as string ?? string.Empty,
-                        g => g.GetAttributeValue<AliasedValue>($"mf.{SdkMessageFilter.PrimaryIdAttribute}")?.Value as Guid? ?? Guid.Empty
-                    );
-
-                return (
-                    messageName,
-                    messageId,
-                    messageFilterIds
-                );
-            })
-            .ToDictionary(
-                x => x.messageName,
-                x => new MessageFilterMap(x.messageId, x.messageFilterIds)
-            );
+        return messages.Select(message => (
+            MessageName: message.Name ?? string.Empty,
+            MessageId: message.Id,
+            MessageFilters: messageFilters[message.Id].ToDictionary(
+                mf => mf.PrimaryObjectTypeCode ?? string.Empty,
+                mf => mf.Id
+            )
+        )).ToDictionary(
+            x => x.MessageName,
+            x => new MessageFilterMap(x.MessageId, x.MessageFilters)
+        );
     }
 }
