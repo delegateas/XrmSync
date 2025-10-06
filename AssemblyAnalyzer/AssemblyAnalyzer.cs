@@ -21,7 +21,7 @@ public class AssemblyAnalyzer(IEnumerable<IAnalyzer<PluginDefinition>> pluginAna
         if (!Path.GetExtension(dllFullPath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
             throw new AnalysisException($"Invalid assembly file type: {Path.GetExtension(dllFullPath)}, expected DLL");
 
-        var dllname = Path.GetFileNameWithoutExtension(dllFullPath);
+        var dllName = Path.GetFileNameWithoutExtension(dllFullPath);
         var hash = File.ReadAllBytes(dllFullPath).Sha1Checksum();
 
         var assembly = Assembly.LoadFrom(dllFullPath);
@@ -31,9 +31,8 @@ public class AssemblyAnalyzer(IEnumerable<IAnalyzer<PluginDefinition>> pluginAna
         if (!types.Any())
             throw new AnalysisException("No types found in the assembly. Ensure the assembly contains valid plugin or custom API types.");
 
-        return new AssemblyInfo
+        return new AssemblyInfo(dllName)
         {
-            Name = dllname,
             Version = assemblyVersion,
             Hash = hash,
             DllPath = dllFullPath,

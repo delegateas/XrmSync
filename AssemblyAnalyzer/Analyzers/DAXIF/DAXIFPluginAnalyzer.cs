@@ -47,8 +47,7 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
                     GetRegistrationFromType<IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>>(MethodName, pluginType)
                     ?? throw new AnalysisException($"{MethodName}() returned null for type {pluginType.FullName}");
 
-                return new PluginDefinition {
-                    Name = pluginType.FullName ?? string.Empty,
+                return new PluginDefinition(pluginType.FullName ?? string.Empty) {
                     PluginSteps = [.. GetSteps(pluginTuples)]
                 };
             })];
@@ -62,9 +61,8 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
             var (deployment, mode, notUsedStepname, executionOrder, filteredAttr, userIdStr) = tuple.Item2;
             var stepName = StepName(className ?? string.Empty, (ExecutionMode)mode, (ExecutionStage)stage, eventOp ?? string.Empty, logicalName);
 
-            return new Step
+            return new Step(stepName)
             {
-                Name = stepName,
                 ExecutionStage = (ExecutionStage)stage,
                 Deployment = (Deployment)deployment,
                 ExecutionMode = (ExecutionMode)mode,
@@ -86,9 +84,8 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
             {
                 var (iName, iAlias, iType, iAttr) = image;
 
-                return new Image
+                return new Image(iName ?? string.Empty)
                 {
-                    Name = iName ?? string.Empty,
                     EntityAlias = iAlias ?? string.Empty,
                     ImageType = (ImageType)iType,
                     Attributes = iAttr ?? string.Empty

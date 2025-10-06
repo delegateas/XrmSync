@@ -10,10 +10,9 @@ public class PluginAssemblyReader(IDataverseReader reader) : IPluginAssemblyRead
         return (from pa in reader.PluginAssemblies
                 join sc in reader.SolutionComponents on pa.Id equals sc.ObjectId
                 where sc.SolutionId != null && sc.SolutionId.Id == solutionId && pa.Name == assemblyName
-                select new AssemblyInfo
+                select new AssemblyInfo(pa.Name ?? string.Empty)
                 {
                     Id = pa.Id,
-                    Name = pa.Name ?? string.Empty,
                     Version = pa.Version ?? string.Empty,
                     Hash = pa.SourceHash ?? string.Empty,
                 }).FirstOrDefault();

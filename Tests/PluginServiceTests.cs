@@ -39,8 +39,7 @@ public class PluginServiceTests
     public void CreatePluginAssembly_CallsWriterAndReturnsAssemblyWithId()
     {
         // Arrange
-        var assembly = new AssemblyInfo {
-            Name = "TestAssembly",
+        var assembly = new AssemblyInfo("TestAssembly") {
             DllPath = "path",
             Hash = "hash",
             Version = "1.0.0.0",
@@ -63,8 +62,8 @@ public class PluginServiceTests
     {
         // Arrange
         var assemblyId = Guid.NewGuid();
-        var assembly = new AssemblyInfo {
-            Name = "TestAssembly",
+        var assembly = new AssemblyInfo("TestAssembly")
+        {
             DllPath = "path",
             Hash = "hash",
             Version = "1.0.0.0",
@@ -82,9 +81,9 @@ public class PluginServiceTests
     public void CreatePlugins_CallsWriter()
     {
         // Arrange
-        var crmAssembly = new AssemblyInfo {
+        var crmAssembly = new AssemblyInfo("TestAssembly")
+        {
             Id = Guid.NewGuid(),
-            Name = "TestAssembly",
             DllPath = "path",
             Hash = "hash",
             Version = "1.0.0.0",
@@ -92,13 +91,11 @@ public class PluginServiceTests
         };
 
         var pluginType =
-            new PluginDefinition
+            new PluginDefinition("Type1")
             {
-                Name = "Type1",
                 Id = Guid.NewGuid(),
                 PluginSteps = [
-                    new() {
-                        Name = "Step1",
+                    new("Step1") {
                         ExecutionStage = ExecutionStage.PreValidation,
                         EventOperation = "Update",
                         LogicalName = "account",
@@ -109,8 +106,7 @@ public class PluginServiceTests
                         UserContext = Guid.NewGuid(),
                         AsyncAutoDelete = false,
                         PluginImages = [
-                            new() {
-                                Name = "Image1",
+                            new("Image1") {
                                 EntityAlias = "alias",
                                 ImageType = 0,
                                 Attributes = string.Empty
@@ -125,18 +121,16 @@ public class PluginServiceTests
         var pluginImages = pluginSteps.SelectMany(s => s.Entity.PluginImages.Select(i => new ParentReference<Image, Step>(i, s.Entity))).ToList();
 
         var customApi =
-            new CustomApiDefinition
+            new CustomApiDefinition("CustomApi1")
             {
-                Name = "CustomApi1",
                 UniqueName = "customapi_testapi",
                 Description = "Test API",
                 DisplayName = "Test API",
                 BoundEntityLogicalName = "account",
                 ExecutePrivilegeName = "prvTestExecute",
-                PluginType = new PluginType { Name = "CustomApiType", Id = Guid.NewGuid() },
+                PluginType = new PluginType("CustomApiType") { Id = Guid.NewGuid() },
                 RequestParameters = [
-                    new() {
-                        Name = "TestParameter",
+                    new("TestParameter") {
                         UniqueName = "test_parameter",
                         Type = 0,
                         DisplayName = "Test Parameter",
@@ -146,8 +140,7 @@ public class PluginServiceTests
                     }
                 ],
                 ResponseProperties = [
-                    new() {
-                        Name = "TestResponse",
+                    new("TestResponse") {
                         UniqueName = "test_response",
                         Type = 0,
                         DisplayName = "Test Response",
@@ -162,12 +155,10 @@ public class PluginServiceTests
         var responseProps = customApi.ResponseProperties.ConvertAll(r => new ParentReference<ResponseProperty, CustomApiDefinition>(r, customApi));
 
         var createdTypes = new List<PluginDefinition> {
-            new() {
-                Name = "CreatedType",
+            new("CreatedType") {
                 Id = Guid.NewGuid(),
                 PluginSteps = [
-                    new() {
-                        Name = "CreatedStep",
+                    new("CreatedStep") {
                         ExecutionStage = ExecutionStage.PreValidation,
                         EventOperation = "Update",
                         LogicalName = "account",
@@ -185,15 +176,14 @@ public class PluginServiceTests
         var createdSteps = createdTypes.SelectMany(t => t.PluginSteps.Select(s => new ParentReference<Step, PluginDefinition>(s, t))).ToList();
 
         var createdCustomApis = new List<CustomApiDefinition> {
-            new() {
-                Name = "CreatedCustomApi",
+            new("CreatedCustomApi") {
                 UniqueName = "customapi_created",
                 Id = Guid.NewGuid(),
                 Description = "Created API",
                 DisplayName = "Created API",
                 BoundEntityLogicalName = "account",
                 ExecutePrivilegeName = "prvCreatedExecute",
-                PluginType = new () { Name = "CreatedApiType", Id = Guid.NewGuid() },
+                PluginType = new ("CreatedApiType") { Id = Guid.NewGuid() },
             }
         };
 
@@ -238,17 +228,15 @@ public class PluginServiceTests
     public void DeletePlugins_CallsWriter()
     {
         // Arrange
-        Image image = new ()
+        Image image = new ("Image1")
         {
-            Name = "Image1",
             EntityAlias = "alias",
             ImageType = ImageType.PreImage,
             Attributes = string.Empty
         };
 
-        Step step = new ()
+        Step step = new ("Step1")
         {
-            Name = "Step1",
             ExecutionStage = ExecutionStage.PreOperation,
             ExecutionMode = ExecutionMode.Asynchronous,
             EventOperation = "Update",
@@ -261,9 +249,8 @@ public class PluginServiceTests
             PluginImages = [ image ]
         };
 
-        PluginDefinition type = new()
+        PluginDefinition type = new("Type1")
         {
-            Name = "Type1",
             Id = Guid.NewGuid(),
             PluginSteps = [step]
         };

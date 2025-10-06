@@ -40,12 +40,11 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, IAnalyzer<CustomApiDefinition>
 
             PluginType ??= string.Empty;
 
-            return new CustomApiDefinition
+            return new CustomApiDefinition(UniqueName ?? string.Empty)
             {
-                PluginType = new PluginType { Name = PluginType },
+                PluginType = new PluginType(PluginType),
 
                 UniqueName = prefix + "_" + UniqueName,
-                Name = UniqueName ?? string.Empty,
                 DisplayName = UniqueName ?? string.Empty, // No explicit display name in tuple, fallback to name
                 
                 IsFunction = IsFunction,
@@ -71,9 +70,8 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, IAnalyzer<CustomApiDefinition>
         return reqParams?.Select(p =>
         {
             var (Name, UniqueName, DisplayName, IsCustomizable, IsOptional, LogicalEntityName, Type) = p;
-            return new RequestParameter
+            return new RequestParameter(Name ?? string.Empty)
             {
-                Name = Name ?? string.Empty,
                 UniqueName = UniqueName ?? string.Empty,
                 DisplayName = DisplayName ?? string.Empty,
                 IsCustomizable = IsCustomizable,
@@ -88,9 +86,8 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, IAnalyzer<CustomApiDefinition>
     {
         return resProps?.Select(r => {
             var (Name, UniqueName, DisplayName, IsCustomizable, LogicalEntityName, Type) = r;
-            return new ResponseProperty
+            return new ResponseProperty(Name ?? string.Empty)
             {
-                Name = Name ?? string.Empty,
                 UniqueName = UniqueName ?? string.Empty,
                 DisplayName = DisplayName ?? string.Empty,
                 IsCustomizable = IsCustomizable,

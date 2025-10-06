@@ -31,9 +31,8 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
                 continue;
             }
 
-            yield return new PluginDefinition
+            yield return new PluginDefinition(pluginDefinitionName)
             {
-                Name = pluginDefinitionName,
                 PluginSteps = [.. steps]
             };
         }
@@ -63,9 +62,8 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
 
         var stepName = StepName(pluginDefinitionName, executionMode, executionStage, eventOperation, entityLogicalName);
 
-        return new Step
+        return new Step(stepName)
         {
-            Name = stepName,
             ExecutionStage = executionStage,
             EventOperation = eventOperation,
             LogicalName = entityLogicalName,
@@ -79,9 +77,8 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
         };
     }
 
-    private static Image ConvertImageSpecification(object imageSpec) => new ()
+    private static Image ConvertImageSpecification(object imageSpec) => new (GetImageValue(imageSpec, x => x.ImageName) ?? string.Empty)
     {
-        Name = GetImageValue(imageSpec, x => x.ImageName) ?? string.Empty,
         ImageType = GetImageValue(imageSpec, x => x.ImageType),
         Attributes = GetImageValue(imageSpec, x => x.Attributes) ?? string.Empty,
         EntityAlias = GetImageValue(imageSpec, x => x.EntityAlias) ?? string.Empty

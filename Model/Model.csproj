@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8</TargetFramework>
 		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>XrmSync.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>XrmSync.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>

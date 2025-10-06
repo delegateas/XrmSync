@@ -2,7 +2,7 @@
 
 namespace XrmSync.Model.Plugin;
 
-public record Image : EntityBase
+public record Image(string Name) : EntityBase(Name)
 {
     public required string EntityAlias { get; set; }
     public required ImageType ImageType { get; set; }

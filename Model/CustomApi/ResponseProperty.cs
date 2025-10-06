@@ -2,7 +2,7 @@ using XrmPluginCore.Enums;
 
 namespace XrmSync.Model.CustomApi;
 
-public record ResponseProperty : EntityBase
+public record ResponseProperty(string Name) : EntityBase(Name)
 {
     public required string UniqueName { get; set; }
     public required string DisplayName { get; set; }

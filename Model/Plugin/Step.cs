@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace XrmSync.Model.Plugin;
 
-public record Step : EntityBase
+public record Step(string Name) : EntityBase(Name)
 {
     public required ExecutionStage ExecutionStage { get; set; }
     public required string EventOperation { get; set; }

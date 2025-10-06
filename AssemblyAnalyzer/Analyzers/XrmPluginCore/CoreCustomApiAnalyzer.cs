@@ -28,10 +28,9 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
                 continue;
             }
 
-            yield return new CustomApiDefinition
+            yield return new CustomApiDefinition(GetConfigValue(registration, x => x.Name) ?? string.Empty)
             {
-                PluginType = new PluginType { Name = customApiType.FullName ?? string.Empty },
-                Name = GetConfigValue(registration, x => x.Name) ?? string.Empty,
+                PluginType = new PluginType(customApiType.FullName ?? string.Empty),
                 DisplayName = GetConfigValue(registration, x => x.DisplayName) ?? string.Empty,
                 UniqueName = prefix + "_" + (GetConfigValue(registration, x => x.UniqueName) ?? string.Empty),
 
@@ -60,9 +59,8 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
         }
         return requestParameters
             .Cast<object>()
-            .Select(param => new RequestParameter
+            .Select(param => new RequestParameter(GetRequestValue(param, x => x.Name) ?? string.Empty)
             {
-                Name = GetRequestValue(param, x => x.Name) ?? string.Empty,
                 DisplayName = GetRequestValue(param, x => x.DisplayName) ?? string.Empty,
                 UniqueName = GetRequestValue(param, x => x.UniqueName) ?? string.Empty,
                 Type = GetRequestValue(param, x => x.Type),
@@ -80,9 +78,8 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
         }
         return responseProperties
             .Cast<object>()
-            .Select(prop => new ResponseProperty
+            .Select(prop => new ResponseProperty(GetResponseValue(prop, x => x.Name) ?? string.Empty)
             {
-                Name = GetResponseValue(prop, x => x.Name) ?? string.Empty,
                 DisplayName = GetResponseValue(prop, x => x.DisplayName) ?? string.Empty,
                 UniqueName = GetResponseValue(prop, x => x.UniqueName) ?? string.Empty,
                 Type = GetResponseValue(prop, x => x.Type),

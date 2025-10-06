@@ -13,10 +13,9 @@ public class PluginReader(IDataverseReader reader) : IPluginReader
     {
         return [.. from pt in reader.PluginTypes
                 where pt.PluginAssemblyId != null && pt.PluginAssemblyId.Id == assemblyId
-                select new PluginDefinition
+                select new PluginDefinition(pt.Name ?? string.Empty)
                 {
                     Id = pt.Id,
-                    Name = pt.Name ?? string.Empty,
                     PluginSteps = new List<Step>()
                 }];
     }
@@ -89,19 +88,17 @@ public class PluginReader(IDataverseReader reader) : IPluginReader
             pi => pi.Attributes1,
             pi => pi.ImageType,
             pi => pi.SdkMessageProcessingStepId
-        ).ConvertAll(pi => (pi.SdkMessageProcessingStepId, Image: new Image
+        ).ConvertAll(pi => (pi.SdkMessageProcessingStepId, Image: new Image(pi.Name ?? string.Empty)
         {
             Id = pi.Id,
-            Name = pi.Name ?? string.Empty,
             EntityAlias = pi.EntityAlias ?? string.Empty,
             Attributes = pi.Attributes1 ?? string.Empty,
             ImageType = (ImageType)(pi.ImageType ?? 0),
         })).ToLookup(pi => pi.SdkMessageProcessingStepId?.Id ?? Guid.Empty, pi => pi.Image);
 
-        return steps.ConvertAll(s => new ParentReference<Step, PluginDefinition>(new Step
+        return steps.ConvertAll(s => new ParentReference<Step, PluginDefinition>(new Step(s.Name ?? string.Empty)
         {
             Id = s.Id,
-            Name = s.Name ?? string.Empty,
             ExecutionStage = (ExecutionStage)(s.Stage ?? 0),
             EventOperation = messages.ContainsKey(s.SdkMessageId?.Id ?? Guid.Empty) ? messages[s.SdkMessageId?.Id ?? Guid.Empty] : string.Empty,
             LogicalName = messageFilters.ContainsKey(s.SdkMessageFilterId?.Id ?? Guid.Empty) ? messageFilters[s.SdkMessageFilterId?.Id ?? Guid.Empty] : string.Empty,

@@ -2,7 +2,7 @@
 
 namespace XrmSync.Model.Plugin;
 
-public record PluginDefinition : EntityBase
+public record PluginDefinition(string Name) : EntityBase(Name)
 {
     public required List<Step> PluginSteps { get; set; }
 }

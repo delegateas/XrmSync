@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 
 namespace XrmSync.Model;
 
-public record AssemblyInfo : EntityBase
+public record AssemblyInfo(string Name) : EntityBase(Name)
 {
     public required string Version { get; set; }
     public required string Hash { get; set; }

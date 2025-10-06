@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace XrmSync.Model.CustomApi;
 
-public record CustomApiDefinition : EntityBase
+public record CustomApiDefinition(string Name) : EntityBase(Name)
 {
     public required PluginType PluginType { get; set; }
     public required string UniqueName { get; set; }
@@ -24,4 +24,4 @@ public record CustomApiDefinition : EntityBase
     public List<ResponseProperty> ResponseProperties { get; set; } = [];
 }
 
-public record PluginType : EntityBase;
+public record PluginType(string Name) : EntityBase(Name);

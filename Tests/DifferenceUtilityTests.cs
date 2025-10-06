@@ -34,16 +34,14 @@ public class DifferenceUtilityTests
     public void CalculateDifferences_ReturnsCorrectDifferences()
     {
         // Arrange
-        var localImage = new Image
+        var localImage = new Image("LocalImage")
         {
-            Name = "LocalImage",
             ImageType = ImageType.PreImage,
             Attributes = "",
             EntityAlias = "account"
         };
 
-        var localStep = new Step {
-            Name = "LocalStep",
+        var localStep = new Step("LocalStep") {
             ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
@@ -55,7 +53,7 @@ public class DifferenceUtilityTests
             AsyncAutoDelete = false,
             PluginImages = [ localImage ]
         };
-        var localType = new PluginDefinition { Name = "LocalType", PluginSteps = [ localStep ] };
+        var localType = new PluginDefinition("LocalType") { PluginSteps = [ localStep ] };
 
         var remoteImage = localImage with
         {
@@ -69,15 +67,14 @@ public class DifferenceUtilityTests
             Name = "RemoteStep",
             PluginImages = [ remoteImage ]
         };
-        var remoteType = new PluginDefinition { Name = "RemoteType", Id = Guid.NewGuid(), PluginSteps = [ remoteStep ] };
-        var sharedType = new PluginDefinition { Name = "SharedType", Id = Guid.NewGuid(), PluginSteps = [] };
+        var remoteType = new PluginDefinition("RemoteType") { Id = Guid.NewGuid(), PluginSteps = [ remoteStep ] };
+        var sharedType = new PluginDefinition("SharedType") { Id = Guid.NewGuid(), PluginSteps = [] };
 
-        var localData = new AssemblyInfo
+        var localData = new AssemblyInfo("LocalAssembly")
         {
             Id = Guid.Empty,
             DllPath = "local.dll",
             Hash = Guid.NewGuid().ToString(),
-            Name = "LocalAssembly",
             Version = "1.0.0",
             CustomApis = [],
             Plugins = [localType, sharedType]
@@ -115,11 +112,10 @@ public class DifferenceUtilityTests
     public void CalculateDifferences_EmptyData_ReturnsEmptyDifferences()
     {
         // Arrange
-        var emptyData = new AssemblyInfo {
+        var emptyData = new AssemblyInfo(string.Empty) {
             Id = Guid.Empty,
             DllPath = string.Empty,
             Hash = string.Empty,
-            Name = string.Empty,
             Version = string.Empty,
             CustomApis = [],
             Plugins = []
@@ -144,9 +140,8 @@ public class DifferenceUtilityTests
     public void CalculateDifferences_UpdatesDetected_ReturnsUpdates()
     {
         // Arrange
-        var localStep = new Step {
+        var localStep = new Step("TestStep") {
             Id = Guid.NewGuid(),
-            Name = "TestStep",
             ExecutionStage = ExecutionStage.PreValidation,
             EventOperation = "Create",
             LogicalName = "account",
@@ -158,7 +153,7 @@ public class DifferenceUtilityTests
             AsyncAutoDelete = false,
             PluginImages = []
         };
-        var localType = new PluginDefinition { Name = "LocalType", Id = Guid.NewGuid(), PluginSteps = [ localStep ] };
+        var localType = new PluginDefinition("LocalType") { Id = Guid.NewGuid(), PluginSteps = [ localStep ] };
 
         var remoteStep = localStep with
         {
@@ -169,12 +164,11 @@ public class DifferenceUtilityTests
         };
         var remoteType = localType with { Name = "RemoteType", PluginSteps = [ remoteStep ] };
 
-        var localData = new AssemblyInfo
+        var localData = new AssemblyInfo("LocalAssembly")
         {
             Id = Guid.Empty,
             DllPath = "local.dll",
             Hash = Guid.NewGuid().ToString(),
-            Name = "LocalAssembly",
             Version = "1.0.0",
             CustomApis = [],
             Plugins = [localType]
@@ -232,11 +226,10 @@ public class DifferenceUtilityTests
     [Fact]
     public void CalculateDifference_UnchangableUpdatesDetected_RequireRecreate()
     {
-        var localCustomApi = new CustomApiDefinition
+        var localCustomApi = new CustomApiDefinition("test_custom_api")
         {
             Id = Guid.NewGuid(),
-            Name = "test_custom_api",
-            PluginType = new PluginType { Id = Guid.NewGuid(), Name = "Type1" },
+            PluginType = new PluginType("Type1") { Id = Guid.NewGuid() },
             UniqueName = "new_test_custom_api",
             IsFunction = false,
             EnabledForWorkflow = true,
@@ -262,12 +255,11 @@ public class DifferenceUtilityTests
             IsFunction = true
         };
 
-        var localData = new AssemblyInfo
+        var localData = new AssemblyInfo("LocalAssembly")
         {
             Id = Guid.Empty,
             DllPath = "local.dll",
             Hash = Guid.NewGuid().ToString(),
-            Name = "LocalAssembly",
             Version = "1.0.0",
             CustomApis = [localCustomApi],
             Plugins = []
@@ -306,11 +298,10 @@ public class DifferenceUtilityTests
     [Fact]
     public void CalculateDifference_UnchangableUpdatesAndChangableDetected_RequiresRecreate()
     {
-        var localCustomApi = new CustomApiDefinition
+        var localCustomApi = new CustomApiDefinition("test_custom_api")
         {
             Id = Guid.NewGuid(),
-            Name = "test_custom_api",
-            PluginType = new PluginType { Id = Guid.NewGuid(), Name = "Type" },
+            PluginType = new PluginType ("Type") { Id = Guid.NewGuid() },
             UniqueName = "new_test_custom_api",
             IsFunction = false,
             EnabledForWorkflow = true,
@@ -338,12 +329,11 @@ public class DifferenceUtilityTests
             IsPrivate = true // UPDATE
         };
 
-        var localData = new AssemblyInfo
+        var localData = new AssemblyInfo("LocalAssembly")
         {
             Id = Guid.Empty,
             DllPath = "local.dll",
             Hash = Guid.NewGuid().ToString(),
-            Name = "LocalAssembly",
             Version = "1.0.0",
             CustomApis = [localCustomApi],
             Plugins = []

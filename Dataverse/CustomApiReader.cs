@@ -15,10 +15,9 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
             from api in reader.CustomApis
             join sc in reader.SolutionComponents on api.CustomApiId equals sc.ObjectId
             where sc.SolutionId != null && sc.SolutionId.Id == solutionId
-            select new CustomApiDefinition
+            select new CustomApiDefinition(api.Name ?? string.Empty)
             {
                 Id = api.Id,
-                Name = api.Name ?? string.Empty,
                 UniqueName = api.UniqueName ?? string.Empty,
                 DisplayName = api.DisplayName ?? string.Empty,
                 Description = api.Description ?? string.Empty,
@@ -32,9 +31,8 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
                 IsPrivate = api.IsPrivate ?? false,
                 ExecutePrivilegeName = api.ExecutePrivilegeName ?? string.Empty,
 
-                PluginType = new Model.CustomApi.PluginType {
-                    Id = api.PluginTypeId != null ? api.PluginTypeId.Id : Guid.Empty,
-                    Name = string.Empty // Will be populated later
+                PluginType = new Model.CustomApi.PluginType(string.Empty) { // Name will be populated later
+                    Id = api.PluginTypeId != null ? api.PluginTypeId.Id : Guid.Empty
                 },
             }];
 
@@ -44,11 +42,11 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
             return [];
         }
 
-        var pluginTypes = reader.RetrieveByColumn<Context.PluginType, Guid?>(
+        var pluginTypeNames = reader.RetrieveByColumn<Context.PluginType, Guid?>(
             pt => pt.PluginTypeId,
             [.. data.Select(d => d.PluginType.Id).Distinct()],
             pt => pt.Name
-        ).ToDictionary(pt => pt.Id, pt => new Model.CustomApi.PluginType { Id = pt.Id, Name = pt.Name ?? string.Empty });
+        ).ToDictionary(pt => pt.Id, pt => pt.Name ?? string.Empty);
 
         var reqs = reader.RetrieveByColumn<CustomApiRequestParameter>(
             r => r.CustomApiId,
@@ -61,9 +59,8 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
             r => r.IsOptional,
             r => r.IsCustomizable,
             r => r.CustomApiId
-        ).ToLookup(r => r.CustomApiId?.Id ?? Guid.Empty, r => new RequestParameter {
+        ).ToLookup(r => r.CustomApiId?.Id ?? Guid.Empty, r => new RequestParameter(r.Name ?? string.Empty) {
             Id = r.Id,
-            Name = r.Name ?? string.Empty,
             DisplayName = r.DisplayName ?? string.Empty,
             UniqueName = r.UniqueName ?? string.Empty,
             LogicalEntityName = r.LogicalEntityName ?? string.Empty,
@@ -82,9 +79,8 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
             r => r.Type,
             r => r.IsCustomizable,
             r => r.CustomApiId
-        ).ToLookup(r => r.CustomApiId?.Id ?? Guid.Empty, r => new ResponseProperty {
+        ).ToLookup(r => r.CustomApiId?.Id ?? Guid.Empty, r => new ResponseProperty(r.Name ?? string.Empty) {
             Id = r.Id,
-            Name = r.Name ?? string.Empty,
             DisplayName = r.DisplayName ?? string.Empty,
             UniqueName = r.UniqueName ?? string.Empty,
             LogicalEntityName = r.LogicalEntityName ?? string.Empty,
@@ -97,7 +93,7 @@ public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
         {
             return api with
             {
-                PluginType = pluginTypes.TryGetValue(api.PluginType.Id, out var pluginType) ? pluginType : api.PluginType,
+                PluginType = pluginTypeNames.TryGetValue(api.PluginType.Id, out var pluginTypeName) ? api.PluginType with { Name = pluginTypeName } : api.PluginType,
                 RequestParameters = [.. reqs[api.Id]],
                 ResponseProperties = [.. resps[api.Id]]
             };

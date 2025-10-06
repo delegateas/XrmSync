@@ -5,12 +5,10 @@ using System.Text.Json.Serialization;
 namespace XrmSync.Model;
 
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-public record EntityBase
+public record EntityBase(string Name)
 {
     [JsonIgnore]
     public Guid Id { get; set; }
-
-    public required string Name { get; set; }
 
     private string DebuggerDisplay => GetDebuggerDisplay();
 
