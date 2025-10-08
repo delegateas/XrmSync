@@ -1053,15 +1053,15 @@
       },
       "XrmPluginCore.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.0.0",
-        "contentHash": "996+PNSvtXfu4ZeFCJ/hhjQuAXP4I2cJifRXsKvqbEnpY7lF9IBNGoHTqKiefIlEsrFRsSGf5kiJo+oPW/NZqw=="
+        "resolved": "1.1.0",
+        "contentHash": "rRzCLl7PuT8XeEMH2btaKeUP0eRNqUtoY0tPZRQlHsPwu8G+wZjoyvyq5n5hraGRacp5IEO49/a1K4HMzYhW+g=="
       },
       "assemblyanalyzer": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[9.0.6, )",
           "System.Text.Json": "[9.0.6, )",
-          "XrmPluginCore.Abstractions": "[1.0.0, )",
+          "XrmPluginCore.Abstractions": "[1.1.0, )",
           "XrmSync.Model": "[1.0.0, )"
         }
       },
@@ -1077,7 +1077,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[9.0.6, )",
-          "XrmPluginCore.Abstractions": "[1.0.0, )"
+          "XrmPluginCore.Abstractions": "[1.1.0, )"
         }
       },
       "XrmSync.SyncService": {

@@ -1,4 +1,7 @@
 using BusinessDomain.Context;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Xrm.Sdk;
+using System;
 using XrmPluginCore;
 using XrmPluginCore.Enums;
 
@@ -9,13 +12,13 @@ namespace SamplePlugins
     {
         public AccountDuplicatePlugin()
         {
-            RegisterPluginStep<Account>(
+            RegisterStep<Account>(
                 EventOperation.Create,
                 ExecutionStage.PreOperation,
-                Execute)
+                ExecuteCreate)
                 .AddFilteredAttributes(x => x.Name, x => x.EmailAddress1);
 
-            RegisterPluginStep<Account>(
+            RegisterStep<Account>(
                 EventOperation.Update,
                 ExecutionStage.PostOperation,
                 ExecuteUpdate)
@@ -24,14 +27,17 @@ namespace SamplePlugins
                 .AddImage(ImageType.PostImage, x => x.Telephone1, x => x.Fax);
         }
 
-        protected void Execute(LocalPluginContext localContext)
+        protected void ExecuteCreate(IServiceProvider serviceProvider)
         {
-            localContext.Trace($"AccountDuplicatePlugin executed for {localContext.PluginExecutionContext.MessageName}");
+            var tracingService = serviceProvider.GetService<ITracingService>();
+            var pluginContext = serviceProvider.GetService<IPluginExecutionContext>();
+            tracingService.Trace($"AccountDuplicatePlugin executed for {pluginContext.MessageName}");
         }
 
-        protected void ExecuteUpdate(LocalPluginContext localContext) 
+        protected void ExecuteUpdate(IServiceProvider serviceProvider)
         {
-            localContext.Trace("AccountDuplicatePlugin ExecuteUpdate executed");
+            var tracingService = serviceProvider.GetService<ITracingService>();
+            tracingService.Trace("AccountDuplicatePlugin ExecuteUpdate executed");
         }
     }
 }

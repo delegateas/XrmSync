@@ -1,34 +1,36 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
-    <RootNamespace>SamplePlugins</RootNamespace>
-    <AssemblyName>SamplePlugins</AssemblyName>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net462</TargetFramework>
+		<ImplicitUsings>false</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<RootNamespace>SamplePlugins</RootNamespace>
+		<AssemblyName>SamplePlugins</AssemblyName>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="ILRepack" Version="2.0.44">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.59" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="ILRepack" Version="2.0.44">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.59" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\BusinessDomain\BusinessDomain.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\BusinessDomain\BusinessDomain.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="app.config" />
+	</ItemGroup>
 
-  <Target Name="ILMergeAfterBuild" AfterTargets="AfterBuild" Condition="'$(OS)' == 'Windows_NT'">
-    <ItemGroup>
-      <InputAssemblies Include="$(TargetPath)" />
-      <InputAssemblies Include="$(TargetDir)BusinessDomain.dll" />
-    </ItemGroup>
-    <Exec Command="&quot;$(ILRepack)&quot; /parallel /keyfile:../../resources/delegate.snk /lib:&quot;$(TargetDir)\&quot; /out:&quot;$(TargetDir)ILMerged.$(TargetFileName)&quot; @(InputAssemblies -> '&quot;%(Identity)&quot;', ' ')" />
-  </Target>
+	<Target Name="ILMergeAfterBuild" AfterTargets="AfterBuild" Condition="'$(OS)' == 'Windows_NT'">
+		<ItemGroup>
+			<InputAssemblies Include="$(TargetPath)" />
+			<InputAssemblies Include="$(TargetDir)BusinessDomain.dll" />
+		</ItemGroup>
+		<Exec Command="&quot;$(ILRepack)&quot; /parallel /keyfile:../../resources/delegate.snk /lib:&quot;$(TargetDir)\&quot; /out:&quot;$(TargetDir)ILMerged.$(TargetFileName)&quot; @(InputAssemblies -> '&quot;%(Identity)&quot;', ' ')" />
+	</Target>
 
 </Project>

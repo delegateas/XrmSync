@@ -14,7 +14,7 @@ public class CustomApiComparer(Description description) : BaseComparer<CustomApi
                local.Description == remote.Description;
     }
 
-    public override IEnumerable<Expression<Func<CustomApiDefinition, object>>> GetDifferentPropertyNames(CustomApiDefinition local, CustomApiDefinition remote)
+    public override IEnumerable<Expression<Func<CustomApiDefinition, object?>>> GetDifferentPropertyNames(CustomApiDefinition local, CustomApiDefinition remote)
     {
         if (local.Name != remote.Name) yield return x => x.Name;
         if (local.DisplayName != remote.DisplayName) yield return x => x.DisplayName;
@@ -24,7 +24,7 @@ public class CustomApiComparer(Description description) : BaseComparer<CustomApi
         if (local.PluginType.Name != remote.PluginType.Name) yield return x => x.PluginType;
     }
 
-    public override IEnumerable<Expression<Func<CustomApiDefinition, object>>> GetRequiresRecreate(CustomApiDefinition local, CustomApiDefinition remote)
+    public override IEnumerable<Expression<Func<CustomApiDefinition, object?>>> GetRequiresRecreate(CustomApiDefinition local, CustomApiDefinition remote)
     {
         if (local.UniqueName != remote.UniqueName) yield return x => x.UniqueName;
         if (local.BindingType != remote.BindingType) yield return x => x.BindingType;

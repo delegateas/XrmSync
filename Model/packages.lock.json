@@ -14,9 +14,9 @@
       },
       "XrmPluginCore.Abstractions": {
         "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "996+PNSvtXfu4ZeFCJ/hhjQuAXP4I2cJifRXsKvqbEnpY7lF9IBNGoHTqKiefIlEsrFRsSGf5kiJo+oPW/NZqw=="
+        "requested": "[1.1.0, )",
+        "resolved": "1.1.0",
+        "contentHash": "rRzCLl7PuT8XeEMH2btaKeUP0eRNqUtoY0tPZRQlHsPwu8G+wZjoyvyq5n5hraGRacp5IEO49/a1K4HMzYhW+g=="
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",

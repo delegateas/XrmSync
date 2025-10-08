@@ -29,6 +29,7 @@ public class PluginReader(IDataverseReader reader) : IPluginReader
         }
 
         // Get all steps for the provided plugin types
+#pragma warning disable CS0612 // PluginTypeId is marked as obsolete, but we need it anyway
         var steps = reader.RetrieveByColumn<SdkMessageProcessingStep>(
             s => s.PluginTypeId,
             [.. pluginTypes.Select(pt => pt.Id)],
@@ -57,6 +58,7 @@ public class PluginReader(IDataverseReader reader) : IPluginReader
             s.SdkMessageFilterId,
             s.PluginTypeId
         });
+#pragma warning restore CS0612 // PluginTypeId is marked as obsolete, but we need it anyway
 
         // Filter by solution, get solution components for the steps
         var solutionComponents = reader.RetrieveByColumn<SolutionComponent, Guid?, Guid?>(

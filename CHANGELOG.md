@@ -1,3 +1,6 @@
+### v1.0.0-preview.10 - 08 October 2025
+* Update: XrmPluginCore has been updated, EventOperation is now a string type
+
 ### v1.0.0-preview.9 - 03 October 2025
 * Update: XrmPluginCore has been updated, we can now sync Plugin and CustomAPIs that have the same base class
 

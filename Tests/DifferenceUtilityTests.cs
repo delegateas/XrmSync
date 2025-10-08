@@ -219,8 +219,8 @@ public class DifferenceUtilityTests
         Assert.Equal("name,description,subject", filteredAttributesComp(update.Remote.Entity)); // Remote FilteredAttributes
         Assert.Equal(localStep.UserContext, userContextComp(update.Local.Entity));
         Assert.Equal(remoteStep.UserContext, userContextComp(update.Remote.Entity));
-        Assert.False((bool)asyncComp(update.Local.Entity));
-        Assert.True((bool)asyncComp(update.Remote.Entity));
+        Assert.False((bool?)asyncComp(update.Local.Entity));
+        Assert.True((bool?)asyncComp(update.Remote.Entity));
     }
 
     [Fact]

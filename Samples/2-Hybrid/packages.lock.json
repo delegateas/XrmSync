@@ -21,13 +21,13 @@
       },
       "XrmPluginCore": {
         "type": "Direct",
-        "requested": "[1.0.1, )",
-        "resolved": "1.0.1",
-        "contentHash": "0v8D3u7UmJJ0uEkFTHHdAZA7NtYRTpuSgTCpA6mk53KQ8U5lUmu1f9u01ZRx8Q5L4KZGDFZIoFotb84qTfO0wQ==",
+        "requested": "[1.1.0, )",
+        "resolved": "1.1.0",
+        "contentHash": "vJr56bDselo9khDnMsi705yQqT6TOME48Gv5iU5XPeaV4otwsKHikLrkI0M1Cmi9C2Wepbk3vxBqMVEDIJV3Uw==",
         "dependencies": {
           "Microsoft.CrmSdk.CoreAssemblies": "9.0.2.59",
           "Microsoft.Extensions.DependencyInjection": "9.0.9",
-          "XrmPluginCore.Abstractions": "1.0.0"
+          "XrmPluginCore.Abstractions": "1.1.0"
         }
       },
       "Microsoft.Bcl.AsyncInterfaces": {
@@ -134,8 +134,8 @@
       },
       "XrmPluginCore.Abstractions": {
         "type": "Transitive",
-        "resolved": "1.0.0",
-        "contentHash": "996+PNSvtXfu4ZeFCJ/hhjQuAXP4I2cJifRXsKvqbEnpY7lF9IBNGoHTqKiefIlEsrFRsSGf5kiJo+oPW/NZqw=="
+        "resolved": "1.1.0",
+        "contentHash": "rRzCLl7PuT8XeEMH2btaKeUP0eRNqUtoY0tPZRQlHsPwu8G+wZjoyvyq5n5hraGRacp5IEO49/a1K4HMzYhW+g=="
       },
       "businessdomain": {
         "type": "Project",

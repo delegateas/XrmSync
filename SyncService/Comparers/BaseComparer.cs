@@ -6,8 +6,8 @@ namespace XrmSync.SyncService.Comparers;
 
 public abstract class BaseComparer<TEntity> : IEntityComparer<TEntity> where TEntity : EntityBase
 {
-    public abstract IEnumerable<Expression<Func<TEntity, object>>> GetDifferentPropertyNames(TEntity local, TEntity remote);
-    public virtual IEnumerable<Expression<Func<TEntity, object>>> GetRequiresRecreate(TEntity local, TEntity remote) { return []; }
+    public abstract IEnumerable<Expression<Func<TEntity, object?>>> GetDifferentPropertyNames(TEntity local, TEntity remote);
+    public virtual IEnumerable<Expression<Func<TEntity, object?>>> GetRequiresRecreate(TEntity local, TEntity remote) => [];
 
     public bool Equals(TEntity? local, TEntity? remote)
     {

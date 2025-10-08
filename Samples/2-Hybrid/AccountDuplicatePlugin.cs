@@ -1,9 +1,12 @@
 using BusinessDomain.Context;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Xrm.Sdk;
+using System;
+using XrmPluginCore;
 using CorePlugin = XrmPluginCore.Plugin;
 using EO = XrmPluginCore.Enums.EventOperation;
 using ES = XrmPluginCore.Enums.ExecutionStage;
 using IT = XrmPluginCore.Enums.ImageType;
-using Context = XrmPluginCore.LocalPluginContext;
 
 namespace SamplePlugins
 {
@@ -12,12 +15,13 @@ namespace SamplePlugins
     {
         public AccountDuplicatePlugin()
         {
-            RegisterPluginStep<Account>(
+            RegisterStep<Account>(
                 EO.Create,
                 ES.PreOperation,
-                Execute)
+                ExecuteCreate)
                 .AddFilteredAttributes(x => x.Name, x => x.EmailAddress1);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             RegisterPluginStep<Account>(
                 EO.Update,
                 ES.PostOperation,
@@ -25,16 +29,19 @@ namespace SamplePlugins
                 .AddFilteredAttributes(x => x.Telephone1, x => x.Fax)
                 .AddImage(IT.PreImage, x => x.Telephone1)
                 .AddImage(IT.PostImage, x => x.Telephone1, x => x.Fax);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        protected void Execute(Context localContext)
+        protected void ExecuteCreate(IServiceProvider serviceProvider)
         {
-            localContext.Trace($"AccountDuplicatePlugin executed for {localContext.PluginExecutionContext.MessageName}");
+            var tracingService = serviceProvider.GetService<ITracingService>();
+            var pluginContext = serviceProvider.GetService<IPluginExecutionContext>();
+            tracingService.Trace($"AccountDuplicatePlugin executed for {pluginContext.MessageName}");
         }
 
-        protected void ExecuteUpdate(Context localContext) 
+        protected void ExecuteUpdate(LocalPluginContext context)
         {
-            localContext.Trace("AccountDuplicatePlugin ExecuteUpdate executed");
+            context.Trace("AccountDuplicatePlugin ExecuteUpdate executed");
         }
     }
 }

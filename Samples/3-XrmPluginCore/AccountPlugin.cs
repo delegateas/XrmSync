@@ -7,60 +7,41 @@ namespace SamplePlugins {
 
         public AccountPlugin() {
             // MODIFIED: Update step - changed filtered attributes and images to test Updates
-            RegisterPluginStep<Account>(
+            RegisterStep<Account, IAccountService>(
                 EventOperation.Update,
                 ExecutionStage.PostOperation,
-                Execute)
+                s => s.TraceExecution())
                 .AddFilteredAttributes(x => x.Name, x => x.AccountNumber, x => x.Telephone1) // Added Telephone1
                 .AddImage(ImageType.PreImage, x => x.Name, x => x.AccountNumber, x => x.Telephone1) // Added Telephone1
                 .AddImage(ImageType.PostImage, x => x.Name, x => x.Telephone1); // Added Telephone1
 
             // EXISTING: Create step (same as SamplePlugins - no change)
-            RegisterPluginStep<Account>(
+            RegisterStep<Account, IAccountService>(
                 EventOperation.Create,
                 ExecutionStage.PostOperation,
-                Execute);
+                s => s.TraceExecution());
 
             // NEW: Create PreOperation step - this will be a CREATE difference
-            RegisterPluginStep<Account>(
+            RegisterStep<Account, IAccountService>(
                 EventOperation.Create,
                 ExecutionStage.PreOperation,
-                ExecuteCreatePreOp)
+                s => s.TraceExecution())
                 .AddFilteredAttributes(x => x.AccountNumber, x => x.WebsiteUrl);
 
             // NEW: Delete step - this will be a CREATE difference (not in SamplePlugins)
-            RegisterPluginStep<Account>(
+            RegisterStep<Account, IAccountService>(
                 EventOperation.Delete,
                 ExecutionStage.PreOperation,
-                ExecuteDeletePreOp)
+                s => s.TraceExecution())
                 .AddImage(ImageType.PreImage, x => x.Name, x => x.AccountNumber);
 
             // NEW: Additional Update step with different stage - CREATE difference
-            RegisterPluginStep<Account>(
+            RegisterStep<Account, IAccountService>(
                 EventOperation.Update,
                 ExecutionStage.PreOperation,
-                ExecuteUpdatePreOp)
+                s => s.TraceExecution())
                 .AddFilteredAttributes(x => x.Description)
                 .AddImage(ImageType.PreImage, x => x.Description);
-        }
-
-        protected void Execute(LocalPluginContext ctx) {
-            ctx.Trace("Execute executed");
-        }
-
-        protected void ExecuteCreatePreOp(LocalPluginContext ctx)
-        {
-            ctx.Trace("ExecutePreOp executed");
-        }
-
-        protected void ExecuteDeletePreOp(LocalPluginContext ctx)
-        {
-            ctx.Trace("ExecuteDelete executed");
-        }
-
-        protected void ExecuteUpdatePreOp(LocalPluginContext ctx)
-        {
-            ctx.Trace("ExecuteUpdatePre executed");
         }
     }
 }

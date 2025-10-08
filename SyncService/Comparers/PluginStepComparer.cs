@@ -5,7 +5,7 @@ namespace XrmSync.SyncService.Comparers;
 
 public class PluginStepComparer() : BaseComparer<Step>
 {
-    public override IEnumerable<Expression<Func<Step, object>>> GetDifferentPropertyNames(Step local, Step remote)
+    public override IEnumerable<Expression<Func<Step, object?>>> GetDifferentPropertyNames(Step local, Step remote)
     {
         if (local.Name != remote.Name) yield return x => x.Name;
         if (local.ExecutionOrder != remote.ExecutionOrder) yield return x => x.ExecutionOrder;
@@ -14,7 +14,7 @@ public class PluginStepComparer() : BaseComparer<Step>
         if (local.AsyncAutoDelete != remote.AsyncAutoDelete) yield return x => x.AsyncAutoDelete;
     }
 
-    public override IEnumerable<Expression<Func<Step, object>>> GetRequiresRecreate(Step local, Step remote)
+    public override IEnumerable<Expression<Func<Step, object?>>> GetRequiresRecreate(Step local, Step remote)
     {
         if (local.ExecutionStage != remote.ExecutionStage) yield return x => x.ExecutionStage;
         if (local.Deployment != remote.Deployment) yield return x => x.Deployment;

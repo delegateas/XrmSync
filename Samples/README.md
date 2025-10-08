@@ -119,16 +119,25 @@ This project provides the most comprehensive implementation:
 These sample projects are designed to work with XrmSync for:
 
 ### Testing Synchronization Scenarios:# Sync base implementation
+```bash
 xrmsync --assembly "Samples/1-DAXIF/bin/Debug/net462/SamplePlugins.dll" --solution-name "TestSolution"
+```
 
 # Sync hybrid approach
+```bash
 xrmsync --assembly "Samples/2-Hybrid/bin/Debug/net462/ILMerged.SamplePlugins.dll" --solution-name "TestSolution"
+```
 
 # Sync XrmPluginCore implementation
+```bash
 xrmsync --assembly "Samples/3-XrmPluginCore/bin/Debug/net462/ILMerged.SamplePlugins.dll" --solution-name "TestSolution"
+```
 
 # Sync full implementation
+```bash
 xrmsync --assembly "Samples/4-Full-DAXIF/bin/Debug/net462/ILMerged.SamplePlugins.dll" --solution-name "TestSolution"
+```
+
 ### Analyzer Testing:
 The projects test different analyzer scenarios:
 - **CoreAnalyzer**: Handles custom plugin base classes (1-DAXIF, 2-Hybrid, 4-Full-DAXIF)
@@ -137,9 +146,9 @@ The projects test different analyzer scenarios:
 
 ### Difference Detection:
 Progressive synchronization testing:
-- **1-DAXIF ? 2-Hybrid**: Modified steps, new plugin registrations
-- **1-DAXIF ? 3-XrmPluginCore**: Framework change, new features
-- **Any ? 4-Full-DAXIF**: Comprehensive feature additions
+- **1-DAXIF > 2-Hybrid**: Modified steps, new plugin registrations
+- **1-DAXIF > 3-XrmPluginCore**: Framework change, new features
+- **Any > 4-Full-DAXIF**: Comprehensive feature additions
 
 XrmSync will detect:
 - **Updates**: Modified filtered attributes and images on existing steps
@@ -154,13 +163,18 @@ All projects target **.NET Framework 4.6.2** and include:
 - **BusinessDomain**: Shared project reference for entity context
 
 ### Build Commands:# Build individual projects
+```bash
 dotnet build Samples/1-DAXIF/
 dotnet build Samples/2-Hybrid/
 dotnet build Samples/3-XrmPluginCore/
 dotnet build Samples/4-Full-DAXIF/
+```
 
 # Build all samples
+```bash
 dotnet build Samples/
+```
+
 ## Progressive Testing Scenarios
 
 The samples are designed for progressive testing:

@@ -60,7 +60,7 @@ internal class PrintService(ILogger<PrintService> log, XrmSyncConfiguration conf
         differences.Deletes.ForEach(x => log.Log(LogLevel, "  - {name}", namePicker(x)));
     }
 
-    private static string GetPropNames<TEntity>(TEntity localEntity, TEntity? remoteEntity, IEnumerable<Expression<Func<TEntity, object>>> differentProperties)
+    private static string GetPropNames<TEntity>(TEntity localEntity, TEntity? remoteEntity, IEnumerable<Expression<Func<TEntity, object?>>> differentProperties)
     {
         return string.Join(", ", differentProperties
             .Select(p =>

@@ -7,20 +7,20 @@ internal class AllowImageRule : IValidationRule<Step>
 {
     public string ErrorMessage(Step item) => item.EventOperation + " message does not support entity images";
 
-    private readonly EventOperation[] allowedOperations = [
-        EventOperation.Create,
-        EventOperation.Delete,
-        EventOperation.DeliverIncoming,
-        EventOperation.DeliverPromote,
-        EventOperation.Merge,
-        EventOperation.Route,
-        EventOperation.Send,
-        EventOperation.SetState,
-        EventOperation.Update,
+    private readonly string[] allowedOperations = [
+        nameof(EventOperation.Create),
+        nameof(EventOperation.Delete),
+        nameof(EventOperation.DeliverIncoming),
+        nameof(EventOperation.DeliverPromote),
+        nameof(EventOperation.Merge),
+        nameof(EventOperation.Route),
+        nameof(EventOperation.Send),
+        nameof(EventOperation.SetState),
+        nameof(EventOperation.Update),
     ];
 
     public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
     {
-        return items.Where(i => i.PluginImages.Count > 0 && !allowedOperations.Contains(Enum.Parse<EventOperation>(i.EventOperation, true)));
+        return items.Where(i => i.PluginImages.Count > 0 && !allowedOperations.Contains(i.EventOperation));
     }
 }

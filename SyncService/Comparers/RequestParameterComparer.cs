@@ -5,13 +5,13 @@ namespace XrmSync.SyncService.Comparers;
 
 public class RequestParameterComparer : BaseComparer<RequestParameter>
 {
-    public override IEnumerable<Expression<Func<RequestParameter, object>>> GetDifferentPropertyNames(RequestParameter local, RequestParameter remote)
+    public override IEnumerable<Expression<Func<RequestParameter, object?>>> GetDifferentPropertyNames(RequestParameter local, RequestParameter remote)
     {
         if (local.Name != remote.Name) yield return x => x.Name;
         if (local.DisplayName != remote.DisplayName) yield return x => x.DisplayName;
     }
 
-    public override IEnumerable<Expression<Func<RequestParameter, object>>> GetRequiresRecreate(RequestParameter local, RequestParameter remote)
+    public override IEnumerable<Expression<Func<RequestParameter, object?>>> GetRequiresRecreate(RequestParameter local, RequestParameter remote)
     {
         if (local.UniqueName != remote.UniqueName) yield return local => local.UniqueName;
         if (local.IsCustomizable != remote.IsCustomizable) yield return local => local.IsCustomizable;

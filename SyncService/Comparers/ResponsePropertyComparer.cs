@@ -5,13 +5,13 @@ namespace XrmSync.SyncService.Comparers;
 
 public class ResponsePropertyComparer : BaseComparer<ResponseProperty>
 {
-    public override IEnumerable<Expression<Func<ResponseProperty, object>>> GetDifferentPropertyNames(ResponseProperty x, ResponseProperty y)
+    public override IEnumerable<Expression<Func<ResponseProperty, object?>>> GetDifferentPropertyNames(ResponseProperty x, ResponseProperty y)
     {
         if (x.Name != y.Name) yield return x => x.Name;
         if (x.DisplayName != y.DisplayName) yield return x => x.DisplayName;
     }
 
-    public override IEnumerable<Expression<Func<ResponseProperty, object>>> GetRequiresRecreate(ResponseProperty local, ResponseProperty remote)
+    public override IEnumerable<Expression<Func<ResponseProperty, object?>>> GetRequiresRecreate(ResponseProperty local, ResponseProperty remote)
     {
         if (local.UniqueName != remote.UniqueName) yield return local => local.UniqueName;
         if (local.IsCustomizable != remote.IsCustomizable) yield return local => local.IsCustomizable;

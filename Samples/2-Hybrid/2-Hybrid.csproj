@@ -1,7 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net462</TargetFramework>
+		<ImplicitUsings>false</ImplicitUsings>
+		<Nullable>disable</Nullable>
 		<RootNamespace>SamplePlugins</RootNamespace>
 		<AssemblyName>SamplePlugins</AssemblyName>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -13,7 +15,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.59" />
-		<PackageReference Include="XrmPluginCore" Version="1.0.1" />
+		<PackageReference Include="XrmPluginCore" Version="1.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
