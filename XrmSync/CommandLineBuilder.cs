@@ -30,12 +30,12 @@ internal class CommandLineBuilder
 
     protected CommandLineOptions Options { get; } = new()
     {
-        AssemblyFile = new("--assembly", "-a", "--assembly-file", "--af")
+        AssemblyFile = new("--assembly", "--assembly-file", "-a", "--af")
         {
             Description = "Path to the plugin assembly (*.dll)",
             Arity = ArgumentArity.ExactlyOne
         },
-        SolutionName = new("--solution-name", "--sn", "-n")
+        SolutionName = new("--solution", "--solution-name", "--sn", "-n")
         {
             Description = "Name of the solution",
             Arity = ArgumentArity.ExactlyOne
