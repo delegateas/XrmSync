@@ -2,120 +2,56 @@
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
 using XrmSync.Actions;
+using XrmSync.Commands;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 
 namespace XrmSync;
 
-internal record CommandLineOptions
-{
-    public required Option<string> AssemblyFile { get; init; }
-    public required Option<string> SolutionName { get; init; }
-    public required Option<string> Prefix { get; init; }
-    public required Option<bool> DryRun { get; init; }
-    public required Option<LogLevel?> LogLevel { get; init; }
-    public required Option<bool> PrettyPrint { get; init; }
-    public required Option<bool> SaveConfig { get; init; }
-    public required Option<string?> SaveConfigTo { get; init; }
-    public required Option<bool> CIMode { get; init; }
-}
-
-internal record SyncCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, bool CIMode);
+internal record SyncPluginCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, bool CIMode);
 internal record AnalyzeCLIOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint);
 
 internal class CommandLineBuilder
 {
-    protected RootCommand SyncCommand { get; init; }
+    protected RootCommand SyncPluginCommand { get; init; }
     protected Command AnalyzeCommand { get; init; }
 
-    protected CommandLineOptions Options { get; } = new()
-    {
-        AssemblyFile = new("--assembly", "--assembly-file", "-a", "--af")
-        {
-            Description = "Path to the plugin assembly (*.dll)",
-            Arity = ArgumentArity.ExactlyOne
-        },
-        SolutionName = new("--solution", "--solution-name", "--sn", "-n")
-        {
-            Description = "Name of the solution",
-            Arity = ArgumentArity.ExactlyOne
-        },
-        Prefix = new("--prefix", "--publisher-prefix", "-p")
-        {
-            Description = "Publisher prefix for unique names (Default: new)",
-            Arity = ArgumentArity.ExactlyOne
-        },
-        DryRun = new("--dry-run", "--dryrun", "--dr")
-        {
-            Description = "Perform a dry run without making changes",
-            Required = false
-        },
-        LogLevel = new ("--log-level", "-l")
-            {
-            Description = "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) (Default: Information)"
-        },
-        PrettyPrint = new("--pretty-print", "--pp")
-        {
-            Description = "Pretty print the JSON output",
-            Required = false
-        },
-        SaveConfig = new("--save-config", "--sc")
-        {
-            Description = "Save current CLI options to appsettings.json",
-            Required = false
-        },
-        SaveConfigTo = new ("--save-config-to")
-        {
-            Description = "If --save-config is set, save to this file instead of appsettings.json",
-            Required = false
-        },
-        CIMode = new ("--ci", "--ci-mode")
-        {
-            Description = "Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems",
-            Required = false
-        }
-    };
-
-    public CommandLineBuilder()
-    {
-        SyncCommand = new ("XrmSync - Synchronize your Dataverse plugins")
-        {
-            Options.AssemblyFile,
-            Options.SolutionName,
-            Options.DryRun,
-            Options.LogLevel,
-            Options.SaveConfig,
-            Options.SaveConfigTo,
-            Options.CIMode
-        };
-
-        AnalyzeCommand = new ("analyze", "Analyze a plugin assembly and output info as JSON")
-        {
-            Options.AssemblyFile,
-            Options.Prefix,
-            Options.PrettyPrint,
-            Options.SaveConfig,
-            Options.SaveConfigTo
-        };
-        SyncCommand.Subcommands.Add(AnalyzeCommand);
-    }
+    private readonly SyncPluginCommandDefinition _syncPluginOptions;
+    private readonly AnalyzeCommandDefinition _analyzeOptions;
 
     private const int E_OK = 0;
     private const int E_ERROR = 1;
 
-    public CommandLineBuilder SetPluginSyncServiceProviderFactory(Func<SyncCLIOptions, IServiceProvider> factory)
+    public CommandLineBuilder()
     {
-        SyncCommand.SetAction(async (parseResult, cancellationToken) =>
-        {
-            var assemblyPath = parseResult.GetValue(Options.AssemblyFile);
-            var solutionName = parseResult.GetValue(Options.SolutionName);
-            var dryRun = parseResult.GetValue(Options.DryRun);
-            var logLevel = parseResult.GetValue(Options.LogLevel);
-            var saveConfig = parseResult.GetValue(Options.SaveConfig);
-            var saveConfigTo = saveConfig ? parseResult.GetValue(Options.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json"  : null;
-            var ciMode = parseResult.GetValue(Options.CIMode);
+        _syncPluginOptions = new SyncPluginCommandDefinition();
+        _analyzeOptions = new AnalyzeCommandDefinition();
 
-            var syncOptions = new SyncCLIOptions(assemblyPath, solutionName, dryRun, logLevel, ciMode);
+        SyncPluginCommand = [.. _syncPluginOptions.GetOptions()];
+        SyncPluginCommand.Description = "XrmSync - Synchronize your Dataverse plugins";
+
+        AnalyzeCommand = new("analyze", "Analyze a plugin assembly and output info as JSON");
+        foreach (var option in _analyzeOptions.GetOptions())
+        {
+            AnalyzeCommand.Add(option);
+        }
+
+        SyncPluginCommand.Subcommands.Add(AnalyzeCommand);
+    }
+
+    public CommandLineBuilder SetPluginSyncServiceProviderFactory(Func<SyncPluginCLIOptions, IServiceProvider> factory)
+    {
+        SyncPluginCommand.SetAction(async (parseResult, cancellationToken) =>
+        {
+            var assemblyPath = parseResult.GetValue(_syncPluginOptions.AssemblyFile);
+            var solutionName = parseResult.GetValue(_syncPluginOptions.SolutionName);
+            var dryRun = parseResult.GetValue(_syncPluginOptions.DryRun);
+            var logLevel = parseResult.GetValue(_syncPluginOptions.LogLevel);
+            var saveConfig = parseResult.GetValue(_syncPluginOptions.SaveConfig);
+            var saveConfigTo = saveConfig ? parseResult.GetValue(_syncPluginOptions.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
+            var ciMode = parseResult.GetValue(_syncPluginOptions.CIMode);
+
+            var syncOptions = new SyncPluginCLIOptions(assemblyPath, solutionName, dryRun, logLevel, ciMode);
             var serviceProvider = factory.Invoke(syncOptions);
 
             return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginSync, cancellationToken)
@@ -130,11 +66,11 @@ internal class CommandLineBuilder
     {
         AnalyzeCommand.SetAction(async (parseResult, cancellationToken) =>
         {
-            var assemblyPath = parseResult.GetValue(Options.AssemblyFile);
-            var publisherPrefix = parseResult.GetValue(Options.Prefix);
-            var prettyPrint = parseResult.GetValue(Options.PrettyPrint);
-            var saveConfig = parseResult.GetValue(Options.SaveConfig);
-            var saveConfigTo = saveConfig ? parseResult.GetValue(Options.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
+            var assemblyPath = parseResult.GetValue(_analyzeOptions.AssemblyFile);
+            var publisherPrefix = parseResult.GetValue(_analyzeOptions.Prefix);
+            var prettyPrint = parseResult.GetValue(_analyzeOptions.PrettyPrint);
+            var saveConfig = parseResult.GetValue(_analyzeOptions.SaveConfig);
+            var saveConfigTo = saveConfig ? parseResult.GetValue(_analyzeOptions.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
 
             var analyzeOptions = new AnalyzeCLIOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint);
             var serviceProvider = factory.Invoke(analyzeOptions);
@@ -175,6 +111,6 @@ internal class CommandLineBuilder
 
     public RootCommand Build()
     {
-        return SyncCommand;
+        return SyncPluginCommand;
     }
 }
