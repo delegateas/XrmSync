@@ -35,7 +35,7 @@ var command = new CommandLineBuilder()
                 return new (new (pluginSyncOptions, baseOptions.Plugin?.Analysis));
             })
             .AddLogger(
-                sp => sp.GetRequiredService<XrmSyncConfiguration>().Plugin?.Sync?.LogLevel,
+                sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<XrmSyncConfiguration>>().Value.Plugin?.Sync?.LogLevel,
                 ciMode
             )
             .BuildServiceProvider();

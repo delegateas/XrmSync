@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using XrmSync.AssemblyAnalyzer;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
@@ -25,10 +26,10 @@ public class PluginSyncService(
     ISolutionReader solutionReader,
     IDifferenceCalculator differenceUtility,
     Description description,
-    XrmSyncConfiguration configuration,
+    IOptions<XrmSyncConfiguration> configuration,
     ILogger<PluginSyncService> log) : ISyncService
 {
-    private readonly PluginSyncOptions options = configuration.Plugin?.Sync
+    private readonly PluginSyncOptions options = configuration.Value.Plugin?.Sync
         ?? throw new XrmSyncException("Plugin sync options are not configured");
 
     public async Task Sync(CancellationToken cancellationToken)

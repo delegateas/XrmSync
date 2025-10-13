@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XrmSync.Actions;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
@@ -24,8 +25,24 @@ internal static class ServiceCollectionExtensions
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 return new XrmSyncConfigurationBuilder(configuration, configName);
-            })
-            .AddSingleton(sp => syncOptionsFactory(sp.GetRequiredService<Options.IConfigurationBuilder>()));
+            });
+
+        // Register configuration using the options pattern
+        services.AddOptions<XrmSyncConfiguration>()
+            .Configure<Options.IConfigurationBuilder>((config, builder) =>
+            {
+                var builtConfig = syncOptionsFactory(builder);
+                // Since XrmSyncConfiguration is a record, we need to replace the whole object
+                // This is done by making the Configure call return the built configuration
+            });
+
+        // Register IOptions<T> directly from the factory
+        services.AddSingleton<IOptions<XrmSyncConfiguration>>(sp =>
+        {
+            var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
+            var config = syncOptionsFactory(builder);
+            return Microsoft.Extensions.Options.Options.Create(config);
+        });
 
         return services;
     }

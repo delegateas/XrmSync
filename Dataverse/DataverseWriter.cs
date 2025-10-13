@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -13,9 +14,9 @@ public sealed class DataverseWriter : IDataverseWriter
     private readonly ServiceClient serviceClient;
     private readonly ILogger<DataverseWriter> logger;
 
-    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, XrmSyncConfiguration configuration)
+    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, IOptions<XrmSyncConfiguration> configuration)
     {
-        if (configuration.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
+        if (configuration.Value.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
         {
             throw new XrmSyncException("Cannot perform write operations in dry run mode. Please disable dry run to proceed with writing to Dataverse.");
         }

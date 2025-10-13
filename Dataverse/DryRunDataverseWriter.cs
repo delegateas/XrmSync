@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using System.Runtime.CompilerServices;
@@ -12,9 +13,9 @@ public class DryRunDataverseWriter : IDataverseWriter
 {
     private readonly ILogger<DryRunDataverseWriter> logger;
 
-    public DryRunDataverseWriter(XrmSyncConfiguration configuration, ILogger<DryRunDataverseWriter> logger)
+    public DryRunDataverseWriter(IOptions<XrmSyncConfiguration> configuration, ILogger<DryRunDataverseWriter> logger)
     {
-        if (!configuration.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
+        if (!configuration.Value.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
         {
             throw new XrmSyncException("This writer is intended for dry runs only.");
         }

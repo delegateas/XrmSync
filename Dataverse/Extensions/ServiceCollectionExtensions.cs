@@ -1,5 +1,6 @@
 ﻿using DataverseConnection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
@@ -14,9 +15,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDataverseReader, DataverseReader>();
         services.AddSingleton<IDataverseWriter>((sp) =>
         {
-            var options = sp.GetRequiredService<XrmSyncConfiguration>();
+            var options = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
 
-            return (options.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
+            return (options.Value.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
                 ? ActivatorUtilities.CreateInstance<DryRunDataverseWriter>(sp)
                 : ActivatorUtilities.CreateInstance<DataverseWriter>(sp);
         });

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
@@ -29,7 +30,7 @@ public class OptionsValidationTests
         try
         {
             // Act & Assert
-            var validator = new XrmSyncConfigurationValidator(new(new(options, null)));
+            var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null))));
             validator.Validate(ConfigurationScope.PluginSync); // Should not throw
         }
         finally
@@ -52,8 +53,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(options, null)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Assembly path is required", exception.Message);
     }
 
@@ -69,8 +70,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(options, null)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Solution name is required", exception.Message);
     }
 
@@ -86,8 +87,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(options, null)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Assembly file does not exist", exception.Message);
     }
 
@@ -103,8 +104,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(options, null)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Assembly file must have a .dll extension", exception.Message);
     }
 
@@ -120,8 +121,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(options, null)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Solution name cannot exceed 65 characters", exception.Message);
     }
 
@@ -145,7 +146,7 @@ public class OptionsValidationTests
         try
         {
             // Act & Assert
-            var validator = new XrmSyncConfigurationValidator(new(new(null, options)));
+            var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null, options))));
             validator.Validate(ConfigurationScope.PluginAnalysis); // Should not throw
         }
         finally
@@ -167,8 +168,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(null, options)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null, options))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Assembly path is required", exception.Message);
     }
 
@@ -183,8 +184,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(null, options)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null, options))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix is required", exception.Message);
     }
 
@@ -199,8 +200,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(null, options)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null, options))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix must be between 2 and 8 characters", exception.Message);
     }
 
@@ -215,8 +216,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(null, options)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null, options))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix must be between 2 and 8 characters", exception.Message);
     }
 
@@ -231,8 +232,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(null, options)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null, options))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers", exception.Message);
     }
 
@@ -260,7 +261,7 @@ public class OptionsValidationTests
         try
         {
             // Act & Assert
-            var validator = new XrmSyncConfigurationValidator(new(new(null, options)));
+            var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null, options))));
             validator.Validate(ConfigurationScope.PluginAnalysis); // Should not throw
         }
         finally
@@ -287,8 +288,8 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(new(new(null, options)));
-        var exception = Assert.Throws<OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
+        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null, options))));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers", exception.Message);
     }
 }

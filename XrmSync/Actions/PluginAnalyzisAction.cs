@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.Extensions.Options;
 using XrmSync.AssemblyAnalyzer;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
@@ -6,7 +7,7 @@ using XrmSync.Options;
 
 namespace XrmSync.Actions;
 
-internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, XrmSyncConfiguration configuration) : IAction
+internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, IOptions<XrmSyncConfiguration> configuration) : IAction
 {
     public async Task<bool> RunAction(CancellationToken cancellationToken)
     {
@@ -14,7 +15,7 @@ internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, XrmSyncConfigura
         {
             try
             {
-                var analyzisOptions = configuration.Plugin?.Analysis
+                var analyzisOptions = configuration.Value.Plugin?.Analysis
                     ?? throw new XrmSyncException("No analyzis configuration found in the plugin sync configuration.");
 
                 var pluginDto = analyzer.AnalyzeAssembly(analyzisOptions.AssemblyPath, analyzisOptions.PublisherPrefix);
@@ -36,12 +37,12 @@ internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, XrmSyncConfigura
     }
 }
 
-internal class SavePluginAnalyzisConfigAction(XrmSyncConfiguration config, IConfigWriter configWriter) : ISaveConfigAction
+internal class SavePluginAnalyzisConfigAction(IOptions<XrmSyncConfiguration> config, IConfigWriter configWriter) : ISaveConfigAction
 {
     public async Task<bool> SaveConfigAsync(string? filename, CancellationToken cancellationToken)
     {
         // Handle save-config functionality
-        if (config.Plugin?.Analysis is null)
+        if (config.Value.Plugin?.Analysis is null)
         {
             throw new XrmSyncException(filename is null
                 ? "No analyzis configuration loaded - cannot save"
@@ -49,7 +50,7 @@ internal class SavePluginAnalyzisConfigAction(XrmSyncConfiguration config, IConf
         }
 
         var configPath = string.IsNullOrWhiteSpace(filename) ? null : filename;
-        await configWriter.SaveAnalysisConfigAsync(config.Plugin.Analysis, configPath, cancellationToken);
+        await configWriter.SaveAnalysisConfigAsync(config.Value.Plugin.Analysis, configPath, cancellationToken);
         Console.WriteLine($"Configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
         return true;
     }
