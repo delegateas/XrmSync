@@ -57,7 +57,6 @@ dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
 
 ## Usage
 
-
 ### Basic Sync Command
 
 ```bash
@@ -123,17 +122,17 @@ The configuration uses a hierarchical structure under the XrmSync section, separ
 
 You can automatically generate configuration files using the `--save-config` option with any command:
 
-# Save sync options to appsettings.json (default)
+##### Save sync options to appsettings.json (default)
 ```bash
 xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config
 ```
 
-# Save analysis options to appsettings.json
+##### Save analysis options to appsettings.json
 ```bash
 xrmsync analyze --assembly "MyPlugin.dll" --prefix "contoso" --pretty-print --save-config
 ```
 
-# Save to a custom file
+##### Save to a custom file
 ```bash
 xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config --save-config-to "my-project.json"
 ```
@@ -283,6 +282,66 @@ Configure logging levels using the `--log-level` option:
 - `Warning`: Warning messages only
 - `Error`: Error messages only
 - `Critical`: Critical errors only
+
+## Azure DevOps Pipeline support
+
+It is possible to run XrmSync in an Azure DevOps pipeline.
+
+Below is an example YAML snippet to get you started:
+```yaml
+parameters:
+  - name: environment
+    type: string
+    default: Development
+
+steps:
+- task: NuGetToolInstaller@1
+  displayName: 'NuGet tool installer'
+
+- task: NuGetCommand@2
+  displayName: 'NuGet restore'
+  inputs:
+    command: 'restore'
+    restoreSolution: $(SolutionFile)
+
+- task: DotNetCoreCLI@2
+  displayName: 'Install dotnet tools'
+  inputs:
+    command: 'custom'
+    custom: 'tool'
+    arguments: 'restore'
+    workingDirectory: '$(BasePath)/Tools'
+
+- task: PowerPlatformToolInstaller@2
+  displayName: 'Power Platform Tool Installer'
+
+- task: PowerPlatformSetConnectionVariables@2
+  displayName: 'Set Power Platform Connection Variables'
+  name: connectionVariables
+  inputs:
+    authenticationType: 'PowerPlatformSPN'
+    PowerPlatformSPN: ${{parameters.environment}}
+
+- task: VSBuild@1
+  displayName: 'Build solution'
+  inputs:
+    solution: $(SolutionFile)
+    platform: '$(BuildPlatform)'
+    configuration: '$(BuildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Validate Plugins'
+  env:
+    AZURE_CLIENT_ID: '$(connectionVariables.BuildTools.ApplicationId)'
+    AZURE_CLIENT_SECRET: '$(connectionVariables.BuildTools.ClientSecret)'
+    AZURE_TENANT_ID: '$(connectionVariables.BuildTools.TenantId)'
+    DATAVERSE_URL: '$(BuildTools.EnvironmentUrl)'
+  inputs:
+    command: 'custom'
+    custom: 'tool'
+    arguments: 'run xrmsync --dry-run --ci'
+    workingDirectory: '$(BasePath)/Tools'
+```
 
 ## Project Structure
 
