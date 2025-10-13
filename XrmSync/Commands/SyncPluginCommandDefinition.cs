@@ -12,6 +12,7 @@ internal class SyncPluginCommandDefinition
     public Option<bool> SaveConfig { get; }
     public Option<string?> SaveConfigTo { get; }
     public Option<bool> CIMode { get; }
+    public Option<string?> ConfigName { get; }
 
     public SyncPluginCommandDefinition()
     {
@@ -55,6 +56,12 @@ internal class SyncPluginCommandDefinition
             Description = "Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems",
             Required = false
         };
+
+        ConfigName = new("--config", "--config-name", "-c")
+        {
+            Description = "Name of the configuration to load from appsettings.json (Default: 'default' or single config if only one exists)",
+            Required = false
+        };
     }
 
     public IEnumerable<Option> GetOptions()
@@ -66,5 +73,6 @@ internal class SyncPluginCommandDefinition
         yield return SaveConfig;
         yield return SaveConfigTo;
         yield return CIMode;
+        yield return ConfigName;
     }
 }

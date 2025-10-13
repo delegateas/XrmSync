@@ -12,11 +12,15 @@ var serviceCollection = new ServiceCollection();
 var command = new CommandLineBuilder()
     .SetPluginSyncServiceProviderFactory(opts =>
     {
-        var (assemblyPath, solutionName, dryRun, logLevel, ciMode) = opts;
+        var (assemblyPath, solutionName, dryRun, logLevel, ciMode, configName) = opts;
+
+        // Resolve the actual config name to use
+        var configReader = new XrmSync.Options.ConfigReader();
+        var resolvedConfigName = configReader.ResolveConfigurationName(configName);
 
         return serviceCollection
             .AddPluginSyncServices()
-            .AddXrmSyncConfiguration(builder =>
+            .AddXrmSyncConfiguration(resolvedConfigName, builder =>
             {
                 var baseOptions = builder.Build();
                 var basePluginSyncOptions = baseOptions.Plugin?.Sync;
@@ -38,11 +42,15 @@ var command = new CommandLineBuilder()
     })
     .SetPluginAnalyzisServiceProviderFactory(opts =>
     {
-        var (assemblyPath, publisherPrefix, prettyPrint) = opts;
+        var (assemblyPath, publisherPrefix, prettyPrint, configName) = opts;
+
+        // Resolve the actual config name to use
+        var configReader = new XrmSync.Options.ConfigReader();
+        var resolvedConfigName = configReader.ResolveConfigurationName(configName);
 
         return serviceCollection
             .AddAnalyzerServices()
-            .AddXrmSyncConfiguration(builder =>
+            .AddXrmSyncConfiguration(resolvedConfigName, builder =>
             {
                 var baseOptions = builder.Build();
                 var baseAnalyzerOptions = baseOptions.Plugin?.Analysis;

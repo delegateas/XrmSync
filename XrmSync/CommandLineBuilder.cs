@@ -8,12 +8,13 @@ using XrmSync.Options;
 
 namespace XrmSync;
 
-internal record SyncPluginCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, bool CIMode);
-internal record AnalyzeCLIOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint);
+internal record SyncPluginCLIOptions(string? AssemblyPath, string? SolutionName, bool? DryRun, LogLevel? LogLevel, bool CIMode, string? ConfigName);
+internal record AnalyzeCLIOptions(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint, string? ConfigName);
 
 internal class CommandLineBuilder
 {
-    protected RootCommand SyncPluginCommand { get; init; }
+    protected RootCommand RootCommand { get; init; }
+    protected Command SyncPluginsCommand { get; init; }
     protected Command AnalyzeCommand { get; init; }
 
     private readonly SyncPluginCommandDefinition _syncPluginOptions;
@@ -27,8 +28,13 @@ internal class CommandLineBuilder
         _syncPluginOptions = new SyncPluginCommandDefinition();
         _analyzeOptions = new AnalyzeCommandDefinition();
 
-        SyncPluginCommand = [.. _syncPluginOptions.GetOptions()];
-        SyncPluginCommand.Description = "XrmSync - Synchronize your Dataverse plugins";
+        RootCommand = new("XrmSync - Synchronize your Dataverse plugins and webresources");
+        
+        SyncPluginsCommand = new ("plugins", "Synchronize plugins in a plugin assembly with Dataverse");
+        foreach (var option in _syncPluginOptions.GetOptions())
+        {
+            SyncPluginsCommand.Add(option);
+        }
 
         AnalyzeCommand = new("analyze", "Analyze a plugin assembly and output info as JSON");
         foreach (var option in _analyzeOptions.GetOptions())
@@ -36,12 +42,13 @@ internal class CommandLineBuilder
             AnalyzeCommand.Add(option);
         }
 
-        SyncPluginCommand.Subcommands.Add(AnalyzeCommand);
+        RootCommand.Subcommands.Add(AnalyzeCommand);
+        RootCommand.Subcommands.Add(SyncPluginsCommand);
     }
 
     public CommandLineBuilder SetPluginSyncServiceProviderFactory(Func<SyncPluginCLIOptions, IServiceProvider> factory)
     {
-        SyncPluginCommand.SetAction(async (parseResult, cancellationToken) =>
+        SyncPluginsCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             var assemblyPath = parseResult.GetValue(_syncPluginOptions.AssemblyFile);
             var solutionName = parseResult.GetValue(_syncPluginOptions.SolutionName);
@@ -50,8 +57,9 @@ internal class CommandLineBuilder
             var saveConfig = parseResult.GetValue(_syncPluginOptions.SaveConfig);
             var saveConfigTo = saveConfig ? parseResult.GetValue(_syncPluginOptions.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
             var ciMode = parseResult.GetValue(_syncPluginOptions.CIMode);
+            var configName = parseResult.GetValue(_syncPluginOptions.ConfigName);
 
-            var syncOptions = new SyncPluginCLIOptions(assemblyPath, solutionName, dryRun, logLevel, ciMode);
+            var syncOptions = new SyncPluginCLIOptions(assemblyPath, solutionName, dryRun, logLevel, ciMode, configName);
             var serviceProvider = factory.Invoke(syncOptions);
 
             return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginSync, cancellationToken)
@@ -71,8 +79,9 @@ internal class CommandLineBuilder
             var prettyPrint = parseResult.GetValue(_analyzeOptions.PrettyPrint);
             var saveConfig = parseResult.GetValue(_analyzeOptions.SaveConfig);
             var saveConfigTo = saveConfig ? parseResult.GetValue(_analyzeOptions.SaveConfigTo) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
+            var configName = parseResult.GetValue(_analyzeOptions.ConfigName);
 
-            var analyzeOptions = new AnalyzeCLIOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint);
+            var analyzeOptions = new AnalyzeCLIOptions(assemblyPath, publisherPrefix ?? "new", prettyPrint, configName);
             var serviceProvider = factory.Invoke(analyzeOptions);
 
             return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginAnalysis, cancellationToken)
@@ -111,6 +120,6 @@ internal class CommandLineBuilder
 
     public RootCommand Build()
     {
-        return SyncPluginCommand;
+        return RootCommand;
     }
 }

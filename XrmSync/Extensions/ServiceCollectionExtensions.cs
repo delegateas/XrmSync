@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XrmSync.Actions;
 using XrmSync.AssemblyAnalyzer.Extensions;
@@ -12,15 +13,19 @@ namespace XrmSync.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, Func<IConfigurationBuilder, XrmSyncConfiguration> syncOptionsFactory)
+    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, string? configName, Func<Options.IConfigurationBuilder, XrmSyncConfiguration> syncOptionsFactory)
     {
         services
             .AddSingleton<IConfigReader, ConfigReader>()
             .AddSingleton<IConfigWriter, ConfigWriter>()
             .AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
             .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())
-            .AddSingleton<IConfigurationBuilder, XrmSyncConfigurationBuilder>()
-            .AddSingleton(sp => syncOptionsFactory(sp.GetRequiredService<IConfigurationBuilder>()));
+            .AddSingleton<Options.IConfigurationBuilder>(sp => 
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                return new XrmSyncConfigurationBuilder(configuration, configName);
+            })
+            .AddSingleton(sp => syncOptionsFactory(sp.GetRequiredService<Options.IConfigurationBuilder>()));
 
         return services;
     }

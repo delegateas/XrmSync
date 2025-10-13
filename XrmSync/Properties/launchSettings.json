@@ -1,24 +1,28 @@
 {
   "profiles": {
+    "Sync": {
+      "commandName": "Project",
+      "commandLineArgs": "plugins"
+    },
     "DryRunSyncDAXIF": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
+      "commandLineArgs": "plugins --dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "DryRunSyncDAXIFFromFile": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run -l Debug"
+      "commandLineArgs": "plugins --dry-run -l Debug"
     },
     "SyncDAXIF": {
       "commandName": "Project",
-      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
+      "commandLineArgs": "plugins --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "DryRunSyncHybrid": {
       "commandName": "Project",
-      "commandLineArgs": "--dry-run --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
+      "commandLineArgs": "plugins --dry-run --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "SyncHybrid": {
       "commandName": "Project",
-      "commandLineArgs": "--assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
+      "commandLineArgs": "plugins --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "AnalyzeSampleDAXIF": {
       "commandName": "Project",
@@ -42,7 +46,7 @@
     },
     "SaveConfigDryRun": {
       "commandName": "Project",
-      "commandLineArgs": "--save-config --dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
+      "commandLineArgs": "plugins --save-config --dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
     },
     "SaveConfigAnalyze": {
       "commandName": "Project",
