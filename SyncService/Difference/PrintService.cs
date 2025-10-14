@@ -6,9 +6,9 @@ using XrmSync.SyncService.Extensions;
 
 namespace XrmSync.SyncService.Difference;
 
-internal class PrintService(ILogger<PrintService> log, IOptions<XrmSyncConfiguration> configuration) : IPrintService
+internal class PrintService(ILogger<PrintService> log, IOptions<PluginSyncOptions> configuration) : IPrintService
 {
-    private readonly LogLevel LogLevel = configuration.Value.Plugin?.Sync?.DryRun == true ? LogLevel.Information : LogLevel.Debug;
+    private readonly LogLevel LogLevel = configuration.Value.DryRun ? LogLevel.Information : LogLevel.Debug;
 
     public void Print<TEntity>(Difference<TEntity> differences, string title, Func<TEntity, string> namePicker)
         where TEntity : EntityBase

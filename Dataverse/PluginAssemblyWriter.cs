@@ -6,10 +6,10 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-internal class PluginAssemblyWriter(IDataverseWriter writer, IOptions<XrmSyncConfiguration> configuration) : IPluginAssemblyWriter
+internal class PluginAssemblyWriter(IDataverseWriter writer, IOptions<PluginSyncOptions> configuration) : IPluginAssemblyWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
-            { "SolutionUniqueName", configuration.Value.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
+            { "SolutionUniqueName", configuration.Value.SolutionName }
     };
 
     public Guid CreatePluginAssembly(string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)

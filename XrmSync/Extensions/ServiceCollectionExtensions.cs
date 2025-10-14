@@ -9,25 +9,95 @@ namespace XrmSync.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, string? configName, Func<Options.IConfigurationBuilder, XrmSyncConfiguration> syncOptionsFactory)
+    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, string? configName)
     {
         services
             .AddSingleton<IConfigReader, ConfigReader>()
             .AddSingleton<IConfigWriter, ConfigWriter>()
             .AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
             .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())
-            .AddSingleton<Options.IConfigurationBuilder>(sp => 
+            .AddSingleton<Options.IConfigurationBuilder>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 return new XrmSyncConfigurationBuilder(configuration, configName);
             });
 
-        // Register IOptions<XrmSyncConfiguration> directly from the factory
+        return services;
+    }
+
+    public static IServiceCollection AddPluginSyncOptions(
+        this IServiceCollection services,
+        Func<PluginSyncOptions, PluginSyncOptions> optionsFactory)
+    {
+        // Build full configuration for validation and saving
         services.AddSingleton(sp =>
         {
             var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
-            var config = syncOptionsFactory(builder);
+            var baseConfig = builder.Build();
+            var pluginSyncOptions = optionsFactory(baseConfig.Plugin.Sync);
+
+            // Build complete configuration with new sync options
+            return baseConfig with
+            {
+                Plugin = baseConfig.Plugin with
+                {
+                    Sync = pluginSyncOptions
+                }
+            };
+        });
+
+        // Register IOptions<XrmSyncConfiguration> for validation
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<XrmSyncConfiguration>();
             return Microsoft.Extensions.Options.Options.Create(config);
+        });
+
+        // Register specific IOptions<PluginSyncOptions> for services
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<XrmSyncConfiguration>();
+            var options = config.Plugin?.Sync ?? throw new Model.Exceptions.XrmSyncException("Plugin sync options are not configured");
+            return Microsoft.Extensions.Options.Options.Create(options);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddPluginAnalysisOptions(
+        this IServiceCollection services,
+        Func<PluginAnalysisOptions, PluginAnalysisOptions> optionsFactory)
+    {
+        // Build full configuration for validation and saving
+        services.AddSingleton(sp =>
+        {
+            var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
+            var baseConfig = builder.Build();
+            var pluginAnalysisOptions = optionsFactory(baseConfig.Plugin.Analysis);
+
+            // Build complete configuration with new analysis options
+            return baseConfig with
+            {
+                Plugin = baseConfig.Plugin with
+                {
+                    Analysis = pluginAnalysisOptions
+                }
+            };
+        });
+
+        // Register IOptions<XrmSyncConfiguration> for validation
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<XrmSyncConfiguration>();
+            return Microsoft.Extensions.Options.Options.Create(config);
+        });
+
+        // Register specific IOptions<PluginAnalysisOptions> for services
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<XrmSyncConfiguration>();
+            var options = config.Plugin?.Analysis ?? throw new Model.Exceptions.XrmSyncException("Plugin analysis options are not configured");
+            return Microsoft.Extensions.Options.Options.Create(options);
         });
 
         return services;

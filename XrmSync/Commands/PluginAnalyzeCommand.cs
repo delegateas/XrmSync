@@ -56,18 +56,15 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
         var resolvedConfigName = configReader.ResolveConfigurationName(configName);
 
         var serviceProvider = GetAnalyzerServices()
-            .AddXrmSyncConfiguration(resolvedConfigName, builder =>
+            .AddXrmSyncConfiguration(resolvedConfigName)
+            .AddPluginAnalysisOptions(baseOptions =>
             {
-                var baseOptions = builder.Build();
-                var baseAnalyzerOptions = baseOptions.Plugin?.Analysis;
-
-                var pluginAnalysisOptions = new PluginAnalysisOptions(
-                    string.IsNullOrWhiteSpace(assemblyPath) ? baseAnalyzerOptions?.AssemblyPath ?? string.Empty : assemblyPath,
-                    string.IsNullOrWhiteSpace(publisherPrefix) ? baseAnalyzerOptions?.PublisherPrefix ?? string.Empty : publisherPrefix,
-                    prettyPrint || (baseAnalyzerOptions?.PrettyPrint ?? false)
+                // Merge CLI arguments with file configuration
+                return new PluginAnalysisOptions(
+                    string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.AssemblyPath : assemblyPath,
+                    string.IsNullOrWhiteSpace(publisherPrefix) ? baseOptions.PublisherPrefix : publisherPrefix,
+                    prettyPrint || baseOptions.PrettyPrint
                 );
-
-                return new XrmSyncConfiguration(new PluginOptions(baseOptions.Plugin?.Sync, pluginAnalysisOptions));
             })
             .AddLogger(_ => LogLevel.Information, false)
             .BuildServiceProvider();

@@ -10,13 +10,13 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 
-internal class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger<PluginWriter> log, IOptions<XrmSyncConfiguration> configuration) : IPluginWriter
+internal class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger<PluginWriter> log, IOptions<PluginSyncOptions> configuration) : IPluginWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
-            { "SolutionUniqueName", configuration.Value.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
+            { "SolutionUniqueName", configuration.Value.SolutionName }
     };
 
-    private readonly string LogPrefix = configuration.Value.Plugin?.Sync?.DryRun == true ? "[DRY RUN] " : string.Empty;
+    private readonly string LogPrefix = configuration.Value.DryRun ? "[DRY RUN] " : string.Empty;
 
     public void DeletePluginImages(IEnumerable<Image> pluginImages)
     {

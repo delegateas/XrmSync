@@ -41,22 +41,19 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
         var resolvedConfigName = configReader.ResolveConfigurationName(configName);
 
         var serviceProvider = GetPluginSyncServices()
-            .AddXrmSyncConfiguration(resolvedConfigName, builder =>
+            .AddXrmSyncConfiguration(resolvedConfigName)
+            .AddPluginSyncOptions(baseOptions =>
             {
-                var baseOptions = builder.Build();
-                var basePluginSyncOptions = baseOptions.Plugin?.Sync;
-
-                var pluginSyncOptions = new PluginSyncOptions(
-                    string.IsNullOrWhiteSpace(assemblyPath) ? basePluginSyncOptions?.AssemblyPath ?? string.Empty : assemblyPath,
-                    string.IsNullOrWhiteSpace(solutionName) ? basePluginSyncOptions?.SolutionName ?? string.Empty : solutionName,
-                    logLevel ?? basePluginSyncOptions?.LogLevel ?? Microsoft.Extensions.Logging.LogLevel.Information,
-                    dryRun || (basePluginSyncOptions?.DryRun ?? false)
+                // Merge CLI arguments with file configuration
+                return new PluginSyncOptions(
+                    string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.AssemblyPath : assemblyPath,
+                    string.IsNullOrWhiteSpace(solutionName) ? baseOptions.SolutionName : solutionName,
+                    logLevel ?? baseOptions.LogLevel,
+                    dryRun || baseOptions.DryRun
                 );
-
-                return new XrmSyncConfiguration(new PluginOptions(pluginSyncOptions, baseOptions.Plugin?.Analysis));
             })
             .AddLogger(
-                sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<XrmSyncConfiguration>>().Value.Plugin?.Sync?.LogLevel,
+                sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<PluginSyncOptions>>().Value.LogLevel,
                 ciMode
             )
             .BuildServiceProvider();

@@ -10,13 +10,13 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-internal class CustomApiWriter(IDataverseWriter writer, ILogger<CustomApiWriter> log, IOptions<XrmSyncConfiguration> configuration) : ICustomApiWriter
+internal class CustomApiWriter(IDataverseWriter writer, ILogger<CustomApiWriter> log, IOptions<PluginSyncOptions> configuration) : ICustomApiWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
-            { "SolutionUniqueName", configuration.Value.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
+            { "SolutionUniqueName", configuration.Value.SolutionName }
     };
 
-    private readonly string LogPrefix = configuration.Value.Plugin?.Sync?.DryRun == true ? "[DRY RUN] " : string.Empty;
+    private readonly string LogPrefix = configuration.Value.DryRun ? "[DRY RUN] " : string.Empty;
 
     public ICollection<CustomApiDefinition> CreateCustomApis(ICollection<CustomApiDefinition> customApis, string description)
     {

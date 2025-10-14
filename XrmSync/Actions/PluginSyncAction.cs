@@ -34,20 +34,12 @@ internal class PluginSyncAction(ISyncService pluginSync, ILogger<PluginSyncActio
     }
 }
 
-internal class SavePluginSyncConfigAction(IOptions<XrmSyncConfiguration> config, IConfigWriter configWriter) : ISaveConfigAction
+internal class SavePluginSyncConfigAction(IOptions<PluginSyncOptions> config, IConfigWriter configWriter) : ISaveConfigAction
 {
     public async Task<bool> SaveConfigAsync(string? filename, CancellationToken cancellationToken)
     {
-        // Handle save-config functionality
-        if (config.Value.Plugin?.Sync is null)
-        {
-            throw new XrmSyncException(filename is null
-                ? "No sync configuration loaded - cannot save"
-                : $"No sync configuration loaded - cannot save to {filename}");
-        }
-
         var configPath = string.IsNullOrWhiteSpace(filename) ? null : filename;
-        await configWriter.SavePluginSyncConfigAsync(config.Value.Plugin.Sync, configPath, cancellationToken);
+        await configWriter.SavePluginSyncConfigAsync(config.Value, configPath, cancellationToken);
         Console.WriteLine($"Configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
         return true;
     }

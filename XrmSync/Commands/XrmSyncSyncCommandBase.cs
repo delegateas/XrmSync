@@ -34,6 +34,11 @@ namespace XrmSync.Commands
                 Description = "Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems",
                 Required = false
             };
+
+            Add(SolutionName);
+            Add(DryRun);
+            Add(LogLevel);
+            Add(CiMode);
         }
 
         protected (string? SolutionName, bool DryRun, LogLevel? LogLevel, bool CIMode) GetSyncSharedOptionValues(ParseResult parseResult)

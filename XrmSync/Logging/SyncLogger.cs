@@ -8,11 +8,9 @@ internal class SyncLogger<T> : ILogger<T>
 {
     private readonly ILogger _logger;
 
-    public SyncLogger(ILoggerFactory loggerFactory, IOptions<XrmSyncConfiguration> configuration)
+    public SyncLogger(ILoggerFactory loggerFactory, IOptions<PluginSyncOptions> configuration)
     {
-        LogLevel minLogLevel = configuration.Value.Plugin?.Sync?.LogLevel is LogLevel level
-            ? level
-            : LogLevel.Information;
+        LogLevel minLogLevel = configuration.Value.LogLevel;
 
         string categoryName = minLogLevel < LogLevel.Information
             ? typeof(T).FullName ?? typeof(T).Namespace?.Split('.').First() ?? typeof(T).Name

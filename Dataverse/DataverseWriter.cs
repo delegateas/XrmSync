@@ -14,9 +14,9 @@ internal sealed class DataverseWriter : IDataverseWriter
     private readonly ServiceClient serviceClient;
     private readonly ILogger<DataverseWriter> logger;
 
-    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, IOptions<XrmSyncConfiguration> configuration)
+    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, IOptions<PluginSyncOptions> configuration)
     {
-        if (configuration.Value.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
+        if (configuration.Value.DryRun)
         {
             throw new XrmSyncException("Cannot perform write operations in dry run mode. Please disable dry run to proceed with writing to Dataverse.");
         }

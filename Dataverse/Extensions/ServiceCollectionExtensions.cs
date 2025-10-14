@@ -15,9 +15,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDataverseReader, DataverseReader>();
         services.AddSingleton<IDataverseWriter>((sp) =>
         {
-            var options = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+            var options = sp.GetRequiredService<IOptions<PluginSyncOptions>>();
 
-            return (options.Value.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
+            return options.Value.DryRun
                 ? ActivatorUtilities.CreateInstance<DryRunDataverseWriter>(sp)
                 : ActivatorUtilities.CreateInstance<DataverseWriter>(sp);
         });

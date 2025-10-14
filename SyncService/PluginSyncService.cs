@@ -27,11 +27,10 @@ internal class PluginSyncService(
     ISolutionReader solutionReader,
     IDifferenceCalculator differenceUtility,
     Description description,
-    IOptions<XrmSyncConfiguration> configuration,
+    IOptions<PluginSyncOptions> configuration,
     ILogger<PluginSyncService> log) : ISyncService
 {
-    private readonly PluginSyncOptions options = configuration.Value.Plugin?.Sync
-        ?? throw new XrmSyncException("Plugin sync options are not configured");
+    private readonly PluginSyncOptions options = configuration.Value;
 
     public async Task Sync(CancellationToken cancellationToken)
     {
