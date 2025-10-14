@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
 using XrmSync.Dataverse.Context;
@@ -10,7 +10,7 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-public class CustomApiWriter(IDataverseWriter writer, ILogger<CustomApiWriter> log, IOptions<XrmSyncConfiguration> configuration) : ICustomApiWriter
+internal class CustomApiWriter(IDataverseWriter writer, ILogger<CustomApiWriter> log, IOptions<XrmSyncConfiguration> configuration) : ICustomApiWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", configuration.Value.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }

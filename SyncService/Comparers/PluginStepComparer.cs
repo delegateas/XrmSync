@@ -3,7 +3,7 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.SyncService.Comparers;
 
-public class PluginStepComparer() : BaseComparer<Step>
+internal class PluginStepComparer() : BaseComparer<Step>
 {
     public override IEnumerable<Expression<Func<Step, object?>>> GetDifferentPropertyNames(Step local, Step remote)
     {

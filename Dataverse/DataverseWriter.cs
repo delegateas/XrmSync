@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
@@ -9,7 +9,7 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-public sealed class DataverseWriter : IDataverseWriter
+internal sealed class DataverseWriter : IDataverseWriter
 {
     private readonly ServiceClient serviceClient;
     private readonly ILogger<DataverseWriter> logger;

@@ -1,9 +1,9 @@
-﻿using XrmSync.Dataverse.Context;
+using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
 
 namespace XrmSync.Dataverse;
 
-public class MessageReader(IDataverseReader reader) : IMessageReader
+internal class MessageReader(IDataverseReader reader) : IMessageReader
 {
     public static string? GetMessagePropertyName(string eventOperation) => eventOperation switch
     {

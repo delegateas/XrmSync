@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using XrmSync.Model;
@@ -13,7 +13,7 @@ namespace XrmSync.AssemblyAnalyzer.AssemblyReader;
 /// 3. Global dotnet tool: Uses "xrmsync" directly
 /// The class automatically detects the appropriate method based on tool availability.
 /// </summary>
-public class AssemblyReader(ILogger<AssemblyReader> logger) : IAssemblyReader
+internal class AssemblyReader(ILogger<AssemblyReader> logger) : IAssemblyReader
 {
     private readonly Dictionary<string, AssemblyInfo> assemblyCache = new();
 

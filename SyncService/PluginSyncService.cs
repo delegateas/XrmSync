@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using XrmSync.AssemblyAnalyzer;
@@ -12,9 +12,10 @@ using XrmSync.SyncService.Exceptions;
 using XrmSync.SyncService.PluginValidator;
 
 [assembly: InternalsVisibleTo("Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace XrmSync.SyncService;
 
-public class PluginSyncService(
+internal class PluginSyncService(
     IPluginAssemblyReader pluginAssemblyReader,
     IPluginAssemblyWriter pluginAssemblyWriter,
     IPluginReader pluginReader,

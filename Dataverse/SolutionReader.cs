@@ -1,9 +1,9 @@
-﻿using XrmSync.Dataverse.Interfaces;
+using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-public class SolutionReader(IDataverseReader reader) : ISolutionReader
+internal class SolutionReader(IDataverseReader reader) : ISolutionReader
 {
     public string ConnectedHost => reader.ConnectedHost;
 

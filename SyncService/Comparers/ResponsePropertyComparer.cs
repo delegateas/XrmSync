@@ -1,9 +1,9 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using XrmSync.Model.CustomApi;
 
 namespace XrmSync.SyncService.Comparers;
 
-public class ResponsePropertyComparer : BaseComparer<ResponseProperty>
+internal class ResponsePropertyComparer : BaseComparer<ResponseProperty>
 {
     public override IEnumerable<Expression<Func<ResponseProperty, object?>>> GetDifferentPropertyNames(ResponseProperty x, ResponseProperty y)
     {

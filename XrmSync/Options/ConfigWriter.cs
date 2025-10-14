@@ -10,7 +10,7 @@ public interface IConfigWriter
     Task SaveAnalysisConfigAsync(PluginAnalysisOptions options, string? filePath = null, CancellationToken cancellationToken = default);
 }
 
-public class ConfigWriter(ILogger<ConfigWriter> logger) : IConfigWriter
+internal class ConfigWriter(ILogger<ConfigWriter> logger) : IConfigWriter
 {
     public async Task SavePluginSyncConfigAsync(PluginSyncOptions options, string? filePath = null, CancellationToken cancellationToken = default)
     {

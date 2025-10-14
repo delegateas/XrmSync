@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -9,7 +9,7 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-public class DryRunDataverseWriter : IDataverseWriter
+internal class DryRunDataverseWriter : IDataverseWriter
 {
     private readonly ILogger<DryRunDataverseWriter> logger;
 

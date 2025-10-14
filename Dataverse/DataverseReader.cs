@@ -2,13 +2,16 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 
+[assembly: InternalsVisibleTo("Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace XrmSync.Dataverse;
 
-public sealed class DataverseReader(ServiceClient serviceClient) : IDataverseReader
+internal sealed class DataverseReader(ServiceClient serviceClient) : IDataverseReader
 {
     private readonly Lazy<DataverseContext> _lazyContext = new(() => new DataverseContext(serviceClient));
     private readonly Lazy<string> _lazyConnectedHost = new(serviceClient.ConnectedOrgUriActual.GetLeftPart(UriPartial.Authority));

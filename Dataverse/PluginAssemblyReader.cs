@@ -1,9 +1,9 @@
-﻿using XrmSync.Dataverse.Interfaces;
+using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 
 namespace XrmSync.Dataverse;
 
-public class PluginAssemblyReader(IDataverseReader reader) : IPluginAssemblyReader
+internal class PluginAssemblyReader(IDataverseReader reader) : IPluginAssemblyReader
 {
     public AssemblyInfo? GetPluginAssembly(Guid solutionId, string assemblyName)
     {

@@ -1,9 +1,9 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using XrmSync.Model.CustomApi;
 
 namespace XrmSync.SyncService.Comparers;
 
-public class RequestParameterComparer : BaseComparer<RequestParameter>
+internal class RequestParameterComparer : BaseComparer<RequestParameter>
 {
     public override IEnumerable<Expression<Func<RequestParameter, object?>>> GetDifferentPropertyNames(RequestParameter local, RequestParameter remote)
     {

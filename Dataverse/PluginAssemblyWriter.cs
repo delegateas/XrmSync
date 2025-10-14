@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
@@ -6,7 +6,7 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-public class PluginAssemblyWriter(IDataverseWriter writer, IOptions<XrmSyncConfiguration> configuration) : IPluginAssemblyWriter
+internal class PluginAssemblyWriter(IDataverseWriter writer, IOptions<XrmSyncConfiguration> configuration) : IPluginAssemblyWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", configuration.Value.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
