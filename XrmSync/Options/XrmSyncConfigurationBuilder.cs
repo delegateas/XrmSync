@@ -10,7 +10,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, string?
     {
         return new XrmSyncConfiguration(new PluginOptions(
             BuildPluginSyncOptions(),
-            BuildAnalyzisOptions()
+            BuildAnalysisOptions()
         ));
     }
 
@@ -25,7 +25,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, string?
         );
     }
 
-    public PluginAnalysisOptions BuildAnalyzisOptions()
+    public PluginAnalysisOptions BuildAnalysisOptions()
     {
         var analysisSection = GetConfigurationSection("Plugin:Analysis");
         return new PluginAnalysisOptions(

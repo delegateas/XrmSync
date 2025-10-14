@@ -7,7 +7,7 @@ using XrmSync.Options;
 
 namespace XrmSync.Actions;
 
-internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, IOptions<XrmSyncConfiguration> configuration) : IAction
+internal class PluginAnalysisAction(IAssemblyAnalyzer analyzer, IOptions<XrmSyncConfiguration> configuration) : IAction
 {
     public async Task<bool> RunAction(CancellationToken cancellationToken)
     {
@@ -15,13 +15,13 @@ internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, IOptions<XrmSync
         {
             try
             {
-                var analyzisOptions = configuration.Value.Plugin?.Analysis
-                    ?? throw new XrmSyncException("No analyzis configuration found in the plugin sync configuration.");
+                var analysisOptions = configuration.Value.Plugin?.Analysis
+                    ?? throw new XrmSyncException("No analysis configuration found in the plugin sync configuration.");
 
-                var pluginDto = analyzer.AnalyzeAssembly(analyzisOptions.AssemblyPath, analyzisOptions.PublisherPrefix);
+                var pluginDto = analyzer.AnalyzeAssembly(analysisOptions.AssemblyPath, analysisOptions.PublisherPrefix);
                 var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
                 {
-                    WriteIndented = analyzisOptions.PrettyPrint
+                    WriteIndented = analysisOptions.PrettyPrint
                 };
 
                 var jsonOutput = JsonSerializer.Serialize(pluginDto, jsonOptions);
@@ -37,7 +37,7 @@ internal class PluginAnalyzisAction(IAssemblyAnalyzer analyzer, IOptions<XrmSync
     }
 }
 
-internal class SavePluginAnalyzisConfigAction(IOptions<XrmSyncConfiguration> config, IConfigWriter configWriter) : ISaveConfigAction
+internal class SavePluginAnalysisConfigAction(IOptions<XrmSyncConfiguration> config, IConfigWriter configWriter) : ISaveConfigAction
 {
     public async Task<bool> SaveConfigAsync(string? filename, CancellationToken cancellationToken)
     {
@@ -45,8 +45,8 @@ internal class SavePluginAnalyzisConfigAction(IOptions<XrmSyncConfiguration> con
         if (config.Value.Plugin?.Analysis is null)
         {
             throw new XrmSyncException(filename is null
-                ? "No analyzis configuration loaded - cannot save"
-                : $"No analyzis configuration loaded - cannot save to {filename}");
+                ? "No analysis configuration loaded - cannot save"
+                : $"No analysis configuration loaded - cannot save to {filename}");
         }
 
         var configPath = string.IsNullOrWhiteSpace(filename) ? null : filename;

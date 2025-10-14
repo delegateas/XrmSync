@@ -60,13 +60,13 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
                 var baseOptions = builder.Build();
                 var baseAnalyzerOptions = baseOptions.Plugin?.Analysis;
 
-                var pluginAnalyzisOptions = new PluginAnalysisOptions(
+                var pluginAnalysisOptions = new PluginAnalysisOptions(
                     string.IsNullOrWhiteSpace(assemblyPath) ? baseAnalyzerOptions?.AssemblyPath ?? string.Empty : assemblyPath,
                     string.IsNullOrWhiteSpace(publisherPrefix) ? baseAnalyzerOptions?.PublisherPrefix ?? string.Empty : publisherPrefix,
                     prettyPrint || (baseAnalyzerOptions?.PrettyPrint ?? false)
                 );
 
-                return new XrmSyncConfiguration(new PluginOptions(baseOptions.Plugin?.Sync, pluginAnalyzisOptions));
+                return new XrmSyncConfiguration(new PluginOptions(baseOptions.Plugin?.Sync, pluginAnalysisOptions));
             })
             .AddLogger(_ => LogLevel.Information, false)
             .BuildServiceProvider();

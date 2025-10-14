@@ -61,8 +61,8 @@ internal static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAnalyzerServices(this IServiceCollection services)
     {
-        services.AddSingleton<IAction, PluginAnalyzisAction>();
-        services.AddSingleton<ISaveConfigAction, SavePluginAnalyzisConfigAction>();
+        services.AddSingleton<IAction, PluginAnalysisAction>();
+        services.AddSingleton<ISaveConfigAction, SavePluginAnalysisConfigAction>();
 
         services.AddAssemblyAnalyzer();
 
