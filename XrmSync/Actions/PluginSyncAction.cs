@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
@@ -6,7 +7,7 @@ using XrmSync.SyncService;
 
 namespace XrmSync.Actions;
 
-internal class PluginSyncAction(PluginSyncService pluginSync, ILogger<PluginSyncAction> log) : IAction
+internal class PluginSyncAction(ISyncService pluginSync, ILogger<PluginSyncAction> log) : IAction
 {
     public async Task<bool> RunAction(CancellationToken cancellationToken)
     {
@@ -15,7 +16,7 @@ internal class PluginSyncAction(PluginSyncService pluginSync, ILogger<PluginSync
             await pluginSync.Sync(cancellationToken);
             return true;
         }
-        catch (OptionsValidationException ex)
+        catch (Model.Exceptions.OptionsValidationException ex)
         {
             log.LogCritical("Configuration validation failed:{nl}{message}", Environment.NewLine, ex.Message);
             return false;
@@ -33,12 +34,12 @@ internal class PluginSyncAction(PluginSyncService pluginSync, ILogger<PluginSync
     }
 }
 
-internal class SavePluginSyncConfigAction(XrmSyncConfiguration config, IConfigWriter configWriter) : ISaveConfigAction
+internal class SavePluginSyncConfigAction(IOptions<XrmSyncConfiguration> config, IConfigWriter configWriter) : ISaveConfigAction
 {
     public async Task<bool> SaveConfigAsync(string? filename, CancellationToken cancellationToken)
     {
         // Handle save-config functionality
-        if (config.Plugin?.Sync is null)
+        if (config.Value.Plugin?.Sync is null)
         {
             throw new XrmSyncException(filename is null
                 ? "No sync configuration loaded - cannot save"
@@ -46,7 +47,7 @@ internal class SavePluginSyncConfigAction(XrmSyncConfiguration config, IConfigWr
         }
 
         var configPath = string.IsNullOrWhiteSpace(filename) ? null : filename;
-        await configWriter.SavePluginSyncConfigAsync(config.Plugin.Sync, configPath, cancellationToken);
+        await configWriter.SavePluginSyncConfigAsync(config.Value.Plugin.Sync, configPath, cancellationToken);
         Console.WriteLine($"Configuration saved to {configPath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json"}");
         return true;
     }

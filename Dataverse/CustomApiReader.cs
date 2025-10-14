@@ -5,7 +5,7 @@ using XrmSync.Model.CustomApi;
 
 namespace XrmSync.Dataverse;
 
-public class CustomApiReader(IDataverseReader reader) : ICustomApiReader
+internal class CustomApiReader(IDataverseReader reader) : ICustomApiReader
 {
     public List<CustomApiDefinition> GetCustomApis(Guid solutionId)
     {

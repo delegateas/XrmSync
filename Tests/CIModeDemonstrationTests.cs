@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XrmSync.Extensions;
 using XrmSync.Logging;
 using XrmSync.Model;
@@ -14,19 +15,20 @@ public class CIModeDemonstrationTests
         // This test demonstrates that CI mode is properly passed to the formatter through options
 
         // Arrange - Create service provider with CI mode enabled via AddLogger parameter
+        var configuration = new XrmSyncConfiguration(new(new PluginSyncOptions("path", "solution", LogLevel.Debug, false), null));
         var services = new ServiceCollection()
-            .AddSingleton(new XrmSyncConfiguration(new(new PluginSyncOptions("path", "solution", LogLevel.Debug, false), null)))
+            .AddSingleton(Options.Create(configuration))
             .AddLogger(sp => LogLevel.Debug, ciMode: true) // Explicitly enable CI mode
             .BuildServiceProvider();
 
-        var configuration = services.GetRequiredService<XrmSyncConfiguration>();
+        var configOptions = services.GetRequiredService<IOptions<XrmSyncConfiguration>>();
 
         // Capture what the logger would send to the formatter
         var capturedMessages = new List<(LogLevel Level, string Message)>();
         var testLogger = new TestCaptureLogger(capturedMessages);
         var syncLogger = new SyncLogger<CIModeDemonstrationTests>(
             new TestLoggerFactory(testLogger), 
-            configuration
+            configOptions
         );
 
         // Act

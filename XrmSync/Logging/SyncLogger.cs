@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XrmSync.Model;
 
 namespace XrmSync.Logging;
@@ -7,9 +8,9 @@ internal class SyncLogger<T> : ILogger<T>
 {
     private readonly ILogger _logger;
 
-    public SyncLogger(ILoggerFactory loggerFactory, XrmSyncConfiguration configuration)
+    public SyncLogger(ILoggerFactory loggerFactory, IOptions<XrmSyncConfiguration> configuration)
     {
-        LogLevel minLogLevel = configuration.Plugin?.Sync?.LogLevel is LogLevel level
+        LogLevel minLogLevel = configuration.Value.Plugin?.Sync?.LogLevel is LogLevel level
             ? level
             : LogLevel.Information;
 

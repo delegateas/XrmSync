@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using XrmSync.AssemblyAnalyzer;
 using XrmSync.AssemblyAnalyzer.AssemblyReader;
@@ -11,9 +12,10 @@ using XrmSync.SyncService.Exceptions;
 using XrmSync.SyncService.PluginValidator;
 
 [assembly: InternalsVisibleTo("Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace XrmSync.SyncService;
 
-public class PluginSyncService(
+internal class PluginSyncService(
     IPluginAssemblyReader pluginAssemblyReader,
     IPluginAssemblyWriter pluginAssemblyWriter,
     IPluginReader pluginReader,
@@ -25,10 +27,10 @@ public class PluginSyncService(
     ISolutionReader solutionReader,
     IDifferenceCalculator differenceUtility,
     Description description,
-    XrmSyncConfiguration configuration,
+    IOptions<XrmSyncConfiguration> configuration,
     ILogger<PluginSyncService> log) : ISyncService
 {
-    private readonly PluginSyncOptions options = configuration.Plugin?.Sync
+    private readonly PluginSyncOptions options = configuration.Value.Plugin?.Sync
         ?? throw new XrmSyncException("Plugin sync options are not configured");
 
     public async Task Sync(CancellationToken cancellationToken)

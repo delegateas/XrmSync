@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Extensions;
@@ -9,13 +10,13 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 
-public class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger<PluginWriter> log, XrmSyncConfiguration configuration) : IPluginWriter
+internal class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger<PluginWriter> log, IOptions<XrmSyncConfiguration> configuration) : IPluginWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
-            { "SolutionUniqueName", configuration.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
+            { "SolutionUniqueName", configuration.Value.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
     };
 
-    private readonly string LogPrefix = configuration.Plugin?.Sync?.DryRun == true ? "[DRY RUN] " : string.Empty;
+    private readonly string LogPrefix = configuration.Value.Plugin?.Sync?.DryRun == true ? "[DRY RUN] " : string.Empty;
 
     public void DeletePluginImages(IEnumerable<Image> pluginImages)
     {

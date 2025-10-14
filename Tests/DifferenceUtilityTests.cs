@@ -1,5 +1,6 @@
 using XrmPluginCore.Enums;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
@@ -26,7 +27,7 @@ public class DifferenceUtilityTests
             new CustomApiComparer(description),
             new RequestParameterComparer(),
             new ResponsePropertyComparer(),
-            new PrintService(logger, configuration)
+            new PrintService(logger, Options.Create(configuration))
         );
     }
 

@@ -1,4 +1,4 @@
-﻿using XrmSync.Model;
+using XrmSync.Model;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService.Comparers;
@@ -6,7 +6,7 @@ using XrmSync.SyncService.Extensions;
 
 namespace XrmSync.SyncService.Difference;
 
-public class DifferenceCalculator(
+internal class DifferenceCalculator(
     IEntityComparer<PluginDefinition> pluginDefinitionComparer,
     IEntityComparer<Step> pluginStepComparer,
     IEntityComparer<Image> pluginImageComparer,

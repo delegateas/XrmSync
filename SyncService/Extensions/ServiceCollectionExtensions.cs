@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSyncService(this IServiceCollection services)
     {
         return services
-            .AddSingleton<PluginSyncService>()
+            .AddSingleton<ISyncService, PluginSyncService>()
             .AddSingleton<Description>()
             .AddSingleton<IDifferenceCalculator, DifferenceCalculator>()
             .AddSingleton<IPrintService, PrintService>()

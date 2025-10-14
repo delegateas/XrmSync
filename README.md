@@ -60,22 +60,22 @@ dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
 ### Basic Sync Command
 
 ```bash
-xrmsync --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
+xrmsync plugins --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
 ```
 
 ### Configuration File Usage
 
 For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
 ```bash
-xrmsync
+xrmsync plugins
 ```
 You can also override specific options when using a configuration file:
 ```bash
-xrmsync --dry-run --log-level Debug
+xrmsync plugins --dry-run --log-level Debug
 ```
 ### Command Line Options
 
-#### Sync Command
+#### Plugins Command
 
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
@@ -124,7 +124,7 @@ You can automatically generate configuration files using the `--save-config` opt
 
 ##### Save sync options to appsettings.json (default)
 ```bash
-xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config
+xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config
 ```
 
 ##### Save analysis options to appsettings.json
@@ -134,7 +134,7 @@ xrmsync analyze --assembly "MyPlugin.dll" --prefix "contoso" --pretty-print --sa
 
 ##### Save to a custom file
 ```bash
-xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config --save-config-to "my-project.json"
+xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config --save-config-to "my-project.json"
 ```
 
 When using `--save-config`, XrmSync will:
@@ -239,7 +239,7 @@ When using `--save-config`, XrmSync will:
 
 #### Basic synchronization:
 ```bash
-xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
+xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
 ```
 
 #### Using a configuration file:
@@ -249,12 +249,12 @@ xrmsync
 
 #### Configuration file with CLI overrides:
 ```bash
-xrmsync --dry-run --log-level Debug
+xrmsync plugins --dry-run --log-level Debug
 ```
 
 #### Dry run with debug logging:
 ```bash
-xrmsync --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug
+xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --dry-run --log-level Debug
 ```
 
 ## Configuration
@@ -339,7 +339,7 @@ steps:
   inputs:
     command: 'custom'
     custom: 'tool'
-    arguments: 'run xrmsync --dry-run --ci'
+    arguments: 'run xrmsync plugins --dry-run --ci'
     workingDirectory: '$(BasePath)/Tools'
 ```
 

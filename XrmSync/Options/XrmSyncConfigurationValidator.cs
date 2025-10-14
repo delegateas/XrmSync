@@ -1,35 +1,35 @@
-﻿using XrmSync.Model;
-using XrmSync.Model.Exceptions;
+using Microsoft.Extensions.Options;
+using XrmSync.Model;
 
 namespace XrmSync.Options;
 
-internal class XrmSyncConfigurationValidator(XrmSyncConfiguration configuration) : IConfigurationValidator
+internal class XrmSyncConfigurationValidator(IOptions<XrmSyncConfiguration> configuration) : IConfigurationValidator
 {
     public void Validate(ConfigurationScope scope)
     {
         if (scope == ConfigurationScope.None)
         {
-            throw new OptionsValidationException("No configuration scope specified for validation.");
+            throw new Model.Exceptions.OptionsValidationException("No configuration scope specified for validation.");
         }
 
         if (scope.HasFlag(ConfigurationScope.PluginSync))
         {
-            if (configuration.Plugin?.Sync is null)
+            if (configuration.Value.Plugin?.Sync is null)
             {
-                throw new OptionsValidationException("Plugin sync options are required but not provided.");
+                throw new Model.Exceptions.OptionsValidationException("Plugin sync options are required but not provided.");
             }
 
-            Validate(configuration.Plugin.Sync);
+            Validate(configuration.Value.Plugin.Sync);
         }
 
         if (scope.HasFlag(ConfigurationScope.PluginAnalysis))
         {
-            if (configuration.Plugin?.Analysis is null)
+            if (configuration.Value.Plugin?.Analysis is null)
             {
-                throw new OptionsValidationException("Plugin analysis options are required but not provided.");
+                throw new Model.Exceptions.OptionsValidationException("Plugin analysis options are required but not provided.");
             }
 
-            Validate(configuration.Plugin.Analysis);
+            Validate(configuration.Value.Plugin.Analysis);
         }
     }
 
@@ -80,7 +80,7 @@ internal class XrmSyncConfigurationValidator(XrmSyncConfiguration configuration)
 
         if (errors.Count > 0)
         {
-            throw new OptionsValidationException($"Sync options validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors.Select(e => $"- {e}"))}");
+            throw new Model.Exceptions.OptionsValidationException($"Sync options validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors.Select(e => $"- {e}"))}");
         }
     }
 
@@ -133,7 +133,7 @@ internal class XrmSyncConfigurationValidator(XrmSyncConfiguration configuration)
 
         if (errors.Count > 0)
         {
-            throw new OptionsValidationException($"Analysis options validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors.Select(e => $"- {e}"))}");
+            throw new Model.Exceptions.OptionsValidationException($"Analysis options validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors.Select(e => $"- {e}"))}");
         }
     }
 }

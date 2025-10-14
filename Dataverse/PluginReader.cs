@@ -1,4 +1,4 @@
-﻿using XrmPluginCore.Enums;
+using XrmPluginCore.Enums;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
@@ -7,7 +7,7 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 
-public class PluginReader(IDataverseReader reader) : IPluginReader
+internal class PluginReader(IDataverseReader reader) : IPluginReader
 {
     public List<PluginDefinition> GetPluginTypes(Guid assemblyId)
     {

@@ -1,10 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using XrmSync.Model;
 
 namespace XrmSync.SyncService.Comparers;
 
-public abstract class BaseComparer<TEntity> : IEntityComparer<TEntity> where TEntity : EntityBase
+internal abstract class BaseComparer<TEntity> : IEntityComparer<TEntity> where TEntity : EntityBase
 {
     public abstract IEnumerable<Expression<Func<TEntity, object?>>> GetDifferentPropertyNames(TEntity local, TEntity remote);
     public virtual IEnumerable<Expression<Func<TEntity, object?>>> GetRequiresRecreate(TEntity local, TEntity remote) => [];

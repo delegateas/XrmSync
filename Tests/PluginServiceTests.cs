@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.SyncService;
@@ -32,7 +33,7 @@ public class PluginServiceTests
 
     public PluginServiceTests()
     {
-        _plugin = new PluginSyncService(_pluginAssemblyReader, _pluginAssemblyWriter, _pluginReader, _pluginWriter, _pluginValidator, _customApiReader, _customApiWriter, _assemblyReader, _solutionReader, _differenceUtility, _description, _options, _logger);
+        _plugin = new PluginSyncService(_pluginAssemblyReader, _pluginAssemblyWriter, _pluginReader, _pluginWriter, _pluginValidator, _customApiReader, _customApiWriter, _assemblyReader, _solutionReader, _differenceUtility, _description, Options.Create(_options), _logger);
     }
 
     [Fact]

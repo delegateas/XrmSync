@@ -3,7 +3,7 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.SyncService.Comparers;
 
-public class PluginImageComparer : BaseComparer<Image>
+internal class PluginImageComparer : BaseComparer<Image>
 {
     public override IEnumerable<Expression<Func<Image, object?>>> GetDifferentPropertyNames(Image local, Image remote)
     {

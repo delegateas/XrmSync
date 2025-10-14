@@ -1,9 +1,9 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using XrmSync.Model.CustomApi;
 
 namespace XrmSync.SyncService.Comparers;
 
-public class CustomApiComparer(Description description) : BaseComparer<CustomApiDefinition>
+internal class CustomApiComparer(Description description) : BaseComparer<CustomApiDefinition>
 {
     private bool DescriptionEquals(CustomApiDefinition local, CustomApiDefinition remote)
     {

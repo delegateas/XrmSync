@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XrmSync.Actions;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
@@ -12,15 +14,26 @@ namespace XrmSync.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, Func<IConfigurationBuilder, XrmSyncConfiguration> syncOptionsFactory)
+    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, string? configName, Func<Options.IConfigurationBuilder, XrmSyncConfiguration> syncOptionsFactory)
     {
         services
             .AddSingleton<IConfigReader, ConfigReader>()
             .AddSingleton<IConfigWriter, ConfigWriter>()
             .AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
             .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())
-            .AddSingleton<IConfigurationBuilder, XrmSyncConfigurationBuilder>()
-            .AddSingleton(sp => syncOptionsFactory(sp.GetRequiredService<IConfigurationBuilder>()));
+            .AddSingleton<Options.IConfigurationBuilder>(sp => 
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                return new XrmSyncConfigurationBuilder(configuration, configName);
+            });
+
+        // Register IOptions<XrmSyncConfiguration> directly from the factory
+        services.AddSingleton(sp =>
+        {
+            var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
+            var config = syncOptionsFactory(builder);
+            return Microsoft.Extensions.Options.Options.Create(config);
+        });
 
         return services;
     }
@@ -39,8 +52,8 @@ internal static class ServiceCollectionExtensions
 
     public static IServiceCollection AddAnalyzerServices(this IServiceCollection services)
     {
-        services.AddSingleton<IAction, PluginAnalyzisAction>();
-        services.AddSingleton<ISaveConfigAction, SavePluginAnalyzisConfigAction>();
+        services.AddSingleton<IAction, PluginAnalysisAction>();
+        services.AddSingleton<ISaveConfigAction, SavePluginAnalysisConfigAction>();
 
         services.AddAssemblyAnalyzer();
 
