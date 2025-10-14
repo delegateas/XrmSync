@@ -27,17 +27,8 @@ internal static class ServiceCollectionExtensions
                 return new XrmSyncConfigurationBuilder(configuration, configName);
             });
 
-        // Register configuration using the options pattern
-        services.AddOptions<XrmSyncConfiguration>()
-            .Configure<Options.IConfigurationBuilder>((config, builder) =>
-            {
-                var builtConfig = syncOptionsFactory(builder);
-                // Since XrmSyncConfiguration is a record, we need to replace the whole object
-                // This is done by making the Configure call return the built configuration
-            });
-
-        // Register IOptions<T> directly from the factory
-        services.AddSingleton<IOptions<XrmSyncConfiguration>>(sp =>
+        // Register IOptions<XrmSyncConfiguration> directly from the factory
+        services.AddSingleton(sp =>
         {
             var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
             var config = syncOptionsFactory(builder);
