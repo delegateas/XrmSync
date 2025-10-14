@@ -1,6 +1,8 @@
-using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.CommandLine;
+using XrmSync.Actions;
+using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Options;
@@ -53,8 +55,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
         var configReader = new ConfigReader();
         var resolvedConfigName = configReader.ResolveConfigurationName(configName);
 
-        var serviceProvider = new ServiceCollection()
-            .AddAnalyzerServices()
+        var serviceProvider = GetAnalyzerServices()
             .AddXrmSyncConfiguration(resolvedConfigName, builder =>
             {
                 var baseOptions = builder.Build();
@@ -74,5 +75,16 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
         return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginAnalysis, cancellationToken)
             ? E_OK
             : E_ERROR;
+    }
+
+    private static IServiceCollection GetAnalyzerServices(IServiceCollection? services = null)
+    {
+        services ??= new ServiceCollection();
+        services.AddSingleton<IAction, PluginAnalysisAction>();
+        services.AddSingleton<ISaveConfigAction, SavePluginAnalysisConfigAction>();
+
+        services.AddAssemblyAnalyzer();
+
+        return services;
     }
 }
