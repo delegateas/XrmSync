@@ -11,6 +11,8 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, string?
         return new XrmSyncConfiguration(new PluginOptions(
             BuildPluginSyncOptions(),
             BuildAnalysisOptions()
+        ), new WebresourceOptions(
+            BuildWebresourceSyncOptions()
         ));
     }
 
@@ -22,6 +24,17 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, string?
             pluginSyncSection.GetValue<string>(nameof(PluginSyncOptions.SolutionName)) ?? string.Empty,
             pluginSyncSection.GetValue<LogLevel?>(nameof(PluginSyncOptions.LogLevel)) ?? LogLevel.Information,
             pluginSyncSection.GetValue<bool>(nameof(PluginSyncOptions.DryRun))
+        );
+    }
+
+    public WebresourceSyncOptions BuildWebresourceSyncOptions()
+    {
+        var webresourceSyncSection = GetConfigurationSection("Webresource:Sync");
+        return new WebresourceSyncOptions(
+            webresourceSyncSection.GetValue<string>(nameof(WebresourceSyncOptions.FolderPath)) ?? string.Empty,
+            webresourceSyncSection.GetValue<string>(nameof(WebresourceSyncOptions.SolutionName)) ?? string.Empty,
+            webresourceSyncSection.GetValue<LogLevel?>(nameof(WebresourceSyncOptions.LogLevel)) ?? LogLevel.Information,
+            webresourceSyncSection.GetValue<bool>(nameof(WebresourceSyncOptions.DryRun))
         );
     }
 

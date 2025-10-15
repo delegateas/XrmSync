@@ -103,6 +103,44 @@ internal static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddWebresourceSyncOptions(
+        this IServiceCollection services,
+        Func<WebresourceSyncOptions, WebresourceSyncOptions> optionsFactory)
+    {
+        // Build full configuration for validation and saving
+        services.AddSingleton(sp =>
+        {
+            var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
+            var baseConfig = builder.Build();
+            var webresourceSyncOptions = optionsFactory(baseConfig.Webresource.Sync);
+            // Build complete configuration with new sync options
+            return baseConfig with
+            {
+                Webresource = baseConfig.Webresource with
+                {
+                    Sync = webresourceSyncOptions
+                }
+            };
+        });
+
+        // Register IOptions<XrmSyncConfiguration> for validation
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<XrmSyncConfiguration>();
+            return Microsoft.Extensions.Options.Options.Create(config);
+        });
+
+        // Register specific IOptions<WebresourceSyncOptions> for services
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<XrmSyncConfiguration>();
+            var options = config.Webresource?.Sync ?? throw new Model.Exceptions.XrmSyncException("Webresource sync options are not configured");
+            return Microsoft.Extensions.Options.Options.Create(options);
+        });
+
+        return services;
+    }
+
     public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel?> logLevel, bool ciMode)
     {
         services.AddSingleton(sp =>

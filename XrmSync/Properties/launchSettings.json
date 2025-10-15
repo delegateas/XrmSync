@@ -51,6 +51,11 @@
     "SaveConfigAnalyze": {
       "commandName": "Project",
       "commandLineArgs": "analyze --save-config --pretty-print --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
+    },
+    "WebresourceSync": {
+      "commandName": "Project",
+      //"commandLineArgs": "webresources --dry-run --path \"..\\..\\..\\..\\Samples\\5-Webresources\\Webresources\" -l debug"
+      "commandLineArgs": "webresources --dry-run -l debug --path \"C:\\Users\\mho\\source\\repos\\Aarsleff\\PerAarsleff\\PerAarsleff.FunderingDaxif\\WebResources\\src\\paa_AarsleffGroup\\\""
     }
   }
 }

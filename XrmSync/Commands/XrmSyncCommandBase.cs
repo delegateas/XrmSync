@@ -65,9 +65,9 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
     /// Validates configuration and runs the appropriate action (save config or execute)
     /// </summary>
     protected static async Task<bool> RunAction(
-        IServiceProvider serviceProvider, 
-        string? saveConfig, 
-        ConfigurationScope configurationScope, 
+        IServiceProvider serviceProvider,
+        string? saveConfig,
+        ConfigurationScope configurationScope,
         CancellationToken cancellationToken)
     {
         // Validate options before taking further action

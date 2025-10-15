@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using XrmSync.Model;
-using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 
 namespace Tests;
@@ -30,7 +29,7 @@ public class OptionsValidationTests
         try
         {
             // Act & Assert
-            var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null!))));
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Sync = options } }));
             validator.Validate(ConfigurationScope.PluginSync); // Should not throw
         }
         finally
@@ -53,7 +52,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null!))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Sync = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Assembly path is required", exception.Message);
     }
@@ -70,7 +69,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null!))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Sync = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Solution name is required", exception.Message);
     }
@@ -87,7 +86,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null!))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Sync = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Assembly file does not exist", exception.Message);
     }
@@ -97,14 +96,14 @@ public class OptionsValidationTests
     {
         // Arrange
         var options = new PluginSyncOptions(
-            AssemblyPath: "test.exe",
+            AssemblyPath: "testhost.exe",
             SolutionName: "TestSolution",
             LogLevel: LogLevel.Information,
             DryRun: false
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null!))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Sync = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Assembly file must have a .dll extension", exception.Message);
     }
@@ -121,7 +120,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(options, null!))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Sync = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginSync));
         Assert.Contains("Solution name cannot exceed 65 characters", exception.Message);
     }
@@ -146,7 +145,7 @@ public class OptionsValidationTests
         try
         {
             // Act & Assert
-            var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null!, options))));
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Analysis = options } }));
             validator.Validate(ConfigurationScope.PluginAnalysis); // Should not throw
         }
         finally
@@ -168,7 +167,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null!, options))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Analysis = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Assembly path is required", exception.Message);
     }
@@ -184,7 +183,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null!, options))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Analysis = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix is required", exception.Message);
     }
@@ -200,7 +199,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null!, options))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Analysis = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix must be between 2 and 8 characters", exception.Message);
     }
@@ -216,7 +215,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null!, options))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Analysis = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix must be between 2 and 8 characters", exception.Message);
     }
@@ -232,7 +231,7 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null!, options))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Analysis = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers", exception.Message);
     }
@@ -261,7 +260,7 @@ public class OptionsValidationTests
         try
         {
             // Act & Assert
-            var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null!, options))));
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Analysis = options } }));
             validator.Validate(ConfigurationScope.PluginAnalysis); // Should not throw
         }
         finally
@@ -288,8 +287,347 @@ public class OptionsValidationTests
         );
 
         // Act & Assert
-        var validator = new XrmSyncConfigurationValidator(Options.Create<XrmSyncConfiguration>(new(new(null!, options))));
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Plugin = PluginOptions.Empty with { Analysis = options } }));
         var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.PluginAnalysis));
         Assert.Contains("Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers", exception.Message);
+    }
+
+    // Webresource validation tests start here
+    [Fact]
+    public void WebresourceSyncOptionsValidator_ValidOptions_PassesValidation()
+    {
+        // Arrange
+        // Create a test directory
+        var tempDir = Path.GetTempFileName();
+        File.Delete(tempDir);
+        Directory.CreateDirectory(tempDir);
+
+        var options = new WebresourceSyncOptions(
+            FolderPath: tempDir,
+            SolutionName: "TestSolution",
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        try
+        {
+            // Act & Assert
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+            validator.Validate(ConfigurationScope.WebresourceSync); // Should not throw
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_EmptyFolderPath_ThrowsValidationException()
+    {
+        // Arrange
+        var options = new WebresourceSyncOptions(
+            FolderPath: "",
+            SolutionName: "TestSolution",
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        // Act & Assert
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+        Assert.Contains("Webresource root path is required", exception.Message);
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_NullFolderPath_ThrowsValidationException()
+    {
+        // Arrange
+        var options = new WebresourceSyncOptions(
+            FolderPath: null!,
+            SolutionName: "TestSolution",
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        // Act & Assert
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+        Assert.Contains("Webresource root path is required", exception.Message);
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_WhitespaceFolderPath_ThrowsValidationException()
+    {
+        // Arrange
+        var options = new WebresourceSyncOptions(
+            FolderPath: "   ",
+            SolutionName: "TestSolution",
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        // Act & Assert
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+        Assert.Contains("Webresource root path is required", exception.Message);
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_NonExistentFolderPath_ThrowsValidationException()
+    {
+        // Arrange
+        var options = new WebresourceSyncOptions(
+            FolderPath: "C:\\NonExistentPath\\Webresources",
+            SolutionName: "TestSolution",
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        // Act & Assert
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+        Assert.Contains("Webresource root path does not exist", exception.Message);
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_EmptySolutionName_ThrowsValidationException()
+    {
+        // Arrange
+        // Create a test directory
+        var tempDir = Path.GetTempFileName();
+        File.Delete(tempDir);
+        Directory.CreateDirectory(tempDir);
+
+        var options = new WebresourceSyncOptions(
+            FolderPath: tempDir,
+            SolutionName: "",
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        try
+        {
+            // Act & Assert
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+            var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+            Assert.Contains("Solution name is required", exception.Message);
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_NullSolutionName_ThrowsValidationException()
+    {
+        // Arrange
+        // Create a test directory
+        var tempDir = Path.GetTempFileName();
+        File.Delete(tempDir);
+        Directory.CreateDirectory(tempDir);
+
+        var options = new WebresourceSyncOptions(
+            FolderPath: tempDir,
+            SolutionName: null!,
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        try
+        {
+            // Act & Assert
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+            var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+            Assert.Contains("Solution name is required", exception.Message);
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_WhitespaceSolutionName_ThrowsValidationException()
+    {
+        // Arrange
+        // Create a test directory
+        var tempDir = Path.GetTempFileName();
+        File.Delete(tempDir);
+        Directory.CreateDirectory(tempDir);
+
+        var options = new WebresourceSyncOptions(
+            FolderPath: tempDir,
+            SolutionName: "   ",
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        try
+        {
+            // Act & Assert
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+            var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+            Assert.Contains("Solution name is required", exception.Message);
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_SolutionNameTooLong_ThrowsValidationException()
+    {
+        // Arrange
+        // Create a test directory
+        var tempDir = Path.GetTempFileName();
+        File.Delete(tempDir);
+        Directory.CreateDirectory(tempDir);
+
+        var options = new WebresourceSyncOptions(
+            FolderPath: tempDir,
+            SolutionName: new string('a', 66), // 66 characters
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        try
+        {
+            // Act & Assert
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+            var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+            Assert.Contains("Solution name cannot exceed 65 characters", exception.Message);
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Theory]
+    [InlineData("ValidSolution")]
+    [InlineData("My_Solution")]
+    [InlineData("Solution123")]
+    [InlineData("A")]
+    [InlineData("AB")]
+    public void WebresourceSyncOptionsValidator_ValidSolutionNames_PassValidation(string solutionName)
+    {
+        // Arrange
+        // Create a test directory
+        var tempDir = Path.GetTempFileName();
+        File.Delete(tempDir);
+        Directory.CreateDirectory(tempDir);
+
+        var options = new WebresourceSyncOptions(
+            FolderPath: tempDir,
+            SolutionName: solutionName,
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        try
+        {
+            // Act & Assert
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+            validator.Validate(ConfigurationScope.WebresourceSync); // Should not throw
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_RelativeFolderPath_PassesValidation()
+    {
+        // Arrange
+        // Create a relative test directory
+        var relativeDir = "TestWebresources";
+        if (Directory.Exists(relativeDir))
+            Directory.Delete(relativeDir, true);
+        Directory.CreateDirectory(relativeDir);
+
+        var options = new WebresourceSyncOptions(
+            FolderPath: relativeDir,
+            SolutionName: "TestSolution",
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        try
+        {
+            // Act & Assert
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+            validator.Validate(ConfigurationScope.WebresourceSync); // Should not throw
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(relativeDir))
+                Directory.Delete(relativeDir, true);
+        }
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_LogLevelAndDryRunFlags_PassValidation()
+    {
+        // Arrange
+        // Create a test directory
+        var tempDir = Path.GetTempFileName();
+        File.Delete(tempDir);
+        Directory.CreateDirectory(tempDir);
+
+        var options = new WebresourceSyncOptions(
+            FolderPath: tempDir,
+            SolutionName: "TestSolution",
+            LogLevel: LogLevel.Debug,
+            DryRun: true
+        );
+
+        try
+        {
+            // Act & Assert
+            var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+            validator.Validate(ConfigurationScope.WebresourceSync); // Should not throw
+        }
+        finally
+        {
+            // Cleanup
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void WebresourceSyncOptionsValidator_MultipleValidationErrors_ThrowsExceptionWithAllErrors()
+    {
+        // Arrange
+        var options = new WebresourceSyncOptions(
+            FolderPath: "", // Invalid: empty
+            SolutionName: new string('a', 66), // Invalid: too long
+            LogLevel: LogLevel.Information,
+            DryRun: false
+        );
+
+        // Act & Assert
+        var validator = new XrmSyncConfigurationValidator(Options.Create(XrmSyncConfiguration.Empty with { Webresource = WebresourceOptions.Empty with { Sync = options } }));
+        var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(() => validator.Validate(ConfigurationScope.WebresourceSync));
+        
+        // Verify both validation errors are present
+        Assert.Contains("Webresource root path is required", exception.Message);
+        Assert.Contains("Solution name cannot exceed 65 characters", exception.Message);
     }
 }

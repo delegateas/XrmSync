@@ -14,18 +14,3 @@ public class XrmSyncException : Exception
     {
     }
 }
-
-public class OptionsValidationException : XrmSyncException
-{
-    public OptionsValidationException()
-    {
-    }
-
-    public OptionsValidationException(string? message) : base(message)
-    {
-    }
-
-    public OptionsValidationException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
-}
