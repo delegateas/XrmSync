@@ -37,8 +37,8 @@ public class SyncLoggerTests
     {
         // Arrange
         var loggerFactory = new TestLoggerFactory();
-        var pluginSyncOptions = new PluginSyncOptions("path", "solution", LogLevel.Information, false);
-        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(pluginSyncOptions));
+        var loggerOptions = new LoggerOptions(LogLevel.Information, false);
+        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(loggerOptions));
 
         // Act
         syncLogger.LogWarning("This is a warning message");
@@ -57,8 +57,8 @@ public class SyncLoggerTests
     {
         // Arrange
         var loggerFactory = new TestLoggerFactory();
-        var pluginSyncOptions = new PluginSyncOptions("path", "solution", LogLevel.Information, false);
-        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(pluginSyncOptions));
+        var loggerOptions = new LoggerOptions(LogLevel.Information, false);
+        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(loggerOptions));
 
         // Act
         syncLogger.LogWarning("This is a warning message");

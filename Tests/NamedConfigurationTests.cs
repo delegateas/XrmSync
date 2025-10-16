@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using XrmSync.Commands;
 using XrmSync.Options;
 
 namespace Tests;
@@ -37,12 +38,13 @@ public class NamedConfigurationTests
         try
         {
             var configReader = new TestConfigReader(tempFile);
-            
+            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty with { ConfigName = "dev" }));
+
             // Act
-            var result = configReader.ResolveConfigurationName("dev");
+            var configuration = builder.Build();
             
             // Assert
-            Assert.Equal("dev", result);
+            Assert.Equal("dev.dll", configuration.Plugin.Sync.AssemblyPath);
         }
         finally
         {
@@ -81,12 +83,13 @@ public class NamedConfigurationTests
         try
         {
             var configReader = new TestConfigReader(tempFile);
-            
+            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
+
             // Act
-            var result = configReader.ResolveConfigurationName(null);
-            
+            var result = builder.Build();
+
             // Assert
-            Assert.Equal("default", result);
+            Assert.Equal("default.dll", result.Plugin.Sync.AssemblyPath);
         }
         finally
         {
@@ -118,12 +121,13 @@ public class NamedConfigurationTests
         try
         {
             var configReader = new TestConfigReader(tempFile);
-            
+            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
+
             // Act
-            var result = configReader.ResolveConfigurationName(null);
-            
+            var result = builder.Build();
+
             // Assert
-            Assert.Equal("myconfig", result);
+            Assert.Equal("myconfig.dll", result.Plugin.Sync.AssemblyPath);
         }
         finally
         {
@@ -132,7 +136,7 @@ public class NamedConfigurationTests
     }
 
     [Fact]
-    public void ResolveConfigurationName_WithLegacyStructure_ReturnsNull()
+    public void ResolveConfigurationName_WithLegacyStructure_ReturnsNonNamed()
     {
         // Arrange
         var configJson = """
@@ -153,12 +157,13 @@ public class NamedConfigurationTests
         try
         {
             var configReader = new TestConfigReader(tempFile);
-            
+            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
+
             // Act
-            var result = configReader.ResolveConfigurationName(null);
-            
+            var result = builder.Build();
+
             // Assert
-            Assert.Null(result);
+            Assert.Equal("legacy.dll", result.Plugin.Sync.AssemblyPath);
         }
         finally
         {
@@ -178,7 +183,6 @@ public class NamedConfigurationTests
                 "Sync": {
                   "AssemblyPath": "dev.dll",
                   "SolutionName": "DevSolution",
-                  "LogLevel": "Debug",
                   "DryRun": true
                 }
               }
@@ -195,8 +199,10 @@ public class NamedConfigurationTests
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile(tempFile)
                 .Build();
-            
-            var builder = new XrmSyncConfigurationBuilder(configuration, "dev");
+
+            var options = SharedOptions.Empty with { ConfigName = "dev" };
+
+            var builder = new XrmSyncConfigurationBuilder(configuration, Options.Create(options));
             
             // Act
             var result = builder.Build();
@@ -205,7 +211,6 @@ public class NamedConfigurationTests
             Assert.NotNull(result.Plugin?.Sync);
             Assert.Equal("dev.dll", result.Plugin.Sync.AssemblyPath);
             Assert.Equal("DevSolution", result.Plugin.Sync.SolutionName);
-            Assert.Equal(LogLevel.Debug, result.Plugin.Sync.LogLevel);
             Assert.True(result.Plugin.Sync.DryRun);
         }
         finally
@@ -225,7 +230,6 @@ public class NamedConfigurationTests
               "Sync": {
                 "AssemblyPath": "legacy.dll",
                 "SolutionName": "LegacySolution",
-                "LogLevel": "Information",
                 "DryRun": false
               }
             }
@@ -241,8 +245,8 @@ public class NamedConfigurationTests
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile(tempFile)
                 .Build();
-            
-            var builder = new XrmSyncConfigurationBuilder(configuration, null);
+
+            var builder = new XrmSyncConfigurationBuilder(configuration, Options.Create(SharedOptions.Empty));
             
             // Act
             var result = builder.Build();
@@ -251,7 +255,6 @@ public class NamedConfigurationTests
             Assert.NotNull(result.Plugin?.Sync);
             Assert.Equal("legacy.dll", result.Plugin.Sync.AssemblyPath);
             Assert.Equal("LegacySolution", result.Plugin.Sync.SolutionName);
-            Assert.Equal(LogLevel.Information, result.Plugin.Sync.LogLevel);
             Assert.False(result.Plugin.Sync.DryRun);
         }
         finally
@@ -260,63 +263,13 @@ public class NamedConfigurationTests
         }
     }
 
-    private class TestConfigReader : IConfigReader
+    private class TestConfigReader(string configFile) : IConfigReader
     {
-        private readonly string _configFile;
-
-        public TestConfigReader(string configFile)
-        {
-            _configFile = configFile;
-        }
-
         public IConfiguration GetConfiguration()
         {
             return new ConfigurationBuilder()
-                .AddJsonFile(_configFile)
+                .AddJsonFile(configFile)
                 .Build();
-        }
-
-        public string? ResolveConfigurationName(string? requestedName)
-        {
-            var configuration = GetConfiguration();
-            var xrmSyncSection = configuration.GetSection("XrmSync");
-            
-            if (!xrmSyncSection.Exists())
-            {
-                return null;
-            }
-
-            // Get all configuration names (direct children of XrmSync)
-            var configNames = xrmSyncSection.GetChildren()
-                .Select(c => c.Key)
-                .Where(k => k != "Plugin") // Exclude legacy structure
-                .ToList();
-
-            // If requested name is specified, use it if it exists
-            if (!string.IsNullOrWhiteSpace(requestedName))
-            {
-                return configNames.Contains(requestedName) ? requestedName : null;
-            }
-
-            // If only one named config exists, use it
-            if (configNames.Count == 1)
-            {
-                return configNames[0];
-            }
-
-            // If multiple configs exist, try to use "default"
-            if (configNames.Contains("default"))
-            {
-                return "default";
-            }
-
-            // Fall back to legacy structure if no named configs exist
-            if (configNames.Count == 0 && xrmSyncSection.GetSection("Plugin").Exists())
-            {
-                return null; // Use legacy structure
-            }
-
-            return null;
         }
     }
 }

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using System.CommandLine;
 using System.Text.RegularExpressions;
 using XrmSync.Model;
 

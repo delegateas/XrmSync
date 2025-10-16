@@ -1,14 +1,17 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.CommandLine;
+using XrmSync.Model.Exceptions;
+using XrmSync.SyncService;
 
 namespace XrmSync.Commands
 {
     internal abstract class XrmSyncSyncCommandBase(string name, string description) : XrmSyncCommandBase(name, description)
     {
         protected Option<string> SolutionName { get; private set; } = null!;
-        protected Option<bool> DryRun {get; private set; } = null!;
+        protected Option<bool?> DryRun {get; private set; } = null!;
         protected Option<LogLevel?> LogLevel {get; private set; } = null!;
-        protected Option<bool> CiMode {get; private set; } = null!;
+        protected Option<bool?> CiMode {get; private set; } = null!;
 
         protected virtual void AddSyncSharedOptions()
         {
@@ -41,7 +44,7 @@ namespace XrmSync.Commands
             Add(CiMode);
         }
 
-        protected (string? SolutionName, bool DryRun, LogLevel? LogLevel, bool CIMode) GetSyncSharedOptionValues(ParseResult parseResult)
+        protected (string? SolutionName, bool? DryRun, LogLevel? LogLevel, bool? CIMode) GetSyncSharedOptionValues(ParseResult parseResult)
         {
             var solutionName = parseResult.GetValue(SolutionName);
             var dryRun = parseResult.GetValue(DryRun);
@@ -49,6 +52,32 @@ namespace XrmSync.Commands
             var ciMode = parseResult.GetValue(CiMode);
 
             return (solutionName, dryRun, logLevel, ciMode);
+        }
+
+        protected static async Task<bool> CommandAction(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncSyncCommandBase>>();
+            try
+            {
+                var syncService = serviceProvider.GetRequiredService<ISyncService>();
+                await syncService.Sync(cancellationToken);
+                return true;
+            }
+            catch (OptionsValidationException ex)
+            {
+                logger.LogCritical("Configuration validation failed:{nl}{message}", Environment.NewLine, ex.Message);
+                return false;
+            }
+            catch (XrmSyncException ex)
+            {
+                logger.LogError("Error during synchronization: {message}", ex.Message);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex, "An unexpected error occurred during synchronization: {message}", ex.Message);
+                return false;
+            }
         }
     }
 }

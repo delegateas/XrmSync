@@ -1,10 +1,14 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
-using XrmSync.Actions;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 
 namespace XrmSync.Commands;
+
+internal record SharedOptions(bool SaveConfig, string? SaveConfigTo, string? ConfigName)
+{
+    public static SharedOptions Empty => new (false, null, null);
+}
 
 /// <summary>
 /// Abstract base class for XrmSync commands with common functionality
@@ -52,13 +56,13 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
     /// <summary>
     /// Gets the shared option values from a parse result
     /// </summary>
-    protected (bool saveConfig, string? saveConfigTo, string? configName) GetSharedOptionValues(ParseResult parseResult)
+    protected SharedOptions GetSharedOptionValues(ParseResult parseResult)
     {
         var saveConfig = parseResult.GetValue(SaveConfigOption);
         var saveConfigTo = saveConfig ? parseResult.GetValue(SaveConfigToOption) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
         var configName = parseResult.GetValue(ConfigNameOption);
 
-        return (saveConfig, saveConfigTo, configName);
+        return new (saveConfig, saveConfigTo, configName);
     }
 
     /// <summary>
@@ -66,8 +70,8 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
     /// </summary>
     protected static async Task<bool> RunAction(
         IServiceProvider serviceProvider,
-        string? saveConfig,
         ConfigurationScope configurationScope,
+        Func<IServiceProvider, CancellationToken, Task<bool>> action,
         CancellationToken cancellationToken)
     {
         // Validate options before taking further action
@@ -82,15 +86,22 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
             return false;
         }
 
-        if (saveConfig is not null)
+        var sharedOptions = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<SharedOptions>>();
+
+        var (saveConfig, saveConfigTo, configName) = sharedOptions.Value;
+        if (saveConfig)
         {
-            var action = serviceProvider.GetRequiredService<ISaveConfigAction>();
-            return await action.SaveConfigAsync(saveConfig, cancellationToken);
+            var configWriter = serviceProvider.GetRequiredService<IConfigWriter>();
+
+            var configPath = string.IsNullOrWhiteSpace(saveConfigTo) ? null : saveConfigTo;
+            
+            await configWriter.SaveConfig(configPath, configName, cancellationToken);
+            Console.WriteLine($"Configuration saved to {saveConfigTo}");
+            return true;
         }
         else
         {
-            var action = serviceProvider.GetRequiredService<IAction>();
-            return await action.RunAction(cancellationToken);
+            return await action(serviceProvider, cancellationToken);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace XrmSync.SyncService.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddSyncService(this IServiceCollection services)
+    public static IServiceCollection AddPluginSyncService(this IServiceCollection services)
     {
         return services
             .AddSingleton<ISyncService, PluginSyncService>()
@@ -26,6 +26,12 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IEntityComparer<CustomApiDefinition>, CustomApiComparer>()
             .AddSingleton<IEntityComparer<RequestParameter>, RequestParameterComparer>()
             .AddSingleton<IEntityComparer<ResponseProperty>, ResponsePropertyComparer>();
+    }
+
+    public static IServiceCollection AddWebresourceSyncAction(this IServiceCollection services)
+    {
+        return services
+            .AddSingleton<ISyncService, WebresourceSyncService>();
     }
 
     public static IServiceCollection AddValidationRules(this IServiceCollection services)

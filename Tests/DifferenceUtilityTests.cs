@@ -19,7 +19,7 @@ public class DifferenceUtilityTests
     {
         var logger = new LoggerFactory().CreateLogger<PrintService>();
         var description = new Description();
-        var pluginSyncOptions = new PluginSyncOptions("path", "solution", LogLevel.Information, true);
+        var pluginSyncOptions = new PluginSyncOptions("path", "solution", true);
         _differenceUtility = new DifferenceCalculator(
             new PluginDefinitionComparer(),
             new PluginStepComparer(),

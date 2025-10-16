@@ -1,10 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
-using XrmSync.Actions;
 using XrmSync.AssemblyAnalyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Extensions;
-using XrmSync.Model;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;
 
@@ -34,31 +32,33 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
     {
         var assemblyPath = parseResult.GetValue(_assemblyFile);
         var (solutionName, dryRun, logLevel, ciMode) = GetSyncSharedOptionValues(parseResult);
-        var (saveConfig, saveConfigTo, configName) = GetSharedOptionValues(parseResult);
+        var sharedOptions = GetSharedOptionValues(parseResult);
         
         // Build service provider
-        var configReader = new ConfigReader();
-        var resolvedConfigName = configReader.ResolveConfigurationName(configName);
-
         var serviceProvider = GetPluginSyncServices()
-            .AddXrmSyncConfiguration(resolvedConfigName)
-            .AddPluginSyncOptions(baseOptions =>
-            {
-                // Merge CLI arguments with file configuration
-                return new PluginSyncOptions(
-                    string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.AssemblyPath : assemblyPath,
-                    string.IsNullOrWhiteSpace(solutionName) ? baseOptions.SolutionName : solutionName,
-                    logLevel ?? baseOptions.LogLevel,
-                    dryRun || baseOptions.DryRun
-                );
-            })
-            .AddLogger(
-                sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<PluginSyncOptions>>().Value.LogLevel,
-                ciMode
-            )
+            .AddXrmSyncConfiguration(sharedOptions)
+            .AddOptions(
+                baseOptions => baseOptions with
+                {
+                    Logger = baseOptions.Logger with
+                    {
+                        LogLevel = logLevel ?? baseOptions.Logger.LogLevel,
+                        CiMode = ciMode ?? baseOptions.Logger.CiMode
+                    },
+                    Plugin = baseOptions.Plugin with
+                    {
+                        Sync = new(
+                            string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.Plugin.Sync.AssemblyPath : assemblyPath,
+                            string.IsNullOrWhiteSpace(solutionName) ? baseOptions.Plugin.Sync.SolutionName : solutionName,
+                            dryRun ?? baseOptions.Plugin.Sync.DryRun
+                        )
+                    }
+                })
+            .AddCommandOptions(c => c.Plugin.Sync)
+            .AddLogger()
             .BuildServiceProvider();
 
-        return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginSync, cancellationToken)
+        return await RunAction(serviceProvider, ConfigurationScope.PluginSync, CommandAction, cancellationToken)
             ? E_OK
             : E_ERROR;
     }
@@ -67,10 +67,7 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
     {
         services ??= new ServiceCollection();
 
-        services.AddSingleton<IAction, PluginSyncAction>();
-        services.AddSingleton<ISaveConfigAction, SavePluginSyncConfigAction>();
-
-        services.AddSyncService();
+        services.AddPluginSyncService();
         services.AddAssemblyReader();
         services.AddDataverseConnection();
 

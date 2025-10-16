@@ -15,19 +15,21 @@ public class CIModeDemonstrationTests
         // This test demonstrates that CI mode is properly passed to the formatter through options
 
         // Arrange - Create service provider with CI mode enabled via AddLogger parameter
-        var pluginSyncOptions = new PluginSyncOptions("path", "solution", LogLevel.Debug, false);
         var services = new ServiceCollection()
-            .AddSingleton(Options.Create(pluginSyncOptions))
-            .AddLogger(sp => LogLevel.Debug, ciMode: true) // Explicitly enable CI mode
+            .AddSingleton(Options.Create(XrmSyncConfiguration.Empty with
+            {
+                Logger = new (LogLevel.Debug, true) // Explicitly enable CI mode
+            }))
+            .AddLogger()
             .BuildServiceProvider();
 
-        var configOptions = services.GetRequiredService<IOptions<PluginSyncOptions>>();
+        var configOptions = services.GetRequiredService<IOptions<LoggerOptions>>();
 
         // Capture what the logger would send to the formatter
         var capturedMessages = new List<(LogLevel Level, string Message)>();
         var testLogger = new TestCaptureLogger(capturedMessages);
         var syncLogger = new SyncLogger<CIModeDemonstrationTests>(
-            new TestLoggerFactory(testLogger), 
+            new TestLoggerFactory(testLogger),
             configOptions
         );
 

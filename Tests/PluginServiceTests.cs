@@ -27,7 +27,7 @@ public class PluginServiceTests
     private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
     private readonly IDifferenceCalculator _differenceUtility = Substitute.For<IDifferenceCalculator>();
     private readonly Description _description = new();
-    private readonly PluginSyncOptions _options = new(string.Empty, "solution", LogLevel.Information, false);
+    private readonly PluginSyncOptions _options = new(string.Empty, "solution", false);
 
     private readonly PluginSyncService _plugin;
 

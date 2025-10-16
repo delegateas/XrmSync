@@ -1,163 +1,88 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using XrmSync.Commands;
 using XrmSync.Logging;
 using XrmSync.Model;
 using XrmSync.Options;
+
+using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, string? configName)
+    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, SharedOptions sharedOptions)
     {
         services
             .AddSingleton<IConfigReader, ConfigReader>()
             .AddSingleton<IConfigWriter, ConfigWriter>()
             .AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
+            .AddSingleton(MSOptions.Create(sharedOptions))
             .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())
-            .AddSingleton<Options.IConfigurationBuilder>(sp =>
-            {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                return new XrmSyncConfigurationBuilder(configuration, configName);
-            });
+            .AddSingleton<IConfigurationBuilder, XrmSyncConfigurationBuilder>();
 
         return services;
     }
 
-    public static IServiceCollection AddPluginSyncOptions(
+    public static IServiceCollection AddOptions(
         this IServiceCollection services,
-        Func<PluginSyncOptions, PluginSyncOptions> optionsFactory)
+        Func<XrmSyncConfiguration, XrmSyncConfiguration> configModifier)
     {
-        // Build full configuration for validation and saving
+        // Register configuration with overloads from command as IOptions<XrmSyncConfiguration>
         services.AddSingleton(sp =>
         {
-            var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
+            var builder = sp.GetRequiredService<IConfigurationBuilder>();
             var baseConfig = builder.Build();
-            var pluginSyncOptions = optionsFactory(baseConfig.Plugin.Sync);
 
-            // Build complete configuration with new sync options
-            return baseConfig with
-            {
-                Plugin = baseConfig.Plugin with
-                {
-                    Sync = pluginSyncOptions
-                }
-            };
-        });
-
-        // Register IOptions<XrmSyncConfiguration> for validation
-        services.AddSingleton(sp =>
-        {
-            var config = sp.GetRequiredService<XrmSyncConfiguration>();
-            return Microsoft.Extensions.Options.Options.Create(config);
-        });
-
-        // Register specific IOptions<PluginSyncOptions> for services
-        services.AddSingleton(sp =>
-        {
-            var config = sp.GetRequiredService<XrmSyncConfiguration>();
-            var options = config.Plugin?.Sync ?? throw new Model.Exceptions.XrmSyncException("Plugin sync options are not configured");
-            return Microsoft.Extensions.Options.Options.Create(options);
+            return MSOptions.Create(configModifier(baseConfig));
         });
 
         return services;
     }
 
-    public static IServiceCollection AddPluginAnalysisOptions(
+    public static IServiceCollection AddCommandOptions<TSection>(
         this IServiceCollection services,
-        Func<PluginAnalysisOptions, PluginAnalysisOptions> optionsFactory)
+        Func<XrmSyncConfiguration, TSection> sectionSelector) where TSection : class
     {
-        // Build full configuration for validation and saving
+        // Register IOptions<TSection> for services
         services.AddSingleton(sp =>
         {
-            var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
-            var baseConfig = builder.Build();
-            var pluginAnalysisOptions = optionsFactory(baseConfig.Plugin.Analysis);
-
-            // Build complete configuration with new analysis options
-            return baseConfig with
-            {
-                Plugin = baseConfig.Plugin with
-                {
-                    Analysis = pluginAnalysisOptions
-                }
-            };
-        });
-
-        // Register IOptions<XrmSyncConfiguration> for validation
-        services.AddSingleton(sp =>
-        {
-            var config = sp.GetRequiredService<XrmSyncConfiguration>();
-            return Microsoft.Extensions.Options.Options.Create(config);
-        });
-
-        // Register specific IOptions<PluginAnalysisOptions> for services
-        services.AddSingleton(sp =>
-        {
-            var config = sp.GetRequiredService<XrmSyncConfiguration>();
-            var options = config.Plugin?.Analysis ?? throw new Model.Exceptions.XrmSyncException("Plugin analysis options are not configured");
-            return Microsoft.Extensions.Options.Options.Create(options);
+            var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+            return MSOptions.Create(sectionSelector(config.Value));
         });
 
         return services;
     }
 
-    public static IServiceCollection AddWebresourceSyncOptions(
-        this IServiceCollection services,
-        Func<WebresourceSyncOptions, WebresourceSyncOptions> optionsFactory)
+    public static IServiceCollection AddLogger(this IServiceCollection services)
     {
-        // Build full configuration for validation and saving
+        // Register IOptions<LoggerOptions> for logging
         services.AddSingleton(sp =>
         {
-            var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
-            var baseConfig = builder.Build();
-            var webresourceSyncOptions = optionsFactory(baseConfig.Webresource.Sync);
-            // Build complete configuration with new sync options
-            return baseConfig with
-            {
-                Webresource = baseConfig.Webresource with
+            var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+            return MSOptions.Create(config.Value.Logger);
+        });
+
+        services.AddSingleton(sp =>
+        {
+            var loggerOptions = sp.GetRequiredService<IOptions<LoggerOptions>>().Value;
+            return LoggerFactory.Create(
+                builder =>
                 {
-                    Sync = webresourceSyncOptions
-                }
-            };
+                    builder.AddFilter(nameof(Microsoft), LogLevel.Warning)
+                        .AddFilter(nameof(System), LogLevel.Warning)
+                        .AddFilter(nameof(XrmSync), loggerOptions.LogLevel)
+                        .AddConsole(options => options.FormatterName = "ci-console")
+                        .AddConsoleFormatter<CIConsoleFormatter, CIConsoleFormatterOptions>(options =>
+                        {
+                            options.IncludeScopes = false;
+                            options.SingleLine = true;
+                            options.TimestampFormat = "HH:mm:ss ";
+                            options.CIMode = loggerOptions.CiMode;
+                        });
+                });
         });
-
-        // Register IOptions<XrmSyncConfiguration> for validation
-        services.AddSingleton(sp =>
-        {
-            var config = sp.GetRequiredService<XrmSyncConfiguration>();
-            return Microsoft.Extensions.Options.Options.Create(config);
-        });
-
-        // Register specific IOptions<WebresourceSyncOptions> for services
-        services.AddSingleton(sp =>
-        {
-            var config = sp.GetRequiredService<XrmSyncConfiguration>();
-            var options = config.Webresource?.Sync ?? throw new Model.Exceptions.XrmSyncException("Webresource sync options are not configured");
-            return Microsoft.Extensions.Options.Options.Create(options);
-        });
-
-        return services;
-    }
-
-    public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel?> logLevel, bool ciMode)
-    {
-        services.AddSingleton(sp =>
-            LoggerFactory.Create(builder =>
-            {
-                builder.AddFilter(nameof(Microsoft), LogLevel.Warning)
-                    .AddFilter(nameof(System), LogLevel.Warning)
-                    .AddFilter(nameof(XrmSync), logLevel(sp) ?? LogLevel.Information)
-                    .AddConsole(options => options.FormatterName = "ci-console")
-                    .AddConsoleFormatter<CIConsoleFormatter, CIConsoleFormatterOptions>(options =>
-                    {
-                        options.IncludeScopes = false;
-                        options.SingleLine = true;
-                        options.TimestampFormat = "HH:mm:ss ";
-                        options.CIMode = ciMode;
-                    });
-            }));
 
         services.AddSingleton(typeof(ILogger<>), typeof(SyncLogger<>));
 
