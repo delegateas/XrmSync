@@ -4,7 +4,7 @@ using System.Collections;
 using System.Linq.Expressions;
 using XrmSync.Model.Plugin;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers.XrmPluginCore;
+namespace XrmSync.Analyzer.Analyzers.XrmPluginCore;
 
 internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
 {

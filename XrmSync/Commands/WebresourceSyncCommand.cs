@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
+using XrmSync.Analyzer.Extensions;
+using XrmSync.Dataverse.Extensions;
 using XrmSync.Extensions;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;
@@ -43,12 +45,15 @@ namespace XrmSync.Commands
                             LogLevel = logLevel ?? options.Logger.LogLevel,
                             CiMode = ciMode ?? options.Logger.CiMode
                         },
+                        Execution = options.Execution with
+                        {
+                            DryRun = dryRun ?? options.Execution.DryRun
+                        },
                         Webresource = options.Webresource with
                         {
                             Sync = new(
                                 string.IsNullOrWhiteSpace(folderPath) ? options.Webresource.Sync.FolderPath : folderPath,
-                                string.IsNullOrWhiteSpace(solutionName) ? options.Webresource.Sync.SolutionName : solutionName,
-                                dryRun ?? options.Webresource.Sync.DryRun
+                                string.IsNullOrWhiteSpace(solutionName) ? options.Webresource.Sync.SolutionName : solutionName
                             )
                         }
                     }
@@ -67,7 +72,6 @@ namespace XrmSync.Commands
             services ??= new ServiceCollection();
 
             services.AddWebresourceSyncAction();
-            //services.AddDataverseConnection();
 
             return services;
         }

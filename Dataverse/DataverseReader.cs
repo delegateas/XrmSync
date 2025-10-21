@@ -42,6 +42,8 @@ internal sealed class DataverseReader(ServiceClient serviceClient) : IDataverseR
 
     public IQueryable<SystemUser> SystemUsers => DataverseContext.SystemUserSet;
 
+    public IQueryable<WebResource> WebResources => DataverseContext.WebResourceSet;
+
     public List<TEntity> RetrieveByColumn<TEntity, TValue>(
         Expression<Func<TEntity, TValue?>> inColumn,
         IEnumerable<TValue> values,
@@ -56,6 +58,15 @@ internal sealed class DataverseReader(ServiceClient serviceClient) : IDataverseR
         params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
     {
         return RetrieveByColumn(inColumn, ids, [], columns);
+    }
+
+    public List<TEntity> RetrieveByColumn<TEntity>(
+        Expression<Func<TEntity, EntityReference?>> inColumn,
+        IEnumerable<Guid> ids,
+        IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
+        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
+    {
+        return RetrieveByColumn<TEntity, EntityReference?, Guid>(inColumn, ids, additionalConditions, columns);
     }
 
     public List<TEntity> RetrieveByColumn<TEntity, TInValue, TValue>(

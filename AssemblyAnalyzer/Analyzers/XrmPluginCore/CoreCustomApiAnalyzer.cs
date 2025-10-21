@@ -4,7 +4,7 @@ using System.Collections;
 using System.Linq.Expressions;
 using XrmSync.Model.CustomApi;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers.XrmPluginCore;
+namespace XrmSync.Analyzer.Analyzers.XrmPluginCore;
 
 internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefinition>
 {

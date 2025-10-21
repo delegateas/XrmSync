@@ -13,8 +13,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new PluginSyncOptions(
             AssemblyPath: "test.dll",
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         // Create a test DLL file
@@ -45,8 +44,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new PluginSyncOptions(
             AssemblyPath: "",
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         // Act & Assert
@@ -61,8 +59,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new PluginSyncOptions(
             AssemblyPath: "test.dll",
-            SolutionName: "",
-            DryRun: false
+            SolutionName: ""
         );
 
         // Act & Assert
@@ -77,8 +74,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new PluginSyncOptions(
             AssemblyPath: "nonexistent.dll",
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         // Act & Assert
@@ -93,8 +89,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new PluginSyncOptions(
             AssemblyPath: "testhost.exe",
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         // Act & Assert
@@ -109,8 +104,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new PluginSyncOptions(
             AssemblyPath: "test.dll",
-            SolutionName: new string('a', 66), // 66 characters
-            DryRun: false
+            SolutionName: new string('a', 66) // 66 characters
         );
 
         // Act & Assert
@@ -298,8 +292,7 @@ public class OptionsValidationTests
 
         var options = new WebresourceSyncOptions(
             FolderPath: tempDir,
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         try
@@ -322,8 +315,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new WebresourceSyncOptions(
             FolderPath: "",
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         // Act & Assert
@@ -338,8 +330,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new WebresourceSyncOptions(
             FolderPath: null!,
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         // Act & Assert
@@ -354,8 +345,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new WebresourceSyncOptions(
             FolderPath: "   ",
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         // Act & Assert
@@ -370,8 +360,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new WebresourceSyncOptions(
             FolderPath: "C:\\NonExistentPath\\Webresources",
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         // Act & Assert
@@ -391,8 +380,7 @@ public class OptionsValidationTests
 
         var options = new WebresourceSyncOptions(
             FolderPath: tempDir,
-            SolutionName: "",
-            DryRun: false
+            SolutionName: ""
         );
 
         try
@@ -421,8 +409,7 @@ public class OptionsValidationTests
 
         var options = new WebresourceSyncOptions(
             FolderPath: tempDir,
-            SolutionName: null!,
-            DryRun: false
+            SolutionName: null!
         );
 
         try
@@ -451,8 +438,7 @@ public class OptionsValidationTests
 
         var options = new WebresourceSyncOptions(
             FolderPath: tempDir,
-            SolutionName: "   ",
-            DryRun: false
+            SolutionName: "   "
         );
 
         try
@@ -481,8 +467,7 @@ public class OptionsValidationTests
 
         var options = new WebresourceSyncOptions(
             FolderPath: tempDir,
-            SolutionName: new string('a', 66), // 66 characters
-            DryRun: false
+            SolutionName: new string('a', 66) // 66 characters
         );
 
         try
@@ -516,8 +501,7 @@ public class OptionsValidationTests
 
         var options = new WebresourceSyncOptions(
             FolderPath: tempDir,
-            SolutionName: solutionName,
-            DryRun: false
+            SolutionName: solutionName
         );
 
         try
@@ -546,8 +530,7 @@ public class OptionsValidationTests
 
         var options = new WebresourceSyncOptions(
             FolderPath: relativeDir,
-            SolutionName: "TestSolution",
-            DryRun: false
+            SolutionName: "TestSolution"
         );
 
         try
@@ -575,8 +558,7 @@ public class OptionsValidationTests
 
         var options = new WebresourceSyncOptions(
             FolderPath: tempDir,
-            SolutionName: "TestSolution",
-            DryRun: true
+            SolutionName: "TestSolution"
         );
 
         try
@@ -599,8 +581,7 @@ public class OptionsValidationTests
         // Arrange
         var options = new WebresourceSyncOptions(
             FolderPath: "", // Invalid: empty
-            SolutionName: new string('a', 66), // Invalid: too long
-            DryRun: false
+            SolutionName: new string('a', 66) // Invalid: too long
         );
 
         // Act & Assert

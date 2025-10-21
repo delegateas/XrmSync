@@ -1,6 +1,6 @@
 ﻿using XrmPluginCore.Enums;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers;
+namespace XrmSync.Analyzer.Analyzers;
 
 internal abstract class Analyzer
 {

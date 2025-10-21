@@ -7,9 +7,9 @@ using XrmSync.SyncService.PluginValidator;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.Model;
-using XrmSync.AssemblyAnalyzer.AssemblyReader;
 using XrmSync.SyncService.Difference;
 using XrmPluginCore.Enums;
+using XrmSync.Analyzer.Reader;
 
 namespace Tests;
 
@@ -23,17 +23,31 @@ public class PluginServiceTests
     private readonly IPluginValidator _pluginValidator = Substitute.For<IPluginValidator>();
     private readonly ICustomApiReader _customApiReader = Substitute.For<ICustomApiReader>();
     private readonly ICustomApiWriter _customApiWriter = Substitute.For<ICustomApiWriter>();
-    private readonly IAssemblyReader _assemblyReader = Substitute.For<IAssemblyReader>();
+    private readonly ILocalReader _assemblyReader = Substitute.For<ILocalReader>();
     private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
     private readonly IDifferenceCalculator _differenceUtility = Substitute.For<IDifferenceCalculator>();
-    private readonly Description _description = new();
-    private readonly PluginSyncOptions _options = new(string.Empty, "solution", false);
+    private readonly IDescription _description = new Description();
+    private readonly IPrintService _printService = Substitute.For<IPrintService>();
+    private readonly PluginSyncOptions _options = new(string.Empty, "solution");
 
     private readonly PluginSyncService _plugin;
 
     public PluginServiceTests()
     {
-        _plugin = new PluginSyncService(_pluginAssemblyReader, _pluginAssemblyWriter, _pluginReader, _pluginWriter, _pluginValidator, _customApiReader, _customApiWriter, _assemblyReader, _solutionReader, _differenceUtility, _description, Options.Create(_options), _logger);
+        _plugin = new PluginSyncService(
+            _pluginAssemblyReader,
+            _pluginAssemblyWriter,
+            _pluginReader,
+            _pluginWriter,
+            _pluginValidator,
+            _customApiReader,
+            _customApiWriter,
+            _assemblyReader,
+            _solutionReader,
+            _differenceUtility,
+            _description,
+            _printService,
+            Options.Create(_options), _logger);
     }
 
     [Fact]

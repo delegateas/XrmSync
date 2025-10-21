@@ -10,45 +10,25 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 
-internal class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, ILogger<PluginWriter> log, IOptions<PluginSyncOptions> configuration) : IPluginWriter
+internal class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, IOptions<PluginSyncOptions> configuration) : IPluginWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", configuration.Value.SolutionName }
     };
 
-    private readonly string LogPrefix = configuration.Value.DryRun ? "[DRY RUN] " : string.Empty;
-
     public void DeletePluginImages(IEnumerable<Image> pluginImages)
     {
-        var deleteRequests = pluginImages.ToDeleteRequests(SdkMessageProcessingStepImage.EntityLogicalName).ToList();
-
-        if (deleteRequests.Count > 0)
-        {
-            log.LogInformation("{prefix}Deleting {count} plugin images in Dataverse", LogPrefix, deleteRequests.Count);
-            writer.PerformAsBulk(deleteRequests);
-        }
+        writer.DeleteMultiple(pluginImages.ToDeleteRequests(SdkMessageProcessingStepImage.EntityLogicalName));
     }
 
     public void DeletePluginSteps(IEnumerable<Step> pluginSteps)
     {
-        var deleteRequests = pluginSteps.ToDeleteRequests(SdkMessageProcessingStep.EntityLogicalName).ToList();
-
-        if (deleteRequests.Count > 0)
-        {
-            log.LogInformation("{prefix}Deleting {count} plugin steps in Dataverse", LogPrefix, deleteRequests.Count);
-            writer.PerformAsBulk(deleteRequests);
-        }
+        writer.DeleteMultiple(pluginSteps.ToDeleteRequests(SdkMessageProcessingStep.EntityLogicalName));
     }
 
     public void DeletePluginTypes(IEnumerable<PluginDefinition> pluginTypes)
     {
-        var deleteRequests = pluginTypes.ToDeleteRequests(PluginType.EntityLogicalName).ToList();
-
-        if (deleteRequests.Count > 0)
-        {
-            log.LogInformation("{prefix}Deleting {count} plugin types in Dataverse", LogPrefix, deleteRequests.Count);
-            writer.PerformAsBulk(deleteRequests);
-        }
+        writer.DeleteMultiple(pluginTypes.ToDeleteRequests(PluginType.EntityLogicalName));
     }
 
     public void UpdatePluginSteps(IEnumerable<Step> pluginSteps, string description)
@@ -67,11 +47,12 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
                 AsyncAutoDelete = x.AsyncAutoDelete,
             }).ToList();
 
-        if (pluginStepReqs.Count > 0)
+        if (pluginStepReqs.Count == 0)
         {
-            log.LogInformation("{prefix}Updating {count} plugin steps in Dataverse", LogPrefix, pluginStepReqs.Count);
-            writer.UpdateMultiple(pluginStepReqs);
+            return;
         }
+
+        writer.UpdateMultiple(pluginStepReqs);
     }
 
     public void UpdatePluginImages(IEnumerable<ParentReference<Image, Step>> pluginImages)
@@ -91,18 +72,18 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
                 };
             }).ToList();
 
-        if (pluginImageReqs.Count > 0)
+        if (pluginImageReqs.Count == 0)
         {
-            log.LogInformation("{prefix}Updating {count} plugin images in Dataverse", LogPrefix, pluginImageReqs.Count);
-            writer.UpdateMultiple(pluginImageReqs);
+            return;
         }
+
+        writer.UpdateMultiple(pluginImageReqs);
     }
 
     public ICollection<PluginDefinition> CreatePluginTypes(ICollection<PluginDefinition> pluginTypes, Guid assemblyId, string description)
     {
         if (pluginTypes.Count == 0) return pluginTypes;
 
-        log.LogInformation("{prefix}Creating {Count} plugin types in Dataverse.", LogPrefix, pluginTypes.Count);
         foreach (var pluginType in pluginTypes)
         {
             var entity = new PluginType
@@ -124,7 +105,6 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
     {
         if (pluginSteps.Count == 0) return pluginSteps;
 
-        log.LogInformation("{prefix}Creating {Count} plugin steps in Dataverse.", LogPrefix, pluginSteps.Count);
         var eventOperations = pluginSteps.Select(step => step.Entity.EventOperation).Distinct().Where(s => !string.IsNullOrWhiteSpace(s));
         var stepLogicalNames = pluginSteps.Select(step => step.Entity.LogicalName).Distinct().Where(s => !string.IsNullOrWhiteSpace(s));
         
@@ -166,7 +146,6 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
     {
         if (pluginImages.Count == 0) return pluginImages;
 
-        log.LogInformation("{prefix}Creating {Count} plugin images in Dataverse.", LogPrefix, pluginImages.Count);
         foreach (var (image, step) in pluginImages)
         {
             var entity = new SdkMessageProcessingStepImage

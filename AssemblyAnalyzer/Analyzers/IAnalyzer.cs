@@ -1,4 +1,4 @@
-﻿namespace XrmSync.AssemblyAnalyzer.Analyzers;
+﻿namespace XrmSync.Analyzer.Analyzers;
 
 public interface IAnalyzer<T>
 {

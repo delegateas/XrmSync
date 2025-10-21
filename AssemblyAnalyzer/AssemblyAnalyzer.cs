@@ -2,14 +2,14 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 using XrmSync.Model;
-using XrmSync.AssemblyAnalyzer.Extensions;
-using XrmSync.AssemblyAnalyzer.Analyzers;
+using XrmSync.Analyzer.Extensions;
+using XrmSync.Analyzer.Analyzers;
 using XrmSync.Model.Plugin;
 using XrmSync.Model.CustomApi;
 
 [assembly: InternalsVisibleTo("Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
-namespace XrmSync.AssemblyAnalyzer;
+namespace XrmSync.Analyzer;
 
 internal class AssemblyAnalyzer(IEnumerable<IAnalyzer<PluginDefinition>> pluginAnalyzers, IEnumerable<IAnalyzer<CustomApiDefinition>> customApiAnalyzers) : IAssemblyAnalyzer
 {

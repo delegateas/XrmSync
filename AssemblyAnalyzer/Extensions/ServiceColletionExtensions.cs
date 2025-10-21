@@ -1,15 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using XrmSync.AssemblyAnalyzer.Analyzers;
-using XrmSync.AssemblyAnalyzer.AssemblyReader;
+using XrmSync.Analyzer.Analyzers;
+using XrmSync.Analyzer.Reader;
 
-namespace XrmSync.AssemblyAnalyzer.Extensions;
+namespace XrmSync.Analyzer.Extensions;
 
 public static class ServiceColletionExtensions
 {
-    public static IServiceCollection AddAssemblyReader(this IServiceCollection services)
+    public static IServiceCollection AddLocalReader(this IServiceCollection services)
     {
-        return services.AddSingleton<IAssemblyReader, AssemblyReader.AssemblyReader>();
+        return services.AddSingleton<ILocalReader, LocalReader>();
     }
 
     public static IServiceCollection AddAssemblyAnalyzer(this IServiceCollection services)

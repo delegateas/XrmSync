@@ -1,6 +1,6 @@
 ﻿using XrmSync.Model.Exceptions;
 
-namespace XrmSync.AssemblyAnalyzer
+namespace XrmSync.Analyzer
 {
     public class AnalysisException : XrmSyncException
     {

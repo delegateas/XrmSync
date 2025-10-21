@@ -2,21 +2,22 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.Json;
 using XrmSync.Model;
+using XrmSync.Model.Webresource;
 
-namespace XrmSync.AssemblyAnalyzer.AssemblyReader;
+namespace XrmSync.Analyzer.Reader;
 
-/// <summary>
-/// Reads assembly information by executing XrmSync analyze command in a separate process.
-/// This class handles three different execution scenarios:
-/// 1. Debug mode: Uses the current process executable
-/// 2. Local dotnet tool: Uses "dotnet tool run xrmsync"
-/// 3. Global dotnet tool: Uses "xrmsync" directly
-/// The class automatically detects the appropriate method based on tool availability.
-/// </summary>
-internal class AssemblyReader(ILogger<AssemblyReader> logger) : IAssemblyReader
+internal class LocalReader(ILogger<LocalReader> logger) : ILocalReader
 {
-    private readonly Dictionary<string, AssemblyInfo> assemblyCache = new();
+    private readonly Dictionary<string, AssemblyInfo> assemblyCache = [];
 
+    /// <summary>
+    /// Reads assembly information by executing XrmSync analyze command in a separate process.
+    /// This class handles three different execution scenarios:
+    /// 1. Debug mode: Uses the current process executable
+    /// 2. Local dotnet tool: Uses "dotnet tool run xrmsync"
+    /// 3. Global dotnet tool: Uses "xrmsync" directly
+    /// The class automatically detects the appropriate method based on tool availability.
+    /// </summary>
     public async Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(assemblyDllPath))
@@ -42,6 +43,38 @@ internal class AssemblyReader(ILogger<AssemblyReader> logger) : IAssemblyReader
         assemblyCache[assemblyDllPath] = assemblyInfo;
 
         return assemblyInfo;
+    }
+
+    public List<WebresourceDefinition> ReadWebResourceFolder(string folderPath, string prefix)
+    {
+        var absolutePath = Path.GetFullPath(folderPath);
+        logger.LogInformation("Reading webresources from folder: {FolderPath}", absolutePath);
+        if (!Directory.Exists(absolutePath))
+        {
+            throw new AnalysisException($"Webresource folder does not exist: {absolutePath}");
+        }
+
+        var files = Directory.EnumerateFiles(absolutePath, "*.*", SearchOption.AllDirectories);
+        return [.. files.Select(f =>
+            {
+                var relativePath = Path.Combine(prefix, Path.GetRelativePath(absolutePath, f));
+                var ext = Path.GetExtension(f).ToLowerInvariant();
+
+                return (
+                    relativePath,
+                    fullPath: f,
+                    extension: ext
+                );
+            })
+            .Where(f => WebresourceTypeMap.ContainsKey(f.extension))
+            .Select(f => new WebresourceDefinition(
+                Name: f.relativePath.Replace('\\', '/'),
+                DisplayName: Path.GetFileName(f.relativePath),
+                Type: WebresourceTypeMap[f.extension],
+                Content: Convert.ToBase64String(File.ReadAllBytes(f.fullPath))
+            ))
+            .OrderBy(d => d.Name)
+        ];
     }
 
     private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken)
@@ -189,4 +222,25 @@ internal class AssemblyReader(ILogger<AssemblyReader> logger) : IAssemblyReader
         public required string Output { get; init; }
         public required string Error { get; init; }
     }
+
+    private readonly Dictionary<string, WebresourceType> WebresourceTypeMap = new()
+    {
+        { ".html", WebresourceType.WebpageHtml },
+        { ".htm", WebresourceType.WebpageHtml },
+        { ".css", WebresourceType.StyleSheetCss },
+        { ".js", WebresourceType.ScriptJscript },
+        { ".xml", WebresourceType.DataXml },
+        { ".xaml", WebresourceType.DataXml },
+        { ".xsd", WebresourceType.DataXml },
+        { ".xsl", WebresourceType.StyleSheetXsl },
+        { ".xslt", WebresourceType.StyleSheetXsl },
+        { ".png", WebresourceType.PngFormat },
+        { ".jpg", WebresourceType.JpgFormat },
+        { ".jpeg", WebresourceType.JpgFormat },
+        { ".gif", WebresourceType.GifFormat },
+        { ".xap", WebresourceType.SilverlightXap },
+        { ".ico", WebresourceType.IcoFormat },
+        { ".svg", WebresourceType.VectorFormatSvg },
+        { ".resx", WebresourceType.StringResx }
+    };
 }

@@ -38,6 +38,12 @@ internal static class ServiceCollectionExtensions
             return MSOptions.Create(configModifier(baseConfig));
         });
 
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+            return MSOptions.Create(config.Value.Execution);
+        });
+
         return services;
     }
 
@@ -67,6 +73,7 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton(sp =>
         {
             var loggerOptions = sp.GetRequiredService<IOptions<LoggerOptions>>().Value;
+            var executionOptions = sp.GetRequiredService<IOptions<ExecutionOptions>>().Value;
             return LoggerFactory.Create(
                 builder =>
                 {
@@ -80,6 +87,7 @@ internal static class ServiceCollectionExtensions
                             options.SingleLine = true;
                             options.TimestampFormat = "HH:mm:ss ";
                             options.CIMode = loggerOptions.CiMode;
+                            options.DryRun = executionOptions.DryRun;
                         });
                 });
         });

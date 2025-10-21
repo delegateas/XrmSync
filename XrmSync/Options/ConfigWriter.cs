@@ -9,17 +9,16 @@ namespace XrmSync.Options;
 
 public interface IConfigWriter
 {
-    Task SaveConfig(string? filePath = null, string? configName = null, CancellationToken cancellationToken = default);
+    Task SaveConfig(string? filePath = null, string configName = XrmSyncConfigurationBuilder.DEFAULT_CONFIG_NAME, CancellationToken cancellationToken = default);
 }
 
 internal class ConfigWriter(IOptions<XrmSyncConfiguration> options, ILogger<ConfigWriter> logger) : IConfigWriter
 {
-    public async Task SaveConfig(string? filePath = null, string? configName = null, CancellationToken cancellationToken = default)
+    public async Task SaveConfig(string? filePath = null, string configName = XrmSyncConfigurationBuilder.DEFAULT_CONFIG_NAME, CancellationToken cancellationToken = default)
     {
         var targetFile = filePath ?? $"{ConfigReader.CONFIG_FILE_BASE}.json";
 
-        logger.LogInformation("Saving configuration to {FilePath}{ConfigName}", targetFile, 
-            string.IsNullOrWhiteSpace(configName) ? string.Empty : $" with config name '{configName}'");
+        logger.LogInformation("Saving configuration to {FilePath} with config name {ConfigName}", targetFile, configName);
 
         var jsonOptions = new JsonSerializerOptions
         {
@@ -37,11 +36,11 @@ internal class ConfigWriter(IOptions<XrmSyncConfiguration> options, ILogger<Conf
             {
                 var existingContent = await File.ReadAllTextAsync(targetFile, cancellationToken);
                 rootConfig = JsonSerializer.Deserialize<Dictionary<string, object?>>(existingContent, jsonOptions) 
-                    ?? new Dictionary<string, object?>();
+                    ?? [];
             }
             else
             {
-                rootConfig = new Dictionary<string, object?>();
+                rootConfig = [];
             }
 
             // Get or create XrmSync section
@@ -54,26 +53,14 @@ internal class ConfigWriter(IOptions<XrmSyncConfiguration> options, ILogger<Conf
             // Deserialize the XrmSync section to work with it
             var xrmSyncJson = JsonSerializer.Serialize(xrmSyncObj, jsonOptions);
             var xrmSyncSection = JsonSerializer.Deserialize<Dictionary<string, object?>>(xrmSyncJson, jsonOptions)
-                ?? new Dictionary<string, object?>();
+                ?? [];
 
             // Serialize the configuration to a structure we can work with
             var configJson = JsonSerializer.Serialize(options.Value, jsonOptions);
-            var configDict = JsonSerializer.Deserialize<Dictionary<string, object?>>(configJson, jsonOptions)!;
 
             // Save to appropriate location based on config name
-            if (string.IsNullOrWhiteSpace(configName))
-            {
-                // Legacy structure: save directly under XrmSync
-                foreach (var kvp in configDict)
-                {
-                    xrmSyncSection[kvp.Key] = kvp.Value;
-                }
-            }
-            else
-            {
-                // Named structure: save under XrmSync.{configName}
-                xrmSyncSection[configName] = configDict;
-            }
+            // Named structure: save under XrmSync.{configName}
+            xrmSyncSection[configName] = JsonSerializer.Deserialize<Dictionary<string, object?>>(configJson, jsonOptions);
 
             rootConfig[XrmSyncConfigurationBuilder.SectionName.XrmSync] = xrmSyncSection;
 

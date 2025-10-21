@@ -1056,7 +1056,7 @@
         "resolved": "1.1.0",
         "contentHash": "rRzCLl7PuT8XeEMH2btaKeUP0eRNqUtoY0tPZRQlHsPwu8G+wZjoyvyq5n5hraGRacp5IEO49/a1K4HMzYhW+g=="
       },
-      "assemblyanalyzer": {
+      "analyzer": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[9.0.6, )",
@@ -1083,7 +1083,7 @@
       "XrmSync.SyncService": {
         "type": "Project",
         "dependencies": {
-          "AssemblyAnalyzer": "[1.0.0, )",
+          "Analyzer": "[1.0.0, )",
           "Microsoft.Extensions.Logging": "[9.0.6, )",
           "Microsoft.Extensions.Logging.Console": "[9.0.6, )",
           "Microsoft.PowerPlatform.Dataverse.Client": "[1.2.9, )",

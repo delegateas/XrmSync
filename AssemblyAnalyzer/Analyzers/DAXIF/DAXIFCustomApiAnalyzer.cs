@@ -1,7 +1,7 @@
 ﻿using XrmPluginCore.Enums;
 using XrmSync.Model.CustomApi;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;
+namespace XrmSync.Analyzer.Analyzers.DAXIF;
 
 // ExtendedCustomAPIConfig  : PluginType, OwnerId, OwnerType, IsCustomizable, IsPrivate, ExecutePrivilegeName, Description
 using ExtendedCustomAPIConfig = Tuple<string?, string?, string?, bool, bool, string?, string?>;

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncService", "SyncService\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dataverse", "Dataverse\Dataverse.csproj", "{E03FAF0C-3C50-4D28-8847-5A3230A7BFE4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyAnalyzer", "AssemblyAnalyzer\AssemblyAnalyzer.csproj", "{60144810-13C9-460B-B1AA-CD9A9DD281D0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analyzer", "AssemblyAnalyzer\Analyzer.csproj", "{60144810-13C9-460B-B1AA-CD9A9DD281D0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "Model\Model.csproj", "{5F0A0EA4-D206-4555-86BA-6A90F6ED3262}"
 EndProject

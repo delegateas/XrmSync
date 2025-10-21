@@ -1675,7 +1675,7 @@
           "xunit.extensibility.core": "[2.5.3]"
         }
       },
-      "assemblyanalyzer": {
+      "analyzer": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[9.0.6, )",
@@ -1687,7 +1687,7 @@
       "xrmsync": {
         "type": "Project",
         "dependencies": {
-          "AssemblyAnalyzer": "[1.0.0, )",
+          "Analyzer": "[1.0.0, )",
           "Microsoft.Extensions.Hosting": "[9.0.6, )",
           "System.CommandLine": "[2.0.0-beta6.25358.103, )",
           "XrmSync.Dataverse": "[1.0.0, )",
@@ -1712,7 +1712,7 @@
       "XrmSync.SyncService": {
         "type": "Project",
         "dependencies": {
-          "AssemblyAnalyzer": "[1.0.0, )",
+          "Analyzer": "[1.0.0, )",
           "Microsoft.Extensions.Logging": "[9.0.6, )",
           "Microsoft.Extensions.Logging.Console": "[9.0.6, )",
           "Microsoft.PowerPlatform.Dataverse.Client": "[1.2.9, )",

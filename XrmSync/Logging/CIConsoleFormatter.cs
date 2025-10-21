@@ -79,6 +79,12 @@ internal class CIConsoleFormatter : ConsoleFormatter, IDisposable
             textWriter.Write(' ');
         }
 
+        // Write Dry-Run prefix
+        if (_formatterOptions.DryRun)
+        {
+            textWriter.Write("[DRY RUN] ");
+        }
+
         // Write the message
         textWriter.Write(message);
 

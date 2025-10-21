@@ -3,12 +3,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using XrmSync.Commands;
 using XrmSync.Model;
+using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Options;
 
 internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOptions<SharedOptions> options) : IConfigurationBuilder
 {
-    private const string DEFAULT_CONFIG_NAME = "default";
+    internal const string DEFAULT_CONFIG_NAME = "default";
 
     public static class SectionName
     {
@@ -18,6 +19,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
         public const string Sync = nameof(Sync);
         public const string Analysis = nameof(Analysis);
         public const string Logger = nameof(Logger);
+        public const string Execution = nameof(Execution);
     }
 
     public XrmSyncConfiguration Build()
@@ -26,9 +28,12 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
             new(
                 BuildPluginSyncOptions(),
                 BuildAnalysisOptions()
-            ), new(
+            ),
+            new(
                 BuildWebresourceSyncOptions()
-            ), BuildLoggerOptions()
+            ),
+            BuildLoggerOptions(),
+            BuildExecutionOptions()
         );
     }
 
@@ -37,8 +42,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
         var pluginSyncSection = GetConfigurationSection($"{SectionName.Plugin}:{SectionName.Sync}");
         return new PluginSyncOptions(
             pluginSyncSection.GetValue<string>(nameof(PluginSyncOptions.AssemblyPath)) ?? string.Empty,
-            pluginSyncSection.GetValue<string>(nameof(PluginSyncOptions.SolutionName)) ?? string.Empty,
-            pluginSyncSection.GetValue<bool>(nameof(PluginSyncOptions.DryRun))
+            pluginSyncSection.GetValue<string>(nameof(PluginSyncOptions.SolutionName)) ?? string.Empty
         );
     }
 
@@ -47,15 +51,14 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
         var webresourceSyncSection = GetConfigurationSection($"{SectionName.Webresource}:{SectionName.Sync}");
         return new WebresourceSyncOptions(
             webresourceSyncSection.GetValue<string>(nameof(WebresourceSyncOptions.FolderPath)) ?? string.Empty,
-            webresourceSyncSection.GetValue<string>(nameof(WebresourceSyncOptions.SolutionName)) ?? string.Empty,
-            webresourceSyncSection.GetValue<bool>(nameof(WebresourceSyncOptions.DryRun))
+            webresourceSyncSection.GetValue<string>(nameof(WebresourceSyncOptions.SolutionName)) ?? string.Empty
         );
     }
 
     private PluginAnalysisOptions BuildAnalysisOptions()
     {
         var analysisSection = GetConfigurationSection($"{SectionName.Plugin}:{SectionName.Analysis}");
-        return new PluginAnalysisOptions(
+        return new (
             analysisSection.GetValue<string>(nameof(PluginAnalysisOptions.AssemblyPath)) ?? string.Empty,
             analysisSection.GetValue<string>(nameof(PluginAnalysisOptions.PublisherPrefix)) ?? "new",
             analysisSection.GetValue<bool>(nameof(PluginAnalysisOptions.PrettyPrint))
@@ -65,9 +68,17 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
     private LoggerOptions BuildLoggerOptions()
     {
         var loggerSection = GetConfigurationSection(SectionName.Logger);
-        return new LoggerOptions(
+        return new (
             loggerSection.GetValue<LogLevel?>(nameof(LoggerOptions.LogLevel)) ?? LogLevel.Information,
             loggerSection.GetValue<bool>(nameof(LoggerOptions.CiMode))
+        );
+    }
+
+    private ExecutionOptions BuildExecutionOptions()
+    {
+        var executionSection = GetConfigurationSection(SectionName.Execution);
+        return new (
+            executionSection.GetValue<bool>(nameof(ExecutionOptions.DryRun))
         );
     }
 
@@ -76,36 +87,28 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
         // If a config name is specified, use named configuration
         var resolvedConfigName = ResolveConfigurationName(options.Value.ConfigName);
         
-        if (!string.IsNullOrWhiteSpace(resolvedConfigName))
-        {
-            return configuration.GetSection($"{SectionName.XrmSync}:{resolvedConfigName}:{sectionPath}");
-        }
-
-        // Otherwise, use legacy structure
-        return configuration.GetSection($"{SectionName.XrmSync}:{sectionPath}");
+        return configuration.GetSection($"{SectionName.XrmSync}:{resolvedConfigName}:{sectionPath}");
     }
 
-    private string? ResolveConfigurationName(string? requestedName)
+    private string ResolveConfigurationName(string requestedName)
     {
         var xrmSyncSection = configuration.GetSection(SectionName.XrmSync);
 
         if (!xrmSyncSection.Exists())
         {
-            return null;
+            return DEFAULT_CONFIG_NAME;
         }
 
         // Get all configuration names (direct children of XrmSync)
         var configNames = xrmSyncSection.GetChildren()
             .Select(c => c.Key)
-            .Where(k => k != "Plugin") // Exclude legacy structure
             .ToList();
 
-        // If requested name is specified, use it if it exists
-        if (!string.IsNullOrWhiteSpace(requestedName))
+        // If requested name exists, use it
+        if (configNames.Contains(requestedName))
         {
-            return configNames.Contains(requestedName) ? requestedName : null;
+            return requestedName;
         }
-
         // If only one named config exists, use it
         if (configNames.Count == 1)
         {
@@ -118,7 +121,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
             return DEFAULT_CONFIG_NAME;
         }
 
-        // Fall back to legacy structure if no named configs exist
-        return null;
+        // Throw exception if we cannot resolve the configuration
+        throw new XrmSyncException($"Multiple configuration sections found under '{SectionName.XrmSync}', but no {DEFAULT_CONFIG_NAME} configuration section found, or name wasn't specified.");
     }
 }

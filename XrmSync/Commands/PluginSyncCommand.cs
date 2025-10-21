@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
-using XrmSync.AssemblyAnalyzer.Extensions;
+using XrmSync.Analyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Extensions;
 using XrmSync.Options;
@@ -45,12 +45,15 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
                         LogLevel = logLevel ?? baseOptions.Logger.LogLevel,
                         CiMode = ciMode ?? baseOptions.Logger.CiMode
                     },
+                    Execution = baseOptions.Execution with
+                    {
+                        DryRun = dryRun ?? baseOptions.Execution.DryRun
+                    },
                     Plugin = baseOptions.Plugin with
                     {
                         Sync = new(
                             string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.Plugin.Sync.AssemblyPath : assemblyPath,
-                            string.IsNullOrWhiteSpace(solutionName) ? baseOptions.Plugin.Sync.SolutionName : solutionName,
-                            dryRun ?? baseOptions.Plugin.Sync.DryRun
+                            string.IsNullOrWhiteSpace(solutionName) ? baseOptions.Plugin.Sync.SolutionName : solutionName
                         )
                     }
                 })
@@ -68,8 +71,6 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
         services ??= new ServiceCollection();
 
         services.AddPluginSyncService();
-        services.AddAssemblyReader();
-        services.AddDataverseConnection();
 
         return services;
     }

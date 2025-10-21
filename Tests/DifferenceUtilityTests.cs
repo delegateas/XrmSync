@@ -8,6 +8,8 @@ using XrmSync.SyncService;
 using XrmSync.SyncService.Comparers;
 using XrmSync.SyncService.Difference;
 using XrmSync.SyncService.Extensions;
+using NSubstitute;
+using XrmSync.Dataverse.Interfaces;
 
 namespace Tests;
 
@@ -19,7 +21,7 @@ public class DifferenceUtilityTests
     {
         var logger = new LoggerFactory().CreateLogger<PrintService>();
         var description = new Description();
-        var pluginSyncOptions = new PluginSyncOptions("path", "solution", true);
+        var options = new ExecutionOptions(true);
         _differenceUtility = new DifferenceCalculator(
             new PluginDefinitionComparer(),
             new PluginStepComparer(),
@@ -27,7 +29,7 @@ public class DifferenceUtilityTests
             new CustomApiComparer(description),
             new RequestParameterComparer(),
             new ResponsePropertyComparer(),
-            new PrintService(logger, Options.Create(pluginSyncOptions))
+            new PrintService(logger, Options.Create(options), new Description(), Substitute.For<IDataverseReader>())
         );
     }
 

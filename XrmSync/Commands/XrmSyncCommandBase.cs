@@ -5,9 +5,9 @@ using XrmSync.Options;
 
 namespace XrmSync.Commands;
 
-internal record SharedOptions(bool SaveConfig, string? SaveConfigTo, string? ConfigName)
+internal record SharedOptions(bool SaveConfig, string? SaveConfigTo, string ConfigName)
 {
-    public static SharedOptions Empty => new (false, null, null);
+    public static SharedOptions Empty => new (false, null, XrmSyncConfigurationBuilder.DEFAULT_CONFIG_NAME);
 }
 
 /// <summary>
@@ -60,7 +60,7 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
     {
         var saveConfig = parseResult.GetValue(SaveConfigOption);
         var saveConfigTo = saveConfig ? parseResult.GetValue(SaveConfigToOption) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
-        var configName = parseResult.GetValue(ConfigNameOption);
+        var configName = parseResult.GetValue(ConfigNameOption) ?? XrmSyncConfigurationBuilder.DEFAULT_CONFIG_NAME;
 
         return new (saveConfig, saveConfigTo, configName);
     }

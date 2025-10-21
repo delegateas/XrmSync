@@ -3,7 +3,7 @@ using XrmSync.Model.CustomApi;
 
 namespace XrmSync.SyncService.Comparers;
 
-internal class CustomApiComparer(Description description) : BaseComparer<CustomApiDefinition>
+internal class CustomApiComparer(IDescription description) : BaseComparer<CustomApiDefinition>
 {
     private bool DescriptionEquals(CustomApiDefinition local, CustomApiDefinition remote)
     {

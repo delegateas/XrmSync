@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers.XrmPluginCore;
+namespace XrmSync.Analyzer.Analyzers.XrmPluginCore;
 
 internal class CoreAnalyzer : Analyzer
 {
