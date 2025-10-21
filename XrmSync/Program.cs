@@ -11,6 +11,7 @@ var command = new CommandLineBuilder()
         new PluginAnalyzeCommand(),
         new WebresourceSyncCommand()
     )
+    .WithRootCommandHandler()
     .Build();
 
 var parseResult = command.Parse(args);

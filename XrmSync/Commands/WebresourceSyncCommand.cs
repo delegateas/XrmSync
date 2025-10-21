@@ -12,7 +12,7 @@ namespace XrmSync.Commands
     {
         private readonly Option<string> _webresourceRoot;
 
-        public WebresourceSyncCommand() : base("webresources", "Synchronize plugins in a plugin assembly with Dataverse")
+        public WebresourceSyncCommand() : base("webresources", "Synchronize webresources from a local folder with Dataverse")
         {
             _webresourceRoot = new("--folder", "--webresources", "-w", "--wr", "--path")
             {
