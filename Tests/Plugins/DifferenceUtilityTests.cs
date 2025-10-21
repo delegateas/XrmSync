@@ -11,7 +11,7 @@ using XrmSync.SyncService.Extensions;
 using NSubstitute;
 using XrmSync.Dataverse.Interfaces;
 
-namespace Tests;
+namespace Tests.Plugins;
 
 public class DifferenceUtilityTests
 {

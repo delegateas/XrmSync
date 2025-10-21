@@ -11,7 +11,7 @@ using XrmSync.SyncService.Difference;
 using XrmPluginCore.Enums;
 using XrmSync.Analyzer.Reader;
 
-namespace Tests;
+namespace Tests.Plugins;
 
 public class PluginServiceTests
 {

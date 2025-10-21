@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using XrmSync.Commands;
 using XrmSync.Options;
 
-namespace Tests;
+namespace Tests.Config;
 
 public class NamedConfigurationTests
 {

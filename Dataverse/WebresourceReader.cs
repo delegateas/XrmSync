@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-using XrmSync.Dataverse.Context;
-using XrmSync.Dataverse.Interfaces;
+﻿using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model.Webresource;
 
 namespace XrmSync.Dataverse;

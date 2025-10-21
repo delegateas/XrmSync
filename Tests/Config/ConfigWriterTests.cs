@@ -5,7 +5,7 @@ using System.Text.Json;
 using XrmSync.Model;
 using XrmSync.Options;
 
-namespace Tests;
+namespace Tests.Config;
 
 public class ConfigWriterTests
 {

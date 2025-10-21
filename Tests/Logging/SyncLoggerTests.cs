@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using XrmSync.Logging;
 using XrmSync.Model;
 
-namespace Tests;
+namespace Tests.Logging;
 
 public class SyncLoggerTests
 {

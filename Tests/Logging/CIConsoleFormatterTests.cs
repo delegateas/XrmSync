@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using XrmSync.Logging;
 
-namespace Tests;
+namespace Tests.Logging;
 
 public class CIConsoleFormatterTests
 {

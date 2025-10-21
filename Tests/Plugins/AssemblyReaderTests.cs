@@ -5,7 +5,7 @@ using XrmSync.Analyzer.Analyzers.DAXIF;
 using XrmSync.Analyzer.Analyzers.XrmPluginCore;
 using XrmSync.Analyzer.Reader;
 
-namespace Tests;
+namespace Tests.Plugins;
 
 public class AssemblyReaderTests
 {

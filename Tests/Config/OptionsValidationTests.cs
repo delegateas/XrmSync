@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using XrmSync.Model;
 using XrmSync.Options;
 
-namespace Tests;
+namespace Tests.Config;
 
 public class OptionsValidationTests
 {

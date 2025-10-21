@@ -5,7 +5,7 @@ using XrmSync.Extensions;
 using XrmSync.Logging;
 using XrmSync.Model;
 
-namespace Tests;
+namespace Tests.Logging;
 
 public class CIModeDemonstrationTests
 {
