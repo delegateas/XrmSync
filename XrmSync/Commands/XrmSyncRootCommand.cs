@@ -35,7 +35,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
         var xrmSyncConfig = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<XrmSyncConfiguration>>().Value;
         var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncRootCommand>>();
 
-        logger.LogInformation("Running XrmSync with configuration: {configName} (DryRun: {dryRun})", 
+        logger.LogInformation("Running XrmSync with configuration: {configName} (DryRun: {dryRun})",
             sharedOptions.ConfigName, xrmSyncConfig.Execution.DryRun);
 
         var success = true;
@@ -100,9 +100,9 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
         if (config.Logger.CiMode)
             args.Add("--ci");
 
-        args.AddRange(new[] { "--log-level", config.Logger.LogLevel.ToString() });
+        args.AddRange(["--log-level", config.Logger.LogLevel.ToString()]);
 
-        return args.ToArray();
+        return [.. args];
     }
 
     private static string[] BuildWebresourceSyncArgs(XrmSyncConfiguration config, SharedOptions sharedOptions)
@@ -120,8 +120,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
         if (config.Logger.CiMode)
             args.Add("--ci");
 
-        args.AddRange(new[] { "--log-level", config.Logger.LogLevel.ToString() });
+        args.AddRange(["--log-level", config.Logger.LogLevel.ToString()]);
 
-        return args.ToArray();
+        return [.. args];
     }
 }
