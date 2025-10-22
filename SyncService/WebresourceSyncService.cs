@@ -123,7 +123,7 @@ internal class WebresourceSyncService(
         log.LogInformation("Identified {count} webresources to update in CRM", toUpdate.Count);
         foreach (var item in toUpdate)
         {
-            log.LogDebug("  - {name}{content}{name}",
+            log.LogDebug("  - {name}{contentDiffers}{nameDiffer}",
                 item.Local.Name,
                 item.contentDiffers ? " (content differs)" : "",
                 item.nameDiffers ? " (name differs)" : ""
