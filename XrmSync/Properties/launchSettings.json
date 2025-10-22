@@ -54,8 +54,7 @@
     },
     "WebresourceSync": {
       "commandName": "Project",
-      //"commandLineArgs": "webresources --dry-run --path \"..\\..\\..\\..\\Samples\\5-Webresources\\Webresources\" -l debug"
-      "commandLineArgs": "webresources --dry-run -l debug --path \"C:\\Users\\mho\\source\\repos\\Aarsleff\\PerAarsleff\\PerAarsleff.FunderingDaxif\\WebResources\\src\\paa_AarsleffGroup\\\""
+      "commandLineArgs": "webresources --dry-run --path \"..\\..\\..\\..\\Samples\\5-Webresources\\Webresources\" -l debug"
     }
   }
 }
