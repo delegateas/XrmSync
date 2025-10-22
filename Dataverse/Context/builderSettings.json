@@ -123,6 +123,8 @@
     "customapi",
     "customapirequestparameter",
     "customapiresponseproperty",
+    "dependency",
+    "dependencynode",
     "pluginassembly",
     "plugintype",
     "publisher",

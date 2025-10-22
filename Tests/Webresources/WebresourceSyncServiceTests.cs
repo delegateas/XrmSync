@@ -7,6 +7,7 @@ using XrmSync.Model;
 using XrmSync.Model.Webresource;
 using XrmSync.SyncService;
 using XrmSync.SyncService.Difference;
+using XrmSync.SyncService.WebresourceValidator;
 
 namespace Tests.Webresources;
 
@@ -18,6 +19,7 @@ public class WebresourceSyncServiceTests
     private readonly IWebresourceReader _webresourceReader = Substitute.For<IWebresourceReader>();
     private readonly IWebresourceWriter _webresourceWriter = Substitute.For<IWebresourceWriter>();
     private readonly IPrintService _printService = Substitute.For<IPrintService>();
+    private readonly IWebresourceValidator _webresourceValidator = Substitute.For<IWebresourceValidator>();
     private readonly WebresourceSyncOptions _options = new("C:\\WebResources", "TestSolution");
 
     private readonly WebresourceSyncService _service;
@@ -31,6 +33,7 @@ public class WebresourceSyncServiceTests
             _solutionReader,
             _webresourceReader,
             _webresourceWriter,
+            _webresourceValidator,
             _printService
         );
     }

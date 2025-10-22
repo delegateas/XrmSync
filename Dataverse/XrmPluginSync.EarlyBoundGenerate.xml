@@ -31,6 +31,8 @@
     <EntitiesWhitelist>customapi|
 customapirequestparameter|
 customapiresponseproperty|
+dependency|
+dependencynode|
 pluginassembly|
 plugintype|
 publisher|
@@ -157,7 +159,7 @@ VoiceMail</TokenCapitalizationOverrides>
   <Namespace>XrmSync.Dataverse.Context</Namespace>
   <ServiceContextName>DataverseContext</ServiceContextName>
   <SuppressGeneratedCodeAttribute>true</SuppressGeneratedCodeAttribute>
-  <SettingsVersion>2.2025.7.3</SettingsVersion>
+  <SettingsVersion>2.2025.8.26</SettingsVersion>
   <UpdateBuilderSettingsJson>true</UpdateBuilderSettingsJson>
   <Version>2.2025.8.26</Version>
 </Config>

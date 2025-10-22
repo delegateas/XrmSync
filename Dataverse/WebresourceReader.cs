@@ -1,4 +1,5 @@
-﻿using XrmSync.Dataverse.Interfaces;
+﻿using XrmSync.Dataverse.Context;
+using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model.Webresource;
 
 namespace XrmSync.Dataverse;
@@ -35,5 +36,39 @@ internal class WebresourceReader(IDataverseReader reader) : IWebresourceReader
         {
             Id = wr.Id
         })];
+    }
+
+    public List<WebresourceDefinition> GetWebresourcesWithDependencies(IEnumerable<WebresourceDefinition> webresources)
+    {
+        var webresourceIds = webresources.Select(w => w.Id).ToList();
+
+        if (webresourceIds.Count == 0)
+        {
+            return [];
+        }
+
+        // Find dependency nodes for the webresources
+        var dependencyNodes = reader.RetrieveByColumn<DependencyNode>(
+            dn => dn.ObjectId,
+            webresources.Select(w => w.Id),
+            dn => dn.DependencyNodeId,
+            dn => dn.ObjectId
+        ).ConvertAll(dn => new { dn.Id, dn.ObjectId });
+
+        // We have the dependency nodes that map to the webresources,
+        // now we can find dependencies that reference these nodes as the requiered object
+        var requiredIds = reader.RetrieveByColumn<Dependency>(
+            d => d.RequiredComponentObjectId,
+            dependencyNodes.Select(dn => dn.Id),
+            d => d.RequiredComponentObjectId
+        ).Select(d => d.RequiredComponentObjectId).Distinct().ToList();
+
+        // We have a list of required component node ids, match them back to webresources
+        return [.. (
+            from dn in dependencyNodes
+            where requiredIds.Contains(dn.Id)
+            join w in webresources on dn.ObjectId equals w.Id
+            select w
+        ).Distinct()];
     }
 }

@@ -110,9 +110,11 @@ namespace XrmSync.Dataverse.Context
 			public const string PublisherId = "publisherid";
 			public const string PublisherIdName = "publisheridname";
 			public const string ReferencedSolution_Parent_Solution = "ReferencedSolution_Parent_Solution";
+			public const string Solution_Base_DependencyNode = "Solution_Base_DependencyNode";
 			public const string Solution_Configuration_WebResource = "solution_configuration_webresource";
 			public const string ReferencingSolution_Parent_Solution = "solution_parent_solution";
 			public const string Solution_SolutionComponent = "Solution_SolutionComponent";
+			public const string Solution_Top_DependencyNode = "Solution_Top_DependencyNode";
 			public const string SolutionId = "solutionid";
 			public const string Id = "solutionid";
 			public const string SolutionPackageVersion = "solutionpackageversion";
@@ -900,6 +902,24 @@ namespace XrmSync.Dataverse.Context
 		}
 		
 		/// <summary>
+		/// 1:N solution_base_dependencynode
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("solution_base_dependencynode")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.DependencyNode>? Solution_Base_DependencyNode
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.DependencyNode>("solution_base_dependencynode", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.DependencyNode>("solution_base_dependencynode", null, value);
+			}
+		}
+		
+		/// <summary>
 		/// 1:N solution_parent_solution
 		/// </summary>
 		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("solution_parent_solution", Microsoft.Xrm.Sdk.EntityRole.Referenced)]
@@ -932,6 +952,24 @@ namespace XrmSync.Dataverse.Context
 			set
 			{
 				this.SetRelatedEntities<XrmSync.Dataverse.Context.SolutionComponent>("solution_solutioncomponent", null, value);
+			}
+		}
+		
+		/// <summary>
+		/// 1:N solution_top_dependencynode
+		/// </summary>
+		[Microsoft.Xrm.Sdk.RelationshipSchemaNameAttribute("solution_top_dependencynode")]
+		public System.Collections.Generic.IEnumerable<XrmSync.Dataverse.Context.DependencyNode>? Solution_Top_DependencyNode
+		{
+			[System.Diagnostics.DebuggerNonUserCode()]
+			get
+			{
+				return this.GetRelatedEntities<XrmSync.Dataverse.Context.DependencyNode>("solution_top_dependencynode", null);
+			}
+			[System.Diagnostics.DebuggerNonUserCode()]
+			set
+			{
+				this.SetRelatedEntities<XrmSync.Dataverse.Context.DependencyNode>("solution_top_dependencynode", null, value);
 			}
 		}
 		

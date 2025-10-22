@@ -8,6 +8,7 @@ using XrmSync.SyncService.Comparers;
 using XrmSync.SyncService.Difference;
 using XrmSync.SyncService.PluginValidator;
 using XrmSync.SyncService.PluginValidator.Rules;
+using XrmSync.SyncService.WebresourceValidator;
 
 namespace XrmSync.SyncService.Extensions;
 
@@ -33,7 +34,9 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddShared()
-            .AddSingleton<ISyncService, WebresourceSyncService>();
+            .AddSingleton<ISyncService, WebresourceSyncService>()
+            .AddSingleton<IWebresourceValidator, WebresourceValidator.WebresourceValidator>()
+            .AddValidationRules(); // Auto-discover validation rules
     }
 
     private static IServiceCollection AddShared(this IServiceCollection services)

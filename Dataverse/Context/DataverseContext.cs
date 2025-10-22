@@ -63,6 +63,28 @@ namespace XrmSync.Dataverse.Context
 		}
 		
 		/// <summary>
+		/// Gets a binding to the set of all <see cref="XrmSync.Dataverse.Context.Dependency"/> entities.
+		/// </summary>
+		public System.Linq.IQueryable<XrmSync.Dataverse.Context.Dependency> DependencySet
+		{
+			get
+			{
+				return this.CreateQuery<XrmSync.Dataverse.Context.Dependency>();
+			}
+		}
+		
+		/// <summary>
+		/// Gets a binding to the set of all <see cref="XrmSync.Dataverse.Context.DependencyNode"/> entities.
+		/// </summary>
+		public System.Linq.IQueryable<XrmSync.Dataverse.Context.DependencyNode> DependencyNodeSet
+		{
+			get
+			{
+				return this.CreateQuery<XrmSync.Dataverse.Context.DependencyNode>();
+			}
+		}
+		
+		/// <summary>
 		/// Gets a binding to the set of all <see cref="XrmSync.Dataverse.Context.PluginAssembly"/> entities.
 		/// </summary>
 		public System.Linq.IQueryable<XrmSync.Dataverse.Context.PluginAssembly> PluginAssemblySet

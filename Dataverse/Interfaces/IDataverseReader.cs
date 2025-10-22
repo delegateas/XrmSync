@@ -20,11 +20,17 @@ public interface IDataverseReader
     IQueryable<SdkMessageFilter> SdkMessageFilters { get; }
     IQueryable<SystemUser> SystemUsers { get; }
     IQueryable<WebResource> WebResources { get; }
+    IQueryable<Dependency> Dependencies { get; }
 
     List<TEntity> RetrieveByColumn<TEntity, TValue>(
             Expression<Func<TEntity, TValue?>> inColumn,
             IEnumerable<TValue> values,
             params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity;
+
+    List<TEntity> RetrieveByColumn<TEntity>(
+        Expression<Func<TEntity, Guid?>> inColumn,
+        IEnumerable<Guid> ids,
+        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity;
 
     List<TEntity> RetrieveByColumn<TEntity>(
         Expression<Func<TEntity, EntityReference?>> inColumn,

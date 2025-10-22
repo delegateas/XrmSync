@@ -3,8 +3,11 @@ using Microsoft.Extensions.Options;
 using XrmSync.Analyzer.Reader;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
+using XrmSync.Model.Exceptions;
 using XrmSync.Model.Webresource;
 using XrmSync.SyncService.Difference;
+using XrmSync.SyncService.Exceptions;
+using XrmSync.SyncService.WebresourceValidator;
 
 namespace XrmSync.SyncService;
 
@@ -15,6 +18,7 @@ internal class WebresourceSyncService(
     ISolutionReader solutionReader,
     IWebresourceReader webresourceReader,
     IWebresourceWriter webresourceWriter,
+    IWebresourceValidator webresourceValidator,
     IPrintService printService
     ) : ISyncService
 {
@@ -33,6 +37,9 @@ internal class WebresourceSyncService(
         var toCreate = ToCreate(local, remote);
         var toDelete = ToDelete(local, remote);
         var toUpdate = ToUpdate(local, remote);
+
+        // Validate webresources to be deleted
+        ValidateWebresourcesOrThrow(toDelete);
 
         webresourceWriter.Create(toCreate);
         webresourceWriter.Delete(toDelete);
@@ -131,5 +138,26 @@ internal class WebresourceSyncService(
         }
 
         return [.. toUpdate.Select(u => u.Local)];
+    }
+
+    private void ValidateWebresourcesOrThrow(List<WebresourceDefinition> webresources)
+    {
+        if (!webresources.Any())
+        {
+            return;
+        }
+
+        try
+        {
+            webresourceValidator.Validate(webresources);
+        }
+        catch (ValidationException ex)
+        {
+            throw new XrmSyncException("Validation failed", ex);
+        }
+        catch (AggregateException ex)
+        {
+            throw new XrmSyncException("Validation failed", ex);
+        }
     }
 }
