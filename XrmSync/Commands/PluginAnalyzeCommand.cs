@@ -1,8 +1,12 @@
-using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.CommandLine;
+using System.Text.Json;
+using XrmSync.Analyzer;
+using XrmSync.Analyzer.Extensions;
 using XrmSync.Extensions;
 using XrmSync.Model;
+using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 
 namespace XrmSync.Commands;
@@ -47,32 +51,66 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
         var assemblyPath = parseResult.GetValue(_assemblyFile);
         var publisherPrefix = parseResult.GetValue(_prefix);
         var prettyPrint = parseResult.GetValue(_prettyPrint);
-        var (saveConfig, saveConfigTo, configName) = GetSharedOptionValues(parseResult);
+        var sharedOptions = GetSharedOptionValues(parseResult);
 
         // Build service provider
-        var configReader = new ConfigReader();
-        var resolvedConfigName = configReader.ResolveConfigurationName(configName);
-
-        var serviceProvider = new ServiceCollection()
-            .AddAnalyzerServices()
-            .AddXrmSyncConfiguration(resolvedConfigName, builder =>
-            {
-                var baseOptions = builder.Build();
-                var baseAnalyzerOptions = baseOptions.Plugin?.Analysis;
-
-                var pluginAnalysisOptions = new PluginAnalysisOptions(
-                    string.IsNullOrWhiteSpace(assemblyPath) ? baseAnalyzerOptions?.AssemblyPath ?? string.Empty : assemblyPath,
-                    string.IsNullOrWhiteSpace(publisherPrefix) ? baseAnalyzerOptions?.PublisherPrefix ?? string.Empty : publisherPrefix,
-                    prettyPrint || (baseAnalyzerOptions?.PrettyPrint ?? false)
-                );
-
-                return new XrmSyncConfiguration(new PluginOptions(baseOptions.Plugin?.Sync, pluginAnalysisOptions));
-            })
-            .AddLogger(_ => LogLevel.Information, false)
+        var serviceProvider = GetAnalyzerServices()
+            .AddXrmSyncConfiguration(sharedOptions)
+            .AddOptions(
+                baseOptions => baseOptions with
+                {
+                    Plugin = baseOptions.Plugin with
+                    {
+                        Analysis = new(
+                            string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.Plugin.Analysis.AssemblyPath : assemblyPath,
+                            string.IsNullOrWhiteSpace(publisherPrefix) ? baseOptions.Plugin.Analysis.PublisherPrefix : publisherPrefix,
+                            prettyPrint || baseOptions.Plugin.Analysis.PrettyPrint
+                        )
+                    }
+                }
+            )
+            .AddCommandOptions(c => c.Plugin.Analysis)
+            .AddLogger()
             .BuildServiceProvider();
 
-        return await RunAction(serviceProvider, saveConfigTo, ConfigurationScope.PluginAnalysis, cancellationToken)
+        return await RunAction(serviceProvider, ConfigurationScope.PluginAnalysis, CommandAction, cancellationToken)
             ? E_OK
             : E_ERROR;
+    }
+
+    private static async Task<bool> CommandAction(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var analyzer = serviceProvider.GetRequiredService<IAssemblyAnalyzer>();
+                var configuration = serviceProvider.GetRequiredService<IOptions<PluginAnalysisOptions>>();
+
+                var pluginDto = analyzer.AnalyzeAssembly(configuration.Value.AssemblyPath, configuration.Value.PublisherPrefix);
+                var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
+                {
+                    WriteIndented = configuration.Value.PrettyPrint
+                };
+
+                var jsonOutput = JsonSerializer.Serialize(pluginDto, jsonOptions);
+                Console.WriteLine(jsonOutput);
+                return true;
+            }
+            catch (XrmSyncException ex)
+            {
+                Console.Error.WriteLine($"Error analyzing assembly: {ex.Message}");
+                return false;
+            }
+        });
+    }
+
+    private static IServiceCollection GetAnalyzerServices(IServiceCollection? services = null)
+    {
+        services ??= new ServiceCollection();
+
+        services.AddAssemblyAnalyzer();
+
+        return services;
     }
 }

@@ -8,8 +8,10 @@ using XrmSync.Commands;
 var command = new CommandLineBuilder()
     .AddCommands(
         new PluginSyncCommand(),
-        new PluginAnalyzeCommand()
+        new PluginAnalyzeCommand(),
+        new WebresourceSyncCommand()
     )
+    .WithRootCommandHandler()
     .Build();
 
 var parseResult = command.Parse(args);

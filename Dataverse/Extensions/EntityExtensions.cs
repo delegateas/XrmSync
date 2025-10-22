@@ -10,17 +10,18 @@ namespace XrmSync.Dataverse.Extensions;
 
 public static class EntityExtensions
 {
-    public static IEnumerable<DeleteRequest> ToDeleteRequests<T>(this IEnumerable<T> entities, string entityTypeName) where T : EntityBase
-    {
-        return entities.Select(x => x.ToDeleteRequest(entityTypeName));
-    }
+    public static IEnumerable<DeleteRequest> ToDeleteRequests<TEntity>(this IEnumerable<TEntity> entities, string entityTypeName) where TEntity : EntityBase
+        => ToDeleteRequests(entities.Select(e => (e.Id, entityTypeName)));
 
-    public static DeleteRequest ToDeleteRequest<T>(this T entity, string entityTypeName) where T : EntityBase
+    public static IEnumerable<DeleteRequest> ToDeleteRequests<TEntity>(this IEnumerable<TEntity> entities) where TEntity : Entity
+        => ToDeleteRequests(entities.Select(e => (e.Id, e.LogicalName)));
+
+    public static IEnumerable<DeleteRequest> ToDeleteRequests(this IEnumerable<(Guid Id, string EntityLogicalName)> entities)
     {
-        return new DeleteRequest
+        return entities.Select(entity => new DeleteRequest
         {
-            Target = new EntityReference(entityTypeName, entity.Id)
-        };
+            Target = new EntityReference(entity.EntityLogicalName, entity.Id)
+        });
     }
 
     public static string GetColumnName<TEntity>(this Expression<Func<TEntity, object?>> lambda) where TEntity : Entity

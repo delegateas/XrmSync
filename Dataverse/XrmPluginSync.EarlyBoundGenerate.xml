@@ -16,7 +16,7 @@
     <AddNewFilesToProject>false</AddNewFilesToProject>
     <AddOptionSetMetadataAttribute>true</AddOptionSetMetadataAttribute>
     <AdjustCasingForEnumOptions>true</AdjustCasingForEnumOptions>
-    <AttributeBlacklist>paa_*</AttributeBlacklist>
+    <AttributeBlacklist />
     <BuilderSettingsJsonRelativePath>builderSettings.json</BuilderSettingsJsonRelativePath>
     <CamelCaseClassNames>true</CamelCaseClassNames>
     <CamelCaseCustomWords />
@@ -40,7 +40,8 @@ sdkmessageprocessingstep|
 sdkmessageprocessingstepimage|
 solution|
 solutioncomponent|
-systemuser</EntitiesWhitelist>
+systemuser|
+webresource</EntitiesWhitelist>
     <EntityAttributeSpecifiedNames />
     <EntityClassNameOverrides />
     <EntityPrefixesToSkip />
@@ -65,9 +66,34 @@ systemuser</EntitiesWhitelist>
     <LocalOptionSetFormat>{0}_{1}</LocalOptionSetFormat>
     <MakeReferenceTypesNullable>true</MakeReferenceTypesNullable>
     <ModelBuilderLogLevel>2</ModelBuilderLogLevel>
+    <ObsoleteDeprecated>true</ObsoleteDeprecated>
+    <ObsoleteTokens>*(Deprecated)*</ObsoleteTokens>
     <OptionSetLanguageCodeOverride
       xsi:nil="true" />
     <OptionSetNames />
+    <OptionNameOverrides>0th:0th|
+1st:1st|
+2nd:2nd|
+3rd:3rd|
+4th:4th|
+5th:5th|
+6th:6th|
+7th:7th|
+8th:8th|
+9th:9th|
+conversationindex:ConversationIndex|
+customcorrelation:CustomCorrelation|
+fedex:FedEx|
+groupme:GroupMe|
+linkedin:LinkedIn|
+nontransient:NonTransient|
+notset:NotSet|
+reminderexpired:ReminderExpired|
+reminderinvalid:ReminderInvalid|
+reminderset:ReminderSet|
+smartmatching:SmartMatching|
+trackingtoken:TrackingToken|
+xheader:XHeader</OptionNameOverrides>
     <OutputRelativeDirectory>Context</OutputRelativeDirectory>
     <ProjectNameForEarlyBoundFiles />
     <PropertyEnumMappings />
@@ -133,5 +159,5 @@ VoiceMail</TokenCapitalizationOverrides>
   <SuppressGeneratedCodeAttribute>true</SuppressGeneratedCodeAttribute>
   <SettingsVersion>2.2025.7.3</SettingsVersion>
   <UpdateBuilderSettingsJson>true</UpdateBuilderSettingsJson>
-  <Version>2.2025.7.3</Version>
+  <Version>2.2025.8.26</Version>
 </Config>

@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
-using XrmSync.AssemblyAnalyzer;
-using XrmSync.AssemblyAnalyzer.AssemblyReader;
+using XrmSync.Analyzer;
+using XrmSync.Analyzer.Reader;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
@@ -23,28 +23,21 @@ internal class PluginSyncService(
     IPluginValidator pluginValidator,
     ICustomApiReader customApiReader,
     ICustomApiWriter customApiWriter,
-    IAssemblyReader assemblyReader,
+    ILocalReader assemblyReader,
     ISolutionReader solutionReader,
     IDifferenceCalculator differenceUtility,
-    Description description,
-    IOptions<XrmSyncConfiguration> configuration,
+    IDescription description,
+    IPrintService printService,
+    IOptions<PluginSyncOptions> configuration,
     ILogger<PluginSyncService> log) : ISyncService
 {
-    private readonly PluginSyncOptions options = configuration.Value.Plugin?.Sync
-        ?? throw new XrmSyncException("Plugin sync options are not configured");
+    private record SyncData(AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly);
+
+    private readonly PluginSyncOptions options = configuration.Value;
 
     public async Task Sync(CancellationToken cancellationToken)
     {
-        log.LogInformation("{header}", description.ToolHeader);
-
-        if (options.DryRun)
-        {
-            log.LogInformation("***** DRY RUN *****");
-            log.LogInformation("No changes will be made to Dataverse.");
-        }
-
-        log.LogInformation("Comparing plugins registered in Dataverse versus those found in your local code");
-        log.LogInformation("Connecting to Dataverse at {dataverseUrl}", solutionReader.ConnectedHost);
+        printService.PrintHeader(PrintHeaderOptions.Default with { Message = "Comparing plugins registered in Dataverse versus those found in your local code" });
 
         // Read the data from the local assembly and from Dataverse
         var (localAssembly, crmAssembly) = await ReadData(cancellationToken);
@@ -243,27 +236,25 @@ internal class PluginSyncService(
 
     private AssemblyInfo UpsertAssembly(AssemblyInfo localAssembly, AssemblyInfo? remoteAssembly)
     {
-        var prefix = options.DryRun ? "[DRY RUN] " : string.Empty;
-
         if (remoteAssembly == null)
         {
-            log.LogInformation("{prefix}Creating assembly {assemblyName}", prefix, localAssembly.Name);
+            log.LogInformation("Creating assembly {assemblyName}", localAssembly.Name);
             remoteAssembly = CreatePluginAssembly(localAssembly);
         }
         else if (new Version(remoteAssembly.Version) < new Version(localAssembly.Version))
         {
-            log.LogInformation("{prefix}Registered assembly version {RemoteVersion} is lower than local assembly version {LocalVersion}, updating",
-                prefix, remoteAssembly.Version, localAssembly.Version);
+            log.LogInformation("Registered assembly version {RemoteVersion} is lower than local assembly version {LocalVersion}, updating",
+                remoteAssembly.Version, localAssembly.Version);
             UpdatePluginAssembly(remoteAssembly.Id, localAssembly);
         }
         else if (remoteAssembly.Hash != localAssembly.Hash)
         {
-            log.LogInformation("{prefix}Registered assembly hash does not match local assembly hash, updating", prefix);
+            log.LogInformation("Registered assembly hash does not match local assembly hash, updating");
             UpdatePluginAssembly(remoteAssembly.Id, localAssembly);
         }
         else
         {
-            log.LogInformation("{prefix}Assembly {assemblyName} already exists in CRM with matching version and hash, skipping update", prefix,remoteAssembly.Name);
+            log.LogInformation("Assembly {assemblyName} already exists in CRM with matching version and hash, skipping update", remoteAssembly.Name);
         }
 
         return remoteAssembly;
@@ -318,5 +309,3 @@ internal class PluginSyncService(
         pluginWriter.DeletePluginTypes(differences.Types.Deletes);
     }
 }
-
-internal record SyncData(AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly);

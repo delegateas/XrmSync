@@ -1,0 +1,222 @@
+using NSubstitute;
+using XrmSync.Dataverse;
+using XrmSync.Dataverse.Context;
+using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model.Webresource;
+
+namespace Tests.Webresources;
+
+public class WebresourceReaderTests
+{
+    private readonly IDataverseReader _dataverseReader = Substitute.For<IDataverseReader>();
+    private readonly WebresourceReader _reader;
+
+    public WebresourceReaderTests()
+    {
+        _reader = new WebresourceReader(_dataverseReader);
+    }
+
+    private static WebResource CreateWebResource(Guid id, string name, string displayName, 
+        WebResource_WebResourceType type, string content, bool isManaged = false)
+    {
+        var wr = new WebResource { Id = id };
+        wr["name"] = name;
+        wr["displayname"] = displayName;
+        wr["webresourcetype"] = new Microsoft.Xrm.Sdk.OptionSetValue((int)type);
+        wr["content"] = content;
+        wr["ismanaged"] = isManaged;
+        return wr;
+    }
+
+    private static SolutionComponent CreateSolutionComponent(Guid objectId, Guid solutionId)
+    {
+        var sc = new SolutionComponent { Id = Guid.NewGuid() };
+        sc["objectid"] = objectId;
+        sc["solutionid"] = new Microsoft.Xrm.Sdk.EntityReference(Solution.EntityLogicalName, solutionId);
+        return sc;
+    }
+
+    [Fact]
+    public void GetWebresources_ReturnsWebresourcesForSolution()
+    {
+        // Arrange
+        var solutionId = Guid.NewGuid();
+        var webresourceId1 = Guid.NewGuid();
+        var webresourceId2 = Guid.NewGuid();
+
+        var webresources = new List<WebResource>
+        {
+            CreateWebResource(webresourceId1, "test_solution/test1.js", "Test 1", 
+                WebResource_WebResourceType.ScriptJscript, "Y29uc29sZS5sb2coJ3Rlc3QxJyk7"),
+            CreateWebResource(webresourceId2, "test_solution/test2.js", "Test 2", 
+                WebResource_WebResourceType.ScriptJscript, "Y29uc29sZS5sb2coJ3Rlc3QyJyk7")
+        }.AsQueryable();
+
+        var solutionComponents = new List<SolutionComponent>
+        {
+            CreateSolutionComponent(webresourceId1, solutionId),
+            CreateSolutionComponent(webresourceId2, solutionId)
+        }.AsQueryable();
+
+        _dataverseReader.WebResources.Returns(webresources);
+        _dataverseReader.SolutionComponents.Returns(solutionComponents);
+
+        // Act
+        var result = _reader.GetWebresources(solutionId);
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, w => w.Name == "test_solution/test1.js");
+        Assert.Contains(result, w => w.Name == "test_solution/test2.js");
+        Assert.All(result, w => Assert.NotEqual(Guid.Empty, w.Id));
+    }
+
+    [Fact]
+    public void GetWebresources_ExcludesManagedWebresources()
+    {
+        // Arrange
+        var solutionId = Guid.NewGuid();
+        var unmanagedId = Guid.NewGuid();
+        var managedId = Guid.NewGuid();
+
+        var webresources = new List<WebResource>
+        {
+            CreateWebResource(unmanagedId, "test_solution/unmanaged.js", "Unmanaged", 
+                WebResource_WebResourceType.ScriptJscript, "dW5tYW5hZ2Vk", false),
+            CreateWebResource(managedId, "test_solution/managed.js", "Managed", 
+                WebResource_WebResourceType.ScriptJscript, "bWFuYWdlZA==", true)
+        }.AsQueryable();
+
+        var solutionComponents = new List<SolutionComponent>
+        {
+            CreateSolutionComponent(unmanagedId, solutionId),
+            CreateSolutionComponent(managedId, solutionId)
+        }.AsQueryable();
+
+        _dataverseReader.WebResources.Returns(webresources);
+        _dataverseReader.SolutionComponents.Returns(solutionComponents);
+
+        // Act
+        var result = _reader.GetWebresources(solutionId);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("test_solution/unmanaged.js", result[0].Name);
+    }
+
+    [Fact]
+    public void GetWebresources_MapsWebresourceTypeCorrectly()
+    {
+        // Arrange
+        var solutionId = Guid.NewGuid();
+        var webresourceId = Guid.NewGuid();
+
+        var webresources = new List<WebResource>
+        {
+            CreateWebResource(webresourceId, "test.css", "Test CSS", 
+                WebResource_WebResourceType.StyleSheetCss, "Ym9keXt9")
+        }.AsQueryable();
+
+        var solutionComponents = new List<SolutionComponent>
+        {
+            CreateSolutionComponent(webresourceId, solutionId)
+        }.AsQueryable();
+
+        _dataverseReader.WebResources.Returns(webresources);
+        _dataverseReader.SolutionComponents.Returns(solutionComponents);
+
+        // Act
+        var result = _reader.GetWebresources(solutionId);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(WebresourceType.StyleSheetCss, result[0].Type);
+    }
+
+    [Fact]
+    public void GetWebresources_ReturnsEmptyList_WhenNoWebresourcesInSolution()
+    {
+        // Arrange
+        var solutionId = Guid.NewGuid();
+
+        _dataverseReader.WebResources.Returns(new List<WebResource>().AsQueryable());
+        _dataverseReader.SolutionComponents.Returns(new List<SolutionComponent>().AsQueryable());
+
+        // Act
+        var result = _reader.GetWebresources(solutionId);
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetWebresources_OrdersByName()
+    {
+        // Arrange
+        var solutionId = Guid.NewGuid();
+        var id1 = Guid.NewGuid();
+        var id2 = Guid.NewGuid();
+        var id3 = Guid.NewGuid();
+
+        var webresources = new List<WebResource>
+        {
+            CreateWebResource(id1, "z_last.js", "Last", 
+                WebResource_WebResourceType.ScriptJscript, "bGFzdA=="),
+            CreateWebResource(id2, "a_first.js", "First", 
+                WebResource_WebResourceType.ScriptJscript, "Zmlyc3Q="),
+            CreateWebResource(id3, "m_middle.js", "Middle", 
+                WebResource_WebResourceType.ScriptJscript, "bWlkZGxl")
+        }.AsQueryable();
+
+        var solutionComponents = new List<SolutionComponent>
+        {
+            CreateSolutionComponent(id1, solutionId),
+            CreateSolutionComponent(id2, solutionId),
+            CreateSolutionComponent(id3, solutionId)
+        }.AsQueryable();
+
+        _dataverseReader.WebResources.Returns(webresources);
+        _dataverseReader.SolutionComponents.Returns(solutionComponents);
+
+        // Act
+        var result = _reader.GetWebresources(solutionId);
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.Equal("a_first.js", result[0].Name);
+        Assert.Equal("m_middle.js", result[1].Name);
+        Assert.Equal("z_last.js", result[2].Name);
+    }
+
+    [Fact]
+    public void GetWebresources_HandlesNullValues()
+    {
+        // Arrange
+        var solutionId = Guid.NewGuid();
+        var webresourceId = Guid.NewGuid();
+
+        var wr = new WebResource { Id = webresourceId };
+        wr["ismanaged"] = false;
+        // Leave other fields as null
+
+        var webresources = new List<WebResource> { wr }.AsQueryable();
+
+        var solutionComponents = new List<SolutionComponent>
+        {
+            CreateSolutionComponent(webresourceId, solutionId)
+        }.AsQueryable();
+
+        _dataverseReader.WebResources.Returns(webresources);
+        _dataverseReader.SolutionComponents.Returns(solutionComponents);
+
+        // Act
+        var result = _reader.GetWebresources(solutionId);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(string.Empty, result[0].Name);
+        Assert.Equal(string.Empty, result[0].DisplayName);
+        Assert.Equal(string.Empty, result[0].Content);
+        Assert.Equal((WebresourceType)0, result[0].Type);
+    }
+}

@@ -1,20 +1,20 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using XrmSync.AssemblyAnalyzer;
-using XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;
-using XrmSync.AssemblyAnalyzer.Analyzers.XrmPluginCore;
-using XrmSync.AssemblyAnalyzer.AssemblyReader;
+using XrmSync.Analyzer;
+using XrmSync.Analyzer.Analyzers.DAXIF;
+using XrmSync.Analyzer.Analyzers.XrmPluginCore;
+using XrmSync.Analyzer.Reader;
 
-namespace Tests;
+namespace Tests.Plugins;
 
 public class AssemblyReaderTests
 {
-    private readonly ILogger<AssemblyReader> _logger = Substitute.For<ILogger<AssemblyReader>>();
-    private readonly AssemblyReader _assemblyReader;
+    private readonly ILogger<LocalReader> _logger = Substitute.For<ILogger<LocalReader>>();
+    private readonly LocalReader _assemblyReader;
 
     public AssemblyReaderTests()
     {
-        _assemblyReader = new AssemblyReader(_logger);
+        _assemblyReader = new LocalReader(_logger);
     }
 
     [Fact]

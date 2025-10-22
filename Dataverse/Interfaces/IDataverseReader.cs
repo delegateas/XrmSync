@@ -19,6 +19,7 @@ public interface IDataverseReader
     IQueryable<SdkMessage> SdkMessages { get; }
     IQueryable<SdkMessageFilter> SdkMessageFilters { get; }
     IQueryable<SystemUser> SystemUsers { get; }
+    IQueryable<WebResource> WebResources { get; }
 
     List<TEntity> RetrieveByColumn<TEntity, TValue>(
             Expression<Func<TEntity, TValue?>> inColumn,
@@ -33,6 +34,12 @@ public interface IDataverseReader
     List<TEntity> RetrieveByColumn<TEntity, TInValue, TValue>(
         Expression<Func<TEntity, TInValue?>> inColumn,
         IEnumerable<TValue> values,
+        IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
+        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity;
+
+    List<TEntity> RetrieveByColumn<TEntity>(
+        Expression<Func<TEntity, EntityReference?>> inColumn,
+        IEnumerable<Guid> ids,
         IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
         params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity;
 }

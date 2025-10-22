@@ -1,12 +1,14 @@
 ﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 
 namespace XrmSync.Dataverse.Interfaces
 {
     public interface IDataverseWriter
     {
         Guid Create(Entity entity, IDictionary<string, object>? parameters);
-        void PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest;
         void Update(Entity entity);
-        void UpdateMultiple<TEntity>(List<TEntity> entities) where TEntity : Entity;
+        void UpdateMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity;
+        void DeleteMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity;
+        void DeleteMultiple(IEnumerable<DeleteRequest> deleteRequests);
     }
 }

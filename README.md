@@ -6,21 +6,23 @@
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A command-line tool for synchronizing Dataverse plugins and custom APIs with your local plugin assemblies.
+A command-line tool for synchronizing Dataverse plugins, custom APIs, and webresources with your local code.
 
 ## Overview
 
-XrmSync is a powerful tool that helps you manage and synchronize your Microsoft Dataverse plugins and custom APIs. It analyzes your plugin assemblies, compares them with what's deployed in Dataverse, and performs the necessary create, update, or delete operations to keep them in sync.
+XrmSync is a powerful tool that helps you manage and synchronize your Microsoft Dataverse plugins, custom APIs, and webresources. It analyzes your plugin assemblies and local webresource files, compares them with what's deployed in Dataverse, and performs the necessary create, update, or delete operations to keep them in sync.
 
 ## Features
 
 - **Plugin Assembly Analysis**: Automatically analyzes .NET assemblies to discover plugin types, steps, and images
-- **Intelligent Synchronization**: Compares local assembly definitions with Dataverse and performs only necessary changes
+- **Intelligent Synchronization**: Compares local definitions with Dataverse and performs only necessary changes
 - **Custom API Support**: Handles custom API definitions, request parameters, and response properties
+- **Webresource Sync**: Synchronizes HTML, CSS, JavaScript, images, and other webresources from local folders
 - **Dry Run Mode**: Preview changes without actually modifying your Dataverse environment
-- **Solution-aware**: Deploys plugins to specific Dataverse solutions
+- **Solution-aware**: Deploys plugins and webresources to specific Dataverse solutions
 - **Flexible Connection**: Supports connection string and URL-based Dataverse connections
 - **Configuration Files**: Support for JSON configuration files to streamline repetitive operations
+- **Named Configurations**: Manage multiple environments (dev, staging, prod) in a single config file
 - **Comprehensive Logging**: Configurable logging levels for debugging and monitoring
 
 ## Installation
@@ -57,22 +59,34 @@ dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
 
 ## Usage
 
-### Basic Sync Command
+### Plugin Synchronization
 
 ```bash
 xrmsync plugins --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
+```
+
+### Webresource Synchronization
+
+```bash
+xrmsync webresources --folder "path/to/webresources" --solution-name "YourSolutionName"
 ```
 
 ### Configuration File Usage
 
 For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
 ```bash
-xrmsync plugins
+# Run all configured commands (plugins, webresources, analysis)
+xrmsync --config default
+
+# Run a specific command with configuration
+xrmsync plugins --config default
 ```
+
 You can also override specific options when using a configuration file:
 ```bash
 xrmsync plugins --dry-run --log-level Debug
 ```
+
 ### Command Line Options
 
 #### Plugins Command
@@ -83,10 +97,40 @@ xrmsync plugins --dry-run --log-level Debug
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
+| `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
+| `--config` | `-c` | Name of the configuration to load from appsettings.json | No |
 | `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
 | `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
 *Required when not present in appsettings.json
+
+#### Webresources Command
+
+| Option | Short | Description | Required |
+|--------|-------|-------------|----------|
+| `--folder` | `-w`, `--path` | Path to the root folder containing the webresources to sync | Yes* |
+| `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
+| `--dry-run` | | Perform a dry run without making changes | No |
+| `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
+| `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
+| `--config` | `-c` | Name of the configuration to load from appsettings.json | No |
+| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
+| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
+
+*Required when not present in appsettings.json
+
+**Supported Webresource Types:**
+- HTML files (`.html`, `.htm`)
+- CSS stylesheets (`.css`)
+- JavaScript files (`.js`)
+- XML data files (`.xml`)
+- Image files (`.png`, `.jpg`, `.gif`, `.ico`, `.svg`)
+- RESX string resources (`.resx`)
+- XSL stylesheets (`.xsl`, `.xslt`)
+
+The webresource name in Dataverse is determined by the file path relative to the specified folder root, prefixed with the solution name. For example:
+- `wwwroot/js/script.js` → `[prefix]_[solution]/js/script.js`
+- `wwwroot/css/styles.css` → `[prefix]_[solution]/css/styles.css`
 
 #### Analyze Command
 
@@ -148,33 +192,105 @@ When using `--save-config`, XrmSync will:
 ```json
 {
   "XrmSync": {
-    "Plugin": {
-      "Sync": {
-        "AssemblyPath": "path/to/your/plugin.dll",
-        "SolutionName": "YourSolutionName",
-        "DryRun": false,
-        "LogLevel": "Information"
+    "default": {
+      "Plugin": {
+        "Sync": {
+          "AssemblyPath": "path/to/your/plugin.dll",
+          "SolutionName": "YourSolutionName"
+        },
+        "Analysis": {
+          "AssemblyPath": "path/to/your/plugin.dll",
+          "PublisherPrefix": "contoso",
+          "PrettyPrint": true
+        }
       },
-      "Analysis": {
-        "AssemblyPath": "path/to/your/plugin.dll",
-        "PublisherPrefix": "contoso",
-        "PrettyPrint": true
+      "Webresource": {
+        "Sync": {
+          "FolderPath": "path/to/webresources",
+          "SolutionName": "YourSolutionName"
+        }
+      },
+      "Logger": {
+        "LogLevel": "Information",
+        "CiMode": false
+      },
+      "Execution": {
+        "DryRun": false
       }
     }
   }
 }
 ```
 
-#### Sync Properties
+#### Named Configurations
+
+XrmSync supports multiple named configurations within a single appsettings.json file. This allows you to manage different environments (dev, staging, prod) or different projects in one configuration file.
+
+**Using named configurations:**
+```bash
+# Use the 'default' configuration (or the only configuration if only one exists)
+xrmsync --config default
+
+# Use a specific named configuration
+xrmsync --config dev
+
+# If --config is not specified, 'default' is used, or the single config if only one exists
+xrmsync
+```
+
+**Example with multiple named configurations:**
+```json
+{
+  "XrmSync": {
+    "default": {
+      "Plugin": {
+        "Sync": {
+          "AssemblyPath": "bin/Debug/net462/MyPlugin.dll",
+          "SolutionName": "DevSolution"
+        }
+      },
+      "Execution": {
+        "DryRun": true
+      }
+    },
+    "prod": {
+      "Plugin": {
+        "Sync": {
+          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+          "SolutionName": "ProdSolution"
+        }
+      },
+      "Execution": {
+        "DryRun": false
+      }
+    }
+  }
+}
+```
+
+#### Executing All Configured Sub-Commands
+
+When you call the root command with a configuration name, XrmSync will automatically execute all configured sub-commands for that configuration:
+
+```bash
+# This will run plugin sync, plugin analysis, and webresource sync
+# for all that are configured in the 'default' configuration
+xrmsync --config default
+```
+
+XrmSync will only execute sub-commands that have their required properties configured. For example:
+- Plugin sync runs only if `AssemblyPath` and `SolutionName` are provided
+- Plugin analysis runs only if `AssemblyPath` is provided
+- Webresource sync runs only if `FolderPath` and `SolutionName` are provided
+
+#### Plugin Sync Properties
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
 | `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
 | `SolutionName` | string | Name of the target Dataverse solution | Required |
-| `DryRun` | boolean | Perform a dry run without making changes | false |
-| `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
 
-#### Analysis Properties
+#### Plugin Analysis Properties
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
@@ -182,38 +298,91 @@ When using `--save-config`, XrmSync will:
 | `PublisherPrefix` | string | Publisher prefix for unique names | "new" |
 | `PrettyPrint` | boolean | Pretty print the JSON output | false |
 
+#### Webresource Sync Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `FolderPath` | string | Path to the root folder containing webresources | Required |
+| `SolutionName` | string | Name of the target Dataverse solution | Required |
+
+#### Logger Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
+| `CiMode` | boolean | Enable CI mode for easier parsing in CI systems | false |
+
+#### Execution Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `DryRun` | boolean | Perform a dry run without making changes | false |
+
 #### Example Configuration Files
 
 **Basic sync configuration:**
 ```json
 {
   "XrmSync": {
-    "Plugin": {
-      "Sync": {
-        "AssemblyPath": "MyPlugin.dll",
-        "SolutionName": "MyCustomSolution"
+    "default": {
+      "Plugin": {
+        "Sync": {
+          "AssemblyPath": "MyPlugin.dll",
+          "SolutionName": "MyCustomSolution"
+        }
       }
     }
   }
 }
 ```
 
-**Full configuration with both sync and analysis:**
+**Full configuration with plugins, webresources, and analysis:**
 
 ```json
 {
   "XrmSync": {
-    "Plugin": {
-      "Sync": {
-        "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-        "SolutionName": "MyCustomSolution",
-        "DryRun": true,
+    "default": {
+      "Plugin": {
+        "Sync": {
+          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+          "SolutionName": "MyCustomSolution"
+        },
+        "Analysis": {
+          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+          "PublisherPrefix": "contoso",
+          "PrettyPrint": true
+        }
+      },
+      "Webresource": {
+        "Sync": {
+          "FolderPath": "wwwroot",
+          "SolutionName": "MyCustomSolution"
+        }
+      },
+      "Logger": {
         "LogLevel": "Debug"
       },
-      "Analysis": {
-        "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-        "PublisherPrefix": "contoso",
-        "PrettyPrint": true
+      "Execution": {
+        "DryRun": true
+      }
+    }
+  }
+}
+```
+
+**Webresource-only configuration:**
+```json
+{
+  "XrmSync": {
+    "default": {
+      "Webresource": {
+        "Sync": {
+          "FolderPath": "src/webresources",
+          "SolutionName": "MyCustomSolution"
+        }
+      },
+      "Execution": {
+        "DryRun": false
       }
     }
   }
@@ -224,11 +393,13 @@ When using `--save-config`, XrmSync will:
 ```json
 {
   "XrmSync": {
-    "Plugin": {
-      "Analysis": {
-        "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
-        "PublisherPrefix": "contoso",
-        "PrettyPrint": false
+    "default": {
+      "Plugin": {
+        "Analysis": {
+          "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
+          "PublisherPrefix": "contoso",
+          "PrettyPrint": false
+        }
       }
     }
   }
@@ -237,14 +408,40 @@ When using `--save-config`, XrmSync will:
 
 ### Examples
 
-#### Basic synchronization:
+#### Plugin synchronization:
 ```bash
 xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
 ```
 
-#### Using a configuration file:
+#### Webresource synchronization:
 ```bash
+xrmsync webresources --folder "wwwroot" --solution-name "MyCustomSolution"
+```
+
+#### Dry run for webresources:
+```bash
+xrmsync webresources --folder "wwwroot" --solution-name "MyCustomSolution" --dry-run
+```
+
+#### Using a configuration file to run all configured commands:
+```bash
+# Runs all configured sub-commands (plugin sync, analysis, webresource sync)
+# from the 'default' configuration
+xrmsync --config default
+
+# Or simply (uses 'default' if it exists, or the only config if there's just one)
 xrmsync
+```
+
+#### Using a specific named configuration:
+```bash
+xrmsync --config prod
+```
+
+#### Running a specific sub-command with configuration:
+```bash
+# Uses the configuration but only runs the plugins command
+xrmsync plugins --config dev
 ```
 
 #### Configuration file with CLI overrides:
@@ -355,6 +552,8 @@ The solution consists of several projects:
 
 ## How It Works
 
+### Plugin Synchronization
+
 1. **Assembly Analysis**: The tool analyzes your plugin assembly to discover:
    - Plugin types and their attributes
    - Plugin steps (event handlers)
@@ -371,6 +570,24 @@ The solution consists of several projects:
    - Updates existing configurations
    - Removes obsolete registrations
    - Manages custom API definitions
+
+### Webresource Synchronization
+
+1. **Local File Discovery**: The tool scans your local folder to discover:
+   - All files matching supported webresource types
+   - File paths relative to the specified root folder
+   - File content and MIME types
+
+2. **Dataverse Comparison**: It connects to your Dataverse environment and compares:
+   - Existing webresources in the solution
+   - Content hashes to detect changes
+   - Webresource names and types
+
+3. **Synchronization**: Based on the comparison, it performs:
+   - Creates new webresources
+   - Updates modified webresources with new content
+   - Removes webresources that no longer exist locally
+   - Associates webresources with the specified solution
 
 ## Development
 

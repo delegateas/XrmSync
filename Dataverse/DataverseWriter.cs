@@ -6,6 +6,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
+using XrmSync.Dataverse.Extensions;
 
 namespace XrmSync.Dataverse;
 
@@ -14,9 +15,9 @@ internal sealed class DataverseWriter : IDataverseWriter
     private readonly ServiceClient serviceClient;
     private readonly ILogger<DataverseWriter> logger;
 
-    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, IOptions<XrmSyncConfiguration> configuration)
+    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, IOptions<ExecutionOptions> configuration)
     {
-        if (configuration.Value.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
+        if (configuration.Value.DryRun)
         {
             throw new XrmSyncException("Cannot perform write operations in dry run mode. Please disable dry run to proceed with writing to Dataverse.");
         }
@@ -58,14 +59,21 @@ internal sealed class DataverseWriter : IDataverseWriter
         serviceClient.Update(entity);
     }
 
-    public void UpdateMultiple<TEntity>(List<TEntity> entities) where TEntity : Entity
+    public void UpdateMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity
+        => PerformAsBulk(entities.Select(e => new UpdateRequest { Target = e }));
+
+    public void DeleteMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity
+        => DeleteMultiple(entities.ToDeleteRequests());
+
+    public void DeleteMultiple(IEnumerable<DeleteRequest> deleteRequests)
     {
-        PerformAsBulk(entities.ConvertAll(e => new UpdateRequest { Target = e }));
+        PerformAsBulk([.. deleteRequests ]);
     }
 
-    public void PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest
+    private void PerformAsBulk<T>(IEnumerable<T> updates) where T : OrganizationRequest
     {
-        var responses = PerformAsBulkInner(updates);
+        List<T> updateList = [.. updates];
+        var responses = PerformAsBulkInner(updateList);
 
         var failedReponses = responses.Where(x => x.Fault != null).ToList();
         if (failedReponses.Count > 0)
@@ -73,7 +81,7 @@ internal sealed class DataverseWriter : IDataverseWriter
             logger.LogError("Error when performing {count} requests.", failedReponses.Count);
             failedReponses.ForEach(f =>
             {
-            var update = updates[f.RequestIndex];
+            var update = updateList[f.RequestIndex];
 
                 var (entityName, entityId) = update switch
                 {
@@ -100,7 +108,7 @@ internal sealed class DataverseWriter : IDataverseWriter
         }
         else
         {
-            logger.LogTrace("Succesfully performed {count} actions.", updates.Count);
+            logger.LogTrace("Succesfully performed {count} actions.", updateList.Count);
         }
     }
 

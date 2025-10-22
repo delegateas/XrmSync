@@ -1,82 +1,96 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using XrmSync.Actions;
-using XrmSync.AssemblyAnalyzer.Extensions;
-using XrmSync.Dataverse.Extensions;
+using XrmSync.Commands;
 using XrmSync.Logging;
 using XrmSync.Model;
 using XrmSync.Options;
-using XrmSync.SyncService.Extensions;
+
+using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, string? configName, Func<Options.IConfigurationBuilder, XrmSyncConfiguration> syncOptionsFactory)
+    public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, SharedOptions sharedOptions)
     {
         services
             .AddSingleton<IConfigReader, ConfigReader>()
             .AddSingleton<IConfigWriter, ConfigWriter>()
             .AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
+            .AddSingleton(MSOptions.Create(sharedOptions))
             .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())
-            .AddSingleton<Options.IConfigurationBuilder>(sp => 
-            {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                return new XrmSyncConfigurationBuilder(configuration, configName);
-            });
+            .AddSingleton<IConfigurationBuilder, XrmSyncConfigurationBuilder>();
 
-        // Register IOptions<XrmSyncConfiguration> directly from the factory
+        return services;
+    }
+
+    public static IServiceCollection AddOptions(
+        this IServiceCollection services,
+        Func<XrmSyncConfiguration, XrmSyncConfiguration> configModifier)
+    {
+        // Register configuration with overloads from command as IOptions<XrmSyncConfiguration>
         services.AddSingleton(sp =>
         {
-            var builder = sp.GetRequiredService<Options.IConfigurationBuilder>();
-            var config = syncOptionsFactory(builder);
-            return Microsoft.Extensions.Options.Options.Create(config);
+            var builder = sp.GetRequiredService<IConfigurationBuilder>();
+            var baseConfig = builder.Build();
+
+            return MSOptions.Create(configModifier(baseConfig));
+        });
+
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+            return MSOptions.Create(config.Value.Execution);
         });
 
         return services;
     }
 
-    public static IServiceCollection AddPluginSyncServices(this IServiceCollection services)
+    public static IServiceCollection AddCommandOptions<TSection>(
+        this IServiceCollection services,
+        Func<XrmSyncConfiguration, TSection> sectionSelector) where TSection : class
     {
-        services.AddSingleton<IAction, PluginSyncAction>();
-        services.AddSingleton<ISaveConfigAction, SavePluginSyncConfigAction>();
-
-        services.AddSyncService();
-        services.AddAssemblyReader();
-        services.AddDataverseConnection();
-
-        return services;
-    }
-
-    public static IServiceCollection AddAnalyzerServices(this IServiceCollection services)
-    {
-        services.AddSingleton<IAction, PluginAnalysisAction>();
-        services.AddSingleton<ISaveConfigAction, SavePluginAnalysisConfigAction>();
-
-        services.AddAssemblyAnalyzer();
-
-        return services;
-    }
-
-    public static IServiceCollection AddLogger(this IServiceCollection services, Func<IServiceProvider, LogLevel?> logLevel, bool ciMode)
-    {
+        // Register IOptions<TSection> for services
         services.AddSingleton(sp =>
-            LoggerFactory.Create(builder =>
-            {
-                builder.AddFilter(nameof(Microsoft), LogLevel.Warning)
-                    .AddFilter(nameof(System), LogLevel.Warning)
-                    .AddFilter(nameof(XrmSync), logLevel(sp) ?? LogLevel.Information)
-                    .AddConsole(options => options.FormatterName = "ci-console")
-                    .AddConsoleFormatter<CIConsoleFormatter, CIConsoleFormatterOptions>(options =>
-                    {
-                        options.IncludeScopes = false;
-                        options.SingleLine = true;
-                        options.TimestampFormat = "HH:mm:ss ";
-                        options.CIMode = ciMode;
-                    });
-            }));
+        {
+            var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+            return MSOptions.Create(sectionSelector(config.Value));
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddLogger(this IServiceCollection services)
+    {
+        // Register IOptions<LoggerOptions> for logging
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+            return MSOptions.Create(config.Value.Logger);
+        });
+
+        services.AddSingleton(sp =>
+        {
+            var loggerOptions = sp.GetRequiredService<IOptions<LoggerOptions>>().Value;
+            var executionOptions = sp.GetRequiredService<IOptions<ExecutionOptions>>().Value;
+            return LoggerFactory.Create(
+                builder =>
+                {
+                    builder.AddFilter(nameof(Microsoft), LogLevel.Warning)
+                        .AddFilter(nameof(System), LogLevel.Warning)
+                        .AddFilter(nameof(XrmSync), loggerOptions.LogLevel)
+                        .AddConsole(options => options.FormatterName = "ci-console")
+                        .AddConsoleFormatter<CIConsoleFormatter, CIConsoleFormatterOptions>(options =>
+                        {
+                            options.IncludeScopes = false;
+                            options.SingleLine = true;
+                            options.TimestampFormat = "HH:mm:ss ";
+                            options.CIMode = loggerOptions.CiMode;
+                            options.DryRun = executionOptions.DryRun;
+                        });
+                });
+        });
 
         services.AddSingleton(typeof(ILogger<>), typeof(SyncLogger<>));
 

@@ -1,7 +1,7 @@
 ﻿using XrmPluginCore.Enums;
 using XrmSync.Model.Plugin;
 
-namespace XrmSync.AssemblyAnalyzer.Analyzers.DAXIF;
+namespace XrmSync.Analyzer.Analyzers.DAXIF;
 
 // ExtendedStepConfig   : Deployment, ExecutionMode, Name, ExecutionOrder, FilteredAttributes, UserContext
 using ExtendedStepConfig = Tuple<int, int, string?, int, string?, string?>;

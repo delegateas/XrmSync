@@ -6,23 +6,19 @@ using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;
-using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-internal class CustomApiWriter(IDataverseWriter writer, ILogger<CustomApiWriter> log, IOptions<XrmSyncConfiguration> configuration) : ICustomApiWriter
+internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptions> configuration) : ICustomApiWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
-            { "SolutionUniqueName", configuration.Value.Plugin?.Sync?.SolutionName ?? throw new XrmSyncException("No solution name found in configuration") }
+            { "SolutionUniqueName", configuration.Value.SolutionName }
     };
-
-    private readonly string LogPrefix = configuration.Value.Plugin?.Sync?.DryRun == true ? "[DRY RUN] " : string.Empty;
 
     public ICollection<CustomApiDefinition> CreateCustomApis(ICollection<CustomApiDefinition> customApis, string description)
     {
         if (customApis.Count == 0) return customApis;
 
-        log.LogInformation("{prefix}Creating {Count} Custom APIs in Dataverse.", LogPrefix, customApis.Count);
         foreach (var api in customApis)
         {
             var entity = new CustomApi
@@ -57,7 +53,6 @@ internal class CustomApiWriter(IDataverseWriter writer, ILogger<CustomApiWriter>
     {
         if (requestParameters.Count == 0) return [];
 
-        log.LogInformation("{prefix}Creating {Count} Custom API Request Parameters in Dataverse.", LogPrefix, requestParameters.Count);
         foreach (var (param, customApi) in requestParameters)
         {
             var entity = new CustomApiRequestParameter
@@ -82,7 +77,6 @@ internal class CustomApiWriter(IDataverseWriter writer, ILogger<CustomApiWriter>
     {
         if (responseProperties.Count == 0) return responseProperties;
 
-        log.LogInformation("{prefix}Creating {Count} Custom API Response Properties in Dataverse.", LogPrefix, responseProperties.Count);
         foreach (var (prop, customApi) in responseProperties)
         {
             var entity = new CustomApiResponseProperty
@@ -169,35 +163,17 @@ internal class CustomApiWriter(IDataverseWriter writer, ILogger<CustomApiWriter>
 
     public void DeleteCustomApiDefinitions(IEnumerable<CustomApiDefinition> customApis)
     {
-        var deleteRequests = customApis.ToDeleteRequests(CustomApi.EntityLogicalName).ToList();
-
-        if (deleteRequests.Count > 0)
-        {
-            log.LogInformation("{prefix}Deleting {count} custom api definitions in Dataverse", LogPrefix, deleteRequests.Count);
-            writer.PerformAsBulk(deleteRequests);
-        }
+        writer.DeleteMultiple(customApis.ToDeleteRequests(CustomApi.EntityLogicalName));
     }
 
     public void DeleteCustomApiRequestParameters(IEnumerable<RequestParameter> requestParameters)
     {
-        var deleteRequests = requestParameters.ToDeleteRequests("customapirequestparameter").ToList();
-
-        if (deleteRequests.Count > 0)
-        {
-            log.LogInformation("{prefix}Deleting {count} custom api request parameters in Dataverse", LogPrefix, deleteRequests.Count);
-            writer.PerformAsBulk(deleteRequests);
-        }
+        writer.DeleteMultiple(requestParameters.ToDeleteRequests(CustomApiRequestParameter.EntityLogicalName));
     }
 
     public void DeleteCustomApiResponseProperties(IEnumerable<ResponseProperty> responseProperties)
     {
-        var deleteRequests = responseProperties.ToDeleteRequests("customapiresponseproperty").ToList();
-
-        if (deleteRequests.Count > 0)
-        {
-            log.LogInformation("{prefix}Deleting {count} custom api response properties in Dataverse", LogPrefix, deleteRequests.Count);
-            writer.PerformAsBulk(deleteRequests);
-        }
+        writer.DeleteMultiple(responseProperties.ToDeleteRequests(CustomApiResponseProperty.EntityLogicalName));
     }
 
     private static string GetDescription(CustomApiDefinition api, string description)

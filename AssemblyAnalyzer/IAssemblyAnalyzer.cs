@@ -1,6 +1,6 @@
 ﻿using XrmSync.Model;
 
-namespace XrmSync.AssemblyAnalyzer
+namespace XrmSync.Analyzer
 {
     public interface IAssemblyAnalyzer
     {

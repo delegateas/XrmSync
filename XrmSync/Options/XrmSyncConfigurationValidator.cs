@@ -1,9 +1,10 @@
 using Microsoft.Extensions.Options;
+using System.Text.RegularExpressions;
 using XrmSync.Model;
 
 namespace XrmSync.Options;
 
-internal class XrmSyncConfigurationValidator(IOptions<XrmSyncConfiguration> configuration) : IConfigurationValidator
+internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfiguration> configuration) : IConfigurationValidator
 {
     public void Validate(ConfigurationScope scope)
     {
@@ -12,128 +13,137 @@ internal class XrmSyncConfigurationValidator(IOptions<XrmSyncConfiguration> conf
             throw new Model.Exceptions.OptionsValidationException("No configuration scope specified for validation.");
         }
 
+        var exceptions = ValidateInternal(scope, configuration.Value).ToList();
+        if (exceptions.Count == 1)
+        {
+            throw exceptions[0];
+        } else if (exceptions.Count > 1)
+        {
+            throw new AggregateException(exceptions);
+        }
+    }
+
+    private static IEnumerable<Model.Exceptions.OptionsValidationException> ValidateInternal(ConfigurationScope scope, XrmSyncConfiguration configuration)
+    {
         if (scope.HasFlag(ConfigurationScope.PluginSync))
         {
-            if (configuration.Value.Plugin?.Sync is null)
-            {
-                throw new Model.Exceptions.OptionsValidationException("Plugin sync options are required but not provided.");
-            }
+            var errors = Validate(configuration.Plugin.Sync).ToList();
 
-            Validate(configuration.Value.Plugin.Sync);
+            if (errors.Count != 0)
+            {
+                yield return new Model.Exceptions.OptionsValidationException("Plugin sync", errors);
+            }
         }
 
         if (scope.HasFlag(ConfigurationScope.PluginAnalysis))
         {
-            if (configuration.Value.Plugin?.Analysis is null)
-            {
-                throw new Model.Exceptions.OptionsValidationException("Plugin analysis options are required but not provided.");
-            }
+            var errors = Validate(configuration.Plugin.Analysis).ToList();
 
-            Validate(configuration.Value.Plugin.Analysis);
+            if (errors.Count != 0)
+            {
+                yield return new Model.Exceptions.OptionsValidationException("Plugin analysis", errors);
+            }
+        }
+
+        if (scope.HasFlag(ConfigurationScope.WebresourceSync))
+        {
+            var errors = Validate(configuration.Webresource.Sync).ToList();
+
+            if (errors.Count != 0)
+            {
+                yield return new Model.Exceptions.OptionsValidationException("Webresource sync", errors);
+            }
         }
     }
 
-    private static void Validate(PluginSyncOptions options)
+    private static IEnumerable<string> Validate(PluginSyncOptions options)
     {
-        var errors = new List<string>();
+        return [
+            ..ValidateAssemblyPath(options.AssemblyPath),
+            ..ValidateSolutionName(options.SolutionName)
+        ];
+    }
 
+    private static IEnumerable<string> Validate(PluginAnalysisOptions options)
+    {
+        return [
+            ..ValidateAssemblyPath(options.AssemblyPath),
+            ..ValidatePublisherPrefix(options.PublisherPrefix)
+        ];
+    }
+
+    private static IEnumerable<string> Validate(WebresourceSyncOptions options)
+    {
+        return [
+            ..ValidateFolderPath(options.FolderPath),
+            ..ValidateSolutionName(options.SolutionName)
+        ];
+    }
+
+    private static IEnumerable<string> ValidateAssemblyPath(string assemblyPath)
+    {
         // Validate AssemblyPath
-        if (string.IsNullOrWhiteSpace(options.AssemblyPath))
+        if (string.IsNullOrWhiteSpace(assemblyPath))
         {
-            errors.Add("Assembly path is required and cannot be empty.");
+            yield return "Assembly path is required and cannot be empty.";
         }
-        else if (!Path.IsPathRooted(options.AssemblyPath) && !File.Exists(options.AssemblyPath))
+        else if (!File.Exists(Path.GetFullPath(assemblyPath)))
         {
-            // For relative paths, check if file exists
-            if (!File.Exists(Path.GetFullPath(options.AssemblyPath)))
-            {
-                errors.Add($"Assembly file does not exist: {options.AssemblyPath}");
-            }
+            yield return $"Assembly file does not exist: {assemblyPath}";
         }
-        else if (Path.IsPathRooted(options.AssemblyPath) && !File.Exists(options.AssemblyPath))
+        else
         {
-            // For absolute paths, check directly
-            errors.Add($"Assembly file does not exist: {options.AssemblyPath}");
-        }
-
-        // Validate assembly file extension
-        if (!string.IsNullOrWhiteSpace(options.AssemblyPath))
-        {
-            var extension = Path.GetExtension(options.AssemblyPath);
+            // Validate assembly file extension
+            var extension = Path.GetExtension(assemblyPath);
             if (!string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase))
             {
-                errors.Add("Assembly file must have a .dll extension.");
+                yield return "Assembly file must have a .dll extension.";
             }
         }
+    }
 
+    private static IEnumerable<string> ValidateFolderPath(string folderPath)
+    {
+        // Validate FolderPath
+        if (string.IsNullOrWhiteSpace(folderPath))
+        {
+            yield return "Webresource root path is required and cannot be empty.";
+        }
+        else if (!Directory.Exists(Path.GetFullPath(folderPath)))
+        {
+            yield return $"Webresource root path does not exist: {folderPath}";
+        }
+    }
+
+    private static IEnumerable<string> ValidateSolutionName(string? solutionName)
+    {
         // Validate SolutionName
-        if (string.IsNullOrWhiteSpace(options.SolutionName))
+        if (string.IsNullOrWhiteSpace(solutionName))
         {
-            errors.Add("Solution name is required and cannot be empty.");
+            yield return "Solution name is required and cannot be empty.";
         }
-        else if (options.SolutionName.Length > 65)
+        else if (solutionName.Length > 65)
         {
-            errors.Add("Solution name cannot exceed 65 characters.");
-        }
-
-        // Validate LogLevel (enum validation is automatically handled by the type system)
-
-        if (errors.Count > 0)
-        {
-            throw new Model.Exceptions.OptionsValidationException($"Sync options validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors.Select(e => $"- {e}"))}");
+            yield return "Solution name cannot exceed 65 characters.";
         }
     }
-
-    private static void Validate(PluginAnalysisOptions options)
+    private static IEnumerable<string> ValidatePublisherPrefix(string publisherPrefix)
     {
-        var errors = new List<string>();
-
-        // Validate AssemblyPath
-        if (string.IsNullOrWhiteSpace(options.AssemblyPath))
-        {
-            errors.Add("Assembly path is required and cannot be empty.");
-        }
-        else if (!Path.IsPathRooted(options.AssemblyPath) && !File.Exists(options.AssemblyPath))
-        {
-            // For relative paths, check if file exists
-            if (!File.Exists(Path.GetFullPath(options.AssemblyPath)))
-            {
-                errors.Add($"Assembly file does not exist: {options.AssemblyPath}");
-            }
-        }
-        else if (Path.IsPathRooted(options.AssemblyPath) && !File.Exists(options.AssemblyPath))
-        {
-            // For absolute paths, check directly
-            errors.Add($"Assembly file does not exist: {options.AssemblyPath}");
-        }
-
-        // Validate assembly file extension
-        if (!string.IsNullOrWhiteSpace(options.AssemblyPath))
-        {
-            var extension = Path.GetExtension(options.AssemblyPath);
-            if (!string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase))
-            {
-                errors.Add("Assembly file must have a .dll extension.");
-            }
-        }
-
         // Validate PublisherPrefix
-        if (string.IsNullOrWhiteSpace(options.PublisherPrefix))
+        if (string.IsNullOrWhiteSpace(publisherPrefix))
         {
-            errors.Add("Publisher prefix is required and cannot be empty.");
+            yield return "Publisher prefix is required and cannot be empty.";
         }
-        else if (options.PublisherPrefix.Length < 2 || options.PublisherPrefix.Length > 8)
+        else if (publisherPrefix.Length < 2 || publisherPrefix.Length > 8)
         {
-            errors.Add("Publisher prefix must be between 2 and 8 characters.");
+            yield return "Publisher prefix must be between 2 and 8 characters.";
         }
-        else if (!System.Text.RegularExpressions.Regex.IsMatch(options.PublisherPrefix, @"^[a-z][a-z0-9]*$"))
+        else if (!ValidPublisherPrefix().IsMatch(publisherPrefix))
         {
-            errors.Add("Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers.");
-        }
-
-        if (errors.Count > 0)
-        {
-            throw new Model.Exceptions.OptionsValidationException($"Analysis options validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors.Select(e => $"- {e}"))}");
+            yield return "Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers.";
         }
     }
+
+    [GeneratedRegex(@"^[a-z][a-z0-9]{1,7}$")]
+    private static partial Regex ValidPublisherPrefix();
 }

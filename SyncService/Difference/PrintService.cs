@@ -1,14 +1,41 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Linq.Expressions;
+using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.SyncService.Extensions;
 
 namespace XrmSync.SyncService.Difference;
 
-internal class PrintService(ILogger<PrintService> log, IOptions<XrmSyncConfiguration> configuration) : IPrintService
+internal class PrintService(
+    ILogger<PrintService> log,
+    IOptions<ExecutionOptions> configuration,
+    IDescription description,
+    IDataverseReader dataverseReader
+    ) : IPrintService
 {
-    private readonly LogLevel LogLevel = configuration.Value.Plugin?.Sync?.DryRun == true ? LogLevel.Information : LogLevel.Debug;
+    private readonly LogLevel LogLevel = configuration.Value.DryRun ? LogLevel.Information : LogLevel.Debug;
+
+    public void PrintHeader(PrintHeaderOptions options)
+    {
+        log.LogInformation("{header}", description.ToolHeader);
+
+        if (configuration.Value.DryRun)
+        {
+            log.LogInformation("***** DRY RUN *****");
+            log.LogInformation("No changes will be made to Dataverse.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Message))
+        {
+            log.LogInformation("{message}", options.Message);
+        }
+
+        if (options.PrintConnection)
+        {
+            log.LogInformation("Connected to Dataverse at {dataverseUrl}", dataverseReader.ConnectedHost);
+        }
+    }
 
     public void Print<TEntity>(Difference<TEntity> differences, string title, Func<TEntity, string> namePicker)
         where TEntity : EntityBase

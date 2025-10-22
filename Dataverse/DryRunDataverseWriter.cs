@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using System.Runtime.CompilerServices;
+using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
@@ -13,9 +14,9 @@ internal class DryRunDataverseWriter : IDataverseWriter
 {
     private readonly ILogger<DryRunDataverseWriter> logger;
 
-    public DryRunDataverseWriter(IOptions<XrmSyncConfiguration> configuration, ILogger<DryRunDataverseWriter> logger)
+    public DryRunDataverseWriter(IOptions<ExecutionOptions> configuration, ILogger<DryRunDataverseWriter> logger)
     {
-        if (!configuration.Value.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
+        if (!configuration.Value.DryRun)
         {
             throw new XrmSyncException("This writer is intended for dry runs only.");
         }
@@ -30,9 +31,10 @@ internal class DryRunDataverseWriter : IDataverseWriter
         return Guid.NewGuid(); // In dry run mode, we do not actually create the entity.
     }
 
-    public void PerformAsBulk<T>(List<T> updates) where T : OrganizationRequest
+    private void PerformAsBulk<T>(IEnumerable<T> updates) where T : OrganizationRequest
     {
-        var targetTypes = updates.Select(t =>
+        List<T> updateList = [.. updates];
+        var targetTypes = updateList.Select(t =>
             t switch {
                 CreateRequest cr => cr.Target.LogicalName,
                 UpdateRequest ur => ur.Target.LogicalName,
@@ -40,7 +42,7 @@ internal class DryRunDataverseWriter : IDataverseWriter
                 _ => throw new XrmSyncException($"Unexpected request type: {typeof(T)}, expected Create, Update or Delete request")
             }).Distinct().ToList();
 
-        logger.LogTrace("DRY RUN: Would execute {count} {type} requests targeting entities of type {target}", updates.Count, typeof(T).Name, string.Join(", ", targetTypes));
+        logger.LogTrace("Would execute {count} {type} requests targeting entities of type {target}", updateList.Count, typeof(T).Name, string.Join(", ", targetTypes));
     }
 
     public void Update(Entity entity)
@@ -48,20 +50,22 @@ internal class DryRunDataverseWriter : IDataverseWriter
         LogOperation(entity);
     }
 
-    public void UpdateMultiple<TEntity>(List<TEntity> entities) where TEntity : Entity
+    public void UpdateMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity
     {
-        if (entities.Count == 0)
-        {
-            return;
-        }
+        PerformAsBulk(entities.Select(e => new UpdateRequest { Target = e }));
+    }
 
-        logger.LogTrace("DRY RUN: UpdateMultiple operation would be performed for {count} entities of type '{entityType}'.",
-                        entities.Count, entities[0].LogicalName);
+    public void DeleteMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity
+        => DeleteMultiple(entities.ToDeleteRequests());
+
+    public void DeleteMultiple(IEnumerable<DeleteRequest> deleteRequests)
+    {
+        PerformAsBulk([.. deleteRequests]);
     }
 
     private void LogOperation(Entity entity, IDictionary<string, object>? parameters = null, [CallerMemberName] string operation = "")
     {
-        logger.LogTrace("DRY RUN: {Operation} operation would be performed for entity of type '{EntityType}'.",
+        logger.LogTrace("{Operation} operation would be performed for entity of type '{EntityType}'.",
                         operation, entity.LogicalName);
 
         logger.LogTrace("{attrs}", string.Join("\n", entity.Attributes.Select(kvp => $" - {kvp.Key}: {TruncateValue(kvp.Value)}")));

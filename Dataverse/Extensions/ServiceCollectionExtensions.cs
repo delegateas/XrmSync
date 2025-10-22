@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
-using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse.Extensions;
 
@@ -15,9 +14,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDataverseReader, DataverseReader>();
         services.AddSingleton<IDataverseWriter>((sp) =>
         {
-            var options = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+            var options = sp.GetRequiredService<IOptions<ExecutionOptions>>();
 
-            return (options.Value.Plugin?.Sync?.DryRun ?? throw new XrmSyncException("Cannot determine dry-run mode - check configuration"))
+            return options.Value.DryRun
                 ? ActivatorUtilities.CreateInstance<DryRunDataverseWriter>(sp)
                 : ActivatorUtilities.CreateInstance<DataverseWriter>(sp);
         });
@@ -33,6 +32,9 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ICustomApiReader, CustomApiReader>();
         services.AddSingleton<ICustomApiWriter, CustomApiWriter>();
+
+        services.AddSingleton<IWebresourceReader, WebresourceReader>();
+        services.AddSingleton<IWebresourceWriter, WebresourceWriter>();
 
         return services;
     }

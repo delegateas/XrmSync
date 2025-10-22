@@ -12,7 +12,7 @@ using XrmSync.SyncService.PluginValidator.Rules;
 using XrmSync.SyncService.PluginValidator.Rules.CustomApi;
 using XrmSync.SyncService.PluginValidator.Rules.Plugin;
 
-namespace Tests;
+namespace Tests.Plugins;
 
 public class PluginValidationTests
 {
