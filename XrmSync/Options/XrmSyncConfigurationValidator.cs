@@ -144,6 +144,6 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
         }
     }
 
-    [GeneratedRegex(@"^[a-z][a-z0-9]*$")]
+    [GeneratedRegex(@"^[a-z][a-z0-9]{1,7}$")]
     private static partial Regex ValidPublisherPrefix();
 }
