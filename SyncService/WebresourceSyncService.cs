@@ -7,7 +7,7 @@ using XrmSync.Model.Exceptions;
 using XrmSync.Model.Webresource;
 using XrmSync.SyncService.Difference;
 using XrmSync.SyncService.Exceptions;
-using XrmSync.SyncService.WebresourceValidator;
+using XrmSync.SyncService.Validation;
 
 namespace XrmSync.SyncService;
 
@@ -18,7 +18,7 @@ internal class WebresourceSyncService(
     ISolutionReader solutionReader,
     IWebresourceReader webresourceReader,
     IWebresourceWriter webresourceWriter,
-    IWebresourceValidator webresourceValidator,
+    IValidator<WebresourceDefinition> webresourceValidator,
     IPrintService printService
     ) : ISyncService
 {
@@ -149,7 +149,7 @@ internal class WebresourceSyncService(
 
         try
         {
-            webresourceValidator.Validate(webresources);
+            webresourceValidator.ValidateOrThrow(webresources);
         }
         catch (ValidationException ex)
         {

@@ -4,15 +4,15 @@ using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model.Webresource;
 using XrmSync.SyncService.Exceptions;
 using XrmSync.SyncService.Extensions;
-using XrmSync.SyncService.PluginValidator.Rules;
-using XrmSync.SyncService.WebresourceValidator;
-using XrmSync.SyncService.WebresourceValidator.Rules;
+using XrmSync.SyncService.Validation;
+using XrmSync.SyncService.Validation.Webresource;
+using XrmSync.SyncService.Validation.Webresource.Rules;
 
 namespace Tests.Webresources;
 
 public class WebresourceValidationTests
 {
-    private static IWebresourceValidator CreateValidator(IWebresourceReader? webresourceReader = null)
+    private static IValidator<WebresourceDefinition> CreateValidator(IWebresourceReader? webresourceReader = null)
     {
         var services = new ServiceCollection();
 
@@ -24,10 +24,10 @@ public class WebresourceValidationTests
         services.AddSingleton(mockWebresourceReader);
 
         // Register the validator
-        services.AddSingleton<IWebresourceValidator, WebresourceValidator>();
+        services.AddSingleton<IValidator<WebresourceDefinition>, WebresourceValidator>();
 
         var serviceProvider = services.BuildServiceProvider();
-        return serviceProvider.GetRequiredService<IWebresourceValidator>();
+        return serviceProvider.GetRequiredService<IValidator<WebresourceDefinition>>();
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class WebresourceValidationTests
         var validator = CreateValidator(webresourceReader);
 
         // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => validator.Validate(webresourcesToDelete));
+        var exception = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow(webresourcesToDelete));
         Assert.Contains("Cannot delete webresource", exception.Message);
         Assert.Contains("test_solution/js/script.js", exception.Message);
         Assert.Contains("SystemForm with ID", exception.Message);
@@ -128,7 +128,7 @@ public class WebresourceValidationTests
         var validator = CreateValidator(webresourceReader);
 
         // Act & Assert - Should not throw
-        validator.Validate(webresourcesToDelete);
+        validator.ValidateOrThrow(webresourcesToDelete);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class WebresourceValidationTests
         var validator = CreateValidator(webresourceReader);
 
         // Act & Assert
-        var exception = Assert.Throws<AggregateException>(() => validator.Validate(webresourcesToDelete));
+        var exception = Assert.Throws<AggregateException>(() => validator.ValidateOrThrow(webresourcesToDelete));
         Assert.Equal(2, exception.InnerExceptions.Count);
         Assert.All(exception.InnerExceptions, ex =>
         {

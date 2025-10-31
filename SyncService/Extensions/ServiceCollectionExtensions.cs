@@ -4,11 +4,13 @@ using XrmSync.Analyzer.Extensions;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
+using XrmSync.Model.Webresource;
 using XrmSync.SyncService.Comparers;
 using XrmSync.SyncService.Difference;
-using XrmSync.SyncService.PluginValidator;
-using XrmSync.SyncService.PluginValidator.Rules;
-using XrmSync.SyncService.WebresourceValidator;
+using XrmSync.SyncService.Validation;
+using XrmSync.SyncService.Validation.CustomApi;
+using XrmSync.SyncService.Validation.Plugin;
+using XrmSync.SyncService.Validation.Webresource;
 
 namespace XrmSync.SyncService.Extensions;
 
@@ -20,7 +22,8 @@ public static class ServiceCollectionExtensions
             .AddShared()
             .AddSingleton<ISyncService, PluginSyncService>()
             .AddSingleton<IDifferenceCalculator, DifferenceCalculator>()
-            .AddSingleton<IPluginValidator, PluginValidator.PluginValidator>()
+            .AddSingleton<IValidator<PluginDefinition>, PluginValidator>()
+            .AddSingleton<IValidator<CustomApiDefinition>, CustomApiValidator>()
             .AddValidationRules() // Auto-discover validation rules
             .AddSingleton<IEntityComparer<PluginDefinition>, PluginDefinitionComparer>()
             .AddSingleton<IEntityComparer<Step>, PluginStepComparer>()
@@ -35,7 +38,7 @@ public static class ServiceCollectionExtensions
         return services
             .AddShared()
             .AddSingleton<ISyncService, WebresourceSyncService>()
-            .AddSingleton<IWebresourceValidator, WebresourceValidator.WebresourceValidator>()
+            .AddSingleton<IValidator<WebresourceDefinition>, WebresourceValidator>()
             .AddValidationRules(); // Auto-discover validation rules
     }
 

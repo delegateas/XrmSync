@@ -1,7 +1,7 @@
 using XrmSync.Model;
 using XrmSync.Model.Plugin;
 
-namespace XrmSync.SyncService.PluginValidator.Rules.Plugin;
+namespace XrmSync.SyncService.Validation.Plugin.Rules;
 
 internal class DuplicateRegistrationRule : IValidationRule<ParentReference<Step, PluginDefinition>>
 {

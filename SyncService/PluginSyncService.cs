@@ -5,11 +5,12 @@ using XrmSync.Analyzer;
 using XrmSync.Analyzer.Reader;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
+using XrmSync.Model.CustomApi;
 using XrmSync.Model.Exceptions;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService.Difference;
 using XrmSync.SyncService.Exceptions;
-using XrmSync.SyncService.PluginValidator;
+using XrmSync.SyncService.Validation;
 
 [assembly: InternalsVisibleTo("Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
@@ -20,7 +21,8 @@ internal class PluginSyncService(
     IPluginAssemblyWriter pluginAssemblyWriter,
     IPluginReader pluginReader,
     IPluginWriter pluginWriter,
-    IPluginValidator pluginValidator,
+    IValidator<PluginDefinition> pluginValidator,
+    IValidator<CustomApiDefinition> customApiValidator,
     ICustomApiReader customApiReader,
     ICustomApiWriter customApiWriter,
     ILocalReader assemblyReader,
@@ -28,8 +30,7 @@ internal class PluginSyncService(
     IDifferenceCalculator differenceUtility,
     IDescription description,
     IPrintService printService,
-    IOptions<PluginSyncOptions> configuration,
-    ILogger<PluginSyncService> log) : ISyncService
+    IOptions<PluginSyncOptions> configuration, ILogger<PluginSyncService> log) : ISyncService
 {
     private record SyncData(AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly);
 
@@ -178,27 +179,50 @@ internal class PluginSyncService(
 
     private void ValidateAssemblyOrThrow(AssemblyInfo assemblyInfo)
     {
+        var pluginException = Validate(pluginValidator, assemblyInfo.Plugins, "plugins");
+        var customApiException = Validate(customApiValidator, assemblyInfo.CustomApis, "custom apis");
+
+        if (pluginException == null && customApiException == null)
+        {
+        }
+        else if (pluginException != null && customApiException != null)
+        {
+            throw new XrmSyncException("Validation failed for the plugins and custom apis in the assembly", new AggregateException([pluginException, customApiException]));
+        }
+        else if (pluginException != null)
+        {
+            throw new XrmSyncException("Validation failed for the plugins in the assembly", pluginException);
+        }
+        else // customApiException != null
+        {
+            throw new XrmSyncException("Validation failed for the custom apis in the assembly", customApiException);
+        }
+    }
+
+    private Exception? Validate<T>(IValidator<T> validator, IEnumerable<T> items, string category)
+    {
         try
         {
-            log.LogInformation("Validating plugins and custom apis to be registered");
-            pluginValidator.Validate(assemblyInfo.Plugins);
-            pluginValidator.Validate(assemblyInfo.CustomApis);
-            log.LogInformation("Plugins and custom apis validated");
+            log.LogInformation("Validating {category} to be registered", category);
+            validator.ValidateOrThrow(items);
+            log.LogInformation("{category} validated", category);
+
+            return null;
         }
         catch (ValidationException ex)
         {
-            log.LogError("Validation failed for the plugins in the assembly:");
+            log.LogError("Validation failed for the {category} in the assembly:", category);
             log.LogError(" - {Message}", ex.Message);
-            throw new XrmSyncException("Validation failed for the plugins in the assembly", ex);
+            return ex;
         }
         catch (AggregateException ex)
         {
-            log.LogError("Validation failed for the plugins in the assembly:");
+            log.LogError("Validation failed for the {category} in the assembly:", category);
             foreach (var inner in ex.InnerExceptions)
             {
                 log.LogError(" - {Message}", inner.Message);
             }
-            throw new XrmSyncException("Validation failed for the plugins in the assembly", ex);
+            return ex;
         }
     }
 

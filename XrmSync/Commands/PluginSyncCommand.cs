@@ -1,7 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
-using XrmSync.Analyzer.Extensions;
-using XrmSync.Dataverse.Extensions;
 using XrmSync.Extensions;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;

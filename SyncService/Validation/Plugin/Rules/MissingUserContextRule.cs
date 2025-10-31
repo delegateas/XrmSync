@@ -1,7 +1,7 @@
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model.Plugin;
 
-namespace XrmSync.SyncService.PluginValidator.Rules.Plugin;
+namespace XrmSync.SyncService.Validation.Plugin.Rules;
 
 internal class MissingUserContextRule(IPluginReader pluginReader) : IValidationRule<Step>
 {

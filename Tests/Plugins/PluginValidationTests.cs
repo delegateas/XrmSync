@@ -7,16 +7,17 @@ using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.SyncService.Exceptions;
 using XrmSync.SyncService.Extensions;
-using XrmSync.SyncService.PluginValidator;
-using XrmSync.SyncService.PluginValidator.Rules;
-using XrmSync.SyncService.PluginValidator.Rules.CustomApi;
-using XrmSync.SyncService.PluginValidator.Rules.Plugin;
+using XrmSync.SyncService.Validation.Plugin;
+using XrmSync.SyncService.Validation;
+using XrmSync.SyncService.Validation.CustomApi;
+using XrmSync.SyncService.Validation.CustomApi.Rules;
+using XrmSync.SyncService.Validation.Plugin.Rules;
 
 namespace Tests.Plugins;
 
 public class PluginValidationTests
 {
-    private static IPluginValidator CreateValidator(IPluginReader? pluginReader = null)
+    private static IValidator<T> CreateValidator<T>(IPluginReader? pluginReader = null)
     {
         var services = new ServiceCollection();
 
@@ -27,11 +28,12 @@ public class PluginValidationTests
         var mockPluginReader = pluginReader ?? Substitute.For<IPluginReader>();
         services.AddSingleton(mockPluginReader);
 
-        // Register the validator
-        services.AddSingleton<IPluginValidator, PluginValidator>();
+        // Register the validators
+        services.AddSingleton<IValidator<PluginDefinition>, PluginValidator>();
+        services.AddSingleton<IValidator<CustomApiDefinition>, CustomApiValidator>();
 
         var serviceProvider = services.BuildServiceProvider();
-        return serviceProvider.GetRequiredService<IPluginValidator>();
+        return serviceProvider.GetRequiredService<IValidator<T>>();
     }
 
     [Fact]
@@ -95,10 +97,10 @@ public class PluginValidationTests
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
-        var validator = CreateValidator(pluginReader);
+        var validator = CreateValidator<PluginDefinition>(pluginReader);
 
         // Act & Assert
-        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow([pluginType]));
         Assert.Contains("Pre-execution stages do not support asynchronous execution mode", ex.Message);
     }
 
@@ -142,10 +144,10 @@ public class PluginValidationTests
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
-        var validator = CreateValidator(pluginReader);
+        var validator = CreateValidator<PluginDefinition>(pluginReader);
 
         // Act & Assert
-        var ex = Assert.Throws<AggregateException>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<AggregateException>(() => validator.ValidateOrThrow([pluginType]));
         var messages = ex.InnerExceptions.Select(e => e.Message).ToList();
         Assert.Contains(messages, x => x.Contains("Pre-execution stages do not support asynchronous execution mode"));
         Assert.Contains(messages, x => x.Contains("Plugin Step2: Associate event can't have filtered attributes"));
@@ -192,10 +194,10 @@ public class PluginValidationTests
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
-        var validator = CreateValidator(pluginReader);
+        var validator = CreateValidator<PluginDefinition>(pluginReader);
 
         // Act & Assert
-        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow([pluginType]));
         Assert.Contains("Plugin Step1: Multiple registrations on the same message, stage and entity are not allowed", ex.Message);
     }
 
@@ -237,10 +239,10 @@ public class PluginValidationTests
 
         var pluginReader = Substitute.For<IPluginReader>();
         pluginReader.GetMissingUserContexts(Arg.Any<IEnumerable<Step>>()).Returns([]);
-        var validator = CreateValidator(pluginReader);
+        var validator = CreateValidator<PluginDefinition>(pluginReader);
 
         // Act & Assert
-        validator.Validate([pluginType1, pluginType2]);
+        validator.ValidateOrThrow([pluginType1, pluginType2]);
     }
 
     [Theory]
@@ -279,10 +281,10 @@ public class PluginValidationTests
 
         var pluginType1 = new PluginDefinition("Type") { Id = Guid.NewGuid(), PluginSteps = [pluginStep1, pluginStep2] };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert
-        validator.Validate([pluginType1]);
+        validator.ValidateOrThrow([pluginType1]);
     }
 
     [Theory]
@@ -307,10 +309,10 @@ public class PluginValidationTests
             PluginType = new PluginType("TestPluginType") { Id = Guid.NewGuid() }
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<CustomApiDefinition>();
 
         // Act & Assert
-        var ex = Assert.Throws<ValidationException>(() => validator.Validate([customAPI]));
+        var ex = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow([customAPI]));
         Assert.Contains(expectedErrorMessage, ex.Message);
     }
 
@@ -347,10 +349,10 @@ public class PluginValidationTests
             PluginSteps = [pluginStep]
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert
-        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow([pluginType]));
         Assert.Contains("Create events do not support pre-images", ex.Message);
     }
 
@@ -387,10 +389,10 @@ public class PluginValidationTests
             PluginSteps = [pluginStep]
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert
-        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow([pluginType]));
         Assert.Contains("Delete events do not support post-images", ex.Message);
     }
 
@@ -428,10 +430,10 @@ public class PluginValidationTests
             PluginSteps = [pluginStep]
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert
-        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow([pluginType]));
         Assert.Contains("Pre-execution stages do not support post-images", ex.Message);
     }
 
@@ -499,11 +501,11 @@ public class PluginValidationTests
             ]
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert - Should not throw any exceptions
-        validator.Validate([pluginTypeWithPreImage]);
-        validator.Validate([pluginTypeWithPostImage]);
+        validator.ValidateOrThrow([pluginTypeWithPreImage]);
+        validator.ValidateOrThrow([pluginTypeWithPostImage]);
     }
 
     [Fact]
@@ -630,10 +632,10 @@ public class PluginValidationTests
             PluginSteps = pluginSteps.ToList()
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert - Should not throw any exceptions
-        validator.Validate([pluginType]);
+        validator.ValidateOrThrow([pluginType]);
     }
 
     [Fact]
@@ -689,10 +691,10 @@ public class PluginValidationTests
             PluginSteps = pluginSteps.ToList()
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert - Should not throw any exceptions
-        validator.Validate([pluginType]);
+        validator.ValidateOrThrow([pluginType]);
     }
 
     [Fact]
@@ -775,10 +777,10 @@ public class PluginValidationTests
             PluginSteps = pluginSteps.ToList()
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert
-        var ex = Assert.Throws<AggregateException>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<AggregateException>(() => validator.ValidateOrThrow([pluginType]));
         var messages = ex.InnerExceptions.Select(e => e.Message).ToList();
 
         Assert.Contains(messages, x => x.Contains("Create events do not support pre-images"));
@@ -819,10 +821,10 @@ public class PluginValidationTests
             PluginSteps = [pluginStepWithPreImage]
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert - Should throw validation exception indicating images are not supported
-        var ex = Assert.Throws<ValidationException>(() => validator.Validate([pluginType]));
+        var ex = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow([pluginType]));
         Assert.EndsWith(eventOperation + " message does not support entity images", ex.Message);
     }
 
@@ -859,10 +861,10 @@ public class PluginValidationTests
             PluginSteps = [pluginStepWithPreImage]
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert
-        validator.Validate([pluginType]);
+        validator.ValidateOrThrow([pluginType]);
     }
 
     [Theory]
@@ -898,10 +900,10 @@ public class PluginValidationTests
             PluginSteps = [pluginStepWithPostImage]
         };
 
-        var validator = CreateValidator();
+        var validator = CreateValidator<PluginDefinition>();
 
         // Act & Assert
-        validator.Validate([pluginType]);
+        validator.ValidateOrThrow([pluginType]);
     }
 
     /// <summary>

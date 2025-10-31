@@ -1,8 +1,7 @@
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model.Webresource;
-using XrmSync.SyncService.PluginValidator.Rules;
 
-namespace XrmSync.SyncService.WebresourceValidator.Rules;
+namespace XrmSync.SyncService.Validation.Webresource.Rules;
 
 internal class WebresourceDependencyRule(IWebresourceReader webresourceReader) : IExtendedValidationRule<WebresourceDefinition>
 {

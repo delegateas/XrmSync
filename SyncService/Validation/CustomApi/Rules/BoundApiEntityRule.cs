@@ -1,6 +1,6 @@
 using XrmSync.Model.CustomApi;
 
-namespace XrmSync.SyncService.PluginValidator.Rules.CustomApi;
+namespace XrmSync.SyncService.Validation.CustomApi.Rules;
 
 internal class BoundApiEntityRule : IValidationRule<CustomApiDefinition>
 {

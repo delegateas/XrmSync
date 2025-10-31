@@ -1,4 +1,4 @@
-﻿namespace XrmSync.SyncService.PluginValidator.Rules;
+﻿namespace XrmSync.SyncService.Validation;
 
 internal interface IExtendedValidationRule<TEntity> : IValidationRule<TEntity>
 {

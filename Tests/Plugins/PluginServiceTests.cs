@@ -3,13 +3,13 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.SyncService;
-using XrmSync.SyncService.PluginValidator;
 using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 using XrmSync.Model;
 using XrmSync.SyncService.Difference;
 using XrmPluginCore.Enums;
 using XrmSync.Analyzer.Reader;
+using XrmSync.SyncService.Validation;
 
 namespace Tests.Plugins;
 
@@ -20,7 +20,8 @@ public class PluginServiceTests
     private readonly IPluginAssemblyWriter _pluginAssemblyWriter = Substitute.For<IPluginAssemblyWriter>();
     private readonly IPluginReader _pluginReader = Substitute.For<IPluginReader>();
     private readonly IPluginWriter _pluginWriter = Substitute.For<IPluginWriter>();
-    private readonly IPluginValidator _pluginValidator = Substitute.For<IPluginValidator>();
+    private readonly IValidator<PluginDefinition> _pluginValidator = Substitute.For<IValidator<PluginDefinition>>();
+    private readonly IValidator<CustomApiDefinition> _customApiValidator = Substitute.For<IValidator<CustomApiDefinition>>();
     private readonly ICustomApiReader _customApiReader = Substitute.For<ICustomApiReader>();
     private readonly ICustomApiWriter _customApiWriter = Substitute.For<ICustomApiWriter>();
     private readonly ILocalReader _assemblyReader = Substitute.For<ILocalReader>();
@@ -40,6 +41,7 @@ public class PluginServiceTests
             _pluginReader,
             _pluginWriter,
             _pluginValidator,
+            _customApiValidator,
             _customApiReader,
             _customApiWriter,
             _assemblyReader,
