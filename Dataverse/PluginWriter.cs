@@ -37,10 +37,10 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
             .Select(x => new SdkMessageProcessingStep()
             {
                 Id = x.Id,
-                Stage = (SdkMessageProcessingStep_Stage)x.ExecutionStage,
+                Stage = (sdkmessageprocessingstep_stage)x.ExecutionStage,
                 FilteringAttributes = x.FilteredAttributes,
-                SupportedDeployment = (SdkMessageProcessingStep_SupportedDeployment)x.Deployment,
-                Mode = (SdkMessageProcessingStep_Mode)x.ExecutionMode,
+                SupportedDeployment = (sdkmessageprocessingstep_supporteddeployment)x.Deployment,
+                Mode = (sdkmessageprocessingstep_mode)x.ExecutionMode,
                 Rank = x.ExecutionOrder,
                 Description = description,
                 ImpersonatingUserId = x.UserContext == Guid.Empty ? null : new EntityReference(SystemUser.EntityLogicalName, x.UserContext),
@@ -66,7 +66,7 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
                     Id = image.Id,
                     Name = image.Name,
                     EntityAlias = image.EntityAlias,
-                    ImageType = (SdkMessageProcessingStepImage_ImageType)image.ImageType,
+                    ImageType = (sdkmessageprocessingstepimage_imagetype)image.ImageType,
                     Attributes1 = image.Attributes,
                     SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, step.Id),
                 };
@@ -123,13 +123,13 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
                 Name = step.Name,
                 AsyncAutoDelete = step.AsyncAutoDelete,
                 Rank = step.ExecutionOrder,
-                Mode = (SdkMessageProcessingStep_Mode)step.ExecutionMode,
+                Mode = (sdkmessageprocessingstep_mode)step.ExecutionMode,
 #pragma warning disable CS0612 // Type or member is obsolete
                 PluginTypeId = new EntityReference(PluginType.EntityLogicalName, plugin.Id),
 #pragma warning restore CS0612 // Type or member is obsolete
-                Stage = (SdkMessageProcessingStep_Stage)step.ExecutionStage,
+                Stage = (sdkmessageprocessingstep_stage)step.ExecutionStage,
                 FilteringAttributes = step.FilteredAttributes,
-                SupportedDeployment = (SdkMessageProcessingStep_SupportedDeployment)step.Deployment,
+                SupportedDeployment = (sdkmessageprocessingstep_supporteddeployment)step.Deployment,
                 Description = description,
                 ImpersonatingUserId = impersonatingUserReference,
                 SdkMessageId = new EntityReference(SdkMessage.EntityLogicalName, messageId),
@@ -152,9 +152,9 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
             {
                 Name = image.Name,
                 EntityAlias = image.EntityAlias,
-                ImageType = (SdkMessageProcessingStepImage_ImageType)image.ImageType,
+                ImageType = (sdkmessageprocessingstepimage_imagetype)image.ImageType,
                 Attributes1 = image.Attributes,
-                MessagePropertyName = MessageReader.GetMessagePropertyName(step.EventOperation),
+                MessagePropertyName = MessageReader.GetMessagePropertyName(step.EventOperation) ?? string.Empty,
                 SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, step.Id)
             };
 

@@ -57,7 +57,7 @@ public class WebresourceValidationTests
         var webresourceWithDependency = new WebresourceDefinition(
             "test_solution/js/script.js",
             "Test Script",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         )
         {
@@ -67,7 +67,7 @@ public class WebresourceValidationTests
         var webresourcesWithoutDependency = new WebresourceDefinition(
             "test_solution/css/style.css",
             "Test Style",
-            WebresourceType.StyleSheetCss,
+            WebresourceType.CSS,
             "Y29udGVudA=="
         )
         {
@@ -102,7 +102,7 @@ public class WebresourceValidationTests
         var webresource1 = new WebresourceDefinition(
             "test_solution/js/script.js",
             "Test Script",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         )
         {
@@ -112,7 +112,7 @@ public class WebresourceValidationTests
         var webresource2 = new WebresourceDefinition(
             "test_solution/css/style.css",
             "Test Style",
-            WebresourceType.StyleSheetCss,
+            WebresourceType.CSS,
             "Y29udGVudA=="
         )
         {
@@ -144,7 +144,7 @@ public class WebresourceValidationTests
         var webresource1 = new WebresourceDefinition(
             "test_solution/js/script1.js",
             "Test Script 1",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         )
         {
@@ -154,7 +154,7 @@ public class WebresourceValidationTests
         var webresource2 = new WebresourceDefinition(
             "test_solution/js/script2.js",
             "Test Script 2",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         )
         {

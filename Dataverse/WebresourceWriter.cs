@@ -23,7 +23,7 @@ internal class WebresourceWriter(IDataverseWriter writer, IOptions<WebresourceSy
                 Name = wr.Name,
                 Content = wr.Content,
                 DisplayName = wr.DisplayName,
-                WebResourceType = (WebResource_WebResourceType)wr.Type
+                WebResourceType = (webresource_webresourcetype)wr.Type
             }, Parameters);
         }
     }
