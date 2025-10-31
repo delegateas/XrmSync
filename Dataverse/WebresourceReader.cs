@@ -38,7 +38,7 @@ internal class WebresourceReader(IDataverseReader reader) : IWebresourceReader
         })];
     }
 
-    public List<WebresourceDefinition> GetWebresourcesWithDependencies(IEnumerable<WebresourceDefinition> webresources)
+    public IEnumerable<WebresourceDependency> GetWebresourcesWithDependencies(IEnumerable<WebresourceDefinition> webresources)
     {
         var webresourceIds = webresources.Select(w => w.Id).ToList();
 
@@ -53,22 +53,44 @@ internal class WebresourceReader(IDataverseReader reader) : IWebresourceReader
             webresources.Select(w => w.Id),
             dn => dn.DependencyNodeId,
             dn => dn.ObjectId
-        ).ConvertAll(dn => new { dn.Id, dn.ObjectId });
+        ).ConvertAll(dn => new { DependencyNodeId = dn.Id, dn.ObjectId });
 
         // We have the dependency nodes that map to the webresources,
         // now we can find dependencies that reference these nodes as the requiered object
-        var requiredIds = reader.RetrieveByColumn<Dependency>(
+        var dependencies = reader.RetrieveByColumn<Dependency>(
+            d => d.RequiredComponentNodeId,
+            dependencyNodes.Select(dn => dn.DependencyNodeId),
             d => d.RequiredComponentObjectId,
-            dependencyNodes.Select(dn => dn.Id),
-            d => d.RequiredComponentObjectId
-        ).Select(d => d.RequiredComponentObjectId).Distinct().ToList();
+            d => d.DependentComponentObjectId
+        ).ConvertAll(d => new
+        {
+            RequiredObjectId = d.RequiredComponentObjectId,
+            DependentObjectId = d.DependentComponentObjectId
+        }).ToLookup(d => d.DependentObjectId, d => d.RequiredObjectId);
 
-        // We have a list of required component node ids, match them back to webresources
-        return [.. (
-            from dn in dependencyNodes
-            where requiredIds.Contains(dn.Id)
-            join w in webresources on dn.ObjectId equals w.Id
-            select w
-        ).Distinct()];
+        // Get the dependent objects
+        var dependentComponents = reader.RetrieveByColumn<SolutionComponent, Guid?>(
+            sc => sc.ObjectId,
+            dependencies.Select(g => g.Key).Distinct(),
+            sc => sc.ComponentType,
+            sc => sc.ObjectId
+        ).ConvertAll(dc => new
+        {
+            DependentObjectId = dc.ObjectId ?? Guid.Empty,
+            dc.ComponentType
+        });
+
+        // Map back to WebresourceDependency
+        return dependentComponents.SelectMany(dep =>
+            webresources
+            .Where(w => dependencies[dep.DependentObjectId].Contains(w.Id))
+            .Select(dw =>
+                new WebresourceDependency(
+                    dw,
+                    dep.ComponentType?.ToString() ?? "Unknown",
+                    dep.DependentObjectId
+                )
+            )
+        );
     }
 }

@@ -11,8 +11,14 @@ internal class WebresourceValidator(IServiceProvider serviceProvider) : IWebreso
     {
         return rules.SelectMany(rule =>
         {
-            var violatingItems = rule.GetViolations(items);
-            return violatingItems.Select(x => new ValidationException($"{prefix} {nameOf(x)}: {rule.ErrorMessage(x)}"));
+            if (rule is IExtendedValidationRule<T> extendedRule)
+            {
+                return extendedRule.GetErrorMessages(items).Select(x => new ValidationException($"{prefix} {nameOf(x.Entity)}: {x.Error}"));
+            }
+            else
+            {
+                return rule.GetViolations(items).Select(x => new ValidationException($"{prefix} {nameOf(x)}: {rule.ErrorMessage(x)}"));
+            }
         });
     }
 

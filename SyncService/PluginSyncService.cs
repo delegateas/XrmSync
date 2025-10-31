@@ -188,7 +188,7 @@ internal class PluginSyncService(
         catch (ValidationException ex)
         {
             log.LogError("Validation failed for the plugins in the assembly:");
-            log.LogError(" - {0}", ex.Message);
+            log.LogError(" - {Message}", ex.Message);
             throw new XrmSyncException("Validation failed for the plugins in the assembly", ex);
         }
         catch (AggregateException ex)
@@ -196,7 +196,7 @@ internal class PluginSyncService(
             log.LogError("Validation failed for the plugins in the assembly:");
             foreach (var inner in ex.InnerExceptions)
             {
-                log.LogError(" - {0}", inner.Message);
+                log.LogError(" - {Message}", inner.Message);
             }
             throw new XrmSyncException("Validation failed for the plugins in the assembly", ex);
         }

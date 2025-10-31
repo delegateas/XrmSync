@@ -80,7 +80,7 @@ public class WebresourceValidationTests
 
         var webresourceReader = Substitute.For<IWebresourceReader>();
         webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
-            .Returns([webresourceWithDependency]); // Only the first one has dependencies
+            .Returns([new (webresourceWithDependency, "SystemForm", Guid.NewGuid())]); // Only the first one has dependencies
 
         var validator = CreateValidator(webresourceReader);
 
@@ -88,6 +88,7 @@ public class WebresourceValidationTests
         var exception = Assert.Throws<ValidationException>(() => validator.Validate(webresourcesToDelete));
         Assert.Contains("Cannot delete webresource", exception.Message);
         Assert.Contains("test_solution/js/script.js", exception.Message);
+        Assert.Contains("SystemForm with ID", exception.Message);
     }
 
     [Fact]
@@ -162,7 +163,10 @@ public class WebresourceValidationTests
 
         var webresourceReader = Substitute.For<IWebresourceReader>();
         webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
-            .Returns([webresource1, webresource2]); // Both have dependencies
+            .Returns([
+                new (webresource1, "SystemForm", Guid.NewGuid()),
+                new (webresource2, "SystemForm", Guid.NewGuid())
+            ]); // Both have dependencies
 
         var validator = CreateValidator(webresourceReader);
 

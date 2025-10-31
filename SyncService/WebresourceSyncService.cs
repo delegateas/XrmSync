@@ -142,7 +142,7 @@ internal class WebresourceSyncService(
 
     private void ValidateWebresourcesOrThrow(List<WebresourceDefinition> webresources)
     {
-        if (!webresources.Any())
+        if (webresources.Count == 0)
         {
             return;
         }
@@ -153,11 +153,18 @@ internal class WebresourceSyncService(
         }
         catch (ValidationException ex)
         {
-            throw new XrmSyncException("Validation failed", ex);
+            log.LogError("Validation failed for the local webresources:");
+            log.LogError(" - {Message}", ex.Message);
+            throw new XrmSyncException("Validation failed for the local webresources", ex);
         }
         catch (AggregateException ex)
         {
-            throw new XrmSyncException("Validation failed", ex);
+            log.LogError("Validation failed for the local webresources:");
+            foreach (var inner in ex.InnerExceptions)
+            {
+                log.LogError(" - {Message}", inner.Message);
+            }
+            throw new XrmSyncException("Validation failed for the local webresources", ex);
         }
     }
 }
