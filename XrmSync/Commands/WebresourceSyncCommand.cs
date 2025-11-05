@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using XrmSync.Analyzer.Extensions;
+using XrmSync.Constants;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Extensions;
 using XrmSync.Options;
@@ -14,9 +15,9 @@ namespace XrmSync.Commands
 
         public WebresourceSyncCommand() : base("webresources", "Synchronize webresources from a local folder with Dataverse")
         {
-            _webresourceRoot = new("--folder", "--webresources", "-w", "--wr", "--path")
+            _webresourceRoot = new(CliOptions.Webresource.Primary, CliOptions.Webresource.Aliases)
             {
-                Description = "Path to the root folder containing the webresources to sync",
+                Description = CliOptions.Webresource.Description,
                 Arity = ArgumentArity.ExactlyOne
             };
 

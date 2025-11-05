@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
+using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
 
@@ -30,21 +31,21 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
         _subCommands = subCommands;
 
         // Add override options
-        _dryRun = new("--dry-run", "--dr")
+        _dryRun = new(CliOptions.Execution.DryRun.Primary, CliOptions.Execution.DryRun.Aliases)
         {
-            Description = "Perform a dry run without making changes to Dataverse",
+            Description = CliOptions.Execution.DryRun.Description,
             Required = false
         };
 
-        _ciMode = new("--ci-mode", "--ci")
+        _ciMode = new(CliOptions.Logging.CiMode.Primary, CliOptions.Logging.CiMode.Aliases)
         {
-            Description = "Enable CI mode which prefixes all warnings and errors",
+            Description = CliOptions.Logging.CiMode.Description,
             Required = false
         };
 
-        _logLevel = new("--log-level", "--ll")
+        _logLevel = new(CliOptions.Logging.LogLevel.Primary, CliOptions.Logging.LogLevel.Aliases)
         {
-            Description = "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical, None)",
+            Description = CliOptions.Logging.LogLevel.Description,
             Required = false
         };
 
@@ -146,20 +147,20 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
     {
         var args = new List<string>
         {
-            "--assembly", config.Plugin.Sync.AssemblyPath,
-            "--solution", config.Plugin.Sync.SolutionName,
-            "--config", sharedOptions.ConfigName
+            CliOptions.Assembly.Primary, config.Plugin.Sync.AssemblyPath,
+            CliOptions.Solution.Primary, config.Plugin.Sync.SolutionName,
+            CliOptions.Config.LoadConfig.Primary, sharedOptions.ConfigName
         };
 
         // Use override if provided, otherwise use config value
         if (overrides.DryRun || config.Execution.DryRun)
-            args.Add("--dry-run");
+            args.Add(CliOptions.Execution.DryRun.Primary);
 
         if (overrides.CiMode || config.Logger.CiMode)
-            args.Add("--ci");
+            args.Add(CliOptions.Logging.CiMode.Aliases[0]);
 
         var logLevel = overrides.LogLevel ?? config.Logger.LogLevel;
-        args.AddRange(["--log-level", logLevel.ToString()]);
+        args.AddRange([CliOptions.Logging.LogLevel.Primary, logLevel.ToString()]);
 
         return [.. args];
     }
@@ -171,20 +172,20 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
     {
         var args = new List<string>
         {
-            "--folder", config.Webresource.Sync.FolderPath,
-            "--solution", config.Webresource.Sync.SolutionName,
-            "--config", sharedOptions.ConfigName
+            CliOptions.Webresource.Primary, config.Webresource.Sync.FolderPath,
+            CliOptions.Solution.Primary, config.Webresource.Sync.SolutionName,
+            CliOptions.Config.LoadConfig.Primary, sharedOptions.ConfigName
         };
 
         // Use override if provided, otherwise use config value
         if (overrides.DryRun || config.Execution.DryRun)
-            args.Add("--dry-run");
+            args.Add(CliOptions.Execution.DryRun.Primary);
 
         if (overrides.CiMode || config.Logger.CiMode)
-            args.Add("--ci");
+            args.Add(CliOptions.Logging.CiMode.Aliases[0]);
 
         var logLevel = overrides.LogLevel ?? config.Logger.LogLevel;
-        args.AddRange(["--log-level", logLevel.ToString()]);
+        args.AddRange([CliOptions.Logging.LogLevel.Primary, logLevel.ToString()]);
 
         return [.. args];
     }

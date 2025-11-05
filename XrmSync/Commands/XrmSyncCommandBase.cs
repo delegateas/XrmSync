@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
+using XrmSync.Constants;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 
@@ -30,21 +31,21 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
     /// </summary>
     protected void AddSharedOptions()
     {
-        SaveConfigOption = new("--save-config", "--sc")
+        SaveConfigOption = new(CliOptions.Config.SaveConfig.Primary, CliOptions.Config.SaveConfig.Aliases)
         {
-            Description = "Save current CLI options to appsettings.json",
+            Description = CliOptions.Config.SaveConfig.Description,
             Required = false
         };
 
-        SaveConfigToOption = new("--save-config-to")
+        SaveConfigToOption = new(CliOptions.Config.SaveConfigTo.Primary)
         {
-            Description = "If --save-config is set, save to this file instead of appsettings.json",
+            Description = CliOptions.Config.SaveConfigTo.Description,
             Required = false
         };
 
-        ConfigNameOption = new("--config", "--config-name", "-c")
+        ConfigNameOption = new(CliOptions.Config.LoadConfig.Primary, CliOptions.Config.LoadConfig.Aliases)
         {
-            Description = "Name of the configuration to load from appsettings.json (Default: 'default' or single config if only one exists)",
+            Description = CliOptions.Config.LoadConfig.Description,
             Required = false
         };
 

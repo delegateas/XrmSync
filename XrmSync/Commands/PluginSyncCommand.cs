@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
+using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;
@@ -12,9 +13,9 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 
     public PluginSyncCommand() : base("plugins", "Synchronize plugins in a plugin assembly with Dataverse")
     {
-        _assemblyFile = new("--assembly", "--assembly-file", "-a", "--af")
+        _assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
         {
-            Description = "Path to the plugin assembly (*.dll)",
+            Description = CliOptions.Assembly.Description,
             Arity = ArgumentArity.ExactlyOne
         };
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
+using XrmSync.Constants;
 using XrmSync.Model.Exceptions;
 using XrmSync.SyncService;
 
@@ -15,26 +16,26 @@ namespace XrmSync.Commands
 
         protected virtual void AddSyncSharedOptions()
         {
-            SolutionName = new("--solution", "--solution-name", "--sn", "-n")
+            SolutionName = new(CliOptions.Solution.Primary, CliOptions.Solution.Aliases)
             {
-                Description = "Name of the solution",
+                Description = CliOptions.Solution.Description,
                 Arity = ArgumentArity.ExactlyOne
             };
 
-            DryRun = new("--dry-run", "--dryrun", "--dr")
+            DryRun = new(CliOptions.Execution.DryRun.Primary, CliOptions.Execution.DryRun.Aliases)
             {
-                Description = "Perform a dry run without making changes",
+                Description = CliOptions.Execution.DryRun.Description,
                 Required = false
             };
 
-            LogLevel = new("--log-level", "-l")
+            LogLevel = new(CliOptions.Logging.LogLevel.Primary, CliOptions.Logging.LogLevel.Aliases)
             {
-                Description = "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) (Default: Information)"
+                Description = CliOptions.Logging.LogLevel.Description
             };
 
-            CiMode = new("--ci", "--ci-mode")
+            CiMode = new(CliOptions.Logging.CiMode.Primary, CliOptions.Logging.CiMode.Aliases)
             {
-                Description = "Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems",
+                Description = CliOptions.Logging.CiMode.Description,
                 Required = false
             };
 

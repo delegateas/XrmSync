@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.Text.Json;
 using XrmSync.Analyzer;
 using XrmSync.Analyzer.Extensions;
+using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
@@ -20,21 +21,21 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 
     public PluginAnalyzeCommand() : base("analyze", "Analyze a plugin assembly and output info as JSON")
     {
-        _assemblyFile = new("--assembly", "--assembly-file", "-a", "--af")
+        _assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
         {
-            Description = "Path to the plugin assembly (*.dll)",
+            Description = CliOptions.Assembly.Description,
             Arity = ArgumentArity.ExactlyOne
         };
 
-        _prefix = new("--prefix", "--publisher-prefix", "-p")
+        _prefix = new(CliOptions.Analysis.Prefix.Primary, CliOptions.Analysis.Prefix.Aliases)
         {
-            Description = "Publisher prefix for unique names (Default: new)",
+            Description = CliOptions.Analysis.Prefix.Description,
             Arity = ArgumentArity.ExactlyOne
         };
 
-        _prettyPrint = new("--pretty-print", "--pp")
+        _prettyPrint = new(CliOptions.Analysis.PrettyPrint.Primary, CliOptions.Analysis.PrettyPrint.Aliases)
         {
-            Description = "Pretty print the JSON output",
+            Description = CliOptions.Analysis.PrettyPrint.Description,
             Required = false
         };
 
