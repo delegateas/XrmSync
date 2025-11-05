@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using XrmSync.Commands;
+using XrmSync.Model;
 using XrmSync.Options;
 
 namespace Tests.Config;

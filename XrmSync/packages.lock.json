@@ -1060,6 +1060,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "[9.0.6, )",
+          "Microsoft.Extensions.Options.ConfigurationExtensions": "[9.0.6, )",
           "System.Text.Json": "[9.0.6, )",
           "XrmPluginCore.Abstractions": "[1.1.0, )",
           "XrmSync.Model": "[1.0.0, )"

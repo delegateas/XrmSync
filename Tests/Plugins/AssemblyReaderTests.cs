@@ -1,9 +1,11 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using XrmSync.Analyzer;
 using XrmSync.Analyzer.Analyzers.DAXIF;
 using XrmSync.Analyzer.Analyzers.XrmPluginCore;
 using XrmSync.Analyzer.Reader;
+using XrmSync.Model;
 
 namespace Tests.Plugins;
 
@@ -14,7 +16,7 @@ public class AssemblyReaderTests
 
     public AssemblyReaderTests()
     {
-        _assemblyReader = new LocalReader(_logger);
+        _assemblyReader = new LocalReader(_logger, Options.Create(SharedOptions.Empty));
     }
 
     [Fact]

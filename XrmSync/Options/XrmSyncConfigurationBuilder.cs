@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using XrmSync.Commands;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 
@@ -109,6 +108,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
         {
             return requestedName;
         }
+
         // If only one named config exists, use it
         if (configNames.Count == 1)
         {

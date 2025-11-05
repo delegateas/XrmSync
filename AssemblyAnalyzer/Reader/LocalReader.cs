@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Text.Json;
 using XrmSync.Model;
@@ -6,7 +7,7 @@ using XrmSync.Model.Webresource;
 
 namespace XrmSync.Analyzer.Reader;
 
-internal class LocalReader(ILogger<LocalReader> logger) : ILocalReader
+internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> sharedOptions) : ILocalReader
 {
     private readonly Dictionary<string, AssemblyInfo> assemblyCache = [];
 
@@ -37,7 +38,7 @@ internal class LocalReader(ILogger<LocalReader> logger) : ILocalReader
         }
 
         logger.LogDebug("Reading assembly from {AssemblyDllPath}", assemblyDllPath);
-        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, publisherPrefix, cancellationToken);
+        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, publisherPrefix, sharedOptions.Value.ConfigName, cancellationToken);
 
         // Cache the assembly info
         assemblyCache[assemblyDllPath] = assemblyInfo;
@@ -77,9 +78,9 @@ internal class LocalReader(ILogger<LocalReader> logger) : ILocalReader
         ];
     }
 
-    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken)
+    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath, string publisherPrefix, string configName, CancellationToken cancellationToken)
     {
-        var (filename, args) = await GetExecutionInfoAsync(assemblyDllPath, publisherPrefix, cancellationToken);
+        var (filename, args) = await GetExecutionInfoAsync(assemblyDllPath, publisherPrefix, configName, cancellationToken);
 
         var result = await RunCommandAsync(filename, args, cancellationToken);
         if (result.ExitCode != 0)
@@ -96,9 +97,9 @@ internal class LocalReader(ILogger<LocalReader> logger) : ILocalReader
         return assemblyInfo ?? throw new AnalysisException("Failed to read plugin type information from assembly");
     }
 
-    private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken)
+    private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath, string publisherPrefix, string configName, CancellationToken cancellationToken)
     {
-        var baseArgs = $"analyze --assembly \"{assemblyDllPath}\" --prefix \"{publisherPrefix}\"";
+        var baseArgs = $"analyze --assembly \"{assemblyDllPath}\" --prefix \"{publisherPrefix}\" --config \"{configName}\"";
 
 #if DEBUG
         // In debug, try to invoke the currently executing assembly first

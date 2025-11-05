@@ -1,15 +1,11 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using XrmSync.Constants;
+using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 
 namespace XrmSync.Commands;
-
-internal record SharedOptions(bool SaveConfig, string? SaveConfigTo, string ConfigName)
-{
-    public static SharedOptions Empty => new (false, null, XrmSyncConfigurationBuilder.DEFAULT_CONFIG_NAME);
-}
 
 /// <summary>
 /// Abstract base class for XrmSync commands with common functionality

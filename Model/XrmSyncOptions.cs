@@ -43,3 +43,8 @@ public record ExecutionOptions(bool DryRun)
 {
     public static ExecutionOptions Empty => new (false);
 }
+
+public record SharedOptions(bool SaveConfig, string? SaveConfigTo, string ConfigName)
+{
+    public static SharedOptions Empty => new(false, null, string.Empty);
+}
