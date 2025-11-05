@@ -1,3 +1,8 @@
+### v1.0.0-preview.11 - 05 November 2025
+* Add: Support for syncing Webresources
+* Add: Support for named configurations in appsettings.json
+* Refactor: The configuration format has been updated
+
 ### v1.0.0-preview.10 - 08 October 2025
 * Update: XrmPluginCore has been updated, EventOperation is now a string type
 
