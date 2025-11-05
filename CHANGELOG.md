@@ -1,5 +1,6 @@
 ### v1.0.0-preview.12 - 05 November 2025
 * Add: Configuration validation and list commands
+* Add: CLI overrides for the configuration based root command
 
 ### v1.0.0-preview.11 - 05 November 2025
 * Add: Support for syncing Webresources
