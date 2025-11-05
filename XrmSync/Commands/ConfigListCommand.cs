@@ -16,12 +16,8 @@ internal class ConfigListCommand : XrmSyncCommandBase
 
     private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var sharedOptions = GetSharedOptionValues(parseResult);
-
-        // Build service provider
+        // Build service provider with just IConfiguration (no need to build full XrmSyncConfiguration)
         var serviceProvider = GetConfigListServices()
-            .AddXrmSyncConfiguration(sharedOptions)
-            .AddOptions(baseOptions => baseOptions) // No overrides needed for list
             .BuildServiceProvider();
 
         try
@@ -42,6 +38,9 @@ internal class ConfigListCommand : XrmSyncCommandBase
     {
         services ??= new ServiceCollection();
 
+        // Register IConfigReader to get access to IConfiguration
+        services.AddSingleton<IConfigReader, ConfigReader>();
+        services.AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration());
         services.AddSingleton<IConfigValidationOutput, ConfigValidationOutput>();
 
         return services;
