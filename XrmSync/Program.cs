@@ -9,7 +9,8 @@ var command = new CommandLineBuilder()
     .AddCommands(
         new PluginSyncCommand(),
         new PluginAnalyzeCommand(),
-        new WebresourceSyncCommand()
+        new WebresourceSyncCommand(),
+        new ConfigCommand()
     )
     .WithRootCommandHandler()
     .Build();

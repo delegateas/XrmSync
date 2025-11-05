@@ -143,6 +143,21 @@ The webresource name in Dataverse is determined by the file path relative to the
 | `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
 *Required when not present in appsettings.json
+
+#### Config Commands
+
+**Config Validate Command**
+
+| Option | Short | Description | Required |
+|--------|-------|-------------|----------|
+| `--config` | `-c` | Name of the configuration to validate | No (Default: "default") |
+
+**Config List Command**
+
+| Option | Short | Description | Required |
+|--------|-------|-------------|----------|
+| No options | | Lists all configurations from appsettings.json | N/A |
+
 ### Assembly Analysis
 
 You can analyze an assembly without connecting to Dataverse:
@@ -155,6 +170,69 @@ You can also save analysis configurations:
 xrmsync analyze --assembly "path/to/your/plugin.dll" --prefix "contoso" --pretty-print --save-config
 ```
 This outputs JSON information about the plugin types, steps, and images found in the assembly.
+
+### Configuration Validation
+
+You can validate your configuration files to ensure they are correctly set up:
+
+```bash
+# Validate the default configuration
+xrmsync config validate
+
+# Validate a specific named configuration
+xrmsync config validate --config dev
+```
+
+The `config validate` command shows:
+- Which configuration file is being used (appsettings.json, appsettings.Development.json, etc.)
+- Resolved configuration values for each section (Plugin Sync, Plugin Analysis, Webresource Sync, Logger, Execution)
+- Validation status with specific errors if any
+- Available commands based on the configuration
+
+**Example output:**
+```
+Configuration: 'default' (from appsettings.json)
+
+✓ Plugin Sync Configuration
+  Assembly Path: C:\path\to\plugin.dll
+  Solution Name: MySolution
+
+✓ Webresource Sync Configuration
+  Folder Path: C:\path\to\webresources
+  Solution Name: MySolution
+
+✓ Logger Configuration
+  Log Level: Information
+  CI Mode: false
+
+✓ Execution Configuration
+  Dry Run: false
+
+Available Commands: plugins, webresources
+
+Validation: PASSED
+```
+
+You can also list all available configurations:
+
+```bash
+# List all named configurations
+xrmsync config list
+```
+
+**Example output:**
+```
+Available configurations (from appsettings.json):
+
+  - default
+    ✓ Configured: plugins, webresources
+
+  - dev
+    ✓ Configured: plugins
+
+  - prod
+    ✗ No valid configurations
+```
 
 ### Configuration File Format
 
