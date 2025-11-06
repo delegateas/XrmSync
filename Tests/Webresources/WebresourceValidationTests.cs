@@ -21,6 +21,7 @@ public class WebresourceValidationTests
 
         // Register mock or provided webresource reader
         var mockWebresourceReader = webresourceReader ?? Substitute.For<IWebresourceReader>();
+
         services.AddSingleton(mockWebresourceReader);
 
         // Register the validator
@@ -46,6 +47,7 @@ public class WebresourceValidationTests
         var webresourceRules = serviceProvider.GetServices<IValidationRule<WebresourceDefinition>>().ToList();
         Assert.NotEmpty(webresourceRules);
         Assert.Contains(webresourceRules, r => r is WebresourceDependencyRule);
+        Assert.Contains(webresourceRules, r => r is WebresourceNameConflictRule);
     }
 
     [Fact]
@@ -81,6 +83,8 @@ public class WebresourceValidationTests
         var webresourceReader = Substitute.For<IWebresourceReader>();
         webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
             .Returns([new (webresourceWithDependency, "SystemForm", Guid.NewGuid())]); // Only the first one has dependencies
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)); // No name conflicts
 
         var validator = CreateValidator(webresourceReader);
 
@@ -124,6 +128,8 @@ public class WebresourceValidationTests
         var webresourceReader = Substitute.For<IWebresourceReader>();
         webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
             .Returns([]); // No webresources have dependencies
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)); // No name conflicts
 
         var validator = CreateValidator(webresourceReader);
 
@@ -167,6 +173,8 @@ public class WebresourceValidationTests
                 new (webresource1, "SystemForm", Guid.NewGuid()),
                 new (webresource2, "SystemForm", Guid.NewGuid())
             ]); // Both have dependencies
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)); // No name conflicts
 
         var validator = CreateValidator(webresourceReader);
 
@@ -178,5 +186,227 @@ public class WebresourceValidationTests
             Assert.IsType<ValidationException>(ex);
             Assert.Contains("Cannot delete webresource", ex.Message);
         });
+    }
+
+    [Fact]
+    public void ValidateWebresources_ThrowsException_ForNameConflict()
+    {
+        // Arrange
+        var existingWebresourceId = Guid.NewGuid();
+        var webresourceToCreate = new WebresourceDefinition(
+            "test_solution/js/existing.js",
+            "Existing Script",
+            WebresourceType.ScriptJscript,
+            "Y29udGVudA=="
+        );
+
+        var webresourcesToCreate = new List<WebresourceDefinition>
+        {
+            webresourceToCreate
+        };
+
+        var webresourceReader = Substitute.For<IWebresourceReader>();
+        webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
+            .Returns([]); // No dependencies
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "test_solution/js/existing.js", existingWebresourceId }
+            });
+
+        var validator = CreateValidator(webresourceReader);
+
+        // Act & Assert
+        var exception = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow(webresourcesToCreate));
+        Assert.Contains("Cannot create webresource", exception.Message);
+        Assert.Contains("test_solution/js/existing.js", exception.Message);
+        Assert.Contains(existingWebresourceId.ToString(), exception.Message);
+    }
+
+    [Fact]
+    public void ValidateWebresources_DoesNotThrow_ForNoNameConflict()
+    {
+        // Arrange
+        var webresource1 = new WebresourceDefinition(
+            "test_solution/js/new.js",
+            "New Script",
+            WebresourceType.ScriptJscript,
+            "Y29udGVudA=="
+        );
+
+        var webresource2 = new WebresourceDefinition(
+            "test_solution/css/new.css",
+            "New Style",
+            WebresourceType.StyleSheetCss,
+            "Y29udGVudA=="
+        );
+
+        var webresourcesToCreate = new List<WebresourceDefinition>
+        {
+            webresource1,
+            webresource2
+        };
+
+        var webresourceReader = Substitute.For<IWebresourceReader>();
+        webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
+            .Returns([]); // No dependencies
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)); // Empty - no conflicts
+
+        var validator = CreateValidator(webresourceReader);
+
+        // Act & Assert - Should not throw
+        validator.ValidateOrThrow(webresourcesToCreate);
+    }
+
+    [Fact]
+    public void ValidateWebresources_ThrowsAggregateException_ForMultipleNameConflicts()
+    {
+        // Arrange
+        var existingId1 = Guid.NewGuid();
+        var existingId2 = Guid.NewGuid();
+
+        var webresource1 = new WebresourceDefinition(
+            "test_solution/js/conflict1.js",
+            "Conflict 1",
+            WebresourceType.ScriptJscript,
+            "Y29udGVudA=="
+        );
+
+        var webresource2 = new WebresourceDefinition(
+            "test_solution/js/conflict2.js",
+            "Conflict 2",
+            WebresourceType.ScriptJscript,
+            "Y29udGVudA=="
+        );
+
+        var webresourcesToCreate = new List<WebresourceDefinition>
+        {
+            webresource1,
+            webresource2
+        };
+
+        var webresourceReader = Substitute.For<IWebresourceReader>();
+        webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
+            .Returns([]); // No dependencies
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "test_solution/js/conflict1.js", existingId1 },
+                { "test_solution/js/conflict2.js", existingId2 }
+            });
+
+        var validator = CreateValidator(webresourceReader);
+
+        // Act & Assert
+        var exception = Assert.Throws<AggregateException>(() => validator.ValidateOrThrow(webresourcesToCreate));
+        Assert.Equal(2, exception.InnerExceptions.Count);
+        Assert.All(exception.InnerExceptions, ex =>
+        {
+            Assert.IsType<ValidationException>(ex);
+            Assert.Contains("Cannot create webresource", ex.Message);
+        });
+    }
+
+    [Fact]
+    public void ValidateWebresources_NameConflict_IsCaseInsensitive()
+    {
+        // Arrange
+        var existingWebresourceId = Guid.NewGuid();
+        var webresourceToCreate = new WebresourceDefinition(
+            "test_solution/js/SCRIPT.JS", // Upper case
+            "Script",
+            WebresourceType.ScriptJscript,
+            "Y29udGVudA=="
+        );
+
+        var webresourcesToCreate = new List<WebresourceDefinition>
+        {
+            webresourceToCreate
+        };
+
+        var webresourceReader = Substitute.For<IWebresourceReader>();
+        webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
+            .Returns([]); // No dependencies
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "test_solution/js/script.js", existingWebresourceId } // Lower case
+            });
+
+        var validator = CreateValidator(webresourceReader);
+
+        // Act & Assert
+        var exception = Assert.Throws<ValidationException>(() => validator.ValidateOrThrow(webresourcesToCreate));
+        Assert.Contains("Cannot create webresource", exception.Message);
+    }
+
+    [Fact]
+    public void ValidateWebresources_NameConflictRule_DoesNotApplyToDeletes()
+    {
+        // Arrange - Webresource with ID (simulating delete operation)
+        var webresourceToDelete = new WebresourceDefinition(
+            "test_solution/js/existing.js",
+            "Existing Script",
+            WebresourceType.ScriptJscript,
+            "Y29udGVudA=="
+        )
+        {
+            Id = Guid.NewGuid() // Has ID - it's a delete, not a create
+        };
+
+        var webresourcesToDelete = new List<WebresourceDefinition>
+        {
+            webresourceToDelete
+        };
+
+        var webresourceReader = Substitute.For<IWebresourceReader>();
+        webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
+            .Returns([]); // No dependencies
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "test_solution/js/existing.js", Guid.NewGuid() } // Name exists in environment
+            });
+
+        var validator = CreateValidator(webresourceReader);
+
+        // Act & Assert - Should not throw because name conflict rule only applies to creates
+        validator.ValidateOrThrow(webresourcesToDelete);
+
+        // Verify GetWebresourcesByNames was NOT called (rule filtered out items with IDs)
+        webresourceReader.DidNotReceive().GetWebresourcesByNames(Arg.Any<IEnumerable<string>>());
+    }
+
+    [Fact]
+    public void ValidateWebresources_DependencyRule_DoesNotApplyToCreates()
+    {
+        // Arrange - Webresource without ID (simulating create operation)
+        var webresourceToCreate = new WebresourceDefinition(
+            "test_solution/js/new.js",
+            "New Script",
+            WebresourceType.ScriptJscript,
+            "Y29udGVudA=="
+        );
+        // No Id set - it's a create, not a delete
+
+        var webresourcesToCreate = new List<WebresourceDefinition>
+        {
+            webresourceToCreate
+        };
+
+        var webresourceReader = Substitute.For<IWebresourceReader>();
+        webresourceReader.GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>())
+            .Returns([new (webresourceToCreate, "SystemForm", Guid.NewGuid())]); // Has dependency in mock
+        webresourceReader.GetWebresourcesByNames(Arg.Any<IEnumerable<string>>())
+            .Returns(new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)); // No name conflicts
+
+        var validator = CreateValidator(webresourceReader);
+
+        // Act & Assert - Should not throw because dependency rule only applies to deletes
+        validator.ValidateOrThrow(webresourcesToCreate);
+
+        // Verify GetWebresourcesWithDependencies was NOT called (rule filtered out items without IDs)
+        webresourceReader.DidNotReceive().GetWebresourcesWithDependencies(Arg.Any<IEnumerable<WebresourceDefinition>>());
     }
 }

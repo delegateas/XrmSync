@@ -1,3 +1,6 @@
+### v1.0.0-preview.14 - 06 November 2025
+* Add: Validation rule to prevent duplicate webresource creation
+
 ### v1.0.0-preview.13 - 05 November 2025
 * Fix: When running from named configuration, the name wasn't forwarded to plugin analysis
 

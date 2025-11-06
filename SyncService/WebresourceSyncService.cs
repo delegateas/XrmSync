@@ -38,7 +38,8 @@ internal class WebresourceSyncService(
         var toDelete = ToDelete(local, remote);
         var toUpdate = ToUpdate(local, remote);
 
-        // Validate webresources to be deleted
+        // Validate webresources to be created and deleted
+        ValidateWebresourcesOrThrow(toCreate);
         ValidateWebresourcesOrThrow(toDelete);
 
         webresourceWriter.Create(toCreate);

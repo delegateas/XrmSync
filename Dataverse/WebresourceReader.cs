@@ -93,4 +93,24 @@ internal class WebresourceReader(IDataverseReader reader) : IWebresourceReader
             )
         );
     }
+
+    public Dictionary<string, Guid> GetWebresourcesByNames(IEnumerable<string> names)
+    {
+        var namesList = names.ToList();
+
+        if (namesList.Count == 0)
+        {
+            return [];
+        }
+
+        var webresources = reader.RetrieveByColumn<WebResource, string>(
+            wr => wr.Name,
+            namesList,
+            wr => wr.Name
+        );
+
+        return webresources
+            .Where(wr => wr.Name != null && wr.Id != Guid.Empty)
+            .ToDictionary(wr => wr.Name ?? string.Empty, wr => wr.Id, StringComparer.OrdinalIgnoreCase);
+    }
 }

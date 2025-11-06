@@ -3,6 +3,10 @@ using XrmSync.Model.Webresource;
 
 namespace XrmSync.SyncService.Validation.Webresource.Rules;
 
+/// <summary>
+/// Validates that webresources being deleted do not have dependencies in the Dataverse environment.
+/// This rule only applies to webresources being deleted (Id != default).
+/// </summary>
 internal class WebresourceDependencyRule(IWebresourceReader webresourceReader) : IExtendedValidationRule<WebresourceDefinition>
 {
     public string ErrorMessage(WebresourceDefinition item) =>
@@ -13,7 +17,15 @@ internal class WebresourceDependencyRule(IWebresourceReader webresourceReader) :
 
     public IEnumerable<(WebresourceDefinition Entity, string Error)> GetErrorMessages(IEnumerable<WebresourceDefinition> items)
     {
-        return GetDependencies(items).Select(d => (d.Webresource, ErrorMessage(d)));
+        var violations = GetViolations(items).ToList();
+        if (violations.Count == 0)
+        {
+            return [];
+        }
+
+        var dependencies = GetDependenciesForViolations(violations);
+
+        return dependencies.Select(d => (d.Webresource, ErrorMessage(d)));
     }
 
     public IEnumerable<WebresourceDefinition> GetViolations(IEnumerable<WebresourceDefinition> items)
@@ -23,6 +35,18 @@ internal class WebresourceDependencyRule(IWebresourceReader webresourceReader) :
 
     private IEnumerable<WebresourceDependency> GetDependencies(IEnumerable<WebresourceDefinition> items)
     {
-        return webresourceReader.GetWebresourcesWithDependencies(items);
+        // Only validate webresources being deleted (already in environment)
+        var itemsToDelete = items.Where(wr => wr.Id != default).ToList();
+        if (itemsToDelete.Count == 0)
+        {
+            return [];
+        }
+
+        return webresourceReader.GetWebresourcesWithDependencies(itemsToDelete);
+    }
+
+    private IEnumerable<WebresourceDependency> GetDependenciesForViolations(IEnumerable<WebresourceDefinition> violations)
+    {
+        return webresourceReader.GetWebresourcesWithDependencies(violations);
     }
 }
