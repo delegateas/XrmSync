@@ -3,7 +3,11 @@
     "allow": [
       "Bash(dotnet test:*)",
       "Bash(dotnet build:*)",
-      "Read(//usr/bin/**)"
+      "Read(//usr/bin/**)",
+      "WebSearch",
+      "WebFetch(domain:www.nuget.org)",
+      "WebFetch(domain:github.com)",
+      "Bash(dotnet restore:*)"
     ],
     "deny": [],
     "ask": []

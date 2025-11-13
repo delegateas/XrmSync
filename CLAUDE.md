@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-XrmSync is a .NET 8 command-line tool for synchronizing Microsoft Dataverse plugins, custom APIs, and webresources between local code and Dataverse environments. It's distributed as a .NET global/local tool via NuGet.
+XrmSync is a .NET 10 command-line tool for synchronizing Microsoft Dataverse plugins, custom APIs, and webresources between local code and Dataverse environments. It's distributed as a .NET global/local tool via NuGet.
 
 ## Build & Development Commands
 

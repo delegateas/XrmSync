@@ -70,7 +70,7 @@ internal class CommandLineBuilder
 
                 // Otherwise, execute the root command handler
                 var rootParseResult = rootCommandHandler.GetCommand().Parse(parseResult.Tokens.Select(t => t.Value).ToArray());
-                return await rootParseResult.InvokeAsync(cancellationToken);
+                return await rootParseResult.InvokeAsync(cancellationToken: cancellationToken);
             });
         }
 
