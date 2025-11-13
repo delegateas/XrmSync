@@ -1,0 +1,36 @@
+<Solution>
+  <Folder Name="/Samples/">
+    <File Path="Samples/README.md" />
+    <Project Path="Samples/1-DAXIF/1-DAXIF.csproj" />
+    <Project Path="Samples/2-Hybrid/2-Hybrid.csproj" />
+    <Project Path="Samples/3-XrmPluginCore/3-XrmPluginCore.csproj" />
+    <Project Path="Samples/4-Full-DAXIF/4-Full-DAXIF.csproj" />
+    <Project Path="Samples/BusinessDomain/BusinessDomain.csproj" />
+  </Folder>
+  <Folder Name="/Solution files/">
+    <File Path=".gitignore" />
+    <File Path="CHANGELOG.md" />
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Solution files/actions/" />
+  <Folder Name="/Solution files/actions/build-and-test/">
+    <File Path=".github/actions/build-and-test/action.yml" />
+  </Folder>
+  <Folder Name="/Solution files/scripts/">
+    <File Path="scripts/Set-VersionFromChangelog.ps1" />
+    <File Path="scripts/Test-Samples.ps1" />
+  </Folder>
+  <Folder Name="/Solution files/workflows/">
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/release.yml" />
+  </Folder>
+  <Project Path="AssemblyAnalyzer/Analyzer.csproj" />
+  <Project Path="Dataverse/Dataverse.csproj" />
+  <Project Path="Model/Model.csproj" />
+  <Project Path="SyncService/SyncService.csproj" />
+  <Project Path="Tests/Tests.csproj" />
+  <Project Path="XrmSync/XrmSync.csproj" />
+</Solution>
