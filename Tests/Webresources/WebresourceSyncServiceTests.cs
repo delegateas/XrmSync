@@ -49,7 +49,7 @@ public class WebresourceSyncServiceTests
 
         var localWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/test.js", "Test Script", WebresourceType.JavaScript, "Y29uc29sZS5sb2coJ3Rlc3QnKTs=")
+            new("test_TestSolution/test.js", "Test Script", WebresourceType.JS, "Y29uc29sZS5sb2coJ3Rlc3QnKTs=")
         };
         _localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
             .Returns(localWebresources);
@@ -79,7 +79,7 @@ public class WebresourceSyncServiceTests
 
         var remoteWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/old.js", "Old Script", WebresourceType.JavaScript, "b2xkQ29kZQ==") { Id = Guid.NewGuid() }
+            new("test_TestSolution/old.js", "Old Script", WebresourceType.JS, "b2xkQ29kZQ==") { Id = Guid.NewGuid() }
         };
         _webresourceReader.GetWebresources(solutionId).Returns(remoteWebresources);
 
@@ -104,14 +104,14 @@ public class WebresourceSyncServiceTests
 
         var localWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/test.js", "Test Script", WebresourceType.JavaScript, "bmV3Q29kZQ==")
+            new("test_TestSolution/test.js", "Test Script", WebresourceType.JS, "bmV3Q29kZQ==")
         };
         _localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
             .Returns(localWebresources);
 
         var remoteWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/test.js", "Test Script", WebresourceType.JavaScript, "b2xkQ29kZQ==") { Id = webresourceId }
+            new("test_TestSolution/test.js", "Test Script", WebresourceType.JS, "b2xkQ29kZQ==") { Id = webresourceId }
         };
         _webresourceReader.GetWebresources(solutionId).Returns(remoteWebresources);
 
@@ -139,14 +139,14 @@ public class WebresourceSyncServiceTests
 
         var localWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/test.js", "Updated Display Name", WebresourceType.JavaScript, "c2FtZUNvZGU=")
+            new("test_TestSolution/test.js", "Updated Display Name", WebresourceType.JS, "c2FtZUNvZGU=")
         };
         _localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
             .Returns(localWebresources);
 
         var remoteWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/test.js", "Old Display Name", WebresourceType.JavaScript, "c2FtZUNvZGU=") { Id = webresourceId }
+            new("test_TestSolution/test.js", "Old Display Name", WebresourceType.JS, "c2FtZUNvZGU=") { Id = webresourceId }
         };
         _webresourceReader.GetWebresources(solutionId).Returns(remoteWebresources);
 
@@ -173,14 +173,14 @@ public class WebresourceSyncServiceTests
 
         var localWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/test.js", "Test Script", WebresourceType.JavaScript, "c2FtZUNvZGU=")
+            new("test_TestSolution/test.js", "Test Script", WebresourceType.JS, "c2FtZUNvZGU=")
         };
         _localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
             .Returns(localWebresources);
 
         var remoteWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/test.js", "Test Script", WebresourceType.JavaScript, "c2FtZUNvZGU=") { Id = webresourceId }
+            new("test_TestSolution/test.js", "Test Script", WebresourceType.JS, "c2FtZUNvZGU=") { Id = webresourceId }
         };
         _webresourceReader.GetWebresources(solutionId).Returns(remoteWebresources);
 
@@ -206,18 +206,18 @@ public class WebresourceSyncServiceTests
 
         var localWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/new.js", "New Script", WebresourceType.JavaScript, "bmV3"),
-            new("test_TestSolution/existing.js", "Existing", WebresourceType.JavaScript, "ZXhpc3Rpbmc="),
-            new("test_TestSolution/update.js", "Updated", WebresourceType.JavaScript, "dXBkYXRlZA==")
+            new("test_TestSolution/new.js", "New Script", WebresourceType.JS, "bmV3"),
+            new("test_TestSolution/existing.js", "Existing", WebresourceType.JS, "ZXhpc3Rpbmc="),
+            new("test_TestSolution/update.js", "Updated", WebresourceType.JS, "dXBkYXRlZA==")
         };
         _localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
             .Returns(localWebresources);
 
         var remoteWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/existing.js", "Existing", WebresourceType.JavaScript, "ZXhpc3Rpbmc=") { Id = existingId },
-            new("test_TestSolution/update.js", "Updated", WebresourceType.JavaScript, "b2xk") { Id = toUpdateId },
-            new("test_TestSolution/delete.js", "To Delete", WebresourceType.JavaScript, "ZGVsZXRl") { Id = toDeleteId }
+            new("test_TestSolution/existing.js", "Existing", WebresourceType.JS, "ZXhpc3Rpbmc=") { Id = existingId },
+            new("test_TestSolution/update.js", "Updated", WebresourceType.JS, "b2xk") { Id = toUpdateId },
+            new("test_TestSolution/delete.js", "To Delete", WebresourceType.JS, "ZGVsZXRl") { Id = toDeleteId }
         };
         _webresourceReader.GetWebresources(solutionId).Returns(remoteWebresources);
 
@@ -244,14 +244,14 @@ public class WebresourceSyncServiceTests
 
         var localWebresources = new List<WebresourceDefinition>
         {
-            new("test_testsolution/test.js", "Test Script", WebresourceType.JavaScript, "dGVzdA==")
+            new("test_testsolution/test.js", "Test Script", WebresourceType.JS, "dGVzdA==")
         };
         _localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
             .Returns(localWebresources);
 
         var remoteWebresources = new List<WebresourceDefinition>
         {
-            new("TEST_TESTSOLUTION/TEST.JS", "Test Script", WebresourceType.JavaScript, "dGVzdA==") { Id = webresourceId }
+            new("TEST_TESTSOLUTION/TEST.JS", "Test Script", WebresourceType.JS, "dGVzdA==") { Id = webresourceId }
         };
         _webresourceReader.GetWebresources(solutionId).Returns(remoteWebresources);
 
@@ -274,7 +274,7 @@ public class WebresourceSyncServiceTests
 
         var localWebresources = new List<WebresourceDefinition>
         {
-            new("test_TestSolution/script.js", "Script", WebresourceType.JavaScript, "anM="),
+            new("test_TestSolution/script.js", "Script", WebresourceType.JS, "anM="),
             new("test_TestSolution/style.css", "Style", WebresourceType.CSS, "Y3Nz"),
             new("test_TestSolution/page.html", "Page", WebresourceType.HTML, "aHRtbA=="),
             new("test_TestSolution/image.png", "Image", WebresourceType.PNG, "cG5n"),

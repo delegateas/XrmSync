@@ -229,7 +229,7 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
         { ".html", WebresourceType.HTML },
         { ".htm", WebresourceType.HTML },
         { ".css", WebresourceType.CSS },
-        { ".js", WebresourceType.JavaScript },
+        { ".js", WebresourceType.JS },
         { ".xml", WebresourceType.XML },
         { ".xaml", WebresourceType.XML },
         { ".xsd", WebresourceType.XML },
@@ -239,7 +239,7 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
         { ".jpg", WebresourceType.JPG },
         { ".jpeg", WebresourceType.JPG },
         { ".gif", WebresourceType.GIF },
-        { ".xap", WebresourceType.SilverlightXAP },
+        { ".xap", WebresourceType.XAP },
         { ".ico", WebresourceType.ICO },
         { ".svg", WebresourceType.SVG },
         { ".resx", WebresourceType.RSX }

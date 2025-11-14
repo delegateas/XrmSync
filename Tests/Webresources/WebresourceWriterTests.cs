@@ -25,7 +25,7 @@ public class WebresourceWriterTests
         // Arrange
         var webresources = new List<WebresourceDefinition>
         {
-            new("test_solution/test.js", "Test Script", WebresourceType.JavaScript, "Y29uc29sZS5sb2coJ3Rlc3QnKTs=")
+            new("test_solution/test.js", "Test Script", WebresourceType.JS, "Y29uc29sZS5sb2coJ3Rlc3QnKTs=")
         };
 
         // Act
@@ -48,7 +48,7 @@ public class WebresourceWriterTests
         // Arrange
         var webresources = new List<WebresourceDefinition>
         {
-            new("test.js", "Test", WebresourceType.JavaScript, "dGVzdA==")
+            new("test.js", "Test", WebresourceType.JS, "dGVzdA==")
         };
 
         Dictionary<string, object>? capturedParams = null;
@@ -69,7 +69,7 @@ public class WebresourceWriterTests
         // Arrange
         var webresources = new List<WebresourceDefinition>
         {
-            new("test_solution/script.js", "Script", WebresourceType.JavaScript, "anM="),
+            new("test_solution/script.js", "Script", WebresourceType.JS, "anM="),
             new("test_solution/style.css", "Style", WebresourceType.CSS, "Y3Nz"),
             new("test_solution/page.html", "Page", WebresourceType.HTML, "aHRtbA==")
         };
@@ -89,12 +89,12 @@ public class WebresourceWriterTests
         {
             (WebresourceType.HTML, webresource_webresourcetype.WebpageHTML),
             (WebresourceType.CSS, webresource_webresourcetype.StyleSheetCSS),
-            (WebresourceType.JavaScript, webresource_webresourcetype.ScriptJScript),
+            (WebresourceType.JS, webresource_webresourcetype.ScriptJScript),
             (WebresourceType.XML, webresource_webresourcetype.DataXML),
             (WebresourceType.PNG, webresource_webresourcetype.PNGformat),
             (WebresourceType.JPG, webresource_webresourcetype.JPGformat),
             (WebresourceType.GIF, webresource_webresourcetype.GIFformat),
-            (WebresourceType.SilverlightXAP, webresource_webresourcetype.SilverlightXAP),
+            (WebresourceType.XAP, webresource_webresourcetype.SilverlightXAP),
             (WebresourceType.XSL, webresource_webresourcetype.StyleSheetXSL),
             (WebresourceType.ICO, webresource_webresourcetype.ICOformat),
             (WebresourceType.SVG, webresource_webresourcetype.VectorformatSVG),
@@ -128,7 +128,7 @@ public class WebresourceWriterTests
         var webresourceId = Guid.NewGuid();
         var webresources = new List<WebresourceDefinition>
         {
-            new("test_solution/test.js", "Updated Display Name", WebresourceType.JavaScript, "dXBkYXRlZENvbnRlbnQ=")
+            new("test_solution/test.js", "Updated Display Name", WebresourceType.JS, "dXBkYXRlZENvbnRlbnQ=")
             {
                 Id = webresourceId
             }
@@ -153,9 +153,9 @@ public class WebresourceWriterTests
         // Arrange
         var webresources = new List<WebresourceDefinition>
         {
-            new("test1.js", "Test 1", WebresourceType.JavaScript, "dGVzdDE=") { Id = Guid.NewGuid() },
-            new("test2.js", "Test 2", WebresourceType.JavaScript, "dGVzdDI=") { Id = Guid.NewGuid() },
-            new("test3.js", "Test 3", WebresourceType.JavaScript, "dGVzdDM=") { Id = Guid.NewGuid() }
+            new("test1.js", "Test 1", WebresourceType.JS, "dGVzdDE=") { Id = Guid.NewGuid() },
+            new("test2.js", "Test 2", WebresourceType.JS, "dGVzdDI=") { Id = Guid.NewGuid() },
+            new("test3.js", "Test 3", WebresourceType.JS, "dGVzdDM=") { Id = Guid.NewGuid() }
         };
 
         // Act
@@ -174,7 +174,7 @@ public class WebresourceWriterTests
         var webresourceId = Guid.NewGuid();
         var webresources = new List<WebresourceDefinition>
         {
-            new("test_solution/test.js", "Display Name", WebresourceType.JavaScript, "Y29udGVudA==")
+            new("test_solution/test.js", "Display Name", WebresourceType.JS, "Y29udGVudA==")
             {
                 Id = webresourceId
             }
@@ -200,7 +200,7 @@ public class WebresourceWriterTests
         var webresourceId = Guid.NewGuid();
         var webresources = new List<WebresourceDefinition>
         {
-            new("test_solution/test.js", "Test Script", WebresourceType.JavaScript, "dGVzdA==")
+            new("test_solution/test.js", "Test Script", WebresourceType.JS, "dGVzdA==")
             {
                 Id = webresourceId
             }
@@ -224,9 +224,9 @@ public class WebresourceWriterTests
         // Arrange
         var webresources = new List<WebresourceDefinition>
         {
-            new("test1.js", "Test 1", WebresourceType.JavaScript, "dGVzdDE=") { Id = Guid.NewGuid() },
-            new("test2.js", "Test 2", WebresourceType.JavaScript, "dGVzdDI=") { Id = Guid.NewGuid() },
-            new("test3.js", "Test 3", WebresourceType.JavaScript, "dGVzdDM=") { Id = Guid.NewGuid() }
+            new("test1.js", "Test 1", WebresourceType.JS, "dGVzdDE=") { Id = Guid.NewGuid() },
+            new("test2.js", "Test 2", WebresourceType.JS, "dGVzdDI=") { Id = Guid.NewGuid() },
+            new("test3.js", "Test 3", WebresourceType.JS, "dGVzdDM=") { Id = Guid.NewGuid() }
         };
 
         // Act
