@@ -1,0 +1,6 @@
+root = false
+
+# Suppress nullable reference type warnings for generated code only
+[Context/**.cs]
+dotnet_diagnostic.CS8602.severity = none  # Dereference of a possibly null reference
+dotnet_diagnostic.CS8603.severity = none  # Possible null reference return
