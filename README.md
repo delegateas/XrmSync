@@ -76,10 +76,11 @@ xrmsync webresources --folder "path/to/webresources" --solution-name "YourSoluti
 For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
 ```bash
 # Run all configured commands (plugins, webresources, analysis)
-xrmsync --profile default
+# If only one profile exists, it's used automatically without --profile
+xrmsync --profile myprofile
 
 # Run a specific command with configuration
-xrmsync plugins --profile default
+xrmsync plugins --profile myprofile
 ```
 
 You can also override specific options when using a configuration file:
@@ -150,7 +151,7 @@ The webresource name in Dataverse is determined by the file path relative to the
 
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
-| `--profile` | `-p`, `--profile-name` | Name of the profile to validate | No (Default: "default") |
+| `--profile` | `-p`, `--profile-name` | Name of the profile to validate | No (auto-selects if only one profile exists) |
 
 **Config List Command**
 
@@ -306,14 +307,11 @@ XrmSync supports multiple named configurations within a single appsettings.json 
 
 **Using named configurations:**
 ```bash
-# Use the 'default' configuration (or the only configuration if only one exists)
-xrmsync --profile default
-
-# Use a specific named configuration
-xrmsync --profile dev
-
-# If --config is not specified, 'default' is used, or the single config if only one exists
+# If only one profile exists, it's used automatically
 xrmsync
+
+# If multiple profiles exist, you must specify which one to use
+xrmsync --profile <profile-name>
 ```
 
 **Example with multiple named configurations:**
@@ -504,10 +502,10 @@ xrmsync webresources --folder "wwwroot" --solution-name "MyCustomSolution" --dry
 #### Using a configuration file to run all configured commands:
 ```bash
 # Runs all configured sub-commands (plugin sync, analysis, webresource sync)
-# from the 'default' configuration
-xrmsync --profile default
+# from the specified profile
+xrmsync --profile myprofile
 
-# Or simply (uses 'default' if it exists, or the only config if there's just one)
+# If only one profile exists, it's used automatically
 xrmsync
 ```
 

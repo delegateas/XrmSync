@@ -70,7 +70,7 @@ public class NamedConfigurationTests
     }
 
     [Fact]
-    public void ResolveConfigurationName_WithNoSpecificName_ReturnsDefault()
+    public void ResolveConfigurationName_WithMultipleProfilesAndNoSpecificName_ThrowsException()
     {
         // Arrange
         const string configJson = """
@@ -81,22 +81,22 @@ public class NamedConfigurationTests
             "CiMode": false,
             "Profiles": [
               {
-                "Name": "default",
-                "SolutionName": "DefaultSolution",
+                "Name": "profile1",
+                "SolutionName": "Solution1",
                 "Sync": [
                   {
                     "Type": "Plugin",
-                    "AssemblyPath": "default.dll"
+                    "AssemblyPath": "profile1.dll"
                   }
                 ]
               },
               {
-                "Name": "dev",
-                "SolutionName": "DevSolution",
+                "Name": "profile2",
+                "SolutionName": "Solution2",
                 "Sync": [
                   {
                     "Type": "Plugin",
-                    "AssemblyPath": "dev.dll"
+                    "AssemblyPath": "profile2.dll"
                   }
                 ]
               }
@@ -113,15 +113,10 @@ public class NamedConfigurationTests
             var configReader = new TestConfigReader(tempFile);
             var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
 
-            // Act
-            var profile = builder.GetProfile(null);
-
-            // Assert
-            Assert.NotNull(profile);
-            Assert.Equal("default", profile.Name);
-            Assert.Single(profile.Sync);
-            var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
-            Assert.Equal("default.dll", pluginSync.AssemblyPath);
+            // Act & Assert
+            var exception = Assert.Throws<XrmSync.Model.Exceptions.XrmSyncException>(() => builder.GetProfile(null));
+            Assert.Contains("Multiple profiles found", exception.Message);
+            Assert.Contains("--profile", exception.Message);
         }
         finally
         {

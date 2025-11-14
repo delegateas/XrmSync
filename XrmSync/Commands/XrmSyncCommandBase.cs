@@ -57,7 +57,7 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
     {
         var saveConfig = parseResult.GetValue(SaveConfigOption);
         var saveConfigTo = saveConfig ? parseResult.GetValue(SaveConfigToOption) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
-        var profileName = parseResult.GetValue(ProfileNameOption) ?? XrmSyncConfigurationBuilder.DEFAULT_PROFILE_NAME;
+        var profileName = parseResult.GetValue(ProfileNameOption);
 
         return new (saveConfig, saveConfigTo, profileName);
     }

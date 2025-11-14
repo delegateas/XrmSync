@@ -23,7 +23,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
         }
     }
 
-    private static IEnumerable<Model.Exceptions.OptionsValidationException> ValidateInternal(ConfigurationScope scope, XrmSyncConfiguration configuration, string profileName)
+    private static IEnumerable<Model.Exceptions.OptionsValidationException> ValidateInternal(ConfigurationScope scope, XrmSyncConfiguration configuration, string? profileName)
     {
         // Find the profile to validate
         var profile = configuration.Profiles.FirstOrDefault(p => p.Name.Equals(profileName, StringComparison.OrdinalIgnoreCase));

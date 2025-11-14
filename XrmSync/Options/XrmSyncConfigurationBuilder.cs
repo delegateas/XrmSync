@@ -10,7 +10,6 @@ namespace XrmSync.Options;
 internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOptions<SharedOptions> options) : IConfigurationBuilder
 #pragma warning restore CS9113
 {
-    internal const string DEFAULT_PROFILE_NAME = "default";
 
     public static class SectionName
     {
@@ -102,11 +101,11 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
         return config.Profiles.FirstOrDefault(p => p.Name.Equals(resolvedProfileName, StringComparison.OrdinalIgnoreCase));
     }
 
-    private string ResolveProfileName(string? requestedName, List<ProfileConfiguration> profiles)
+    private string? ResolveProfileName(string? requestedName, List<ProfileConfiguration> profiles)
     {
         if (profiles.Count == 0)
         {
-            return DEFAULT_PROFILE_NAME;
+            return null;
         }
 
         // If requested name exists, use it
@@ -115,20 +114,13 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
             return requestedName;
         }
 
-        // If only one profile exists, use it
+        // If only one profile exists, use it automatically
         if (profiles.Count == 1)
         {
             return profiles[0].Name;
         }
 
-        // If multiple profiles exist, try to use "default"
-        var defaultProfile = profiles.FirstOrDefault(p => p.Name.Equals(DEFAULT_PROFILE_NAME, StringComparison.OrdinalIgnoreCase));
-        if (defaultProfile != null)
-        {
-            return defaultProfile.Name;
-        }
-
-        // Throw exception if we cannot resolve the profile
-        throw new XrmSyncException($"Multiple profiles found, but no '{DEFAULT_PROFILE_NAME}' profile found, and no profile name was specified. Use --profile to specify which profile to use.");
+        // If multiple profiles exist and no profile specified, require explicit selection
+        throw new XrmSyncException($"Multiple profiles found. Use --profile to specify which profile to use, or run 'xrmsync config list' to see available profiles.");
     }
 }

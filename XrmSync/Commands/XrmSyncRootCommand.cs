@@ -134,9 +134,14 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
         var args = new List<string>
         {
             CliOptions.Assembly.Primary, syncItem.AssemblyPath,
-            CliOptions.Solution.Primary, profile.SolutionName,
-            CliOptions.Config.LoadConfig.Primary, sharedOptions.ProfileName
+            CliOptions.Solution.Primary, profile.SolutionName
         };
+
+        if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
+        {
+            args.Add(CliOptions.Config.LoadConfig.Primary);
+            args.Add(sharedOptions.ProfileName);
+        }
 
         AddCommonArgs(args, overrides, config);
         return await ExecuteSubCommand("plugins", [.. args]);
@@ -151,9 +156,14 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
         var args = new List<string>
         {
             CliOptions.Assembly.Primary, syncItem.AssemblyPath,
-            CliOptions.Analysis.Prefix.Primary, syncItem.PublisherPrefix,
-            CliOptions.Config.LoadConfig.Primary, sharedOptions.ProfileName
+            CliOptions.Analysis.Prefix.Primary, syncItem.PublisherPrefix
         };
+
+        if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
+        {
+            args.Add(CliOptions.Config.LoadConfig.Primary);
+            args.Add(sharedOptions.ProfileName);
+        }
 
         if (syncItem.PrettyPrint)
             args.Add(CliOptions.Analysis.PrettyPrint.Primary);
@@ -172,9 +182,14 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
         var args = new List<string>
         {
             CliOptions.Webresource.Primary, syncItem.FolderPath,
-            CliOptions.Solution.Primary, profile.SolutionName,
-            CliOptions.Config.LoadConfig.Primary, sharedOptions.ProfileName
+            CliOptions.Solution.Primary, profile.SolutionName
         };
+
+        if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
+        {
+            args.Add(CliOptions.Config.LoadConfig.Primary);
+            args.Add(sharedOptions.ProfileName);
+        }
 
         AddCommonArgs(args, overrides, config);
         return await ExecuteSubCommand("webresources", [.. args]);
