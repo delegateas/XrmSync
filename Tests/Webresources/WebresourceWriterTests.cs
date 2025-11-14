@@ -11,7 +11,7 @@ namespace Tests.Webresources;
 public class WebresourceWriterTests
 {
     private readonly IDataverseWriter _dataverseWriter = Substitute.For<IDataverseWriter>();
-    private readonly WebresourceSyncOptions _options = new("C:\\WebResources", "TestSolution");
+    private readonly WebresourceSyncCommandOptions _options = new("C:\\WebResources", "TestSolution");
     private readonly WebresourceWriter _writer;
 
     public WebresourceWriterTests()

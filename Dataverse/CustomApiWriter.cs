@@ -9,7 +9,7 @@ using XrmSync.Model.CustomApi;
 
 namespace XrmSync.Dataverse;
 
-internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptions> configuration) : ICustomApiWriter
+internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncCommandOptions> configuration) : ICustomApiWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", configuration.Value.SolutionName }

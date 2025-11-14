@@ -89,9 +89,9 @@ internal static class CliOptions
 
         public static class LoadConfig
         {
-            public const string Primary = "--config";
-            public static readonly string[] Aliases = ["--config-name", "-c"];
-            public const string Description = "Name of the configuration to load from appsettings.json (Default: 'default' or single config if only one exists)";
+            public const string Primary = "--profile";
+            public static readonly string[] Aliases = ["--profile-name", "-p"];
+            public const string Description = "Name of the profile to load from appsettings.json (Default: 'default' or single profile if only one exists)";
         }
     }
 

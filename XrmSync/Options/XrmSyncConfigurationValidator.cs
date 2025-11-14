@@ -4,7 +4,7 @@ using XrmSync.Model;
 
 namespace XrmSync.Options;
 
-internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfiguration> configuration) : IConfigurationValidator
+internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfiguration> configuration, IOptions<SharedOptions> sharedOptions) : IConfigurationValidator
 {
     public void Validate(ConfigurationScope scope)
     {
@@ -13,7 +13,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
             throw new Model.Exceptions.OptionsValidationException("No configuration scope specified for validation.");
         }
 
-        var exceptions = ValidateInternal(scope, configuration.Value).ToList();
+        var exceptions = ValidateInternal(scope, configuration.Value, sharedOptions.Value.ProfileName).ToList();
         if (exceptions.Count == 1)
         {
             throw exceptions[0];
@@ -23,60 +23,84 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
         }
     }
 
-    private static IEnumerable<Model.Exceptions.OptionsValidationException> ValidateInternal(ConfigurationScope scope, XrmSyncConfiguration configuration)
+    private static IEnumerable<Model.Exceptions.OptionsValidationException> ValidateInternal(ConfigurationScope scope, XrmSyncConfiguration configuration, string profileName)
     {
-        if (scope.HasFlag(ConfigurationScope.PluginSync))
-        {
-            var errors = Validate(configuration.Plugin.Sync).ToList();
+        // Find the profile to validate
+        var profile = configuration.Profiles.FirstOrDefault(p => p.Name.Equals(profileName, StringComparison.OrdinalIgnoreCase));
 
-            if (errors.Count != 0)
+        if (profile == null)
+        {
+            // If a specific profile name was requested but not found, throw an error
+            if (!string.IsNullOrWhiteSpace(profileName))
             {
-                yield return new Model.Exceptions.OptionsValidationException("Plugin sync", errors);
+                yield return new Model.Exceptions.OptionsValidationException("Profile", new[] { $"Profile '{profileName}' not found in configuration." });
+                yield break;
             }
+
+            // No profiles configured and no specific profile requested, validation passes (CLI mode)
+            yield break;
         }
 
-        if (scope.HasFlag(ConfigurationScope.PluginAnalysis))
+        // Validate solution name at profile level
+        var profileErrors = ValidateSolutionName(profile.SolutionName).ToList();
+        if (profileErrors.Count != 0)
         {
-            var errors = Validate(configuration.Plugin.Analysis).ToList();
-
-            if (errors.Count != 0)
-            {
-                yield return new Model.Exceptions.OptionsValidationException("Plugin analysis", errors);
-            }
+            yield return new Model.Exceptions.OptionsValidationException($"Profile '{profile.Name}'", profileErrors);
         }
 
-        if (scope.HasFlag(ConfigurationScope.WebresourceSync))
+        // Validate each sync item in the profile based on scope
+        foreach (var syncItem in profile.Sync)
         {
-            var errors = Validate(configuration.Webresource.Sync).ToList();
+            List<string> errors = new();
 
-            if (errors.Count != 0)
+            switch (syncItem)
             {
-                yield return new Model.Exceptions.OptionsValidationException("Webresource sync", errors);
+                case PluginSyncItem pluginSync when scope.HasFlag(ConfigurationScope.PluginSync):
+                    errors = Validate(pluginSync).ToList();
+                    if (errors.Count != 0)
+                    {
+                        yield return new Model.Exceptions.OptionsValidationException($"Plugin sync in profile '{profile.Name}'", errors);
+                    }
+                    break;
+
+                case PluginAnalysisSyncItem pluginAnalysis when scope.HasFlag(ConfigurationScope.PluginAnalysis):
+                    errors = Validate(pluginAnalysis).ToList();
+                    if (errors.Count != 0)
+                    {
+                        yield return new Model.Exceptions.OptionsValidationException($"Plugin analysis in profile '{profile.Name}'", errors);
+                    }
+                    break;
+
+                case WebresourceSyncItem webresource when scope.HasFlag(ConfigurationScope.WebresourceSync):
+                    errors = Validate(webresource).ToList();
+                    if (errors.Count != 0)
+                    {
+                        yield return new Model.Exceptions.OptionsValidationException($"Webresource sync in profile '{profile.Name}'", errors);
+                    }
+                    break;
             }
         }
     }
 
-    private static IEnumerable<string> Validate(PluginSyncOptions options)
+    private static IEnumerable<string> Validate(PluginSyncItem syncItem)
     {
         return [
-            ..ValidateAssemblyPath(options.AssemblyPath),
-            ..ValidateSolutionName(options.SolutionName)
+            ..ValidateAssemblyPath(syncItem.AssemblyPath)
         ];
     }
 
-    private static IEnumerable<string> Validate(PluginAnalysisOptions options)
+    private static IEnumerable<string> Validate(PluginAnalysisSyncItem syncItem)
     {
         return [
-            ..ValidateAssemblyPath(options.AssemblyPath),
-            ..ValidatePublisherPrefix(options.PublisherPrefix)
+            ..ValidateAssemblyPath(syncItem.AssemblyPath),
+            ..ValidatePublisherPrefix(syncItem.PublisherPrefix)
         ];
     }
 
-    private static IEnumerable<string> Validate(WebresourceSyncOptions options)
+    private static IEnumerable<string> Validate(WebresourceSyncItem syncItem)
     {
         return [
-            ..ValidateFolderPath(options.FolderPath),
-            ..ValidateSolutionName(options.SolutionName)
+            ..ValidateFolderPath(syncItem.FolderPath)
         ];
     }
 

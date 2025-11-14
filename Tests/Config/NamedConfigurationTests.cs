@@ -16,37 +16,52 @@ public class NamedConfigurationTests
         const string configJson = """
         {
           "XrmSync": {
-            "default": {
-              "Plugin": {
-                "Sync": {
-                  "AssemblyPath": "default.dll"
-                }
+            "DryRun": false,
+            "LogLevel": "Information",
+            "CiMode": false,
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "DefaultSolution",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "default.dll"
+                  }
+                ]
+              },
+              {
+                "Name": "dev",
+                "SolutionName": "DevSolution",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "dev.dll"
+                  }
+                ]
               }
-            },
-            "dev": {
-              "Plugin": {
-                "Sync": {
-                  "AssemblyPath": "dev.dll"
-                }
-              }
-            }
+            ]
           }
         }
         """;
-        
+
         var tempFile = Path.GetTempFileName();
         File.WriteAllText(tempFile, configJson);
-        
+
         try
         {
             var configReader = new TestConfigReader(tempFile);
-            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty with { ConfigName = "dev" }));
+            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty with { ProfileName = "dev" }));
 
             // Act
-            var configuration = builder.Build();
-            
+            var profile = builder.GetProfile("dev");
+
             // Assert
-            Assert.Equal("dev.dll", configuration.Plugin.Sync.AssemblyPath);
+            Assert.NotNull(profile);
+            Assert.Equal("dev", profile.Name);
+            Assert.Single(profile.Sync);
+            var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+            Assert.Equal("dev.dll", pluginSync.AssemblyPath);
         }
         finally
         {
@@ -61,37 +76,52 @@ public class NamedConfigurationTests
         const string configJson = """
         {
           "XrmSync": {
-            "default": {
-              "Plugin": {
-                "Sync": {
-                  "AssemblyPath": "default.dll"
-                }
+            "DryRun": false,
+            "LogLevel": "Information",
+            "CiMode": false,
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "DefaultSolution",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "default.dll"
+                  }
+                ]
+              },
+              {
+                "Name": "dev",
+                "SolutionName": "DevSolution",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "dev.dll"
+                  }
+                ]
               }
-            },
-            "dev": {
-              "Plugin": {
-                "Sync": {
-                  "AssemblyPath": "dev.dll"
-                }
-              }
-            }
+            ]
           }
         }
         """;
-        
+
         var tempFile = Path.GetTempFileName();
         File.WriteAllText(tempFile, configJson);
-        
+
         try
         {
             var configReader = new TestConfigReader(tempFile);
             var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
 
             // Act
-            var result = builder.Build();
+            var profile = builder.GetProfile(null);
 
             // Assert
-            Assert.Equal("default.dll", result.Plugin.Sync.AssemblyPath);
+            Assert.NotNull(profile);
+            Assert.Equal("default", profile.Name);
+            Assert.Single(profile.Sync);
+            var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+            Assert.Equal("default.dll", pluginSync.AssemblyPath);
         }
         finally
         {
@@ -106,30 +136,42 @@ public class NamedConfigurationTests
         const string configJson = """
         {
           "XrmSync": {
-            "myconfig": {
-              "Plugin": {
-                "Sync": {
-                  "AssemblyPath": "myconfig.dll"
-                }
+            "DryRun": false,
+            "LogLevel": "Information",
+            "CiMode": false,
+            "Profiles": [
+              {
+                "Name": "myconfig",
+                "SolutionName": "MySolution",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "myconfig.dll"
+                  }
+                ]
               }
-            }
+            ]
           }
         }
         """;
-        
+
         var tempFile = Path.GetTempFileName();
         File.WriteAllText(tempFile, configJson);
-        
+
         try
         {
             var configReader = new TestConfigReader(tempFile);
             var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
 
             // Act
-            var result = builder.Build();
+            var profile = builder.GetProfile(null);
 
             // Assert
-            Assert.Equal("myconfig.dll", result.Plugin.Sync.AssemblyPath);
+            Assert.NotNull(profile);
+            Assert.Equal("myconfig", profile.Name);
+            Assert.Single(profile.Sync);
+            var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+            Assert.Equal("myconfig.dll", pluginSync.AssemblyPath);
         }
         finally
         {

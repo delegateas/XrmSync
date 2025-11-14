@@ -30,11 +30,11 @@ internal class PluginSyncService(
     IDifferenceCalculator differenceUtility,
     IDescription description,
     IPrintService printService,
-    IOptions<PluginSyncOptions> configuration, ILogger<PluginSyncService> log) : ISyncService
+    IOptions<PluginSyncCommandOptions> configuration, ILogger<PluginSyncService> log) : ISyncService
 {
     private record SyncData(AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly);
 
-    private readonly PluginSyncOptions options = configuration.Value;
+    private readonly PluginSyncCommandOptions options = configuration.Value;
 
     public async Task Sync(CancellationToken cancellationToken)
     {

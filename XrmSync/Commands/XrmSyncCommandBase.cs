@@ -18,12 +18,12 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
     // Shared options available to all commands
     protected Option<bool> SaveConfigOption { get; private set; } = null!;
     protected Option<string?> SaveConfigToOption { get; private set; } = null!;
-    protected Option<string?> ConfigNameOption { get; private set; } = null!;
+    protected Option<string?> ProfileNameOption { get; private set; } = null!;
 
     public Command GetCommand() => this;
 
     /// <summary>
-    /// Adds shared options to the command (save-config, save-config-to, config-name)
+    /// Adds shared options to the command (save-config, save-config-to, profile)
     /// </summary>
     protected void AddSharedOptions()
     {
@@ -39,7 +39,7 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
             Required = false
         };
 
-        ConfigNameOption = new(CliOptions.Config.LoadConfig.Primary, CliOptions.Config.LoadConfig.Aliases)
+        ProfileNameOption = new(CliOptions.Config.LoadConfig.Primary, CliOptions.Config.LoadConfig.Aliases)
         {
             Description = CliOptions.Config.LoadConfig.Description,
             Required = false
@@ -47,7 +47,7 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 
         Add(SaveConfigOption);
         Add(SaveConfigToOption);
-        Add(ConfigNameOption);
+        Add(ProfileNameOption);
     }
 
     /// <summary>
@@ -57,9 +57,9 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
     {
         var saveConfig = parseResult.GetValue(SaveConfigOption);
         var saveConfigTo = saveConfig ? parseResult.GetValue(SaveConfigToOption) ?? ConfigReader.CONFIG_FILE_BASE + ".json" : null;
-        var configName = parseResult.GetValue(ConfigNameOption) ?? XrmSyncConfigurationBuilder.DEFAULT_CONFIG_NAME;
+        var profileName = parseResult.GetValue(ProfileNameOption) ?? XrmSyncConfigurationBuilder.DEFAULT_PROFILE_NAME;
 
-        return new (saveConfig, saveConfigTo, configName);
+        return new (saveConfig, saveConfigTo, profileName);
     }
 
     /// <summary>
@@ -85,14 +85,14 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 
         var sharedOptions = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<SharedOptions>>();
 
-        var (saveConfig, saveConfigTo, configName) = sharedOptions.Value;
+        var (saveConfig, saveConfigTo, _) = sharedOptions.Value;
         if (saveConfig)
         {
             var configWriter = serviceProvider.GetRequiredService<IConfigWriter>();
 
             var configPath = string.IsNullOrWhiteSpace(saveConfigTo) ? null : saveConfigTo;
-            
-            await configWriter.SaveConfig(configPath, configName, cancellationToken);
+
+            await configWriter.SaveConfig(configPath, cancellationToken);
             Console.WriteLine($"Configuration saved to {saveConfigTo}");
             return true;
         }

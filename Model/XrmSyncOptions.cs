@@ -1,50 +1,77 @@
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 [assembly: InternalsVisibleTo("Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace XrmSync.Model;
 
-public record XrmSyncConfiguration(PluginOptions Plugin, WebresourceOptions Webresource, LoggerOptions Logger, ExecutionOptions Execution)
+public record XrmSyncConfiguration(bool DryRun, LogLevel LogLevel, bool CiMode, List<ProfileConfiguration> Profiles)
 {
-    public static XrmSyncConfiguration Empty => new (PluginOptions.Empty, WebresourceOptions.Empty, LoggerOptions.Empty, ExecutionOptions.Empty);
-}
-public record PluginOptions(PluginSyncOptions Sync, PluginAnalysisOptions Analysis)
-{
-    public static PluginOptions Empty => new(PluginSyncOptions.Empty, PluginAnalysisOptions.Empty);
+    public static XrmSyncConfiguration Empty => new (false, LogLevel.Information, false, new List<ProfileConfiguration>());
 }
 
-public record WebresourceOptions(WebresourceSyncOptions Sync)
+public record ProfileConfiguration(string Name, string SolutionName, List<SyncItem> Sync)
 {
-    public static WebresourceOptions Empty => new (WebresourceSyncOptions.Empty);
+    public static ProfileConfiguration Empty => new (string.Empty, string.Empty, new List<SyncItem>());
 }
 
-public record PluginSyncOptions(string AssemblyPath, string SolutionName)
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
+[JsonDerivedType(typeof(PluginSyncItem), typeDiscriminator: "Plugin")]
+[JsonDerivedType(typeof(PluginAnalysisSyncItem), typeDiscriminator: "PluginAnalysis")]
+[JsonDerivedType(typeof(WebresourceSyncItem), typeDiscriminator: "Webresource")]
+public abstract record SyncItem
 {
-    public static PluginSyncOptions Empty => new (string.Empty, string.Empty);
+    [JsonIgnore]
+    public abstract string SyncType { get; }
 }
 
-public record PluginAnalysisOptions(string AssemblyPath, string PublisherPrefix, bool PrettyPrint)
+public record PluginSyncItem(string AssemblyPath) : SyncItem
 {
-    public static PluginAnalysisOptions Empty => new (string.Empty, "new", false);
+    public static PluginSyncItem Empty => new (string.Empty);
+
+    [JsonIgnore]
+    public override string SyncType => "Plugin";
 }
 
-public record WebresourceSyncOptions(string FolderPath, string SolutionName)
+public record PluginAnalysisSyncItem(string AssemblyPath, string PublisherPrefix, bool PrettyPrint) : SyncItem
 {
-    public static WebresourceSyncOptions Empty => new (string.Empty, string.Empty);
+    public static PluginAnalysisSyncItem Empty => new (string.Empty, "new", false);
+
+    [JsonIgnore]
+    public override string SyncType => "PluginAnalysis";
 }
 
-public record LoggerOptions(LogLevel LogLevel, bool CiMode)
+public record WebresourceSyncItem(string FolderPath) : SyncItem
 {
-    public static LoggerOptions Empty => new (LogLevel.Information, false);
+    public static WebresourceSyncItem Empty => new (string.Empty);
+
+    [JsonIgnore]
+    public override string SyncType => "Webresource";
 }
 
-public record ExecutionOptions(bool DryRun)
-{
-    public static ExecutionOptions Empty => new (false);
-}
-
-public record SharedOptions(bool SaveConfig, string? SaveConfigTo, string ConfigName)
+public record SharedOptions(bool SaveConfig, string? SaveConfigTo, string ProfileName)
 {
     public static SharedOptions Empty => new(false, null, string.Empty);
+}
+
+// Command-specific options that can be populated from CLI or profile
+public record PluginSyncCommandOptions(string AssemblyPath, string SolutionName)
+{
+    public static PluginSyncCommandOptions Empty => new(string.Empty, string.Empty);
+}
+
+public record PluginAnalysisCommandOptions(string AssemblyPath, string PublisherPrefix, bool PrettyPrint)
+{
+    public static PluginAnalysisCommandOptions Empty => new(string.Empty, "new", false);
+}
+
+public record WebresourceSyncCommandOptions(string FolderPath, string SolutionName)
+{
+    public static WebresourceSyncCommandOptions Empty => new(string.Empty, string.Empty);
+}
+
+public record ExecutionModeOptions(bool DryRun)
+{
+    public static ExecutionModeOptions Empty => new(false);
 }

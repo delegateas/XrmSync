@@ -38,7 +38,7 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
         }
 
         logger.LogDebug("Reading assembly from {AssemblyDllPath}", assemblyDllPath);
-        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, publisherPrefix, sharedOptions.Value.ConfigName, cancellationToken);
+        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, publisherPrefix, sharedOptions.Value.ProfileName, cancellationToken);
 
         // Cache the assembly info
         assemblyCache[assemblyDllPath] = assemblyInfo;

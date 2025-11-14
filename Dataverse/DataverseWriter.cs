@@ -15,7 +15,7 @@ internal sealed class DataverseWriter : IDataverseWriter
     private readonly ServiceClient serviceClient;
     private readonly ILogger<DataverseWriter> logger;
 
-    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, IOptions<ExecutionOptions> configuration)
+    public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, IOptions<ExecutionModeOptions> configuration)
     {
         if (configuration.Value.DryRun)
         {
