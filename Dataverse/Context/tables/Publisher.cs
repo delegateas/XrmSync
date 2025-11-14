@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>A publisher of a CRM solution.</para>
 /// <para>Display Name: Publisher</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("publisher")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]

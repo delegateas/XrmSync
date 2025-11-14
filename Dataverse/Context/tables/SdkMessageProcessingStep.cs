@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Stage in the execution pipeline that a plug-in is to execute.</para>
 /// <para>Display Name: Sdk Message Processing Step</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("sdkmessageprocessingstep")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]

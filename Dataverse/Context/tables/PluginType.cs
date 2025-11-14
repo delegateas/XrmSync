@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Type that inherits from the IPlugin interface and is contained within a plug-in assembly.</para>
 /// <para>Display Name: Plug-in Type</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("plugintype")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
@@ -474,20 +474,20 @@ public partial class PluginType : ExtendedEntity
         set => SetRelatedEntities("plugintype_sdkmessageprocessingstep", null, value);
     }
 
-    [RelationshipSchemaName("plugintype_customapi")]
-    [RelationshipMetadata("OneToMany", "plugintypeid", "customapi", "plugintypeid", "Referenced")]
-    public IEnumerable<CustomAPI> plugintype_customapi
-    {
-        get => GetRelatedEntities<CustomAPI>("plugintype_customapi", null);
-        set => SetRelatedEntities("plugintype_customapi", null, value);
-    }
-
     [RelationshipSchemaName("plugintypeid_sdkmessageprocessingstep")]
     [RelationshipMetadata("OneToMany", "plugintypeid", "sdkmessageprocessingstep", "plugintypeid", "Referenced")]
     public IEnumerable<SdkMessageProcessingStep> plugintypeid_sdkmessageprocessingstep
     {
         get => GetRelatedEntities<SdkMessageProcessingStep>("plugintypeid_sdkmessageprocessingstep", null);
         set => SetRelatedEntities("plugintypeid_sdkmessageprocessingstep", null, value);
+    }
+
+    [RelationshipSchemaName("plugintype_customapi")]
+    [RelationshipMetadata("OneToMany", "plugintypeid", "customapi", "plugintypeid", "Referenced")]
+    public IEnumerable<CustomAPI> plugintype_customapi
+    {
+        get => GetRelatedEntities<CustomAPI>("plugintype_customapi", null);
+        set => SetRelatedEntities("plugintype_customapi", null, value);
     }
 
     /// <summary>
@@ -512,5 +512,26 @@ public partial class PluginType : ExtendedEntity
     public static PluginType Retrieve(IOrganizationService service, Guid id, params Expression<Func<PluginType, object>>[] columns)
     {
         return service.Retrieve(id, columns);
+    }
+
+    /// <summary>
+    /// Retrieves the PluginType using the Plugin Type Entity Key1 alternate key.
+    /// </summary>
+    /// <param name="service">Organization service</param>
+    /// <param name="ComponentState">ComponentState key value</param>
+    /// <param name="OverwriteTime">OverwriteTime key value</param>
+    /// <param name="PluginTypeExportKey">PluginTypeExportKey key value</param>
+    /// <param name="columns">Expressions that specify columns to retrieve</param>
+    /// <returns>The retrieved PluginType</returns>
+    public static PluginType Retrieve_PluginTypeEntityKey(IOrganizationService service, componentstate ComponentState, DateTime OverwriteTime, string PluginTypeExportKey, params Expression<Func<PluginType, object>>[] columns)
+    {
+        var keyedEntityReference = new EntityReference(EntityLogicalName, new KeyAttributeCollection
+        {
+            ["componentstate"] = ComponentState,
+            ["overwritetime"] = OverwriteTime,
+            ["plugintypeexportkey"] = PluginTypeExportKey,
+        });
+
+        return service.Retrieve(keyedEntityReference, columns);
     }
 }

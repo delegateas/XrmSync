@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>A component dependency in CRM.</para>
 /// <para>Display Name: Dependency</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("dependency")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]

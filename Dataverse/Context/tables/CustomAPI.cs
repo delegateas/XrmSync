@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Entity that defines a custom API</para>
 /// <para>Display Name: Custom API</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("customapi")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
@@ -21,7 +21,7 @@ public partial class CustomAPI : ExtendedEntity
 #pragma warning restore CS8981
 {
     public const string EntityLogicalName = "customapi";
-    public const int EntityTypeCode = 10027;
+    public const int EntityTypeCode = 10036;
 
     public CustomAPI() : base(EntityLogicalName) { }
     public CustomAPI(Guid id) : base(EntityLogicalName, id) { }
@@ -625,5 +625,26 @@ public partial class CustomAPI : ExtendedEntity
     public static CustomAPI Retrieve(IOrganizationService service, Guid id, params Expression<Func<CustomAPI, object>>[] columns)
     {
         return service.Retrieve(id, columns);
+    }
+
+    /// <summary>
+    /// Retrieves the CustomAPI using the Custom API Export Key alternate key.
+    /// </summary>
+    /// <param name="service">Organization service</param>
+    /// <param name="ComponentState">ComponentState key value</param>
+    /// <param name="OverwriteTime">OverwriteTime key value</param>
+    /// <param name="UniqueName">UniqueName key value</param>
+    /// <param name="columns">Expressions that specify columns to retrieve</param>
+    /// <returns>The retrieved CustomAPI</returns>
+    public static CustomAPI Retrieve_CustomAPIExportKey(IOrganizationService service, componentstate ComponentState, DateTime OverwriteTime, string UniqueName, params Expression<Func<CustomAPI, object>>[] columns)
+    {
+        var keyedEntityReference = new EntityReference(EntityLogicalName, new KeyAttributeCollection
+        {
+            ["componentstate"] = ComponentState,
+            ["overwritetime"] = OverwriteTime,
+            ["uniquename"] = UniqueName,
+        });
+
+        return service.Retrieve(keyedEntityReference, columns);
     }
 }

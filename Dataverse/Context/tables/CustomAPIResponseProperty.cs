@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Entity that defines a response property for a custom API</para>
 /// <para>Display Name: Custom API Response Property</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("customapiresponseproperty")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
@@ -21,7 +21,7 @@ public partial class CustomAPIResponseProperty : ExtendedEntity
 #pragma warning restore CS8981
 {
     public const string EntityLogicalName = "customapiresponseproperty";
-    public const int EntityTypeCode = 10029;
+    public const int EntityTypeCode = 10038;
 
     public CustomAPIResponseProperty() : base(EntityLogicalName) { }
     public CustomAPIResponseProperty(Guid id) : base(EntityLogicalName, id) { }
@@ -496,5 +496,28 @@ public partial class CustomAPIResponseProperty : ExtendedEntity
     public static CustomAPIResponseProperty Retrieve(IOrganizationService service, Guid id, params Expression<Func<CustomAPIResponseProperty, object>>[] columns)
     {
         return service.Retrieve(id, columns);
+    }
+
+    /// <summary>
+    /// Retrieves the CustomAPIResponseProperty using the Custom API Response Property Export Key alternate key.
+    /// </summary>
+    /// <param name="service">Organization service</param>
+    /// <param name="ComponentState">ComponentState key value</param>
+    /// <param name="CustomAPIId">CustomAPIId key value</param>
+    /// <param name="OverwriteTime">OverwriteTime key value</param>
+    /// <param name="UniqueName">UniqueName key value</param>
+    /// <param name="columns">Expressions that specify columns to retrieve</param>
+    /// <returns>The retrieved CustomAPIResponseProperty</returns>
+    public static CustomAPIResponseProperty Retrieve_CustomAPIResponsePropertyExportKey(IOrganizationService service, componentstate ComponentState, Guid CustomAPIId, DateTime OverwriteTime, string UniqueName, params Expression<Func<CustomAPIResponseProperty, object>>[] columns)
+    {
+        var keyedEntityReference = new EntityReference(EntityLogicalName, new KeyAttributeCollection
+        {
+            ["componentstate"] = ComponentState,
+            ["customapiid"] = CustomAPIId,
+            ["overwritetime"] = OverwriteTime,
+            ["uniquename"] = UniqueName,
+        });
+
+        return service.Retrieve(keyedEntityReference, columns);
     }
 }

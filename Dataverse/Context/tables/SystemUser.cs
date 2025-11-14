@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Person with access to the Microsoft CRM system and who owns objects in the Microsoft CRM database.</para>
 /// <para>Display Name: User</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("systemuser")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
@@ -1810,110 +1810,6 @@ public partial class SystemUser : ExtendedEntity
         set => SetRelatedEntities("lk_solutionbase_createdonbehalfby", null, value);
     }
 
-    [RelationshipSchemaName("lk_customapi_createdby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "createdby", "Referenced")]
-    public IEnumerable<CustomAPI> lk_customapi_createdby
-    {
-        get => GetRelatedEntities<CustomAPI>("lk_customapi_createdby", null);
-        set => SetRelatedEntities("lk_customapi_createdby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapi_createdonbehalfby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "createdonbehalfby", "Referenced")]
-    public IEnumerable<CustomAPI> lk_customapi_createdonbehalfby
-    {
-        get => GetRelatedEntities<CustomAPI>("lk_customapi_createdonbehalfby", null);
-        set => SetRelatedEntities("lk_customapi_createdonbehalfby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapi_modifiedby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "modifiedby", "Referenced")]
-    public IEnumerable<CustomAPI> lk_customapi_modifiedby
-    {
-        get => GetRelatedEntities<CustomAPI>("lk_customapi_modifiedby", null);
-        set => SetRelatedEntities("lk_customapi_modifiedby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapi_modifiedonbehalfby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "modifiedonbehalfby", "Referenced")]
-    public IEnumerable<CustomAPI> lk_customapi_modifiedonbehalfby
-    {
-        get => GetRelatedEntities<CustomAPI>("lk_customapi_modifiedonbehalfby", null);
-        set => SetRelatedEntities("lk_customapi_modifiedonbehalfby", null, value);
-    }
-
-    [RelationshipSchemaName("user_customapi")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "owninguser", "Referenced")]
-    public IEnumerable<CustomAPI> user_customapi
-    {
-        get => GetRelatedEntities<CustomAPI>("user_customapi", null);
-        set => SetRelatedEntities("user_customapi", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapirequestparameter_createdby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapirequestparameter", "createdby", "Referenced")]
-    public IEnumerable<CustomAPIRequestParameter> lk_customapirequestparameter_createdby
-    {
-        get => GetRelatedEntities<CustomAPIRequestParameter>("lk_customapirequestparameter_createdby", null);
-        set => SetRelatedEntities("lk_customapirequestparameter_createdby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapirequestparameter_createdonbehalfby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapirequestparameter", "createdonbehalfby", "Referenced")]
-    public IEnumerable<CustomAPIRequestParameter> lk_customapirequestparameter_createdonbehalfby
-    {
-        get => GetRelatedEntities<CustomAPIRequestParameter>("lk_customapirequestparameter_createdonbehalfby", null);
-        set => SetRelatedEntities("lk_customapirequestparameter_createdonbehalfby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapirequestparameter_modifiedby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapirequestparameter", "modifiedby", "Referenced")]
-    public IEnumerable<CustomAPIRequestParameter> lk_customapirequestparameter_modifiedby
-    {
-        get => GetRelatedEntities<CustomAPIRequestParameter>("lk_customapirequestparameter_modifiedby", null);
-        set => SetRelatedEntities("lk_customapirequestparameter_modifiedby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapirequestparameter_modifiedonbehalfby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapirequestparameter", "modifiedonbehalfby", "Referenced")]
-    public IEnumerable<CustomAPIRequestParameter> lk_customapirequestparameter_modifiedonbehalfby
-    {
-        get => GetRelatedEntities<CustomAPIRequestParameter>("lk_customapirequestparameter_modifiedonbehalfby", null);
-        set => SetRelatedEntities("lk_customapirequestparameter_modifiedonbehalfby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapiresponseproperty_createdby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapiresponseproperty", "createdby", "Referenced")]
-    public IEnumerable<CustomAPIResponseProperty> lk_customapiresponseproperty_createdby
-    {
-        get => GetRelatedEntities<CustomAPIResponseProperty>("lk_customapiresponseproperty_createdby", null);
-        set => SetRelatedEntities("lk_customapiresponseproperty_createdby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapiresponseproperty_createdonbehalfby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapiresponseproperty", "createdonbehalfby", "Referenced")]
-    public IEnumerable<CustomAPIResponseProperty> lk_customapiresponseproperty_createdonbehalfby
-    {
-        get => GetRelatedEntities<CustomAPIResponseProperty>("lk_customapiresponseproperty_createdonbehalfby", null);
-        set => SetRelatedEntities("lk_customapiresponseproperty_createdonbehalfby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapiresponseproperty_modifiedby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapiresponseproperty", "modifiedby", "Referenced")]
-    public IEnumerable<CustomAPIResponseProperty> lk_customapiresponseproperty_modifiedby
-    {
-        get => GetRelatedEntities<CustomAPIResponseProperty>("lk_customapiresponseproperty_modifiedby", null);
-        set => SetRelatedEntities("lk_customapiresponseproperty_modifiedby", null, value);
-    }
-
-    [RelationshipSchemaName("lk_customapiresponseproperty_modifiedonbehalfby")]
-    [RelationshipMetadata("OneToMany", "systemuserid", "customapiresponseproperty", "modifiedonbehalfby", "Referenced")]
-    public IEnumerable<CustomAPIResponseProperty> lk_customapiresponseproperty_modifiedonbehalfby
-    {
-        get => GetRelatedEntities<CustomAPIResponseProperty>("lk_customapiresponseproperty_modifiedonbehalfby", null);
-        set => SetRelatedEntities("lk_customapiresponseproperty_modifiedonbehalfby", null, value);
-    }
-
     [RelationshipSchemaName("lk_sdkmessage_createdonbehalfby")]
     [RelationshipMetadata("OneToMany", "systemuserid", "sdkmessage", "createdonbehalfby", "Referenced")]
     public IEnumerable<SdkMessage> lk_sdkmessage_createdonbehalfby
@@ -2058,12 +1954,116 @@ public partial class SystemUser : ExtendedEntity
         set => SetRelatedEntities("lk_solutionbase_modifiedonbehalfby", null, value);
     }
 
+    [RelationshipSchemaName("lk_customapi_createdby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "createdby", "Referenced")]
+    public IEnumerable<CustomAPI> lk_customapi_createdby
+    {
+        get => GetRelatedEntities<CustomAPI>("lk_customapi_createdby", null);
+        set => SetRelatedEntities("lk_customapi_createdby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapi_createdonbehalfby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "createdonbehalfby", "Referenced")]
+    public IEnumerable<CustomAPI> lk_customapi_createdonbehalfby
+    {
+        get => GetRelatedEntities<CustomAPI>("lk_customapi_createdonbehalfby", null);
+        set => SetRelatedEntities("lk_customapi_createdonbehalfby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapi_modifiedby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "modifiedby", "Referenced")]
+    public IEnumerable<CustomAPI> lk_customapi_modifiedby
+    {
+        get => GetRelatedEntities<CustomAPI>("lk_customapi_modifiedby", null);
+        set => SetRelatedEntities("lk_customapi_modifiedby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapi_modifiedonbehalfby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "modifiedonbehalfby", "Referenced")]
+    public IEnumerable<CustomAPI> lk_customapi_modifiedonbehalfby
+    {
+        get => GetRelatedEntities<CustomAPI>("lk_customapi_modifiedonbehalfby", null);
+        set => SetRelatedEntities("lk_customapi_modifiedonbehalfby", null, value);
+    }
+
+    [RelationshipSchemaName("user_customapi")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapi", "owninguser", "Referenced")]
+    public IEnumerable<CustomAPI> user_customapi
+    {
+        get => GetRelatedEntities<CustomAPI>("user_customapi", null);
+        set => SetRelatedEntities("user_customapi", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapirequestparameter_createdby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapirequestparameter", "createdby", "Referenced")]
+    public IEnumerable<CustomAPIRequestParameter> lk_customapirequestparameter_createdby
+    {
+        get => GetRelatedEntities<CustomAPIRequestParameter>("lk_customapirequestparameter_createdby", null);
+        set => SetRelatedEntities("lk_customapirequestparameter_createdby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapirequestparameter_createdonbehalfby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapirequestparameter", "createdonbehalfby", "Referenced")]
+    public IEnumerable<CustomAPIRequestParameter> lk_customapirequestparameter_createdonbehalfby
+    {
+        get => GetRelatedEntities<CustomAPIRequestParameter>("lk_customapirequestparameter_createdonbehalfby", null);
+        set => SetRelatedEntities("lk_customapirequestparameter_createdonbehalfby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapirequestparameter_modifiedby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapirequestparameter", "modifiedby", "Referenced")]
+    public IEnumerable<CustomAPIRequestParameter> lk_customapirequestparameter_modifiedby
+    {
+        get => GetRelatedEntities<CustomAPIRequestParameter>("lk_customapirequestparameter_modifiedby", null);
+        set => SetRelatedEntities("lk_customapirequestparameter_modifiedby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapirequestparameter_modifiedonbehalfby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapirequestparameter", "modifiedonbehalfby", "Referenced")]
+    public IEnumerable<CustomAPIRequestParameter> lk_customapirequestparameter_modifiedonbehalfby
+    {
+        get => GetRelatedEntities<CustomAPIRequestParameter>("lk_customapirequestparameter_modifiedonbehalfby", null);
+        set => SetRelatedEntities("lk_customapirequestparameter_modifiedonbehalfby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapiresponseproperty_createdby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapiresponseproperty", "createdby", "Referenced")]
+    public IEnumerable<CustomAPIResponseProperty> lk_customapiresponseproperty_createdby
+    {
+        get => GetRelatedEntities<CustomAPIResponseProperty>("lk_customapiresponseproperty_createdby", null);
+        set => SetRelatedEntities("lk_customapiresponseproperty_createdby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapiresponseproperty_createdonbehalfby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapiresponseproperty", "createdonbehalfby", "Referenced")]
+    public IEnumerable<CustomAPIResponseProperty> lk_customapiresponseproperty_createdonbehalfby
+    {
+        get => GetRelatedEntities<CustomAPIResponseProperty>("lk_customapiresponseproperty_createdonbehalfby", null);
+        set => SetRelatedEntities("lk_customapiresponseproperty_createdonbehalfby", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapiresponseproperty_modifiedby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapiresponseproperty", "modifiedby", "Referenced")]
+    public IEnumerable<CustomAPIResponseProperty> lk_customapiresponseproperty_modifiedby
+    {
+        get => GetRelatedEntities<CustomAPIResponseProperty>("lk_customapiresponseproperty_modifiedby", null);
+        set => SetRelatedEntities("lk_customapiresponseproperty_modifiedby", null, value);
+    }
+
     [RelationshipSchemaName("createdby_sdkmessage")]
     [RelationshipMetadata("OneToMany", "systemuserid", "sdkmessage", "createdby", "Referenced")]
     public IEnumerable<SdkMessage> createdby_sdkmessage
     {
         get => GetRelatedEntities<SdkMessage>("createdby_sdkmessage", null);
         set => SetRelatedEntities("createdby_sdkmessage", null, value);
+    }
+
+    [RelationshipSchemaName("lk_customapiresponseproperty_modifiedonbehalfby")]
+    [RelationshipMetadata("OneToMany", "systemuserid", "customapiresponseproperty", "modifiedonbehalfby", "Referenced")]
+    public IEnumerable<CustomAPIResponseProperty> lk_customapiresponseproperty_modifiedonbehalfby
+    {
+        get => GetRelatedEntities<CustomAPIResponseProperty>("lk_customapiresponseproperty_modifiedonbehalfby", null);
+        set => SetRelatedEntities("lk_customapiresponseproperty_modifiedonbehalfby", null, value);
     }
 
     [RelationshipSchemaName("lk_webresourcebase_createdonbehalfby")]
@@ -2184,5 +2184,22 @@ public partial class SystemUser : ExtendedEntity
     public static SystemUser Retrieve(IOrganizationService service, Guid id, params Expression<Func<SystemUser, object>>[] columns)
     {
         return service.Retrieve(id, columns);
+    }
+
+    /// <summary>
+    /// Retrieves the SystemUser using the AAD ObjectId alternate key.
+    /// </summary>
+    /// <param name="service">Organization service</param>
+    /// <param name="AzureActiveDirectoryObjectId">AzureActiveDirectoryObjectId key value</param>
+    /// <param name="columns">Expressions that specify columns to retrieve</param>
+    /// <returns>The retrieved SystemUser</returns>
+    public static SystemUser Retrieve_aadobjectid(IOrganizationService service, Guid AzureActiveDirectoryObjectId, params Expression<Func<SystemUser, object>>[] columns)
+    {
+        var keyedEntityReference = new EntityReference(EntityLogicalName, new KeyAttributeCollection
+        {
+            ["azureactivedirectoryobjectid"] = AzureActiveDirectoryObjectId,
+        });
+
+        return service.Retrieve(keyedEntityReference, columns);
     }
 }

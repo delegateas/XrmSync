@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Person or group associated with an activity. An activity can have multiple activity parties.</para>
 /// <para>Display Name: Activity Party</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("activityparty")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]

@@ -4,7 +4,7 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace XrmSync.Dataverse.Context;
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 public static class TableAttributeHelpers
 {
     /// <summary>
@@ -101,5 +101,35 @@ public static class TableAttributeHelpers
         var columnSet = new ColumnSet(columnNames);
 
         return service.Retrieve(entityLogicalName, id, columnSet).ToEntity<T>();
+    }
+
+    /// <summary>
+    /// Retrieves an entity of type T using an alternate key with the specified attributes.
+    /// </summary>
+    /// <typeparam name="T">Type of Entity to retrieve</typeparam>
+    /// <param name="service">Organization service</param>
+    /// <param name="keyedEntityReference">EntityReference with alternate key values</param>
+    /// <param name="attrs">Expressions that specify attributes to retrieve</param>
+    /// <returns>The retrieved entity</returns>
+    public static T Retrieve<T>(this IOrganizationService service, EntityReference keyedEntityReference, params Expression<Func<T, object>>[] attrs)
+        where T : Entity, new()
+    {
+        if (service == null) throw new ArgumentNullException(nameof(service));
+        if (keyedEntityReference == null) throw new ArgumentNullException(nameof(keyedEntityReference));
+
+        var req = new Microsoft.Xrm.Sdk.Messages.RetrieveRequest();
+        req.Target = keyedEntityReference;
+
+        if (attrs == null || attrs.Length == 0)
+        {
+            req.ColumnSet = new ColumnSet(true);
+        }
+        else
+        {
+            var columnNames = attrs.Select(attr => GetColumnName(attr)).ToArray();
+            req.ColumnSet = new ColumnSet(columnNames);
+        }
+
+        return (service.Execute(req) as Microsoft.Xrm.Sdk.Messages.RetrieveResponse)?.Entity?.ToEntity<T>();
     }
 }

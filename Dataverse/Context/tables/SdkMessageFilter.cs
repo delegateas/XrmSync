@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Filter that defines which SDK messages are valid for each type of entity.</para>
 /// <para>Display Name: Sdk Message Filter</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("sdkmessagefilter")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
@@ -240,6 +240,7 @@ public partial class SdkMessageFilter : ExtendedEntity
     /// </summary>
     [AttributeLogicalName("primaryobjecttypecode")]
     [DisplayName("Primary Object Type Code")]
+    [MaxLength()]
     public string PrimaryObjectTypeCode
     {
         get => GetAttributeValue<string>("primaryobjecttypecode");
@@ -300,10 +301,11 @@ public partial class SdkMessageFilter : ExtendedEntity
     /// </summary>
     [AttributeLogicalName("secondaryobjecttypecode")]
     [DisplayName("Secondary Object Type Code")]
-    public sdkmessagefilter_secondaryobjecttypecode? SecondaryObjectTypeCode
+    [MaxLength()]
+    public string SecondaryObjectTypeCode
     {
-        get => this.GetOptionSetValue<sdkmessagefilter_secondaryobjecttypecode>("secondaryobjecttypecode");
-        set => this.SetOptionSetValue("secondaryobjecttypecode", value);
+        get => GetAttributeValue<string>("secondaryobjecttypecode");
+        set => SetAttributeValue("secondaryobjecttypecode", value);
     }
 
     /// <summary>

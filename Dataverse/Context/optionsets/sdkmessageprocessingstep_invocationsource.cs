@@ -2,7 +2,7 @@ using System.Runtime.Serialization;
 
 namespace XrmSync.Dataverse.Context;
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [DataContract]
 #pragma warning disable CS8981
 public enum sdkmessageprocessingstep_invocationsource

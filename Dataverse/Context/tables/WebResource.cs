@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Data equivalent to files used in Web development. Web resources provide client-side components that are used to provide custom user interface elements.</para>
 /// <para>Display Name: Web Resource</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("webresource")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]

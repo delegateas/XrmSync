@@ -196,7 +196,7 @@ public class WebresourceValidationTests
         var webresourceToCreate = new WebresourceDefinition(
             "test_solution/js/existing.js",
             "Existing Script",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         );
 
@@ -230,14 +230,14 @@ public class WebresourceValidationTests
         var webresource1 = new WebresourceDefinition(
             "test_solution/js/new.js",
             "New Script",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         );
 
         var webresource2 = new WebresourceDefinition(
             "test_solution/css/new.css",
             "New Style",
-            WebresourceType.StyleSheetCss,
+            WebresourceType.CSS,
             "Y29udGVudA=="
         );
 
@@ -269,14 +269,14 @@ public class WebresourceValidationTests
         var webresource1 = new WebresourceDefinition(
             "test_solution/js/conflict1.js",
             "Conflict 1",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         );
 
         var webresource2 = new WebresourceDefinition(
             "test_solution/js/conflict2.js",
             "Conflict 2",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         );
 
@@ -316,7 +316,7 @@ public class WebresourceValidationTests
         var webresourceToCreate = new WebresourceDefinition(
             "test_solution/js/SCRIPT.JS", // Upper case
             "Script",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         );
 
@@ -348,7 +348,7 @@ public class WebresourceValidationTests
         var webresourceToDelete = new WebresourceDefinition(
             "test_solution/js/existing.js",
             "Existing Script",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         )
         {
@@ -385,7 +385,7 @@ public class WebresourceValidationTests
         var webresourceToCreate = new WebresourceDefinition(
             "test_solution/js/new.js",
             "New Script",
-            WebresourceType.ScriptJscript,
+            WebresourceType.JavaScript,
             "Y29udGVudA=="
         );
         // No Id set - it's a create, not a delete

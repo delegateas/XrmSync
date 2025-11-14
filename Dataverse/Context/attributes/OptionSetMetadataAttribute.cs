@@ -1,6 +1,6 @@
 namespace XrmSync.Dataverse.Context;
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 public sealed class OptionSetMetadataAttribute : Attribute
 {

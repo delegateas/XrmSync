@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Copy of an entity's attributes before or after the core system operation.</para>
 /// <para>Display Name: Sdk Message Processing Step Image</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("sdkmessageprocessingstepimage")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
@@ -45,7 +45,7 @@ public partial class SdkMessageProcessingStepImage : ExtendedEntity
     [AttributeLogicalName("attributes")]
     [DisplayName("Attributes")]
     [MaxLength(100000)]
-    public string Attributes1
+    public string Attributes_1
     {
         get => GetAttributeValue<string>("attributes");
         set => SetAttributeValue("attributes", value);

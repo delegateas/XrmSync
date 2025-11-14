@@ -67,7 +67,7 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
                     Name = image.Name,
                     EntityAlias = image.EntityAlias,
                     ImageType = (sdkmessageprocessingstepimage_imagetype)image.ImageType,
-                    Attributes1 = image.Attributes,
+                    Attributes_1 = image.Attributes,
                     SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, step.Id),
                 };
             }).ToList();
@@ -153,7 +153,7 @@ internal class PluginWriter(IMessageReader messageReader, IDataverseWriter write
                 Name = image.Name,
                 EntityAlias = image.EntityAlias,
                 ImageType = (sdkmessageprocessingstepimage_imagetype)image.ImageType,
-                Attributes1 = image.Attributes,
+                Attributes_1 = image.Attributes,
                 MessagePropertyName = MessageReader.GetMessagePropertyName(step.EventOperation) ?? string.Empty,
                 SdkMessageProcessingStepId = new EntityReference(SdkMessageProcessingStep.EntityLogicalName, step.Id)
             };

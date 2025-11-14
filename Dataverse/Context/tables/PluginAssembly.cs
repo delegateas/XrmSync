@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Assembly that contains one or more plug-in types.</para>
 /// <para>Display Name: Plug-in Assembly</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("pluginassembly")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]

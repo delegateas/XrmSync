@@ -12,7 +12,7 @@ namespace XrmSync.Dataverse.Context;
 /// <para>Message that is supported by the SDK.</para>
 /// <para>Display Name: Sdk Message</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 [EntityLogicalName("sdkmessage")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
@@ -440,14 +440,6 @@ public partial class SdkMessage : ExtendedEntity
         set => SetRelatedEntity("lk_sdkmessage_modifiedonbehalfby", null, value);
     }
 
-    [RelationshipSchemaName("sdkmessage_customapi")]
-    [RelationshipMetadata("OneToMany", "sdkmessageid", "customapi", "sdkmessageid", "Referenced")]
-    public IEnumerable<CustomAPI> sdkmessage_customapi
-    {
-        get => GetRelatedEntities<CustomAPI>("sdkmessage_customapi", null);
-        set => SetRelatedEntities("sdkmessage_customapi", null, value);
-    }
-
     [RelationshipSchemaName("sdkmessageid_sdkmessageprocessingstep")]
     [RelationshipMetadata("OneToMany", "sdkmessageid", "sdkmessageprocessingstep", "sdkmessageid", "Referenced")]
     public IEnumerable<SdkMessageProcessingStep> sdkmessageid_sdkmessageprocessingstep
@@ -462,6 +454,14 @@ public partial class SdkMessage : ExtendedEntity
     {
         get => GetRelatedEntities<SdkMessageFilter>("sdkmessageid_sdkmessagefilter", null);
         set => SetRelatedEntities("sdkmessageid_sdkmessagefilter", null, value);
+    }
+
+    [RelationshipSchemaName("sdkmessage_customapi")]
+    [RelationshipMetadata("OneToMany", "sdkmessageid", "customapi", "sdkmessageid", "Referenced")]
+    public IEnumerable<CustomAPI> sdkmessage_customapi
+    {
+        get => GetRelatedEntities<CustomAPI>("sdkmessage_customapi", null);
+        set => SetRelatedEntities("sdkmessage_customapi", null, value);
     }
 
     /// <summary>

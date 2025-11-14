@@ -38,7 +38,7 @@ internal class PluginSyncService(
 
     public async Task Sync(CancellationToken cancellationToken)
     {
-        printService.PrintHeader(PrintHeaderOptions.Default with { Message = "Comparing plugins registered in Dataverse versus those found in your local code" });
+         printService.PrintHeader(PrintHeaderOptions.Default with { Message = "Comparing plugins registered in Dataverse versus those found in your local code" });
 
         // Read the data from the local assembly and from Dataverse
         var (localAssembly, crmAssembly) = await ReadData(cancellationToken);

@@ -3,7 +3,7 @@ using Microsoft.Xrm.Sdk.Client;
 
 namespace XrmSync.Dataverse.Context;
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.19")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
 public class DataverseContext : OrganizationServiceContext
 {
     public DataverseContext(IOrganizationService service)
