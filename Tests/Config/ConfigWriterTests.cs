@@ -9,15 +9,15 @@ namespace Tests.Config;
 
 public class ConfigWriterTests
 {
-    private readonly ILogger<ConfigWriter> _logger;
+    private readonly ILogger<ConfigWriter> logger;
 
     public ConfigWriterTests()
     {
-        _logger = Substitute.For<ILogger<ConfigWriter>>();
+        logger = Substitute.For<ILogger<ConfigWriter>>();
     }
 
     [Fact]
-    public async Task SaveConfig_CreatesNewFile_UsesDefaultConfigName()
+    public async Task SaveConfigCreatesNewFileUsesDefaultConfigName()
     {
         // Arrange
         var tempFile = Path.GetTempFileName();
@@ -36,7 +36,7 @@ public class ConfigWriterTests
         );
 
         var options = Options.Create(config);
-        var configWriter = new ConfigWriter(options, _logger);
+        var configWriter = new ConfigWriter(options, logger);
 
         try
         {
@@ -82,7 +82,7 @@ public class ConfigWriterTests
     }
 
     [Fact]
-    public async Task SaveConfig_CreatesNewFile_WithNamedStructure()
+    public async Task SaveConfigCreatesNewFileWithNamedStructure()
     {
         // Arrange
         var tempFile = Path.GetTempFileName();
@@ -101,7 +101,7 @@ public class ConfigWriterTests
         );
 
         var options = Options.Create(config);
-        var configWriter = new ConfigWriter(options, _logger);
+        var configWriter = new ConfigWriter(options, logger);
 
         try
         {
@@ -129,7 +129,7 @@ public class ConfigWriterTests
     }
 
     [Fact]
-    public async Task SaveConfig_MergesWithExistingFile_PreservingOtherSections()
+    public async Task SaveConfigMergesWithExistingFilePreservingOtherSections()
     {
         // Arrange
         var tempFile = Path.GetTempFileName();
@@ -155,7 +155,7 @@ public class ConfigWriterTests
         );
 
         var options = Options.Create(config);
-        var configWriter = new ConfigWriter(options, _logger);
+        var configWriter = new ConfigWriter(options, logger);
 
         try
         {
@@ -185,7 +185,7 @@ public class ConfigWriterTests
     }
 
     [Fact]
-    public async Task SaveConfig_UpdatesExistingNamedConfig_WithoutAffectingOtherConfigs()
+    public async Task SaveConfigUpdatesExistingNamedConfigWithoutAffectingOtherConfigs()
     {
         // Arrange
         var tempFile = Path.GetTempFileName();
@@ -222,7 +222,7 @@ public class ConfigWriterTests
         );
 
         var options = Options.Create(config);
-        var configWriter = new ConfigWriter(options, _logger);
+        var configWriter = new ConfigWriter(options, logger);
 
         try
         {
@@ -258,7 +258,7 @@ public class ConfigWriterTests
     }
 
     [Fact]
-    public async Task SaveConfig_UsesDefaultFileName_WhenFilePathIsNull()
+    public async Task SaveConfigUsesDefaultFileNameWhenFilePathIsNull()
     {
         // Arrange
         var currentDir = Directory.GetCurrentDirectory();
@@ -281,7 +281,7 @@ public class ConfigWriterTests
         );
 
         var options = Options.Create(config);
-        var configWriter = new ConfigWriter(options, _logger);
+        var configWriter = new ConfigWriter(options, logger);
 
         try
         {

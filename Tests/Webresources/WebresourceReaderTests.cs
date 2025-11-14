@@ -37,7 +37,7 @@ public class WebresourceReaderTests
     }
 
     [Fact]
-    public void GetWebresources_ReturnsWebresourcesForSolution()
+    public void GetWebresourcesReturnsWebresourcesForSolution()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -72,7 +72,7 @@ public class WebresourceReaderTests
     }
 
     [Fact]
-    public void GetWebresources_ExcludesManagedWebresources()
+    public void GetWebresourcesExcludesManagedWebresources()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -105,7 +105,7 @@ public class WebresourceReaderTests
     }
 
     [Fact]
-    public void GetWebresources_MapsWebresourceTypeCorrectly()
+    public void GetWebresourcesMapsWebresourceTypeCorrectly()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -134,7 +134,7 @@ public class WebresourceReaderTests
     }
 
     [Fact]
-    public void GetWebresources_ReturnsEmptyList_WhenNoWebresourcesInSolution()
+    public void GetWebresourcesReturnsEmptyListWhenNoWebresourcesInSolution()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -150,7 +150,7 @@ public class WebresourceReaderTests
     }
 
     [Fact]
-    public void GetWebresources_OrdersByName()
+    public void GetWebresourcesOrdersByName()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -189,7 +189,7 @@ public class WebresourceReaderTests
     }
 
     [Fact]
-    public void GetWebresources_HandlesNullValues()
+    public void GetWebresourcesHandlesNullValues()
     {
         // Arrange
         var solutionId = Guid.NewGuid();

@@ -20,7 +20,7 @@ public class AssemblyReaderTests
     }
 
     [Fact]
-    public async Task ReadAssemblyAsync_WithNullPath_ThrowsArgumentException()
+    public async Task ReadAssemblyAsyncWithNullPathThrowsArgumentException()
     {
         // Arrange
         string? assemblyPath = null;
@@ -30,7 +30,7 @@ public class AssemblyReaderTests
     }
 
     [Fact]
-    public async Task ReadAssemblyAsync_WithEmptyPath_ThrowsAnalysisException()
+    public async Task ReadAssemblyAsyncWithEmptyPathThrowsAnalysisException()
     {
         // Arrange
         var assemblyPath = "";
@@ -40,7 +40,7 @@ public class AssemblyReaderTests
     }
 
     [Fact]
-    public async Task ReadAssemblyAsync_WithWhitespacePath_ThrowsAnalysisException()
+    public async Task ReadAssemblyAsyncWithWhitespacePathThrowsAnalysisException()
     {
         // Arrange
         var assemblyPath = "   ";
@@ -50,7 +50,7 @@ public class AssemblyReaderTests
     }
 
     [Fact]
-    public async Task ReadAssemblyAsync_WithSamePath_ReturnsCachedResult()
+    public async Task ReadAssemblyAsyncWithSamePathReturnsCachedResult()
     {
         // This test would require mocking the internal process execution,
         // which is complex. For now, we'll test the caching behavior indirectly
@@ -72,7 +72,7 @@ public class AssemblyReaderTests
     //[InlineData("2-Hybrid")] // We can only test against one assembly, since it will be loaded otherwise, figure out a way to unload the assemblies
     //[InlineData("3-XrmPluginCore")]
     //[InlineData("4-Full-DAXIF")]
-    public void ReadAssemblyAsync_CanReadAssembly(string sampleFolder)
+    public void ReadAssemblyAsyncCanReadAssembly(string sampleFolder)
     {
         // Arange
 #if DEBUG

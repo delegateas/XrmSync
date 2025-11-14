@@ -8,7 +8,7 @@ namespace Tests.Config;
 public class OptionsValidationTests
 {
     [Fact]
-    public void SyncOptionsValidator_ValidOptions_PassesValidation()
+    public void SyncOptionsValidatorValidOptionsPassesValidation()
     {
         // Arrange
         var options = new PluginSyncOptions(
@@ -39,7 +39,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void SyncOptionsValidator_EmptyAssemblyPath_ThrowsValidationException()
+    public void SyncOptionsValidatorEmptyAssemblyPathThrowsValidationException()
     {
         // Arrange
         var options = new PluginSyncOptions(
@@ -54,7 +54,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void SyncOptionsValidator_EmptySolutionName_ThrowsValidationException()
+    public void SyncOptionsValidatorEmptySolutionNameThrowsValidationException()
     {
         // Arrange
         var options = new PluginSyncOptions(
@@ -69,7 +69,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void SyncOptionsValidator_NonExistentAssemblyFile_ThrowsValidationException()
+    public void SyncOptionsValidatorNonExistentAssemblyFileThrowsValidationException()
     {
         // Arrange
         var options = new PluginSyncOptions(
@@ -84,7 +84,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void SyncOptionsValidator_WrongFileExtension_ThrowsValidationException()
+    public void SyncOptionsValidatorWrongFileExtensionThrowsValidationException()
     {
         // Arrange
         var options = new PluginSyncOptions(
@@ -99,7 +99,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void SyncOptionsValidator_SolutionNameTooLong_ThrowsValidationException()
+    public void SyncOptionsValidatorSolutionNameTooLongThrowsValidationException()
     {
         // Arrange
         var options = new PluginSyncOptions(
@@ -114,7 +114,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void AnalysisOptionsValidator_ValidOptions_PassesValidation()
+    public void AnalysisOptionsValidatorValidOptionsPassesValidation()
     {
         // Arrange
 
@@ -145,7 +145,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void AnalysisOptionsValidator_EmptyAssemblyPath_ThrowsValidationException()
+    public void AnalysisOptionsValidatorEmptyAssemblyPathThrowsValidationException()
     {
         // Arrange
         var options = new PluginAnalysisOptions(
@@ -161,7 +161,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void AnalysisOptionsValidator_EmptyPublisherPrefix_ThrowsValidationException()
+    public void AnalysisOptionsValidatorEmptyPublisherPrefixThrowsValidationException()
     {
         // Arrange
         var options = new PluginAnalysisOptions(
@@ -177,7 +177,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void AnalysisOptionsValidator_InvalidPublisherPrefixTooShort_ThrowsValidationException()
+    public void AnalysisOptionsValidatorInvalidPublisherPrefixTooShortThrowsValidationException()
     {
         // Arrange
         var options = new PluginAnalysisOptions(
@@ -193,7 +193,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void AnalysisOptionsValidator_InvalidPublisherPrefixTooLong_ThrowsValidationException()
+    public void AnalysisOptionsValidatorInvalidPublisherPrefixTooLongThrowsValidationException()
     {
         // Arrange
         var options = new PluginAnalysisOptions(
@@ -209,7 +209,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void AnalysisOptionsValidator_InvalidPublisherPrefixFormat_ThrowsValidationException()
+    public void AnalysisOptionsValidatorInvalidPublisherPrefixFormatThrowsValidationException()
     {
         // Arrange
         var options = new PluginAnalysisOptions(
@@ -229,7 +229,7 @@ public class OptionsValidationTests
     [InlineData("ms")]
     [InlineData("contoso1")]
     [InlineData("abc123")]
-    public void AnalysisOptionsValidator_ValidPublisherPrefixes_PassValidation(string publisherPrefix)
+    public void AnalysisOptionsValidatorValidPublisherPrefixesPassValidation(string publisherPrefix)
     {
         // Arrange
 
@@ -265,7 +265,7 @@ public class OptionsValidationTests
     [InlineData("con-toso")] // Contains hyphen
     [InlineData("con_toso")] // Contains underscore
     [InlineData("con.toso")] // Contains dot
-    public void AnalysisOptionsValidator_InvalidPublisherPrefixFormats_ThrowValidationException(string publisherPrefix)
+    public void AnalysisOptionsValidatorInvalidPublisherPrefixFormatsThrowValidationException(string publisherPrefix)
     {
         // Arrange
         var options = new PluginAnalysisOptions(
@@ -282,7 +282,7 @@ public class OptionsValidationTests
 
     // Webresource validation tests start here
     [Fact]
-    public void WebresourceSyncOptionsValidator_ValidOptions_PassesValidation()
+    public void WebresourceSyncOptionsValidatorValidOptionsPassesValidation()
     {
         // Arrange
         // Create a test directory
@@ -310,7 +310,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_EmptyFolderPath_ThrowsValidationException()
+    public void WebresourceSyncOptionsValidatorEmptyFolderPathThrowsValidationException()
     {
         // Arrange
         var options = new WebresourceSyncOptions(
@@ -325,7 +325,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_NullFolderPath_ThrowsValidationException()
+    public void WebresourceSyncOptionsValidatorNullFolderPathThrowsValidationException()
     {
         // Arrange
         var options = new WebresourceSyncOptions(
@@ -340,7 +340,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_WhitespaceFolderPath_ThrowsValidationException()
+    public void WebresourceSyncOptionsValidatorWhitespaceFolderPathThrowsValidationException()
     {
         // Arrange
         var options = new WebresourceSyncOptions(
@@ -355,7 +355,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_NonExistentFolderPath_ThrowsValidationException()
+    public void WebresourceSyncOptionsValidatorNonExistentFolderPathThrowsValidationException()
     {
         // Arrange
         var options = new WebresourceSyncOptions(
@@ -370,7 +370,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_EmptySolutionName_ThrowsValidationException()
+    public void WebresourceSyncOptionsValidatorEmptySolutionNameThrowsValidationException()
     {
         // Arrange
         // Create a test directory
@@ -399,7 +399,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_NullSolutionName_ThrowsValidationException()
+    public void WebresourceSyncOptionsValidatorNullSolutionNameThrowsValidationException()
     {
         // Arrange
         // Create a test directory
@@ -428,7 +428,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_WhitespaceSolutionName_ThrowsValidationException()
+    public void WebresourceSyncOptionsValidatorWhitespaceSolutionNameThrowsValidationException()
     {
         // Arrange
         // Create a test directory
@@ -457,7 +457,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_SolutionNameTooLong_ThrowsValidationException()
+    public void WebresourceSyncOptionsValidatorSolutionNameTooLongThrowsValidationException()
     {
         // Arrange
         // Create a test directory
@@ -491,7 +491,7 @@ public class OptionsValidationTests
     [InlineData("Solution123")]
     [InlineData("A")]
     [InlineData("AB")]
-    public void WebresourceSyncOptionsValidator_ValidSolutionNames_PassValidation(string solutionName)
+    public void WebresourceSyncOptionsValidatorValidSolutionNamesPassValidation(string solutionName)
     {
         // Arrange
         // Create a test directory
@@ -519,7 +519,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_RelativeFolderPath_PassesValidation()
+    public void WebresourceSyncOptionsValidatorRelativeFolderPathPassesValidation()
     {
         // Arrange
         // Create a relative test directory
@@ -548,7 +548,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_DryRunFlags_PassValidation()
+    public void WebresourceSyncOptionsValidatorDryRunFlagsPassValidation()
     {
         // Arrange
         // Create a test directory
@@ -576,7 +576,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceSyncOptionsValidator_MultipleValidationErrors_ThrowsExceptionWithAllErrors()
+    public void WebresourceSyncOptionsValidatorMultipleValidationErrorsThrowsExceptionWithAllErrors()
     {
         // Arrange
         var options = new WebresourceSyncOptions(

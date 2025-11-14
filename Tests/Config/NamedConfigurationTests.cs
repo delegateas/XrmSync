@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using XrmSync.Commands;
 using XrmSync.Model;
 using XrmSync.Options;
 
@@ -10,7 +8,7 @@ namespace Tests.Config;
 public class NamedConfigurationTests
 {
     [Fact]
-    public void ResolveConfigurationName_WithSpecificName_ReturnsRequestedName()
+    public void ResolveConfigurationNameWithSpecificNameReturnsRequestedName()
     {
         // Arrange
         const string configJson = """
@@ -55,7 +53,7 @@ public class NamedConfigurationTests
     }
 
     [Fact]
-    public void ResolveConfigurationName_WithNoSpecificName_ReturnsDefault()
+    public void ResolveConfigurationNameWithNoSpecificNameReturnsDefault()
     {
         // Arrange
         const string configJson = """
@@ -100,7 +98,7 @@ public class NamedConfigurationTests
     }
 
     [Fact]
-    public void ResolveConfigurationName_WithSingleConfig_ReturnsThatConfig()
+    public void ResolveConfigurationNameWithSingleConfigReturnsThatConfig()
     {
         // Arrange
         const string configJson = """

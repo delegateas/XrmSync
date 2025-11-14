@@ -9,6 +9,7 @@
   </Folder>
   <Folder Name="/Solution files/">
     <File Path=".config/dotnet-tools.json" />
+    <File Path=".editorconfig" />
     <File Path=".gitignore" />
     <File Path="appsettings.json" />
     <File Path="CHANGELOG.md" />

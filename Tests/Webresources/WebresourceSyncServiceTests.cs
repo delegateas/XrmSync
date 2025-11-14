@@ -40,7 +40,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_CreatesNewWebresources_WhenOnlyExistLocally()
+    public async Task SyncCreatesNewWebresourcesWhenOnlyExistLocally()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -67,7 +67,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_DeletesWebresources_WhenOnlyExistRemotely()
+    public async Task SyncDeletesWebresourcesWhenOnlyExistRemotely()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -94,7 +94,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_UpdatesWebresources_WhenContentDiffers()
+    public async Task SyncUpdatesWebresourcesWhenContentDiffers()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -129,7 +129,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_UpdatesWebresources_WhenDisplayNameDiffers()
+    public async Task SyncUpdatesWebresourcesWhenDisplayNameDiffers()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -163,7 +163,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_DoesNotUpdate_WhenWebresourcesAreIdentical()
+    public async Task SyncDoesNotUpdateWhenWebresourcesAreIdentical()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -194,7 +194,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_HandlesMultipleOperations_Simultaneously()
+    public async Task SyncHandlesMultipleOperationsSimultaneously()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -234,7 +234,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_IsCaseInsensitive_ForNameMatching()
+    public async Task SyncIsCaseInsensitiveForNameMatching()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -265,7 +265,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_HandlesMultipleWebresourceTypes()
+    public async Task SyncHandlesMultipleWebresourceTypes()
     {
         // Arrange
         var solutionId = Guid.NewGuid();
@@ -293,7 +293,7 @@ public class WebresourceSyncServiceTests
     }
 
     [Fact]
-    public async Task Sync_CallsPrintService()
+    public async Task SyncCallsPrintService()
     {
         // Arrange
         var solutionId = Guid.NewGuid();

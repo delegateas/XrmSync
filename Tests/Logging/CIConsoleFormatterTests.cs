@@ -25,7 +25,7 @@ public class CIConsoleFormatterTests
     }
 
     [Fact]
-    public void CIConsoleFormatter_WithCIModeEnabled_DetectsFromOptions()
+    public void CIConsoleFormatterWithCIModeEnabledDetectsFromOptions()
     {
         // Arrange
         var options = new CIConsoleFormatterOptions
@@ -46,7 +46,7 @@ public class CIConsoleFormatterTests
     }
 
     [Fact]
-    public void CIConsoleFormatter_WithCIModeDisabled_DetectsFromOptions()
+    public void CIConsoleFormatterWithCIModeDisabledDetectsFromOptions()
     {
         // Arrange
         var options = new CIConsoleFormatterOptions
@@ -67,7 +67,7 @@ public class CIConsoleFormatterTests
     }
 
     [Fact]
-    public void CIConsoleFormatterOptions_DefaultsToFalse()
+    public void CIConsoleFormatterOptionsDefaultsToFalse()
     {
         // Arrange
         var options = new CIConsoleFormatterOptions

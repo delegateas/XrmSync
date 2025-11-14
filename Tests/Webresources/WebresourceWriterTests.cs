@@ -20,7 +20,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Create_CallsDataverseWriter_WithCorrectParameters()
+    public void CreateCallsDataverseWriterWithCorrectParameters()
     {
         // Arrange
         var webresources = new List<WebresourceDefinition>
@@ -43,7 +43,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Create_PassesSolutionNameInParameters()
+    public void CreatePassesSolutionNameInParameters()
     {
         // Arrange
         var webresources = new List<WebresourceDefinition>
@@ -64,7 +64,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Create_HandlesMultipleWebresources()
+    public void CreateHandlesMultipleWebresources()
     {
         // Arrange
         var webresources = new List<WebresourceDefinition>
@@ -82,7 +82,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Create_MapsWebresourceTypeCorrectly()
+    public void CreateMapsWebresourceTypeCorrectly()
     {
         // Arrange
         var testCases = new[]
@@ -122,7 +122,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Update_CallsDataverseWriter_WithCorrectParameters()
+    public void UpdateCallsDataverseWriterWithCorrectParameters()
     {
         // Arrange
         var webresourceId = Guid.NewGuid();
@@ -148,7 +148,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Update_HandlesMultipleWebresources()
+    public void UpdateHandlesMultipleWebresources()
     {
         // Arrange
         var webresources = new List<WebresourceDefinition>
@@ -168,7 +168,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Update_DoesNotIncludeNameInUpdate()
+    public void UpdateDoesNotIncludeNameInUpdate()
     {
         // Arrange
         var webresourceId = Guid.NewGuid();
@@ -194,7 +194,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Delete_CallsDataverseWriter_WithCorrectParameters()
+    public void DeleteCallsDataverseWriterWithCorrectParameters()
     {
         // Arrange
         var webresourceId = Guid.NewGuid();
@@ -219,7 +219,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Delete_HandlesMultipleWebresources()
+    public void DeleteHandlesMultipleWebresources()
     {
         // Arrange
         var webresources = new List<WebresourceDefinition>
@@ -239,7 +239,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Create_HandlesEmptyList()
+    public void CreateHandlesEmptyList()
     {
         // Arrange
         var webresources = new List<WebresourceDefinition>();
@@ -252,7 +252,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Update_HandlesEmptyList()
+    public void UpdateHandlesEmptyList()
     {
         // Arrange
         var webresources = new List<WebresourceDefinition>();
@@ -265,7 +265,7 @@ public class WebresourceWriterTests
     }
 
     [Fact]
-    public void Delete_HandlesEmptyList()
+    public void DeleteHandlesEmptyList()
     {
         // Arrange
         var webresources = new List<WebresourceDefinition>();

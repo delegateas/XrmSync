@@ -10,7 +10,7 @@ namespace Tests.Logging;
 public class CIModeDemonstrationTests
 {
     [Fact]
-    public void Demonstrate_CIModePassedToFormatter()
+    public void DemonstrateCIModePassedToFormatter()
     {
         // This test demonstrates that CI mode is properly passed to the formatter through options
 

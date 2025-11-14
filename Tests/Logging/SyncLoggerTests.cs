@@ -33,7 +33,7 @@ public class SyncLoggerTests
     }
 
     [Fact]
-    public void Log_PassesThroughDirectly()
+    public void LogPassesThroughDirectly()
     {
         // Arrange
         var loggerFactory = new TestLoggerFactory();
@@ -53,7 +53,7 @@ public class SyncLoggerTests
     }
 
     [Fact]
-    public void Log_AllLogLevels_PassThroughDirectly()
+    public void LogAllLogLevelsPassThroughDirectly()
     {
         // Arrange
         var loggerFactory = new TestLoggerFactory();

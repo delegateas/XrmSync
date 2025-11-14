@@ -34,7 +34,7 @@ public class DifferenceUtilityTests
     }
 
     [Fact]
-    public void CalculateDifferences_ReturnsCorrectDifferences()
+    public void CalculateDifferencesReturnsCorrectDifferences()
     {
         // Arrange
         var localImage = new Image("LocalImage")
@@ -112,7 +112,7 @@ public class DifferenceUtilityTests
     }
 
     [Fact]
-    public void CalculateDifferences_EmptyData_ReturnsEmptyDifferences()
+    public void CalculateDifferencesEmptyDataReturnsEmptyDifferences()
     {
         // Arrange
         var emptyData = new AssemblyInfo(string.Empty) {
@@ -140,7 +140,7 @@ public class DifferenceUtilityTests
     }
 
     [Fact]
-    public void CalculateDifferences_UpdatesDetected_ReturnsUpdates()
+    public void CalculateDifferencesUpdatesDetectedReturnsUpdates()
     {
         // Arrange
         var localStep = new Step("TestStep") {
@@ -227,7 +227,7 @@ public class DifferenceUtilityTests
     }
 
     [Fact]
-    public void CalculateDifference_UnchangableUpdatesDetected_RequireRecreate()
+    public void CalculateDifferenceUnchangableUpdatesDetectedRequireRecreate()
     {
         var localCustomApi = new CustomApiDefinition("test_custom_api")
         {
@@ -299,7 +299,7 @@ public class DifferenceUtilityTests
     }
 
     [Fact]
-    public void CalculateDifference_UnchangableUpdatesAndChangableDetected_RequiresRecreate()
+    public void CalculateDifferenceUnchangableUpdatesAndChangableDetectedRequiresRecreate()
     {
         var localCustomApi = new CustomApiDefinition("test_custom_api")
         {

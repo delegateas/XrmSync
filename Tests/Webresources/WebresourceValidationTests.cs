@@ -32,7 +32,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidationRules_AreDiscovered_Correctly()
+    public void ValidationRulesAreDiscoveredCorrectly()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -51,7 +51,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_ThrowsException_ForWebresourceWithDependencies()
+    public void ValidateWebresourcesThrowsExceptionForWebresourceWithDependencies()
     {
         // Arrange
         var webresourceWithDependency = new WebresourceDefinition(
@@ -96,7 +96,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_DoesNotThrow_ForWebresourceWithoutDependencies()
+    public void ValidateWebresourcesDoesNotThrowForWebresourceWithoutDependencies()
     {
         // Arrange
         var webresource1 = new WebresourceDefinition(
@@ -138,7 +138,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_ThrowsAggregateException_ForMultipleWebresourcesWithDependencies()
+    public void ValidateWebresourcesThrowsAggregateExceptionForMultipleWebresourcesWithDependencies()
     {
         // Arrange
         var webresource1 = new WebresourceDefinition(
@@ -189,7 +189,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_ThrowsException_ForNameConflict()
+    public void ValidateWebresourcesThrowsExceptionForNameConflict()
     {
         // Arrange
         var existingWebresourceId = Guid.NewGuid();
@@ -224,7 +224,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_DoesNotThrow_ForNoNameConflict()
+    public void ValidateWebresourcesDoesNotThrowForNoNameConflict()
     {
         // Arrange
         var webresource1 = new WebresourceDefinition(
@@ -260,7 +260,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_ThrowsAggregateException_ForMultipleNameConflicts()
+    public void ValidateWebresourcesThrowsAggregateExceptionForMultipleNameConflicts()
     {
         // Arrange
         var existingId1 = Guid.NewGuid();
@@ -309,7 +309,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_NameConflict_IsCaseInsensitive()
+    public void ValidateWebresourcesNameConflictIsCaseInsensitive()
     {
         // Arrange
         var existingWebresourceId = Guid.NewGuid();
@@ -342,7 +342,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_NameConflictRule_DoesNotApplyToDeletes()
+    public void ValidateWebresourcesNameConflictRuleDoesNotApplyToDeletes()
     {
         // Arrange - Webresource with ID (simulating delete operation)
         var webresourceToDelete = new WebresourceDefinition(
@@ -379,7 +379,7 @@ public class WebresourceValidationTests
     }
 
     [Fact]
-    public void ValidateWebresources_DependencyRule_DoesNotApplyToCreates()
+    public void ValidateWebresourcesDependencyRuleDoesNotApplyToCreates()
     {
         // Arrange - Webresource without ID (simulating create operation)
         var webresourceToCreate = new WebresourceDefinition(

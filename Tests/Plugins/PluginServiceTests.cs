@@ -53,7 +53,7 @@ public class PluginServiceTests
     }
 
     [Fact]
-    public void CreatePluginAssembly_CallsWriterAndReturnsAssemblyWithId()
+    public void CreatePluginAssemblyCallsWriterAndReturnsAssemblyWithId()
     {
         // Arrange
         var assembly = new AssemblyInfo("TestAssembly") {
@@ -75,7 +75,7 @@ public class PluginServiceTests
     }
 
     [Fact]
-    public void UpdatePluginAssembly_CallsWriter()
+    public void UpdatePluginAssemblyCallsWriter()
     {
         // Arrange
         var assemblyId = Guid.NewGuid();
@@ -95,7 +95,7 @@ public class PluginServiceTests
     }
 
     [Fact]
-    public void CreatePlugins_CallsWriter()
+    public void CreatePluginsCallsWriter()
     {
         // Arrange
         var crmAssembly = new AssemblyInfo("TestAssembly")
@@ -242,7 +242,7 @@ public class PluginServiceTests
     }
 
     [Fact]
-    public void DeletePlugins_CallsWriter()
+    public void DeletePluginsCallsWriter()
     {
         // Arrange
         Image image = new ("Image1")
@@ -299,7 +299,7 @@ public class PluginServiceTests
     }
 
     [Fact]
-    public void UpdatePlugins_CallsWriter()
+    public void UpdatePluginsCallsWriter()
     {
         // Arrange
         var data = new Differences(

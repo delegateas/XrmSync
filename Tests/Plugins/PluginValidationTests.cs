@@ -37,7 +37,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidationRules_AreDiscovered_Correctly()
+    public void ValidationRulesAreDiscoveredCorrectly()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -72,7 +72,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidatePlugins_ThrowsException_ForAsyncPreOperation()
+    public void ValidatePluginsThrowsExceptionForAsyncPreOperation()
     {
         // Arrange
         var pluginType = new PluginDefinition("TestType")
@@ -105,7 +105,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidatePlugins_ThrowsAggregateException_ForMultipleViolations()
+    public void ValidatePluginsThrowsAggregateExceptionForMultipleViolations()
     {
         // Arrange
         var pluginStep1 = new Step("Step1")
@@ -155,7 +155,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidatePlugins_ThrowsException_ForMultipleRegistrationsOnSameMessageInSameType()
+    public void ValidatePluginsThrowsExceptionForMultipleRegistrationsOnSameMessageInSameType()
     {
         // Arrange
         var pluginStep1 = new Step("Step1")
@@ -202,7 +202,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidatePlugins_NoException_ForMultipleRegistrationsOnSameMessageInDifferentType()
+    public void ValidatePluginsNoExceptionForMultipleRegistrationsOnSameMessageInDifferentType()
     {
         // Arrange
         var pluginStep1 = new Step("Step1")
@@ -248,7 +248,7 @@ public class PluginValidationTests
     [Theory]
     [InlineData("", "")]
     [InlineData("", null)]
-    public void ValidatePlugins_NoException_AssociateDisassociateWithEmptyOrNullFilter(string logicalName, string filteredAttributes)
+    public void ValidatePluginsNoExceptionAssociateDisassociateWithEmptyOrNullFilter(string logicalName, string filteredAttributes)
     {
         // Arrange
         var pluginStep1 = new Step("Step1")
@@ -290,7 +290,7 @@ public class PluginValidationTests
     [Theory]
     [InlineData(BindingType.Entity, "", "Bound Custom API must specify an entity type")]
     [InlineData((BindingType)0, "account", "Unbound Custom API cannot specify an entity type")] // 0 represents Global/Unbound
-    public void ValidateCustomAPI_ThrowsException_ForInvalidEntityBinding(BindingType bindingType, string boundEntityLogicalName, string expectedErrorMessage)
+    public void ValidateCustomAPIThrowsExceptionForInvalidEntityBinding(BindingType bindingType, string boundEntityLogicalName, string expectedErrorMessage)
     {
         // Arrange
         var customAPI = new CustomApiDefinition("TestAPI")
@@ -318,7 +318,7 @@ public class PluginValidationTests
 
     [Theory]
     [InlineData(nameof(EventOperation.Create))]
-    public void ValidatePlugins_ThrowsException_ForCreateOperationsWithPreImage(string eventOperation)
+    public void ValidatePluginsThrowsExceptionForCreateOperationsWithPreImage(string eventOperation)
     {
         // Arrange - Create-type operations should not support pre-images
         var pluginStep = new Step($"{eventOperation}StepWithPreImage")
@@ -358,7 +358,7 @@ public class PluginValidationTests
 
     [Theory]
     [InlineData(nameof(EventOperation.Delete))]
-    public void ValidatePlugins_ThrowsException_ForDeleteOperationsWithPostImage(string eventOperation)
+    public void ValidatePluginsThrowsExceptionForDeleteOperationsWithPostImage(string eventOperation)
     {
         // Arrange - Delete-type operations should not support post-images
         var pluginStep = new Step($"{eventOperation}StepWithPostImage")
@@ -399,7 +399,7 @@ public class PluginValidationTests
     [Theory]
     [InlineData(ExecutionStage.PreValidation)]
     [InlineData(ExecutionStage.PreOperation)]
-    public void ValidatePlugins_ThrowsException_ForPreStagesWithPostImage(ExecutionStage executionStage)
+    public void ValidatePluginsThrowsExceptionForPreStagesWithPostImage(ExecutionStage executionStage)
     {
         // Arrange - Pre-execution stages should not support post-images
         var pluginStep = new Step($"{executionStage}WithPostImage")
@@ -441,7 +441,7 @@ public class PluginValidationTests
     [InlineData(nameof(EventOperation.Update))]
     [InlineData(nameof(EventOperation.Merge))]
     [InlineData(nameof(EventOperation.SetState))]
-    public void ValidatePlugins_NoException_ForUpdateOperationsWithBothImageTypes(string eventOperation)
+    public void ValidatePluginsNoExceptionForUpdateOperationsWithBothImageTypes(string eventOperation)
     {
         // Arrange - Update-type operations should support both pre and post images
         // Create separate plugin types to avoid duplicate registration violation
@@ -509,7 +509,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidatePlugins_NoException_ForValidImageConfigurations()
+    public void ValidatePluginsNoExceptionForValidImageConfigurations()
     {
         // Arrange - Valid image configurations should pass
         var pluginSteps = new[]
@@ -639,7 +639,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidatePlugins_NoException_ForStepsWithoutImages()
+    public void ValidatePluginsNoExceptionForStepsWithoutImages()
     {
         // Arrange - Steps without images should always be valid regardless of stage/operation
         var pluginSteps = new[]
@@ -698,7 +698,7 @@ public class PluginValidationTests
     }
 
     [Fact]
-    public void ValidatePlugins_ThrowsAggregateException_ForMultipleImageViolations()
+    public void ValidatePluginsThrowsAggregateExceptionForMultipleImageViolations()
     {
         // Arrange - Multiple image validation violations should be aggregated
         var pluginSteps = new[]
@@ -790,7 +790,7 @@ public class PluginValidationTests
 
     [Theory]
     [MemberData(nameof(GetIllegalEventOperationsWithImages))]
-    public void ValidatePlugins_ThrowsException_ForIllegalEventOperationsWithImages(string eventOperation)
+    public void ValidatePluginsThrowsExceptionForIllegalEventOperationsWithImages(string eventOperation)
     {
         // Arrange - Operations not explicitly allowed to support images should not support images
         var pluginStepWithPreImage = new Step($"{eventOperation}StepWithPreImage")
@@ -830,7 +830,7 @@ public class PluginValidationTests
 
     [Theory]
     [MemberData(nameof(GetSupportPreImages))]
-    public void ValidatePlugins_NoException_ForLegalEventOperationsWithPreImages(string eventOperation)
+    public void ValidatePluginsNoExceptionForLegalEventOperationsWithPreImages(string eventOperation)
     {
         // Arrange - Operations not explicitly allowed to support images should not support images
         var pluginStepWithPreImage = new Step($"{eventOperation}StepWithPreImage")
@@ -869,7 +869,7 @@ public class PluginValidationTests
 
     [Theory]
     [MemberData(nameof(GetSupportPostImages))]
-    public void ValidatePlugins_NoException_ForLegalEventOperationsWithPostImages(string eventOperation)
+    public void ValidatePluginsNoExceptionForLegalEventOperationsWithPostImages(string eventOperation)
     {
         // Arrange - Operations not explicitly allowed to support images should not support images
         var pluginStepWithPostImage = new Step($"{eventOperation}StepWithPostImage")

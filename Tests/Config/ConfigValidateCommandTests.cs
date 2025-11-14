@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using XrmSync.Commands;
 using XrmSync.Model;
@@ -10,7 +9,7 @@ namespace Tests.Config;
 public class ConfigValidateCommandTests
 {
     [Fact]
-    public void ConfigValidateCommand_BuildsSuccessfully()
+    public void ConfigValidateCommandBuildsSuccessfully()
     {
         // Arrange & Act
         var command = new ConfigValidateCommand();
@@ -21,7 +20,7 @@ public class ConfigValidateCommandTests
     }
 
     [Fact]
-    public void ConfigListCommand_BuildsSuccessfully()
+    public void ConfigListCommandBuildsSuccessfully()
     {
         // Arrange & Act
         var command = new ConfigListCommand();
@@ -32,7 +31,7 @@ public class ConfigValidateCommandTests
     }
 
     [Fact]
-    public async Task ConfigValidationOutput_WithValidConfiguration_OutputsSuccessfully()
+    public async Task ConfigValidationOutputWithValidConfigurationOutputsSuccessfully()
     {
         // Arrange
         const string configJson = """
@@ -81,7 +80,7 @@ public class ConfigValidateCommandTests
     }
 
     [Fact]
-    public async Task ConfigValidationOutput_WithMultipleConfigs_ListsAllConfigurations()
+    public async Task ConfigValidationOutputWithMultipleConfigsListsAllConfigurations()
     {
         // Arrange
         const string configJson = """
@@ -139,7 +138,7 @@ public class ConfigValidateCommandTests
     }
 
     [Fact]
-    public async Task ConfigValidationOutput_WithNoConfiguration_HandlesGracefully()
+    public async Task ConfigValidationOutputWithNoConfigurationHandlesGracefully()
     {
         // Arrange
         const string configJson = """
