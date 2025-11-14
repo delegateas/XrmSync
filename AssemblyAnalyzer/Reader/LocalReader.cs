@@ -226,22 +226,22 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
 
     private readonly Dictionary<string, WebresourceType> WebresourceTypeMap = new()
     {
-        { ".html", WebresourceType.WebpageHtml },
-        { ".htm", WebresourceType.WebpageHtml },
-        { ".css", WebresourceType.StyleSheetCss },
-        { ".js", WebresourceType.ScriptJscript },
-        { ".xml", WebresourceType.DataXml },
-        { ".xaml", WebresourceType.DataXml },
-        { ".xsd", WebresourceType.DataXml },
-        { ".xsl", WebresourceType.StyleSheetXsl },
-        { ".xslt", WebresourceType.StyleSheetXsl },
-        { ".png", WebresourceType.PngFormat },
-        { ".jpg", WebresourceType.JpgFormat },
-        { ".jpeg", WebresourceType.JpgFormat },
-        { ".gif", WebresourceType.GifFormat },
-        { ".xap", WebresourceType.SilverlightXap },
-        { ".ico", WebresourceType.IcoFormat },
-        { ".svg", WebresourceType.VectorFormatSvg },
-        { ".resx", WebresourceType.StringResx }
+        { ".html", WebresourceType.HTML },
+        { ".htm", WebresourceType.HTML },
+        { ".css", WebresourceType.CSS },
+        { ".js", WebresourceType.JS },
+        { ".xml", WebresourceType.XML },
+        { ".xaml", WebresourceType.XML },
+        { ".xsd", WebresourceType.XML },
+        { ".xsl", WebresourceType.XSL },
+        { ".xslt", WebresourceType.XSL },
+        { ".png", WebresourceType.PNG },
+        { ".jpg", WebresourceType.JPG },
+        { ".jpeg", WebresourceType.JPG },
+        { ".gif", WebresourceType.GIF },
+        { ".xap", WebresourceType.XAP },
+        { ".ico", WebresourceType.ICO },
+        { ".svg", WebresourceType.SVG },
+        { ".resx", WebresourceType.RSX }
     };
 }

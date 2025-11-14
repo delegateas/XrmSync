@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Xrm.Sdk;
 using XrmSync.Dataverse.Context;
@@ -21,7 +20,7 @@ internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptio
 
         foreach (var api in customApis)
         {
-            var entity = new CustomApi
+            var entity = new CustomAPI
             {
                 Name = api.Name,
                 UniqueName = api.UniqueName,
@@ -29,9 +28,9 @@ internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptio
                 Description = GetDescription(api, description),
                 IsFunction = api.IsFunction,
                 WorkflowSdkStepEnabled = api.EnabledForWorkflow,
-                BindingType = (CustomApi_BindingType)api.BindingType,
+                BindingType = (customapi_bindingtype)api.BindingType,
                 BoundEntityLogicalName = api.BoundEntityLogicalName,
-                AllowedCustomProcessingStepType = (CustomApi_AllowedCustomProcessingStepType)api.AllowedCustomProcessingStepType,
+                AllowedCustomProcessingStepType = (customapi_allowedcustomprocessingsteptype)api.AllowedCustomProcessingStepType,
                 PluginTypeId = new EntityReference(Context.PluginType.EntityLogicalName, api.PluginType.Id),
                 IsCustomizable = new BooleanManagedProperty(api.IsCustomizable),
                 IsPrivate = api.IsPrivate,
@@ -55,16 +54,16 @@ internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptio
 
         foreach (var (param, customApi) in requestParameters)
         {
-            var entity = new CustomApiRequestParameter
+            var entity = new CustomAPIRequestParameter
             {
-                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, customApi.Id),
+                CustomAPIId = new EntityReference(CustomAPI.EntityLogicalName, customApi.Id),
                 Name = param.Name,
                 UniqueName = param.UniqueName,
                 DisplayName = param.DisplayName,
                 IsCustomizable = new BooleanManagedProperty(param.IsCustomizable),
                 IsOptional = param.IsOptional,
                 LogicalEntityName = param.LogicalEntityName,
-                Type = (CustomApiFieldType)param.Type
+                Type = (customapifieldtype)param.Type
             };
 
             param.Id = writer.Create(entity, Parameters);
@@ -79,15 +78,15 @@ internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptio
 
         foreach (var (prop, customApi) in responseProperties)
         {
-            var entity = new CustomApiResponseProperty
+            var entity = new CustomAPIResponseProperty
             {
                 Name = prop.Name,
                 UniqueName = prop.UniqueName,
-                CustomApiId = new EntityReference(CustomApi.EntityLogicalName, customApi.Id),
+                CustomAPIId = new EntityReference(CustomAPI.EntityLogicalName, customApi.Id),
                 DisplayName = prop.DisplayName,
                 IsCustomizable = new BooleanManagedProperty(prop.IsCustomizable),
                 LogicalEntityName = prop.LogicalEntityName,
-                Type = (CustomApiFieldType)prop.Type
+                Type = (customapifieldtype)prop.Type
             };
 
             prop.Id = writer.Create(entity, Parameters);
@@ -100,16 +99,16 @@ internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptio
     {
         var updateRequests = customApis.Select(api =>
         {
-            var definition = new CustomApi
+            var definition = new CustomAPI
             {
                 Id = api.Id,
                 DisplayName = api.DisplayName,
                 Description = GetDescription(api, description),
                 IsFunction = api.IsFunction,
                 WorkflowSdkStepEnabled = api.EnabledForWorkflow,
-                BindingType = (CustomApi_BindingType)api.BindingType,
+                BindingType = (customapi_bindingtype)api.BindingType,
                 BoundEntityLogicalName = api.BoundEntityLogicalName,
-                AllowedCustomProcessingStepType = (CustomApi_AllowedCustomProcessingStepType)api.AllowedCustomProcessingStepType,
+                AllowedCustomProcessingStepType = (customapi_allowedcustomprocessingsteptype)api.AllowedCustomProcessingStepType,
                 PluginTypeId = new EntityReference(Context.PluginType.EntityLogicalName, api.PluginType.Id),
                 IsCustomizable = new BooleanManagedProperty(api.IsCustomizable),
                 IsPrivate = api.IsPrivate,
@@ -132,14 +131,14 @@ internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptio
 
     public void UpdateRequestParameters(ICollection<RequestParameter> requestParameters)
     {
-        var updateRequests = requestParameters.Select(param => new CustomApiRequestParameter()
+        var updateRequests = requestParameters.Select(param => new CustomAPIRequestParameter()
         {
             Id = param.Id,
             DisplayName = param.DisplayName,
             IsCustomizable = new BooleanManagedProperty(param.IsCustomizable),
             IsOptional = param.IsOptional,
             LogicalEntityName = param.LogicalEntityName,
-            Type = (CustomApiFieldType?)param.Type
+            Type = (customapifieldtype?)param.Type
         }).ToList();
 
         if (updateRequests.Count > 0)
@@ -148,13 +147,13 @@ internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptio
 
     public void UpdateResponseProperties(ICollection<ResponseProperty> responseProperties)
     {
-        var updateRequests = responseProperties.Select(prop => new CustomApiResponseProperty()
+        var updateRequests = responseProperties.Select(prop => new CustomAPIResponseProperty()
         {
             Id = prop.Id,
             DisplayName = prop.DisplayName,
             IsCustomizable = new BooleanManagedProperty(prop.IsCustomizable),
             LogicalEntityName = prop.LogicalEntityName,
-            Type = (CustomApiFieldType?)prop.Type
+            Type = (customapifieldtype?)prop.Type
         }).ToList();
 
         if (updateRequests.Count > 0)
@@ -163,17 +162,17 @@ internal class CustomApiWriter(IDataverseWriter writer, IOptions<PluginSyncOptio
 
     public void DeleteCustomApiDefinitions(IEnumerable<CustomApiDefinition> customApis)
     {
-        writer.DeleteMultiple(customApis.ToDeleteRequests(CustomApi.EntityLogicalName));
+        writer.DeleteMultiple(customApis.ToDeleteRequests(CustomAPI.EntityLogicalName));
     }
 
     public void DeleteCustomApiRequestParameters(IEnumerable<RequestParameter> requestParameters)
     {
-        writer.DeleteMultiple(requestParameters.ToDeleteRequests(CustomApiRequestParameter.EntityLogicalName));
+        writer.DeleteMultiple(requestParameters.ToDeleteRequests(CustomAPIRequestParameter.EntityLogicalName));
     }
 
     public void DeleteCustomApiResponseProperties(IEnumerable<ResponseProperty> responseProperties)
     {
-        writer.DeleteMultiple(responseProperties.ToDeleteRequests(CustomApiResponseProperty.EntityLogicalName));
+        writer.DeleteMultiple(responseProperties.ToDeleteRequests(CustomAPIResponseProperty.EntityLogicalName));
     }
 
     private static string GetDescription(CustomApiDefinition api, string description)

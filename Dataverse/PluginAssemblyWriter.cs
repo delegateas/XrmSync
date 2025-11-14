@@ -19,7 +19,7 @@ internal class PluginAssemblyWriter(IDataverseWriter writer, IOptions<PluginSync
             Name = pluginName,
             Content = GetBase64StringFromFile(dllPath),
             SourceHash = sourceHash,
-            IsolationMode = PluginAssembly_IsolationMode.Sandbox,
+            IsolationMode = pluginassembly_isolationmode.Sandbox,
             Version = assemblyVersion,
             Description = description
         };
@@ -35,7 +35,7 @@ internal class PluginAssemblyWriter(IDataverseWriter writer, IOptions<PluginSync
             Name = pluginName,
             Content = GetBase64StringFromFile(dllPath),
             SourceHash = sourceHash,
-            IsolationMode = PluginAssembly_IsolationMode.Sandbox,
+            IsolationMode = pluginassembly_isolationmode.Sandbox,
             Version = assemblyVersion,
             Description = description
         };

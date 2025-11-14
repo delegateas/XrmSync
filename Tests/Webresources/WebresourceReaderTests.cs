@@ -17,7 +17,7 @@ public class WebresourceReaderTests
     }
 
     private static WebResource CreateWebResource(Guid id, string name, string displayName, 
-        WebResource_WebResourceType type, string content, bool isManaged = false)
+        webresource_webresourcetype type, string content, bool isManaged = false)
     {
         var wr = new WebResource { Id = id };
         wr["name"] = name;
@@ -47,9 +47,9 @@ public class WebresourceReaderTests
         var webresources = new List<WebResource>
         {
             CreateWebResource(webresourceId1, "test_solution/test1.js", "Test 1", 
-                WebResource_WebResourceType.ScriptJscript, "Y29uc29sZS5sb2coJ3Rlc3QxJyk7"),
+                webresource_webresourcetype.ScriptJScript, "Y29uc29sZS5sb2coJ3Rlc3QxJyk7"),
             CreateWebResource(webresourceId2, "test_solution/test2.js", "Test 2", 
-                WebResource_WebResourceType.ScriptJscript, "Y29uc29sZS5sb2coJ3Rlc3QyJyk7")
+                webresource_webresourcetype.ScriptJScript, "Y29uc29sZS5sb2coJ3Rlc3QyJyk7")
         }.AsQueryable();
 
         var solutionComponents = new List<SolutionComponent>
@@ -82,9 +82,9 @@ public class WebresourceReaderTests
         var webresources = new List<WebResource>
         {
             CreateWebResource(unmanagedId, "test_solution/unmanaged.js", "Unmanaged", 
-                WebResource_WebResourceType.ScriptJscript, "dW5tYW5hZ2Vk", false),
+                webresource_webresourcetype.ScriptJScript, "dW5tYW5hZ2Vk", false),
             CreateWebResource(managedId, "test_solution/managed.js", "Managed", 
-                WebResource_WebResourceType.ScriptJscript, "bWFuYWdlZA==", true)
+                webresource_webresourcetype.ScriptJScript, "bWFuYWdlZA==", true)
         }.AsQueryable();
 
         var solutionComponents = new List<SolutionComponent>
@@ -114,7 +114,7 @@ public class WebresourceReaderTests
         var webresources = new List<WebResource>
         {
             CreateWebResource(webresourceId, "test.css", "Test CSS", 
-                WebResource_WebResourceType.StyleSheetCss, "Ym9keXt9")
+                webresource_webresourcetype.StyleSheetCSS, "Ym9keXt9")
         }.AsQueryable();
 
         var solutionComponents = new List<SolutionComponent>
@@ -130,7 +130,7 @@ public class WebresourceReaderTests
 
         // Assert
         Assert.Single(result);
-        Assert.Equal(WebresourceType.StyleSheetCss, result[0].Type);
+        Assert.Equal(WebresourceType.CSS, result[0].Type);
     }
 
     [Fact]
@@ -161,11 +161,11 @@ public class WebresourceReaderTests
         var webresources = new List<WebResource>
         {
             CreateWebResource(id1, "z_last.js", "Last", 
-                WebResource_WebResourceType.ScriptJscript, "bGFzdA=="),
+                webresource_webresourcetype.ScriptJScript, "bGFzdA=="),
             CreateWebResource(id2, "a_first.js", "First", 
-                WebResource_WebResourceType.ScriptJscript, "Zmlyc3Q="),
+                webresource_webresourcetype.ScriptJScript, "Zmlyc3Q="),
             CreateWebResource(id3, "m_middle.js", "Middle", 
-                WebResource_WebResourceType.ScriptJscript, "bWlkZGxl")
+                webresource_webresourcetype.ScriptJScript, "bWlkZGxl")
         }.AsQueryable();
 
         var solutionComponents = new List<SolutionComponent>
