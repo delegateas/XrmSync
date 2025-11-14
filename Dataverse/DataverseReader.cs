@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerPlatform.Dataverse.Client;
+using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System.Linq.Expressions;
@@ -13,12 +13,12 @@ namespace XrmSync.Dataverse;
 
 internal sealed class DataverseReader(ServiceClient serviceClient) : IDataverseReader
 {
-    private readonly Lazy<DataverseContext> _lazyContext = new(() => new DataverseContext(serviceClient));
-    private readonly Lazy<string> _lazyConnectedHost = new(serviceClient.ConnectedOrgUriActual.GetLeftPart(UriPartial.Authority));
+    private readonly Lazy<DataverseContext> lazyContext = new(() => new DataverseContext(serviceClient));
+    private readonly Lazy<string> lazyConnectedHost = new(serviceClient.ConnectedOrgUriActual.GetLeftPart(UriPartial.Authority));
 
-    private DataverseContext DataverseContext => _lazyContext.Value;
+    private DataverseContext DataverseContext => lazyContext.Value;
 
-    public string ConnectedHost => _lazyConnectedHost.Value;
+    public string ConnectedHost => lazyConnectedHost.Value;
 
     public IQueryable<SolutionComponent> SolutionComponents => DataverseContext.SolutionComponentSet;
 
