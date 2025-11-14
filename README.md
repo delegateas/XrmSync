@@ -76,10 +76,11 @@ xrmsync webresources --folder "path/to/webresources" --solution-name "YourSoluti
 For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
 ```bash
 # Run all configured commands (plugins, webresources, analysis)
-xrmsync --config default
+# If only one profile exists, it's used automatically without --profile
+xrmsync --profile myprofile
 
 # Run a specific command with configuration
-xrmsync plugins --config default
+xrmsync plugins --profile myprofile
 ```
 
 You can also override specific options when using a configuration file:
@@ -98,7 +99,7 @@ xrmsync plugins --dry-run --log-level Debug
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
-| `--config` | `-c` | Name of the configuration to load from appsettings.json | No |
+| `--profile` | `-p`, `--profile-name` | Name of the profile to load from appsettings.json | No |
 | `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
 | `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
@@ -113,7 +114,7 @@ xrmsync plugins --dry-run --log-level Debug
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
-| `--config` | `-c` | Name of the configuration to load from appsettings.json | No |
+| `--profile` | `-p`, `--profile-name` | Name of the profile to load from appsettings.json | No |
 | `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
 | `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
@@ -150,13 +151,13 @@ The webresource name in Dataverse is determined by the file path relative to the
 
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
-| `--config` | `-c` | Name of the configuration to validate | No (Default: "default") |
+| `--profile` | `-p`, `--profile-name` | Name of the profile to validate | No (auto-selects if only one profile exists) |
 
 **Config List Command**
 
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
-| No options | | Lists all configurations from appsettings.json | N/A |
+| No options | | Lists all profiles from appsettings.json | N/A |
 
 ### Assembly Analysis
 
@@ -180,7 +181,7 @@ You can validate your configuration files to ensure they are correctly set up:
 xrmsync config validate
 
 # Validate a specific named configuration
-xrmsync config validate --config dev
+xrmsync config validate --profile dev
 ```
 
 The `config validate` command shows:
@@ -306,14 +307,11 @@ XrmSync supports multiple named configurations within a single appsettings.json 
 
 **Using named configurations:**
 ```bash
-# Use the 'default' configuration (or the only configuration if only one exists)
-xrmsync --config default
-
-# Use a specific named configuration
-xrmsync --config dev
-
-# If --config is not specified, 'default' is used, or the single config if only one exists
+# If only one profile exists, it's used automatically
 xrmsync
+
+# If multiple profiles exist, you must specify which one to use
+xrmsync --profile <profile-name>
 ```
 
 **Example with multiple named configurations:**
@@ -353,7 +351,7 @@ When you call the root command with a configuration name, XrmSync will automatic
 ```bash
 # This will run plugin sync, plugin analysis, and webresource sync
 # for all that are configured in the 'default' configuration
-xrmsync --config default
+xrmsync --profile default
 ```
 
 XrmSync will only execute sub-commands that have their required properties configured. For example:
@@ -504,22 +502,22 @@ xrmsync webresources --folder "wwwroot" --solution-name "MyCustomSolution" --dry
 #### Using a configuration file to run all configured commands:
 ```bash
 # Runs all configured sub-commands (plugin sync, analysis, webresource sync)
-# from the 'default' configuration
-xrmsync --config default
+# from the specified profile
+xrmsync --profile myprofile
 
-# Or simply (uses 'default' if it exists, or the only config if there's just one)
+# If only one profile exists, it's used automatically
 xrmsync
 ```
 
 #### Using a specific named configuration:
 ```bash
-xrmsync --config prod
+xrmsync --profile prod
 ```
 
 #### Running a specific sub-command with configuration:
 ```bash
 # Uses the configuration but only runs the plugins command
-xrmsync plugins --config dev
+xrmsync plugins --profile dev
 ```
 
 #### Configuration file with CLI overrides:

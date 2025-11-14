@@ -24,13 +24,13 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
         _assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
         {
             Description = CliOptions.Assembly.Description,
-            Arity = ArgumentArity.ExactlyOne
+            Arity = ArgumentArity.ZeroOrOne
         };
 
         _prefix = new(CliOptions.Analysis.Prefix.Primary, CliOptions.Analysis.Prefix.Aliases)
         {
             Description = CliOptions.Analysis.Prefix.Description,
-            Arity = ArgumentArity.ExactlyOne
+            Arity = ArgumentArity.ZeroOrOne
         };
 
         _prettyPrint = new(CliOptions.Analysis.PrettyPrint.Primary, CliOptions.Analysis.PrettyPrint.Aliases)
@@ -57,20 +57,55 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
         // Build service provider
         var serviceProvider = GetAnalyzerServices()
             .AddXrmSyncConfiguration(sharedOptions)
-            .AddOptions(
-                baseOptions => baseOptions with
+            .AddOptions(baseOptions => baseOptions)
+            .AddSingleton(sp =>
+            {
+                var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
+
+                // Determine assembly path, publisher prefix, and pretty print
+                string finalAssemblyPath;
+                string finalPublisherPrefix;
+                bool finalPrettyPrint;
+
+                // If CLI options provided, use them (standalone mode)
+                if (!string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix))
                 {
-                    Plugin = baseOptions.Plugin with
-                    {
-                        Analysis = new(
-                            string.IsNullOrWhiteSpace(assemblyPath) ? baseOptions.Plugin.Analysis.AssemblyPath : assemblyPath,
-                            string.IsNullOrWhiteSpace(publisherPrefix) ? baseOptions.Plugin.Analysis.PublisherPrefix : publisherPrefix,
-                            prettyPrint || baseOptions.Plugin.Analysis.PrettyPrint
-                        )
-                    }
+                    finalAssemblyPath = assemblyPath;
+                    finalPublisherPrefix = publisherPrefix;
+                    finalPrettyPrint = prettyPrint;
                 }
-            )
-            .AddCommandOptions(c => c.Plugin.Analysis)
+                // Otherwise try to get from profile
+                else
+                {
+                    var profile = config.Profiles.FirstOrDefault(p =>
+                        p.Name.Equals(sharedOptions.ProfileName, StringComparison.OrdinalIgnoreCase));
+
+                    if (profile == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Profile '{sharedOptions.ProfileName}' not found. " +
+                            "Either specify --assembly and --publisher-prefix, or use --profile with a valid profile name.");
+                    }
+
+                    var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
+                    if (pluginAnalysisItem == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Profile '{profile.Name}' does not contain a PluginAnalysis sync item. " +
+                            "Either specify --assembly and --publisher-prefix, or use a profile with a PluginAnalysis sync item.");
+                    }
+
+                    finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath)
+                        ? assemblyPath
+                        : pluginAnalysisItem.AssemblyPath;
+                    finalPublisherPrefix = !string.IsNullOrWhiteSpace(publisherPrefix)
+                        ? publisherPrefix
+                        : pluginAnalysisItem.PublisherPrefix;
+                    finalPrettyPrint = prettyPrint || pluginAnalysisItem.PrettyPrint;
+                }
+
+                return Microsoft.Extensions.Options.Options.Create(new PluginAnalysisCommandOptions(finalAssemblyPath, finalPublisherPrefix, finalPrettyPrint));
+            })
             .AddLogger()
             .BuildServiceProvider();
 
@@ -86,7 +121,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
             try
             {
                 var analyzer = serviceProvider.GetRequiredService<IAssemblyAnalyzer>();
-                var configuration = serviceProvider.GetRequiredService<IOptions<PluginAnalysisOptions>>();
+                var configuration = serviceProvider.GetRequiredService<IOptions<PluginAnalysisCommandOptions>>();
 
                 var pluginDto = analyzer.AnalyzeAssembly(configuration.Value.AssemblyPath, configuration.Value.PublisherPrefix);
                 var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)

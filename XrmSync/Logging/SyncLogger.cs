@@ -8,7 +8,7 @@ internal class SyncLogger<T> : ILogger<T>
 {
     private readonly ILogger _logger;
 
-    public SyncLogger(ILoggerFactory loggerFactory, IOptions<LoggerOptions> configuration)
+    public SyncLogger(ILoggerFactory loggerFactory, IOptions<XrmSyncConfiguration> configuration)
     {
         LogLevel minLogLevel = configuration.Value.LogLevel;
 

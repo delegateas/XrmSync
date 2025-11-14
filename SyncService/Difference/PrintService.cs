@@ -9,7 +9,7 @@ namespace XrmSync.SyncService.Difference;
 
 internal class PrintService(
     ILogger<PrintService> log,
-    IOptions<ExecutionOptions> configuration,
+    IOptions<ExecutionModeOptions> configuration,
     IDescription description,
     IDataverseReader dataverseReader
     ) : IPrintService

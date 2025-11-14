@@ -8,7 +8,7 @@ using XrmSync.Model.Webresource;
 
 namespace XrmSync.Dataverse;
 
-internal class WebresourceWriter(IDataverseWriter writer, IOptions<WebresourceSyncOptions> configuration) : IWebresourceWriter
+internal class WebresourceWriter(IDataverseWriter writer, IOptions<WebresourceSyncCommandOptions> configuration) : IWebresourceWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", configuration.Value.SolutionName }

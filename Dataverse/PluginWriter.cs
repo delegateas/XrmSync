@@ -10,7 +10,7 @@ using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 
-internal class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, IOptions<PluginSyncOptions> configuration) : IPluginWriter
+internal class PluginWriter(IMessageReader messageReader, IDataverseWriter writer, IOptions<PluginSyncCommandOptions> configuration) : IPluginWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", configuration.Value.SolutionName }
