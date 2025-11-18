@@ -239,7 +239,7 @@ Available configurations (from appsettings.json):
 
 XrmSync supports JSON configuration files that contain all the necessary settings for synchronization and analysis. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
 
-The configuration uses a hierarchical structure under the XrmSync section, separating sync and analysis options under Plugin.Sync and Plugin.Analysis respectively.
+The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode) and an array of named profiles. Each profile contains a solution name and a list of sync items (Plugin, Webresource, PluginAnalysis).
 
 #### Generating Configuration Files
 
@@ -271,32 +271,31 @@ When using `--save-config`, XrmSync will:
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "path/to/your/plugin.dll",
-          "SolutionName": "YourSolutionName"
-        },
-        "Analysis": {
-          "AssemblyPath": "path/to/your/plugin.dll",
-          "PublisherPrefix": "contoso",
-          "PrettyPrint": true
-        }
-      },
-      "Webresource": {
-        "Sync": {
-          "FolderPath": "path/to/webresources",
-          "SolutionName": "YourSolutionName"
-        }
-      },
-      "Logger": {
-        "LogLevel": "Information",
-        "CiMode": false
-      },
-      "Execution": {
-        "DryRun": false
+    "DryRun": false,
+    "LogLevel": "Information",
+    "CiMode": false,
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "YourSolutionName",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "path/to/your/plugin.dll"
+          },
+          {
+            "Type": "Webresource",
+            "FolderPath": "path/to/webresources"
+          },
+          {
+            "Type": "PluginAnalysis",
+            "AssemblyPath": "path/to/your/plugin.dll",
+            "PublisherPrefix": "contoso",
+            "PrettyPrint": true
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -318,28 +317,31 @@ xrmsync --profile <profile-name>
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "bin/Debug/net462/MyPlugin.dll",
-          "SolutionName": "DevSolution"
-        }
+    "DryRun": false,
+    "LogLevel": "Information",
+    "CiMode": false,
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "DevSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "bin/Debug/net462/MyPlugin.dll"
+          }
+        ]
       },
-      "Execution": {
-        "DryRun": true
+      {
+        "Name": "prod",
+        "SolutionName": "ProdSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "bin/Release/net462/MyPlugin.dll"
+          }
+        ]
       }
-    },
-    "prod": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-          "SolutionName": "ProdSolution"
-        }
-      },
-      "Execution": {
-        "DryRun": false
-      }
-    }
+    ]
   }
 }
 ```
@@ -359,40 +361,48 @@ XrmSync will only execute sub-commands that have their required properties confi
 - Plugin analysis runs only if `AssemblyPath` is provided
 - Webresource sync runs only if `FolderPath` and `SolutionName` are provided
 
-#### Plugin Sync Properties
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
-| `SolutionName` | string | Name of the target Dataverse solution | Required |
-
-#### Plugin Analysis Properties
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
-| `PublisherPrefix` | string | Publisher prefix for unique names | "new" |
-| `PrettyPrint` | boolean | Pretty print the JSON output | false |
-
-#### Webresource Sync Properties
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| `FolderPath` | string | Path to the root folder containing webresources | Required |
-| `SolutionName` | string | Name of the target Dataverse solution | Required |
-
-#### Logger Properties
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
-| `CiMode` | boolean | Enable CI mode for easier parsing in CI systems | false |
-
-#### Execution Properties
+#### Global Properties
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
 | `DryRun` | boolean | Perform a dry run without making changes | false |
+| `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
+| `CiMode` | boolean | Enable CI mode for easier parsing in CI systems | false |
+
+#### Profile Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Name` | string | Name of the profile | Required |
+| `SolutionName` | string | Name of the target Dataverse solution | Required |
+| `Sync` | array | List of sync items (see below) | Required |
+
+#### Sync Item Properties
+
+Each sync item must have a `Type` property indicating the sync type:
+
+**Plugin Sync Item (Type: "Plugin")**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Type` | string | Must be "Plugin" | Required |
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+
+**Webresource Sync Item (Type: "Webresource")**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Type` | string | Must be "Webresource" | Required |
+| `FolderPath` | string | Path to the root folder containing webresources | Required |
+
+**Plugin Analysis Item (Type: "PluginAnalysis")**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Type` | string | Must be "PluginAnalysis" | Required |
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `PublisherPrefix` | string | Publisher prefix for unique names | "new" |
+| `PrettyPrint` | boolean | Pretty print the JSON output | false |
 
 #### Example Configuration Files
 
@@ -400,14 +410,18 @@ XrmSync will only execute sub-commands that have their required properties confi
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "MyPlugin.dll",
-          "SolutionName": "MyCustomSolution"
-        }
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MyCustomSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "MyPlugin.dll"
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -417,31 +431,31 @@ XrmSync will only execute sub-commands that have their required properties confi
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-          "SolutionName": "MyCustomSolution"
-        },
-        "Analysis": {
-          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-          "PublisherPrefix": "contoso",
-          "PrettyPrint": true
-        }
-      },
-      "Webresource": {
-        "Sync": {
-          "FolderPath": "wwwroot",
-          "SolutionName": "MyCustomSolution"
-        }
-      },
-      "Logger": {
-        "LogLevel": "Debug"
-      },
-      "Execution": {
-        "DryRun": true
+    "DryRun": true,
+    "LogLevel": "Debug",
+    "CiMode": false,
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MyCustomSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "bin/Release/net462/MyPlugin.dll"
+          },
+          {
+            "Type": "Webresource",
+            "FolderPath": "wwwroot"
+          },
+          {
+            "Type": "PluginAnalysis",
+            "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+            "PublisherPrefix": "contoso",
+            "PrettyPrint": true
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -450,17 +464,19 @@ XrmSync will only execute sub-commands that have their required properties confi
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Webresource": {
-        "Sync": {
-          "FolderPath": "src/webresources",
-          "SolutionName": "MyCustomSolution"
-        }
-      },
-      "Execution": {
-        "DryRun": false
+    "DryRun": false,
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MyCustomSolution",
+        "Sync": [
+          {
+            "Type": "Webresource",
+            "FolderPath": "src/webresources"
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -469,15 +485,20 @@ XrmSync will only execute sub-commands that have their required properties confi
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Analysis": {
-          "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
-          "PublisherPrefix": "contoso",
-          "PrettyPrint": false
-        }
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MySolution",
+        "Sync": [
+          {
+            "Type": "PluginAnalysis",
+            "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
+            "PublisherPrefix": "contoso",
+            "PrettyPrint": false
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -669,7 +690,7 @@ The solution consists of several projects:
 
 ### Prerequisites
 
-- .NET 8 SDK
+- .NET 10 SDK
 - Visual Studio 2022 or VS Code
 - Access to a Dataverse environment for testing
 
