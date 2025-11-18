@@ -9,6 +9,7 @@
   </Folder>
   <Folder Name="/Solution files/">
     <File Path=".gitignore" />
+    <File Path="appsettings.example.json" />
     <File Path="CHANGELOG.md" />
     <File Path="CLAUDE.md" />
     <File Path="Directory.Build.props" />
