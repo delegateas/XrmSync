@@ -53,7 +53,7 @@ internal class MessageReader(IDataverseReader reader) : IMessageReader
             MessageName: message.Name ?? string.Empty,
             MessageId: message.Id,
             MessageFilters: messageFilters[message.Id].ToDictionary(
-                mf => mf.PrimaryObjectTypeCode ?? string.Empty,
+                mf => mf.PrimaryObjectTypeCode?.ToString() ?? string.Empty,
                 mf => mf.Id
             )
         )).ToDictionary(

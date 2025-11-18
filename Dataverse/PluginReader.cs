@@ -87,14 +87,14 @@ internal class PluginReader(IDataverseReader reader) : IPluginReader
             pi => pi.SdkMessageProcessingStepImageId,
             pi => pi.Name,
             pi => pi.EntityAlias,
-            pi => pi.Attributes1,
+            pi => pi.Attributes_1,
             pi => pi.ImageType,
             pi => pi.SdkMessageProcessingStepId
         ).ConvertAll(pi => (pi.SdkMessageProcessingStepId, Image: new Image(pi.Name ?? string.Empty)
         {
             Id = pi.Id,
             EntityAlias = pi.EntityAlias ?? string.Empty,
-            Attributes = pi.Attributes1 ?? string.Empty,
+            Attributes = pi.Attributes_1 ?? string.Empty,
             ImageType = (ImageType)(pi.ImageType ?? 0),
         })).ToLookup(pi => pi.SdkMessageProcessingStepId?.Id ?? Guid.Empty, pi => pi.Image);
 

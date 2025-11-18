@@ -12,9 +12,9 @@ public interface IDataverseReader
     IQueryable<SolutionComponent> SolutionComponents { get; }
     IQueryable<Publisher> Publishers { get; }
     IQueryable<PluginAssembly> PluginAssemblies { get; }
-    IQueryable<CustomApi> CustomApis { get; }
-    IQueryable<CustomApiRequestParameter> CustomApiRequestParameters { get; }
-    IQueryable<CustomApiResponseProperty> CustomApiResponseProperties { get; }
+    IQueryable<CustomAPI> CustomApis { get; }
+    IQueryable<CustomAPIRequestParameter> CustomApiRequestParameters { get; }
+    IQueryable<CustomAPIResponseProperty> CustomApiResponseProperties { get; }
     IQueryable<PluginType> PluginTypes { get; }
     IQueryable<SdkMessage> SdkMessages { get; }
     IQueryable<SdkMessageFilter> SdkMessageFilters { get; }

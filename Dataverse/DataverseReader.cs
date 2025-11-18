@@ -24,11 +24,11 @@ internal sealed class DataverseReader(ServiceClient serviceClient) : IDataverseR
 
     public IQueryable<PluginAssembly> PluginAssemblies => DataverseContext.PluginAssemblySet;
 
-    public IQueryable<CustomApi> CustomApis => DataverseContext.CustomApiSet;
+    public IQueryable<CustomAPI> CustomApis => DataverseContext.CustomAPISet;
 
-    public IQueryable<CustomApiRequestParameter> CustomApiRequestParameters => DataverseContext.CustomApiRequestParameterSet;
+    public IQueryable<CustomAPIRequestParameter> CustomApiRequestParameters => DataverseContext.CustomAPIRequestParameterSet;
 
-    public IQueryable<CustomApiResponseProperty> CustomApiResponseProperties => DataverseContext.CustomApiResponsePropertySet;
+    public IQueryable<CustomAPIResponseProperty> CustomApiResponseProperties => DataverseContext.CustomAPIResponsePropertySet;
 
     public IQueryable<PluginType> PluginTypes => DataverseContext.PluginTypeSet;
 
