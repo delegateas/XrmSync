@@ -16,7 +16,6 @@ internal static class ServiceCollectionExtensions
     {
         services
             .AddSingleton<IConfigReader, ConfigReader>()
-            .AddSingleton<IConfigWriter, ConfigWriter>()
             .AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
             .AddSingleton(MSOptions.Create(sharedOptions))
             .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())
@@ -38,12 +37,6 @@ internal static class ServiceCollectionExtensions
             return MSOptions.Create(configModifier(baseConfig));
         });
 
-        services.AddSingleton(sp =>
-        {
-            var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
-            return MSOptions.Create(config.Value.Execution);
-        });
-
         return services;
     }
 
@@ -63,31 +56,23 @@ internal static class ServiceCollectionExtensions
 
     public static IServiceCollection AddLogger(this IServiceCollection services)
     {
-        // Register IOptions<LoggerOptions> for logging
         services.AddSingleton(sp =>
         {
             var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>();
-            return MSOptions.Create(config.Value.Logger);
-        });
-
-        services.AddSingleton(sp =>
-        {
-            var loggerOptions = sp.GetRequiredService<IOptions<LoggerOptions>>().Value;
-            var executionOptions = sp.GetRequiredService<IOptions<ExecutionOptions>>().Value;
             return LoggerFactory.Create(
                 builder =>
                 {
                     builder.AddFilter(nameof(Microsoft), LogLevel.Warning)
                         .AddFilter(nameof(System), LogLevel.Warning)
-                        .AddFilter(nameof(XrmSync), loggerOptions.LogLevel)
+                        .AddFilter(nameof(XrmSync), config.Value.LogLevel)
                         .AddConsole(options => options.FormatterName = "ci-console")
                         .AddConsoleFormatter<CIConsoleFormatter, CIConsoleFormatterOptions>(options =>
                         {
                             options.IncludeScopes = false;
                             options.SingleLine = true;
                             options.TimestampFormat = "HH:mm:ss ";
-                            options.CIMode = loggerOptions.CiMode;
-                            options.DryRun = executionOptions.DryRun;
+                            options.CIMode = config.Value.CiMode;
+                            options.DryRun = config.Value.DryRun;
                         });
                 });
         });

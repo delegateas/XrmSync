@@ -1,60 +1,8 @@
 {
   "profiles": {
-    "Sync": {
+    "XrmSync": {
       "commandName": "Project",
-      "commandLineArgs": "plugins"
-    },
-    "DryRunSyncDAXIF": {
-      "commandName": "Project",
-      "commandLineArgs": "plugins --dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
-    },
-    "DryRunSyncDAXIFFromFile": {
-      "commandName": "Project",
-      "commandLineArgs": "plugins --dry-run -l Debug"
-    },
-    "SyncDAXIF": {
-      "commandName": "Project",
-      "commandLineArgs": "plugins --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
-    },
-    "DryRunSyncHybrid": {
-      "commandName": "Project",
-      "commandLineArgs": "plugins --dry-run --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
-    },
-    "SyncHybrid": {
-      "commandName": "Project",
-      "commandLineArgs": "plugins --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
-    },
-    "AnalyzeSampleDAXIF": {
-      "commandName": "Project",
-      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
-    },
-    "AnalyzeSampleHybrid": {
-      "commandName": "Project",
-      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\2-Hybrid\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
-    },
-    "AnalyzeSampleXrmPluginCore": {
-      "commandName": "Project",
-      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\3-XrmPluginCore\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
-    },
-    "AnalyzeSampleFullDAXIF": {
-      "commandName": "Project",
-      "commandLineArgs": "analyze --pretty-print --assembly \"..\\..\\..\\..\\Samples\\4-Full-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
-    },
-    "XrmSyncHelp": {
-      "commandName": "Project",
-      "commandLineArgs": ""
-    },
-    "SaveConfigDryRun": {
-      "commandName": "Project",
-      "commandLineArgs": "plugins --save-config --dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
-    },
-    "SaveConfigAnalyze": {
-      "commandName": "Project",
-      "commandLineArgs": "analyze --save-config --pretty-print --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
-    },
-    "WebresourceSync": {
-      "commandName": "Project",
-      "commandLineArgs": "webresources --dry-run --path \"..\\..\\..\\..\\Samples\\5-Webresources\\Webresources\" -l debug"
+      "commandLineArgs": "--profile hybrid"
     }
   }
 }

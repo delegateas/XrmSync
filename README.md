@@ -76,10 +76,11 @@ xrmsync webresources --folder "path/to/webresources" --solution-name "YourSoluti
 For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
 ```bash
 # Run all configured commands (plugins, webresources, analysis)
-xrmsync --config default
+# If only one profile exists, it's used automatically without --profile
+xrmsync --profile myprofile
 
 # Run a specific command with configuration
-xrmsync plugins --config default
+xrmsync plugins --profile myprofile
 ```
 
 You can also override specific options when using a configuration file:
@@ -98,9 +99,7 @@ xrmsync plugins --dry-run --log-level Debug
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
-| `--config` | `-c` | Name of the configuration to load from appsettings.json | No |
-| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
-| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
+| `--profile` | `-p`, `--profile-name` | Name of the profile to load from appsettings.json | No |
 
 *Required when not present in appsettings.json
 
@@ -113,9 +112,7 @@ xrmsync plugins --dry-run --log-level Debug
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
-| `--config` | `-c` | Name of the configuration to load from appsettings.json | No |
-| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
-| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
+| `--profile` | `-p`, `--profile-name` | Name of the profile to load from appsettings.json | No |
 
 *Required when not present in appsettings.json
 
@@ -139,8 +136,6 @@ The webresource name in Dataverse is determined by the file path relative to the
 | `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
 | `--prefix` | `-p` | Publisher prefix for unique names | No (Default: "new") |
 | `--pretty-print` | `--pp` | Pretty print the JSON output | No |
-| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
-| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
 *Required when not present in appsettings.json
 
@@ -150,13 +145,13 @@ The webresource name in Dataverse is determined by the file path relative to the
 
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
-| `--config` | `-c` | Name of the configuration to validate | No (Default: "default") |
+| `--profile` | `-p`, `--profile-name` | Name of the profile to validate | No (auto-selects if only one profile exists) |
 
 **Config List Command**
 
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
-| No options | | Lists all configurations from appsettings.json | N/A |
+| No options | | Lists all profiles from appsettings.json | N/A |
 
 ### Assembly Analysis
 
@@ -165,10 +160,6 @@ You can analyze an assembly without connecting to Dataverse:
 xrmsync analyze --assembly "path/to/your/plugin.dll" --pretty-print
 ```
 
-You can also save analysis configurations:
-```bash
-xrmsync analyze --assembly "path/to/your/plugin.dll" --prefix "contoso" --pretty-print --save-config
-```
 This outputs JSON information about the plugin types, steps, and images found in the assembly.
 
 ### Configuration Validation
@@ -180,7 +171,7 @@ You can validate your configuration files to ensure they are correctly set up:
 xrmsync config validate
 
 # Validate a specific named configuration
-xrmsync config validate --config dev
+xrmsync config validate --profile dev
 ```
 
 The `config validate` command shows:
@@ -238,64 +229,38 @@ Available configurations (from appsettings.json):
 
 XrmSync supports JSON configuration files that contain all the necessary settings for synchronization and analysis. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
 
-The configuration uses a hierarchical structure under the XrmSync section, separating sync and analysis options under Plugin.Sync and Plugin.Analysis respectively.
-
-#### Generating Configuration Files
-
-You can automatically generate configuration files using the `--save-config` option with any command:
-
-##### Save sync options to appsettings.json (default)
-```bash
-xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config
-```
-
-##### Save analysis options to appsettings.json
-```bash
-xrmsync analyze --assembly "MyPlugin.dll" --prefix "contoso" --pretty-print --save-config
-```
-
-##### Save to a custom file
-```bash
-xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config --save-config-to "my-project.json"
-```
-
-When using `--save-config`, XrmSync will:
-1. Take all the provided CLI options
-2. Create or update the target configuration file
-3. Merge with existing content if the file already exists
-4. Save the configuration in the proper JSON format
+The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode) and an array of named profiles. Each profile contains a solution name and a list of sync items (Plugin, Webresource, PluginAnalysis).
 
 #### JSON Schema
 
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "path/to/your/plugin.dll",
-          "SolutionName": "YourSolutionName"
-        },
-        "Analysis": {
-          "AssemblyPath": "path/to/your/plugin.dll",
-          "PublisherPrefix": "contoso",
-          "PrettyPrint": true
-        }
-      },
-      "Webresource": {
-        "Sync": {
-          "FolderPath": "path/to/webresources",
-          "SolutionName": "YourSolutionName"
-        }
-      },
-      "Logger": {
-        "LogLevel": "Information",
-        "CiMode": false
-      },
-      "Execution": {
-        "DryRun": false
+    "DryRun": false,
+    "LogLevel": "Information",
+    "CiMode": false,
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "YourSolutionName",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "path/to/your/plugin.dll"
+          },
+          {
+            "Type": "Webresource",
+            "FolderPath": "path/to/webresources"
+          },
+          {
+            "Type": "PluginAnalysis",
+            "AssemblyPath": "path/to/your/plugin.dll",
+            "PublisherPrefix": "contoso",
+            "PrettyPrint": true
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -306,42 +271,42 @@ XrmSync supports multiple named configurations within a single appsettings.json 
 
 **Using named configurations:**
 ```bash
-# Use the 'default' configuration (or the only configuration if only one exists)
-xrmsync --config default
-
-# Use a specific named configuration
-xrmsync --config dev
-
-# If --config is not specified, 'default' is used, or the single config if only one exists
+# If only one profile exists, it's used automatically
 xrmsync
+
+# If multiple profiles exist, you must specify which one to use
+xrmsync --profile <profile-name>
 ```
 
 **Example with multiple named configurations:**
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "bin/Debug/net462/MyPlugin.dll",
-          "SolutionName": "DevSolution"
-        }
+    "DryRun": false,
+    "LogLevel": "Information",
+    "CiMode": false,
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "DevSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "bin/Debug/net462/MyPlugin.dll"
+          }
+        ]
       },
-      "Execution": {
-        "DryRun": true
+      {
+        "Name": "prod",
+        "SolutionName": "ProdSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "bin/Release/net462/MyPlugin.dll"
+          }
+        ]
       }
-    },
-    "prod": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-          "SolutionName": "ProdSolution"
-        }
-      },
-      "Execution": {
-        "DryRun": false
-      }
-    }
+    ]
   }
 }
 ```
@@ -353,7 +318,7 @@ When you call the root command with a configuration name, XrmSync will automatic
 ```bash
 # This will run plugin sync, plugin analysis, and webresource sync
 # for all that are configured in the 'default' configuration
-xrmsync --config default
+xrmsync --profile default
 ```
 
 XrmSync will only execute sub-commands that have their required properties configured. For example:
@@ -361,40 +326,48 @@ XrmSync will only execute sub-commands that have their required properties confi
 - Plugin analysis runs only if `AssemblyPath` is provided
 - Webresource sync runs only if `FolderPath` and `SolutionName` are provided
 
-#### Plugin Sync Properties
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
-| `SolutionName` | string | Name of the target Dataverse solution | Required |
-
-#### Plugin Analysis Properties
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
-| `PublisherPrefix` | string | Publisher prefix for unique names | "new" |
-| `PrettyPrint` | boolean | Pretty print the JSON output | false |
-
-#### Webresource Sync Properties
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| `FolderPath` | string | Path to the root folder containing webresources | Required |
-| `SolutionName` | string | Name of the target Dataverse solution | Required |
-
-#### Logger Properties
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
-| `CiMode` | boolean | Enable CI mode for easier parsing in CI systems | false |
-
-#### Execution Properties
+#### Global Properties
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
 | `DryRun` | boolean | Perform a dry run without making changes | false |
+| `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
+| `CiMode` | boolean | Enable CI mode for easier parsing in CI systems | false |
+
+#### Profile Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Name` | string | Name of the profile | Required |
+| `SolutionName` | string | Name of the target Dataverse solution | Required |
+| `Sync` | array | List of sync items (see below) | Required |
+
+#### Sync Item Properties
+
+Each sync item must have a `Type` property indicating the sync type:
+
+**Plugin Sync Item (Type: "Plugin")**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Type` | string | Must be "Plugin" | Required |
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+
+**Webresource Sync Item (Type: "Webresource")**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Type` | string | Must be "Webresource" | Required |
+| `FolderPath` | string | Path to the root folder containing webresources | Required |
+
+**Plugin Analysis Item (Type: "PluginAnalysis")**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Type` | string | Must be "PluginAnalysis" | Required |
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `PublisherPrefix` | string | Publisher prefix for unique names | "new" |
+| `PrettyPrint` | boolean | Pretty print the JSON output | false |
 
 #### Example Configuration Files
 
@@ -402,14 +375,18 @@ XrmSync will only execute sub-commands that have their required properties confi
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "MyPlugin.dll",
-          "SolutionName": "MyCustomSolution"
-        }
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MyCustomSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "MyPlugin.dll"
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -419,31 +396,31 @@ XrmSync will only execute sub-commands that have their required properties confi
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Sync": {
-          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-          "SolutionName": "MyCustomSolution"
-        },
-        "Analysis": {
-          "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
-          "PublisherPrefix": "contoso",
-          "PrettyPrint": true
-        }
-      },
-      "Webresource": {
-        "Sync": {
-          "FolderPath": "wwwroot",
-          "SolutionName": "MyCustomSolution"
-        }
-      },
-      "Logger": {
-        "LogLevel": "Debug"
-      },
-      "Execution": {
-        "DryRun": true
+    "DryRun": true,
+    "LogLevel": "Debug",
+    "CiMode": false,
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MyCustomSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "bin/Release/net462/MyPlugin.dll"
+          },
+          {
+            "Type": "Webresource",
+            "FolderPath": "wwwroot"
+          },
+          {
+            "Type": "PluginAnalysis",
+            "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+            "PublisherPrefix": "contoso",
+            "PrettyPrint": true
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -452,17 +429,19 @@ XrmSync will only execute sub-commands that have their required properties confi
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Webresource": {
-        "Sync": {
-          "FolderPath": "src/webresources",
-          "SolutionName": "MyCustomSolution"
-        }
-      },
-      "Execution": {
-        "DryRun": false
+    "DryRun": false,
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MyCustomSolution",
+        "Sync": [
+          {
+            "Type": "Webresource",
+            "FolderPath": "src/webresources"
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -471,15 +450,20 @@ XrmSync will only execute sub-commands that have their required properties confi
 ```json
 {
   "XrmSync": {
-    "default": {
-      "Plugin": {
-        "Analysis": {
-          "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
-          "PublisherPrefix": "contoso",
-          "PrettyPrint": false
-        }
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MySolution",
+        "Sync": [
+          {
+            "Type": "PluginAnalysis",
+            "AssemblyPath": "../../../bin/Debug/net462/ILMerged.SamplePlugins.dll",
+            "PublisherPrefix": "contoso",
+            "PrettyPrint": false
+          }
+        ]
       }
-    }
+    ]
   }
 }
 ```
@@ -504,22 +488,22 @@ xrmsync webresources --folder "wwwroot" --solution-name "MyCustomSolution" --dry
 #### Using a configuration file to run all configured commands:
 ```bash
 # Runs all configured sub-commands (plugin sync, analysis, webresource sync)
-# from the 'default' configuration
-xrmsync --config default
+# from the specified profile
+xrmsync --profile myprofile
 
-# Or simply (uses 'default' if it exists, or the only config if there's just one)
+# If only one profile exists, it's used automatically
 xrmsync
 ```
 
 #### Using a specific named configuration:
 ```bash
-xrmsync --config prod
+xrmsync --profile prod
 ```
 
 #### Running a specific sub-command with configuration:
 ```bash
 # Uses the configuration but only runs the plugins command
-xrmsync plugins --config dev
+xrmsync plugins --profile dev
 ```
 
 #### Configuration file with CLI overrides:
@@ -671,7 +655,7 @@ The solution consists of several projects:
 
 ### Prerequisites
 
-- .NET 8 SDK
+- .NET 10 SDK
 - Visual Studio 2022 or VS Code
 - Access to a Dataverse environment for testing
 

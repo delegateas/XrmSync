@@ -6,7 +6,7 @@ using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Dataverse;
 
-internal class PluginAssemblyWriter(IDataverseWriter writer, IOptions<PluginSyncOptions> configuration) : IPluginAssemblyWriter
+internal class PluginAssemblyWriter(IDataverseWriter writer, IOptions<PluginSyncCommandOptions> configuration) : IPluginAssemblyWriter
 {
     private Dictionary<string, object> Parameters { get; } = new() {
             { "SolutionUniqueName", configuration.Value.SolutionName }

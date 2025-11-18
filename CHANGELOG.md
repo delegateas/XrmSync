@@ -1,3 +1,7 @@
+### Unreleased
+* Refactor: The configuration format has been updated
+* Remove: `--save-config` and `--save-config-to` options - configuration files should be created manually
+
 ### v1.0.0-preview.14 - 06 November 2025
 * Add: Validation rule to prevent duplicate webresource creation
 

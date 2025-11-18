@@ -38,7 +38,7 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
         }
 
         logger.LogDebug("Reading assembly from {AssemblyDllPath}", assemblyDllPath);
-        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, publisherPrefix, sharedOptions.Value.ConfigName, cancellationToken);
+        var assemblyInfo = await ReadAssemblyInternalAsync(assemblyDllPath, publisherPrefix, sharedOptions.Value.ProfileName, cancellationToken);
 
         // Cache the assembly info
         assemblyCache[assemblyDllPath] = assemblyInfo;
@@ -78,7 +78,7 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
         ];
     }
 
-    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath, string publisherPrefix, string configName, CancellationToken cancellationToken)
+    private async Task<AssemblyInfo> ReadAssemblyInternalAsync(string assemblyDllPath, string publisherPrefix, string? configName, CancellationToken cancellationToken)
     {
         var (filename, args) = await GetExecutionInfoAsync(assemblyDllPath, publisherPrefix, configName, cancellationToken);
 
@@ -97,9 +97,10 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
         return assemblyInfo ?? throw new AnalysisException("Failed to read plugin type information from assembly");
     }
 
-    private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath, string publisherPrefix, string configName, CancellationToken cancellationToken)
+    private async Task<(string filename, string args)> GetExecutionInfoAsync(string assemblyDllPath, string publisherPrefix, string? configName, CancellationToken cancellationToken)
     {
-        var baseArgs = $"analyze --assembly \"{assemblyDllPath}\" --prefix \"{publisherPrefix}\" --config \"{configName}\"";
+        var configArg = !string.IsNullOrWhiteSpace(configName) ? $" --profile \"{configName}\"" : "";
+        var baseArgs = $"analyze --assembly \"{assemblyDllPath}\" --prefix \"{publisherPrefix}\"{configArg}";
 
 #if DEBUG
         // In debug, try to invoke the currently executing assembly first

@@ -29,7 +29,7 @@ public class PluginServiceTests
     private readonly IDifferenceCalculator _differenceUtility = Substitute.For<IDifferenceCalculator>();
     private readonly IDescription _description = new Description();
     private readonly IPrintService _printService = Substitute.For<IPrintService>();
-    private readonly PluginSyncOptions _options = new(string.Empty, "solution");
+    private readonly PluginSyncCommandOptions _options = new(string.Empty, "solution");
 
     private readonly PluginSyncService _plugin;
 

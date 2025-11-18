@@ -14,7 +14,7 @@ internal class DryRunDataverseWriter : IDataverseWriter
 {
     private readonly ILogger<DryRunDataverseWriter> logger;
 
-    public DryRunDataverseWriter(IOptions<ExecutionOptions> configuration, ILogger<DryRunDataverseWriter> logger)
+    public DryRunDataverseWriter(IOptions<ExecutionModeOptions> configuration, ILogger<DryRunDataverseWriter> logger)
     {
         if (!configuration.Value.DryRun)
         {

@@ -12,7 +12,7 @@ using XrmSync.SyncService.Validation;
 namespace XrmSync.SyncService;
 
 internal class WebresourceSyncService(
-    IOptions<WebresourceSyncOptions> config,
+    IOptions<WebresourceSyncCommandOptions> config,
     ILogger<WebresourceSyncService> log,
     ILocalReader localReader,
     ISolutionReader solutionReader,
@@ -22,7 +22,7 @@ internal class WebresourceSyncService(
     IPrintService printService
     ) : ISyncService
 {
-    private readonly WebresourceSyncOptions options = config.Value;
+    private readonly WebresourceSyncCommandOptions options = config.Value;
 
     public Task Sync(CancellationToken cancellation)
     {

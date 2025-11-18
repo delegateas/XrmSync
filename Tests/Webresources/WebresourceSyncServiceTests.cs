@@ -21,7 +21,7 @@ public class WebresourceSyncServiceTests
     private readonly IWebresourceWriter _webresourceWriter = Substitute.For<IWebresourceWriter>();
     private readonly IPrintService _printService = Substitute.For<IPrintService>();
     private readonly IValidator<WebresourceDefinition> _webresourceValidator = Substitute.For<IValidator<WebresourceDefinition>>();
-    private readonly WebresourceSyncOptions _options = new("C:\\WebResources", "TestSolution");
+    private readonly WebresourceSyncCommandOptions _options = new("C:\\WebResources", "TestSolution");
 
     private readonly WebresourceSyncService _service;
 
