@@ -76,7 +76,7 @@ function Run-Analyzer {
     }
     
     # Run the analyzer using dotnet run
-    $analyzeOutput = dotnet run --project $xrmSyncPath -- analyze --assembly $AssemblyPath --pretty-print 2>&1
+    $analyzeOutput = dotnet run --project $xrmSyncPath -- analyze --assembly $AssemblyPath --publisher-prefix new --pretty-print 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to analyze $SampleName. Output: $analyzeOutput"
     }
