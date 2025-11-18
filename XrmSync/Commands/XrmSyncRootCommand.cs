@@ -20,38 +20,38 @@ internal record ArgumentOverrides(bool DryRun, bool CiMode, LogLevel? LogLevel);
 /// </summary>
 internal class XrmSyncRootCommand : XrmSyncCommandBase
 {
-    private readonly List<IXrmSyncCommand> _subCommands;
-    private readonly Option<bool> _dryRun;
-    private readonly Option<bool> _ciMode;
-    private readonly Option<LogLevel?> _logLevel;
+    private readonly List<IXrmSyncCommand> subCommands;
+    private readonly Option<bool> dryRun;
+    private readonly Option<bool> ciMode;
+    private readonly Option<LogLevel?> logLevel;
 
     public XrmSyncRootCommand(List<IXrmSyncCommand> subCommands)
         : base("xrmsync", "XrmSync - Synchronize your Dataverse plugins and webresources")
     {
-        _subCommands = subCommands;
+        this.subCommands = subCommands;
 
         // Add override options
-        _dryRun = new(CliOptions.Execution.DryRun.Primary, CliOptions.Execution.DryRun.Aliases)
+        dryRun = new(CliOptions.Execution.DryRun.Primary, CliOptions.Execution.DryRun.Aliases)
         {
             Description = CliOptions.Execution.DryRun.Description,
             Required = false
         };
 
-        _ciMode = new(CliOptions.Logging.CiMode.Primary, CliOptions.Logging.CiMode.Aliases)
+        ciMode = new(CliOptions.Logging.CiMode.Primary, CliOptions.Logging.CiMode.Aliases)
         {
             Description = CliOptions.Logging.CiMode.Description,
             Required = false
         };
 
-        _logLevel = new(CliOptions.Logging.LogLevel.Primary, CliOptions.Logging.LogLevel.Aliases)
+        logLevel = new(CliOptions.Logging.LogLevel.Primary, CliOptions.Logging.LogLevel.Aliases)
         {
             Description = CliOptions.Logging.LogLevel.Description,
             Required = false
         };
 
-        Add(_dryRun);
-        Add(_ciMode);
-        Add(_logLevel);
+        Add(dryRun);
+        Add(ciMode);
+        Add(logLevel);
 
         AddSharedOptions();
         SetAction(ExecuteAsync);
@@ -62,9 +62,9 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
         var sharedOptions = GetSharedOptionValues(parseResult);
 
         // Parse override values from CLI
-        var dryRunOverride = parseResult.GetValue(_dryRun);
-        var ciModeOverride = parseResult.GetValue(_ciMode);
-        var logLevelOverride = parseResult.GetValue(_logLevel);
+        var dryRunOverride = parseResult.GetValue(dryRun);
+        var ciModeOverride = parseResult.GetValue(ciMode);
+        var logLevelOverride = parseResult.GetValue(logLevel);
 
         // Build service provider
         var serviceProvider = new ServiceCollection()
@@ -216,7 +216,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
     private async Task<int> ExecuteSubCommand(string commandName, string[] args)
     {
-        var command = _subCommands.FirstOrDefault(c => c.GetCommand().Name == commandName);
+        var command = subCommands.FirstOrDefault(c => c.GetCommand().Name == commandName);
         if (command == null)
         {
             Console.Error.WriteLine($"Sub-command '{commandName}' not found.");

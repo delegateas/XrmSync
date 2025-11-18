@@ -11,17 +11,17 @@ namespace XrmSync.Commands;
 
 internal class PluginSyncCommand : XrmSyncSyncCommandBase
 {
-    private readonly Option<string> _assemblyFile;
+    private readonly Option<string> assemblyFile;
 
     public PluginSyncCommand() : base("plugins", "Synchronize plugins in a plugin assembly with Dataverse")
     {
-        _assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
+        assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
         {
             Description = CliOptions.Assembly.Description,
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        Add(_assemblyFile);
+        Add(assemblyFile);
 
         AddSharedOptions();
         AddSyncSharedOptions();
@@ -31,7 +31,7 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 
     private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var assemblyPath = parseResult.GetValue(_assemblyFile);
+        var assemblyPath = parseResult.GetValue(assemblyFile);
         var (solutionName, dryRun, logLevel, ciMode) = GetSyncSharedOptionValues(parseResult);
         var sharedOptions = GetSharedOptionValues(parseResult);
 

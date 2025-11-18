@@ -11,7 +11,7 @@ public class OptionsValidationTests
         new SharedOptions(profileName);
 
     [Fact]
-    public void PluginSyncValidator_ValidOptions_PassesValidation()
+    public void PluginSyncValidatorValidOptionsPassesValidation()
     {
         // Arrange - Create a test DLL file
         var tempFile = Path.GetTempFileName();
@@ -48,7 +48,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void PluginSyncValidator_EmptyAssemblyPath_ThrowsValidationException()
+    public void PluginSyncValidatorEmptyAssemblyPathThrowsValidationException()
     {
         // Arrange
         var config = new XrmSyncConfiguration(
@@ -74,7 +74,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void PluginSyncValidator_NonExistentAssemblyFile_ThrowsValidationException()
+    public void PluginSyncValidatorNonExistentAssemblyFileThrowsValidationException()
     {
         // Arrange
         var config = new XrmSyncConfiguration(
@@ -100,7 +100,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void PluginSyncValidator_WrongFileExtension_ThrowsValidationException()
+    public void PluginSyncValidatorWrongFileExtensionThrowsValidationException()
     {
         // Arrange
         var config = new XrmSyncConfiguration(
@@ -126,7 +126,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void ProfileValidator_SolutionNameTooLong_ThrowsValidationException()
+    public void ProfileValidatorSolutionNameTooLongThrowsValidationException()
     {
         // Arrange
         var tempFile = Path.GetTempFileName();
@@ -165,7 +165,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void PluginAnalysisValidator_ValidOptions_PassesValidation()
+    public void PluginAnalysisValidatorValidOptionsPassesValidation()
     {
         // Arrange - Create a test DLL file
         var tempFile = Path.GetTempFileName();
@@ -202,7 +202,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void PluginAnalysisValidator_EmptyPublisherPrefix_ThrowsValidationException()
+    public void PluginAnalysisValidatorEmptyPublisherPrefixThrowsValidationException()
     {
         // Arrange
         var tempFile = Path.GetTempFileName();
@@ -241,7 +241,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void PluginAnalysisValidator_InvalidPublisherPrefixTooShort_ThrowsValidationException()
+    public void PluginAnalysisValidatorInvalidPublisherPrefixTooShortThrowsValidationException()
     {
         // Arrange
         var tempFile = Path.GetTempFileName();
@@ -284,7 +284,7 @@ public class OptionsValidationTests
     [InlineData("ms")]
     [InlineData("contoso1")]
     [InlineData("abc123")]
-    public void PluginAnalysisValidator_ValidPublisherPrefixes_PassValidation(string publisherPrefix)
+    public void PluginAnalysisValidatorValidPublisherPrefixesPassValidation(string publisherPrefix)
     {
         // Arrange - Create a test DLL file
         var tempFile = Path.GetTempFileName();
@@ -324,7 +324,7 @@ public class OptionsValidationTests
     [InlineData("Contoso")] // Starts with uppercase
     [InlineData("1contoso")] // Starts with number
     [InlineData("con-toso")] // Contains hyphen
-    public void PluginAnalysisValidator_InvalidPublisherPrefixFormats_ThrowValidationException(string publisherPrefix)
+    public void PluginAnalysisValidatorInvalidPublisherPrefixFormatsThrowValidationException(string publisherPrefix)
     {
         // Arrange
         var tempFile = Path.GetTempFileName();
@@ -363,7 +363,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceValidator_ValidOptions_PassesValidation()
+    public void WebresourceValidatorValidOptionsPassesValidation()
     {
         // Arrange - Create a test directory
         var tempDir = Path.GetTempFileName();
@@ -399,7 +399,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceValidator_EmptyFolderPath_ThrowsValidationException()
+    public void WebresourceValidatorEmptyFolderPathThrowsValidationException()
     {
         // Arrange
         var config = new XrmSyncConfiguration(
@@ -425,7 +425,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void WebresourceValidator_NonExistentFolderPath_ThrowsValidationException()
+    public void WebresourceValidatorNonExistentFolderPathThrowsValidationException()
     {
         // Arrange
         var config = new XrmSyncConfiguration(
@@ -451,7 +451,7 @@ public class OptionsValidationTests
     }
 
     [Fact]
-    public void Validator_ProfileNotFound_ThrowsValidationException()
+    public void ValidatorProfileNotFoundThrowsValidationException()
     {
         // Arrange
         var config = new XrmSyncConfiguration(

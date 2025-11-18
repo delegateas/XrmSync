@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using XrmSync.Commands;
 using XrmSync.Model;
-using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Options;
 

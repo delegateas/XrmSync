@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using XrmSync.Commands;
 using XrmSync.Logging;
 using XrmSync.Model;
 using XrmSync.Options;

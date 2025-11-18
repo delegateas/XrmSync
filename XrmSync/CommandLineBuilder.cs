@@ -5,15 +5,15 @@ namespace XrmSync;
 
 internal class CommandLineBuilder
 {
-    private readonly List<IXrmSyncCommand> _commands = [];
-    private bool _withRootCommandHandler;
+    private readonly List<IXrmSyncCommand> commands = [];
+    private bool withRootCommandHandler;
 
     /// <summary>
     /// Adds a command to the root command
     /// </summary>
     public CommandLineBuilder AddCommand(IXrmSyncCommand command)
     {
-        _commands.Add(command);
+        commands.Add(command);
         return this;
     }
 
@@ -34,7 +34,7 @@ internal class CommandLineBuilder
     /// </summary>
     public CommandLineBuilder WithRootCommandHandler()
     {
-        _withRootCommandHandler = true;
+        withRootCommandHandler = true;
 
         return this;
     }
@@ -45,13 +45,13 @@ internal class CommandLineBuilder
     public RootCommand Build()
     {
         RootCommand rootCommand = [
-            .._commands.Select(c => c.GetCommand()), // Register all known sub-commands
+            ..commands.Select(c => c.GetCommand()), // Register all known sub-commands
         ];
         rootCommand.Description = "XrmSync - Synchronize your Dataverse plugins and webresources";
 
-        if (_withRootCommandHandler)
+        if (withRootCommandHandler)
         {
-            XrmSyncRootCommand rootCommandHandler = new (_commands);
+            XrmSyncRootCommand rootCommandHandler = new (commands);
 
             foreach (var option in rootCommandHandler.Options)
             {

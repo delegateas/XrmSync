@@ -11,17 +11,17 @@ internal class ConfigReader() : IConfigReader
 {
     public const string CONFIG_FILE_BASE = "appsettings";
 
-    private IConfiguration? _configuration;
+    private IConfiguration? configuration;
 
     public IConfiguration GetConfiguration()
     {
-        _configuration ??= new ConfigurationBuilder()
+        configuration ??= new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile($"{CONFIG_FILE_BASE}.json", optional: true)
                 .AddJsonFile($"{CONFIG_FILE_BASE}.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production"}.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
 
-        return _configuration;
+        return configuration;
     }
 }
