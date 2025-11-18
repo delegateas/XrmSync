@@ -16,7 +16,6 @@ internal static class ServiceCollectionExtensions
     {
         services
             .AddSingleton<IConfigReader, ConfigReader>()
-            .AddSingleton<IConfigWriter, ConfigWriter>()
             .AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
             .AddSingleton(MSOptions.Create(sharedOptions))
             .AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())

@@ -100,8 +100,6 @@ xrmsync plugins --dry-run --log-level Debug
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
 | `--profile` | `-p`, `--profile-name` | Name of the profile to load from appsettings.json | No |
-| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
-| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
 *Required when not present in appsettings.json
 
@@ -115,8 +113,6 @@ xrmsync plugins --dry-run --log-level Debug
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
 | `--profile` | `-p`, `--profile-name` | Name of the profile to load from appsettings.json | No |
-| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
-| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
 *Required when not present in appsettings.json
 
@@ -140,8 +136,6 @@ The webresource name in Dataverse is determined by the file path relative to the
 | `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
 | `--prefix` | `-p` | Publisher prefix for unique names | No (Default: "new") |
 | `--pretty-print` | `--pp` | Pretty print the JSON output | No |
-| `--save-config` | `--sc` | Save current CLI options to appsettings.json | No |
-| `--save-config-to` | | If `--save-config` is specified, override the filename to save to | No |
 
 *Required when not present in appsettings.json
 
@@ -166,10 +160,6 @@ You can analyze an assembly without connecting to Dataverse:
 xrmsync analyze --assembly "path/to/your/plugin.dll" --pretty-print
 ```
 
-You can also save analysis configurations:
-```bash
-xrmsync analyze --assembly "path/to/your/plugin.dll" --prefix "contoso" --pretty-print --save-config
-```
 This outputs JSON information about the plugin types, steps, and images found in the assembly.
 
 ### Configuration Validation
@@ -240,31 +230,6 @@ Available configurations (from appsettings.json):
 XrmSync supports JSON configuration files that contain all the necessary settings for synchronization and analysis. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
 
 The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode) and an array of named profiles. Each profile contains a solution name and a list of sync items (Plugin, Webresource, PluginAnalysis).
-
-#### Generating Configuration Files
-
-You can automatically generate configuration files using the `--save-config` option with any command:
-
-##### Save sync options to appsettings.json (default)
-```bash
-xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config
-```
-
-##### Save analysis options to appsettings.json
-```bash
-xrmsync analyze --assembly "MyPlugin.dll" --prefix "contoso" --pretty-print --save-config
-```
-
-##### Save to a custom file
-```bash
-xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution" --save-config --save-config-to "my-project.json"
-```
-
-When using `--save-config`, XrmSync will:
-1. Take all the provided CLI options
-2. Create or update the target configuration file
-3. Merge with existing content if the file already exists
-4. Save the configuration in the proper JSON format
 
 #### JSON Schema
 

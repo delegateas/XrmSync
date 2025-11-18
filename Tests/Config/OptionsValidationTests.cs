@@ -8,7 +8,7 @@ namespace Tests.Config;
 public class OptionsValidationTests
 {
     private static SharedOptions CreateSharedOptions(string profileName = "default") =>
-        new SharedOptions(false, null, profileName);
+        new SharedOptions(profileName);
 
     [Fact]
     public void PluginSyncValidator_ValidOptions_PassesValidation()

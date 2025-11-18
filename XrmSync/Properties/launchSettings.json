@@ -44,14 +44,6 @@
       "commandName": "Project",
       "commandLineArgs": ""
     },
-    "SaveConfigDryRun": {
-      "commandName": "Project",
-      "commandLineArgs": "plugins --save-config --dry-run --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" -n \"Plugins\" -l debug"
-    },
-    "SaveConfigAnalyze": {
-      "commandName": "Project",
-      "commandLineArgs": "analyze --save-config --pretty-print --assembly \"..\\..\\..\\..\\Samples\\1-DAXIF\\bin\\Debug\\net462\\ILMerged.SamplePlugins.dll\" --prefix \"dg\""
-    },
     "WebresourceSync": {
       "commandName": "Project",
       "commandLineArgs": "webresources --dry-run --path \"..\\..\\..\\..\\Samples\\5-Webresources\\Webresources\" -l debug"

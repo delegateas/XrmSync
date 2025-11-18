@@ -81,7 +81,6 @@ The solution is organized into distinct layers with clear separation of concerns
 - Each profile contains a solution name and list of sync items (Plugin, PluginAnalysis, Webresource)
 - Profile support (e.g., "default", "dev", "prod") via `--profile` flag
 - CLI options override configuration file values for standalone execution
-- `--save-config` flag generates/updates configuration files from CLI arguments
 - Root command can execute all sync items in a profile sequentially
 
 **Configuration Format**:

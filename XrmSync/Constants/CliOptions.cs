@@ -73,21 +73,7 @@ internal static class CliOptions
     /// </summary>
     internal static class Config
     {
-        public static class SaveConfig
-        {
-            public const string Primary = "--save-config";
-            public static readonly string[] Aliases = ["--sc"];
-            public const string Description = "Save current CLI options to appsettings.json";
-        }
-
-
-        public static class SaveConfigTo
-        {
-            public const string Primary = "--save-config-to";
-            public const string Description = $"If {SaveConfig.Primary} is set, save to this file instead of appsettings.json";
-        }
-
-        public static class LoadConfig
+        public static class Profile
         {
             public const string Primary = "--profile";
             public static readonly string[] Aliases = ["--profile-name", "-p"];

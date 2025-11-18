@@ -50,9 +50,9 @@ public record WebresourceSyncItem(string FolderPath) : SyncItem
     public override string SyncType => "Webresource";
 }
 
-public record SharedOptions(bool SaveConfig, string? SaveConfigTo, string? ProfileName)
+public record SharedOptions(string? ProfileName)
 {
-    public static SharedOptions Empty => new(false, null, null);
+    public static SharedOptions Empty => new((string?)null);
 }
 
 // Command-specific options that can be populated from CLI or profile

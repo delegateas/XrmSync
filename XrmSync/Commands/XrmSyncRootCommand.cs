@@ -139,7 +139,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
         if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
         {
-            args.Add(CliOptions.Config.LoadConfig.Primary);
+            args.Add(CliOptions.Config.Profile.Primary);
             args.Add(sharedOptions.ProfileName);
         }
 
@@ -161,7 +161,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
         if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
         {
-            args.Add(CliOptions.Config.LoadConfig.Primary);
+            args.Add(CliOptions.Config.Profile.Primary);
             args.Add(sharedOptions.ProfileName);
         }
 
@@ -187,7 +187,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
         if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
         {
-            args.Add(CliOptions.Config.LoadConfig.Primary);
+            args.Add(CliOptions.Config.Profile.Primary);
             args.Add(sharedOptions.ProfileName);
         }
 
