@@ -16,14 +16,16 @@ public class CIModeDemonstrationTests
 
         // Arrange - Create service provider with CI mode enabled via AddLogger parameter
         var services = new ServiceCollection()
-            .AddSingleton(Options.Create(XrmSyncConfiguration.Empty with
-            {
-                Logger = new (LogLevel.Debug, true) // Explicitly enable CI mode
-            }))
+            .AddSingleton(Options.Create(new XrmSyncConfiguration(
+                DryRun: false,
+                LogLevel: LogLevel.Debug,
+                CiMode: true, // Explicitly enable CI mode
+                Profiles: new List<ProfileConfiguration>()
+            )))
             .AddLogger()
             .BuildServiceProvider();
 
-        var configOptions = services.GetRequiredService<IOptions<LoggerOptions>>();
+        var configOptions = services.GetRequiredService<IOptions<XrmSyncConfiguration>>();
 
         // Capture what the logger would send to the formatter
         var capturedMessages = new List<(LogLevel Level, string Message)>();

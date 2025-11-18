@@ -76,11 +76,45 @@ The solution is organized into distinct layers with clear separation of concerns
 5. Execute operations via `IWebresourceWriter`
 
 **Configuration System**:
-- Hierarchical configuration under `XrmSync` section in `appsettings.json`
-- Named configurations support (e.g., "default", "dev", "prod")
-- CLI options override configuration file values
-- `--save-config` flag generates/updates configuration files from CLI arguments
-- Root command can execute multiple sub-commands from a single configuration
+- Profile-based configuration under `XrmSync` section in `appsettings.json`
+- Global settings (DryRun, LogLevel, CiMode) apply to all profiles
+- Each profile contains a solution name and list of sync items (Plugin, PluginAnalysis, Webresource)
+- Profile support (e.g., "default", "dev", "prod") via `--profile` flag
+- CLI options override configuration file values for standalone execution
+- Root command can execute all sync items in a profile sequentially
+
+**Configuration Format**:
+```json
+{
+  "XrmSync": {
+    "DryRun": false,
+    "LogLevel": "Information",
+    "CiMode": false,
+    "Profiles": [
+      {
+        "Name": "dev",
+        "SolutionName": "MySolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "../path/to/plugin.dll"
+          },
+          {
+            "Type": "Webresource",
+            "FolderPath": "../path/to/webresources"
+          },
+          {
+            "Type": "PluginAnalysis",
+            "AssemblyPath": "../path/to/plugin.dll",
+            "PublisherPrefix": "new",
+            "PrettyPrint": true
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 **Command Architecture**:
 - All commands implement `IXrmSyncCommand` and extend `XrmSyncCommandBase`

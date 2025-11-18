@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDataverseReader, DataverseReader>();
         services.AddSingleton<IDataverseWriter>((sp) =>
         {
-            var options = sp.GetRequiredService<IOptions<ExecutionOptions>>();
+            var options = sp.GetRequiredService<IOptions<ExecutionModeOptions>>();
 
             return options.Value.DryRun
                 ? ActivatorUtilities.CreateInstance<DryRunDataverseWriter>(sp)

@@ -21,4 +21,5 @@ internal interface IConfigurationValidator
 internal interface IConfigurationBuilder
 {
     XrmSyncConfiguration Build();
+    ProfileConfiguration? GetProfile(string? profileName);
 }

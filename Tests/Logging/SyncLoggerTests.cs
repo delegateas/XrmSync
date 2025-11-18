@@ -37,8 +37,8 @@ public class SyncLoggerTests
     {
         // Arrange
         var loggerFactory = new TestLoggerFactory();
-        var loggerOptions = new LoggerOptions(LogLevel.Information, false);
-        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(loggerOptions));
+        var config = new XrmSyncConfiguration(false, LogLevel.Information, false, new List<ProfileConfiguration>());
+        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(config));
 
         // Act
         syncLogger.LogWarning("This is a warning message");
@@ -57,8 +57,8 @@ public class SyncLoggerTests
     {
         // Arrange
         var loggerFactory = new TestLoggerFactory();
-        var loggerOptions = new LoggerOptions(LogLevel.Information, false);
-        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(loggerOptions));
+        var config = new XrmSyncConfiguration(false, LogLevel.Information, false, new List<ProfileConfiguration>());
+        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(config));
 
         // Act
         syncLogger.LogWarning("This is a warning message");

@@ -15,65 +15,57 @@ internal class ConfigValidationOutput(
     {
         if (configOptions == null || sharedOptions == null)
         {
-            throw new InvalidOperationException("ConfigValidationOutput requires XrmSyncConfiguration and SharedOptions to validate configuration. Use OutputConfigList for listing configurations.");
+            throw new InvalidOperationException("ConfigValidationOutput requires XrmSyncConfiguration and SharedOptions to validate configuration. Use OutputConfigList for listing profiles.");
         }
 
-        var configName = sharedOptions.Value.ConfigName;
+        var profileName = sharedOptions.Value.ProfileName;
         var configSource = GetConfigurationSource();
 
-        Console.WriteLine($"Configuration: '{configName}' (from {configSource})");
-        Console.WriteLine();
-
         var config = configOptions.Value;
+        var profile = config.Profiles.FirstOrDefault(p => p.Name.Equals(profileName, StringComparison.OrdinalIgnoreCase));
+
+        if (profile == null)
+        {
+            Console.WriteLine($"Profile '{profileName}' not found in {configSource}");
+            return Task.CompletedTask;
+        }
+
+        Console.WriteLine($"Profile: '{profile.Name}' (from {configSource})");
+        Console.WriteLine();
+
+        // Display global settings
+        Console.WriteLine("✓ Global Configuration");
+        Console.WriteLine($"  Dry Run: {config.DryRun}");
+        Console.WriteLine($"  Log Level: {config.LogLevel}");
+        Console.WriteLine($"  CI Mode: {config.CiMode}");
+        Console.WriteLine();
+
+        // Display profile settings
+        Console.WriteLine($"✓ Profile '{profile.Name}'");
+        Console.WriteLine($"  Solution Name: {profile.SolutionName}");
+        Console.WriteLine();
+
+        // Display and validate sync items
         var allValid = true;
+        if (profile.Sync.Count == 0)
+        {
+            Console.WriteLine("  ⊘ No sync items configured");
+            Console.WriteLine();
+        }
+        else
+        {
+            Console.WriteLine($"  Sync Items ({profile.Sync.Count}):");
+            Console.WriteLine();
 
-        // Validate and display Plugin Sync Configuration
-        allValid &= OutputSectionValidation(
-            "Plugin Sync Configuration",
-            ConfigurationScope.PluginSync,
-            () =>
+            for (int i = 0; i < profile.Sync.Count; i++)
             {
-                Console.WriteLine($"  Assembly Path: {config.Plugin.Sync.AssemblyPath}");
-                Console.WriteLine($"  Solution Name: {config.Plugin.Sync.SolutionName}");
-            },
-            $"{XrmSyncConfigurationBuilder.SectionName.Plugin}:{XrmSyncConfigurationBuilder.SectionName.Sync}");
+                var syncItem = profile.Sync[i];
+                allValid &= OutputSyncItemValidation(i + 1, syncItem, profile.Name);
+            }
+        }
 
-        // Validate and display Plugin Analysis Configuration
-        allValid &= OutputSectionValidation(
-            "Plugin Analysis Configuration",
-            ConfigurationScope.PluginAnalysis,
-            () =>
-            {
-                Console.WriteLine($"  Assembly Path: {config.Plugin.Analysis.AssemblyPath}");
-                Console.WriteLine($"  Publisher Prefix: {config.Plugin.Analysis.PublisherPrefix}");
-                Console.WriteLine($"  Pretty Print: {config.Plugin.Analysis.PrettyPrint}");
-            },
-            $"{XrmSyncConfigurationBuilder.SectionName.Plugin}:{XrmSyncConfigurationBuilder.SectionName.Analysis}");
-
-        // Validate and display Webresource Sync Configuration
-        allValid &= OutputSectionValidation(
-            "Webresource Sync Configuration",
-            ConfigurationScope.WebresourceSync,
-            () =>
-            {
-                Console.WriteLine($"  Folder Path: {config.Webresource.Sync.FolderPath}");
-                Console.WriteLine($"  Solution Name: {config.Webresource.Sync.SolutionName}");
-            },
-            $"{XrmSyncConfigurationBuilder.SectionName.Webresource}:{XrmSyncConfigurationBuilder.SectionName.Sync}");
-
-        // Display Logger Configuration (always valid)
-        Console.WriteLine("✓ Logger Configuration");
-        Console.WriteLine($"  Log Level: {config.Logger.LogLevel}");
-        Console.WriteLine($"  CI Mode: {config.Logger.CiMode}");
-        Console.WriteLine();
-
-        // Display Execution Configuration (always valid)
-        Console.WriteLine("✓ Execution Configuration");
-        Console.WriteLine($"  Dry Run: {config.Execution.DryRun}");
-        Console.WriteLine();
-
-        // Display available commands based on configuration
-        var availableCommands = GetAvailableCommands();
+        // Display available commands
+        var availableCommands = GetAvailableCommands(profile);
         if (availableCommands.Count != 0)
         {
             Console.WriteLine($"Available Commands: {string.Join(", ", availableCommands)}");
@@ -99,198 +91,193 @@ internal class ConfigValidationOutput(
 
         if (!xrmSyncSection.Exists())
         {
-            Console.WriteLine("No XrmSync configurations found in appsettings.json");
+            Console.WriteLine("No XrmSync configuration found in appsettings.json");
             return Task.CompletedTask;
         }
 
-        var configNames = xrmSyncSection.GetChildren()
-            .Select(c => c.Key)
-            .ToList();
+        var profilesSection = xrmSyncSection.GetSection(XrmSyncConfigurationBuilder.SectionName.Profiles);
 
-        if (configNames.Count == 0)
+        if (!profilesSection.Exists())
         {
-            Console.WriteLine("No XrmSync configurations found in appsettings.json");
+            Console.WriteLine("No profiles found in XrmSync configuration");
             return Task.CompletedTask;
         }
 
-        Console.WriteLine($"Available configurations (from {GetConfigurationSource()}):");
+        var profiles = profilesSection.GetChildren().ToList();
+
+        if (profiles.Count == 0)
+        {
+            Console.WriteLine("No profiles found in XrmSync configuration");
+            return Task.CompletedTask;
+        }
+
+        Console.WriteLine($"Available profiles (from {GetConfigurationSource()}):");
         Console.WriteLine();
 
-        foreach (var name in configNames)
+        foreach (var profileSection in profiles)
         {
-            Console.WriteLine($"  - {name}");
+            var name = profileSection.GetValue<string>("Name") ?? string.Empty;
+            var solutionName = profileSection.GetValue<string>("SolutionName") ?? string.Empty;
+            var syncItems = profileSection.GetSection("Sync").GetChildren().ToList();
 
-            // Try to get a brief status for this config
-            var (isValid, summary) = GetConfigBriefStatus(name);
-            var statusSymbol = isValid ? "✓" : "✗";
-            Console.WriteLine($"    {statusSymbol} {summary}");
+            Console.WriteLine($"  - {name}");
+            Console.WriteLine($"    Solution: {solutionName}");
+
+            if (syncItems.Count > 0)
+            {
+                var syncTypes = syncItems
+                    .Select(s => s.GetValue<string>("Type"))
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .ToList();
+                Console.WriteLine($"    Sync Items: {string.Join(", ", syncTypes)} ({syncItems.Count} total)");
+            }
+            else
+            {
+                Console.WriteLine($"    Sync Items: None");
+            }
+
             Console.WriteLine();
         }
 
         return Task.CompletedTask;
     }
 
-    private bool OutputSectionValidation(string sectionName, ConfigurationScope scope, Action displayValues, string configSectionPath)
+    private bool OutputSyncItemValidation(int index, SyncItem syncItem, string profileName)
     {
-        if (configOptions == null || sharedOptions == null)
-        {
-            throw new InvalidOperationException("ConfigValidationOutput requires XrmSyncConfiguration and SharedOptions to validate configuration.");
-        }
-
-        // Check if the section exists in the configuration
-        var configName = sharedOptions.Value.ConfigName;
-        var fullSectionPath = $"{XrmSyncConfigurationBuilder.SectionName.XrmSync}:{configName}:{configSectionPath}";
-        var section = configuration.GetSection(fullSectionPath);
-
-        // If section doesn't exist or has no children, it's not configured
-        if (!section.Exists() || !section.GetChildren().Any())
-        {
-            Console.WriteLine($"⊘ {sectionName} (not configured)");
-            Console.WriteLine();
-            return true; // Not an error, just not configured
-        }
+        var itemLabel = $"  [{index}] {syncItem.SyncType}";
 
         try
         {
-            // Create a temporary validator to check this section
-            var validator = new XrmSyncConfigurationValidator(configOptions);
-            validator.Validate(scope);
+            var errors = syncItem switch
+            {
+                PluginSyncItem plugin => ValidatePluginSync(plugin),
+                PluginAnalysisSyncItem analysis => ValidatePluginAnalysis(analysis),
+                WebresourceSyncItem webresource => ValidateWebresource(webresource),
+                _ => new List<string> { "Unknown sync item type" }
+            };
 
-            // If we get here, validation passed
-            Console.WriteLine($"✓ {sectionName}");
-            displayValues();
+            if (errors.Count > 0)
+            {
+                Console.WriteLine($"    ✗ {itemLabel}");
+                DisplaySyncItemDetails(syncItem);
+                foreach (var error in errors)
+                {
+                    Console.WriteLine($"      Error: {error}");
+                }
+                Console.WriteLine();
+                return false;
+            }
+
+            Console.WriteLine($"    ✓ {itemLabel}");
+            DisplaySyncItemDetails(syncItem);
             Console.WriteLine();
             return true;
         }
-        catch (Model.Exceptions.OptionsValidationException ex)
-        {
-            Console.WriteLine($"✗ {sectionName}");
-            displayValues();
-            Console.WriteLine($"  {ex.Message}");
-            Console.WriteLine();
-            return false;
-        }
-        catch (AggregateException ex)
-        {
-            Console.WriteLine($"✗ {sectionName}");
-            displayValues();
-            Console.WriteLine($"  Errors:");
-            foreach (var innerEx in ex.InnerExceptions.OfType<Model.Exceptions.OptionsValidationException>())
-            {
-                Console.WriteLine($"  {innerEx.Message}");
-            }
-            Console.WriteLine();
-            return false;
-        }
-    }
-
-    private (bool isValid, string summary) GetConfigBriefStatus(string configName)
-    {
-        try
-        {
-            // Create a temporary configuration builder for this config
-            var tempSharedOptions = Microsoft.Extensions.Options.Options.Create(new SharedOptions(false, null, configName));
-            var tempBuilder = new XrmSyncConfigurationBuilder(configuration, tempSharedOptions);
-            var tempConfig = tempBuilder.Build();
-            var tempConfigOptions = Microsoft.Extensions.Options.Options.Create(tempConfig);
-            var tempValidator = new XrmSyncConfigurationValidator(tempConfigOptions);
-
-            var sections = new List<string>();
-            var hasErrors = false;
-
-            // Helper to check if a section exists
-            bool SectionExists(string sectionPath)
-            {
-                var fullPath = $"{XrmSyncConfigurationBuilder.SectionName.XrmSync}:{configName}:{sectionPath}";
-                var section = configuration.GetSection(fullPath);
-                return section.Exists() && section.GetChildren().Any();
-            }
-
-            // Check Plugin Sync section
-            if (SectionExists($"{XrmSyncConfigurationBuilder.SectionName.Plugin}:{XrmSyncConfigurationBuilder.SectionName.Sync}"))
-            {
-                try
-                {
-                    tempValidator.Validate(ConfigurationScope.PluginSync);
-                    sections.Add("plugins");
-                }
-                catch { hasErrors = true; }
-            }
-
-            // Check Plugin Analysis section
-            if (SectionExists($"{XrmSyncConfigurationBuilder.SectionName.Plugin}:{XrmSyncConfigurationBuilder.SectionName.Analysis}"))
-            {
-                try
-                {
-                    tempValidator.Validate(ConfigurationScope.PluginAnalysis);
-                    sections.Add("analyze");
-                }
-                catch { hasErrors = true; }
-            }
-
-            // Check Webresource Sync section
-            if (SectionExists($"{XrmSyncConfigurationBuilder.SectionName.Webresource}:{XrmSyncConfigurationBuilder.SectionName.Sync}"))
-            {
-                try
-                {
-                    tempValidator.Validate(ConfigurationScope.WebresourceSync);
-                    sections.Add("webresources");
-                }
-                catch { hasErrors = true; }
-            }
-
-            if (sections.Count == 0)
-            {
-                return (true, "No sections configured");
-            }
-
-            var summary = $"Configured: {string.Join(", ", sections)}";
-            if (hasErrors)
-            {
-                summary += " (some sections have errors)";
-            }
-
-            return (!hasErrors, summary);
-        }
         catch (Exception ex)
         {
-            return (false, $"Error: {ex.Message}");
+            Console.WriteLine($"    ✗ {itemLabel}");
+            Console.WriteLine($"      Error: {ex.Message}");
+            Console.WriteLine();
+            return false;
         }
     }
 
-    private List<string> GetAvailableCommands()
+    private void DisplaySyncItemDetails(SyncItem syncItem)
     {
-        if (configOptions == null)
+        switch (syncItem)
         {
-            return new List<string>();
+            case PluginSyncItem plugin:
+                Console.WriteLine($"      Assembly Path: {plugin.AssemblyPath}");
+                break;
+            case PluginAnalysisSyncItem analysis:
+                Console.WriteLine($"      Assembly Path: {analysis.AssemblyPath}");
+                Console.WriteLine($"      Publisher Prefix: {analysis.PublisherPrefix}");
+                Console.WriteLine($"      Pretty Print: {analysis.PrettyPrint}");
+                break;
+            case WebresourceSyncItem webresource:
+                Console.WriteLine($"      Folder Path: {webresource.FolderPath}");
+                break;
+        }
+    }
+
+    private List<string> ValidatePluginSync(PluginSyncItem plugin)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(plugin.AssemblyPath))
+        {
+            errors.Add("Assembly path is required and cannot be empty.");
+        }
+        else if (!File.Exists(Path.GetFullPath(plugin.AssemblyPath)))
+        {
+            errors.Add($"Assembly file does not exist: {plugin.AssemblyPath}");
+        }
+        else if (!Path.GetExtension(plugin.AssemblyPath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+        {
+            errors.Add("Assembly file must have a .dll extension.");
         }
 
+        return errors;
+    }
+
+    private List<string> ValidatePluginAnalysis(PluginAnalysisSyncItem analysis)
+    {
+        var errors = ValidatePluginSync(new PluginSyncItem(analysis.AssemblyPath));
+
+        if (string.IsNullOrWhiteSpace(analysis.PublisherPrefix))
+        {
+            errors.Add("Publisher prefix is required and cannot be empty.");
+        }
+        else if (analysis.PublisherPrefix.Length < 2 || analysis.PublisherPrefix.Length > 8)
+        {
+            errors.Add("Publisher prefix must be between 2 and 8 characters.");
+        }
+        else if (!System.Text.RegularExpressions.Regex.IsMatch(analysis.PublisherPrefix, @"^[a-z][a-z0-9]{1,7}$"))
+        {
+            errors.Add("Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers.");
+        }
+
+        return errors;
+    }
+
+    private List<string> ValidateWebresource(WebresourceSyncItem webresource)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(webresource.FolderPath))
+        {
+            errors.Add("Webresource root path is required and cannot be empty.");
+        }
+        else if (!Directory.Exists(Path.GetFullPath(webresource.FolderPath)))
+        {
+            errors.Add($"Webresource root path does not exist: {webresource.FolderPath}");
+        }
+
+        return errors;
+    }
+
+    private List<string> GetAvailableCommands(ProfileConfiguration profile)
+    {
         var commands = new List<string>();
-        var validator = new XrmSyncConfigurationValidator(configOptions);
 
-        // Check if plugin sync is configured
-        try
+        foreach (var syncItem in profile.Sync)
         {
-            validator.Validate(ConfigurationScope.PluginSync);
-            commands.Add("plugins");
+            switch (syncItem)
+            {
+                case PluginSyncItem:
+                    if (!commands.Contains("plugins"))
+                        commands.Add("plugins");
+                    break;
+                case PluginAnalysisSyncItem:
+                    if (!commands.Contains("analyze"))
+                        commands.Add("analyze");
+                    break;
+                case WebresourceSyncItem:
+                    if (!commands.Contains("webresources"))
+                        commands.Add("webresources");
+                    break;
+            }
         }
-        catch { /* Not configured or invalid */ }
-
-        // Check if plugin analysis is configured
-        try
-        {
-            validator.Validate(ConfigurationScope.PluginAnalysis);
-            commands.Add("analyze");
-        }
-        catch { /* Not configured or invalid */ }
-
-        // Check if webresource sync is configured
-        try
-        {
-            validator.Validate(ConfigurationScope.WebresourceSync);
-            commands.Add("webresources");
-        }
-        catch { /* Not configured or invalid */ }
 
         return commands;
     }
