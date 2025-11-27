@@ -8,11 +8,11 @@ namespace XrmSync.Dataverse.Context;
 public enum sdkmessageprocessingstep_mode
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("Synchronous", 1033)]
-    Synchronous = 0,
+	[EnumMember]
+	[OptionSetMetadata("Synchronous", 1033)]
+	Synchronous = 0,
 
-    [EnumMember]
-    [OptionSetMetadata("Asynchronous", 1033)]
-    Asynchronous = 1,
+	[EnumMember]
+	[OptionSetMetadata("Asynchronous", 1033)]
+	Asynchronous = 1,
 }

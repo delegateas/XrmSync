@@ -1,7 +1,7 @@
-﻿namespace XrmSync.Dataverse.Interfaces;
+namespace XrmSync.Dataverse.Interfaces;
 
 public interface ISolutionReader
 {
-    string ConnectedHost { get; }
-    (Guid SolutionId, string Prefix) RetrieveSolution(string uniqueName);
+	string ConnectedHost { get; }
+	(Guid SolutionId, string Prefix) RetrieveSolution(string uniqueName);
 }

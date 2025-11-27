@@ -7,77 +7,77 @@ namespace Tests.Logging;
 
 public class SyncLoggerTests
 {
-    private class TestLogger : ILogger
-    {
-        public List<(LogLevel Level, object? State, Type? StateType, string Message)> LoggedMessages { get; } = new();
+	private class TestLogger : ILogger
+	{
+		public List<(LogLevel Level, object? State, Type? StateType, string Message)> LoggedMessages { get; } = new();
 
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+		public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
-        public bool IsEnabled(LogLevel logLevel) => true;
+		public bool IsEnabled(LogLevel logLevel) => true;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            LoggedMessages.Add((logLevel, state, state?.GetType(), formatter(state, exception)));
-        }
-    }
+		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+		{
+			LoggedMessages.Add((logLevel, state, state?.GetType(), formatter(state, exception)));
+		}
+	}
 
-    private class TestLoggerFactory : ILoggerFactory
-    {
-        public TestLogger Logger { get; } = new();
+	private class TestLoggerFactory : ILoggerFactory
+	{
+		public TestLogger Logger { get; } = new();
 
-        public void AddProvider(ILoggerProvider provider) { }
+		public void AddProvider(ILoggerProvider provider) { }
 
-        public ILogger CreateLogger(string categoryName) => Logger;
+		public ILogger CreateLogger(string categoryName) => Logger;
 
-        public void Dispose() { }
-    }
+		public void Dispose() { }
+	}
 
-    [Fact]
-    public void LogPassesThroughDirectly()
-    {
-        // Arrange
-        var loggerFactory = new TestLoggerFactory();
-        var config = new XrmSyncConfiguration(false, LogLevel.Information, false, new List<ProfileConfiguration>());
-        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(config));
+	[Fact]
+	public void LogPassesThroughDirectly()
+	{
+		// Arrange
+		var loggerFactory = new TestLoggerFactory();
+		var config = new XrmSyncConfiguration(false, LogLevel.Information, false, new List<ProfileConfiguration>());
+		var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(config));
 
-        // Act
-        syncLogger.LogWarning("This is a warning message");
+		// Act
+		syncLogger.LogWarning("This is a warning message");
 
-        // Assert
-        var logEntry = Assert.Single(loggerFactory.Logger.LoggedMessages);
-        Assert.Equal(LogLevel.Warning, logEntry.Level);
-        Assert.Equal("This is a warning message", logEntry.Message);
-        
-        // State should pass through directly - CI mode handling is now in the formatter
-        Assert.NotNull(logEntry.StateType);
-    }
+		// Assert
+		var logEntry = Assert.Single(loggerFactory.Logger.LoggedMessages);
+		Assert.Equal(LogLevel.Warning, logEntry.Level);
+		Assert.Equal("This is a warning message", logEntry.Message);
 
-    [Fact]
-    public void LogAllLogLevelsPassThroughDirectly()
-    {
-        // Arrange
-        var loggerFactory = new TestLoggerFactory();
-        var config = new XrmSyncConfiguration(false, LogLevel.Information, false, new List<ProfileConfiguration>());
-        var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(config));
+		// State should pass through directly - CI mode handling is now in the formatter
+		Assert.NotNull(logEntry.StateType);
+	}
 
-        // Act
-        syncLogger.LogWarning("This is a warning message");
-        syncLogger.LogError("This is an error message");
-        syncLogger.LogInformation("This is an info message");
-        syncLogger.LogDebug("This is a debug message");
+	[Fact]
+	public void LogAllLogLevelsPassThroughDirectly()
+	{
+		// Arrange
+		var loggerFactory = new TestLoggerFactory();
+		var config = new XrmSyncConfiguration(false, LogLevel.Information, false, new List<ProfileConfiguration>());
+		var syncLogger = new SyncLogger<SyncLoggerTests>(loggerFactory, Options.Create(config));
 
-        // Assert
-        var logEntries = loggerFactory.Logger.LoggedMessages;
-        Assert.Equal(4, logEntries.Count);
-        
-        var warningEntry = logEntries.First(x => x.Level == LogLevel.Warning);
-        var errorEntry = logEntries.First(x => x.Level == LogLevel.Error);
-        var infoEntry = logEntries.First(x => x.Level == LogLevel.Information);
-        var debugEntry = logEntries.First(x => x.Level == LogLevel.Debug);
-        
-        Assert.Equal("This is a warning message", warningEntry.Message);
-        Assert.Equal("This is an error message", errorEntry.Message);
-        Assert.Equal("This is an info message", infoEntry.Message);
-        Assert.Equal("This is a debug message", debugEntry.Message);
-    }
+		// Act
+		syncLogger.LogWarning("This is a warning message");
+		syncLogger.LogError("This is an error message");
+		syncLogger.LogInformation("This is an info message");
+		syncLogger.LogDebug("This is a debug message");
+
+		// Assert
+		var logEntries = loggerFactory.Logger.LoggedMessages;
+		Assert.Equal(4, logEntries.Count);
+
+		var warningEntry = logEntries.First(x => x.Level == LogLevel.Warning);
+		var errorEntry = logEntries.First(x => x.Level == LogLevel.Error);
+		var infoEntry = logEntries.First(x => x.Level == LogLevel.Information);
+		var debugEntry = logEntries.First(x => x.Level == LogLevel.Debug);
+
+		Assert.Equal("This is a warning message", warningEntry.Message);
+		Assert.Equal("This is an error message", errorEntry.Message);
+		Assert.Equal("This is an info message", infoEntry.Message);
+		Assert.Equal("This is a debug message", debugEntry.Message);
+	}
 }

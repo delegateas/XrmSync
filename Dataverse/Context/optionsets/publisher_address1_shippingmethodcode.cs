@@ -8,7 +8,7 @@ namespace XrmSync.Dataverse.Context;
 public enum publisher_address1_shippingmethodcode
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("Default Value", 1033)]
-    DefaultValue = 1,
+	[EnumMember]
+	[OptionSetMetadata("Default Value", 1033)]
+	DefaultValue = 1,
 }

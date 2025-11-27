@@ -8,19 +8,19 @@ namespace XrmSync.Dataverse.Context;
 public enum systemuser_incomingemaildeliverymethod
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("None", 1033)]
-    None = 0,
+	[EnumMember]
+	[OptionSetMetadata("None", 1033)]
+	None = 0,
 
-    [EnumMember]
-    [OptionSetMetadata("Microsoft Dynamics 365 for Outlook", 1033)]
-    MicrosoftDynamics365forOutlook = 1,
+	[EnumMember]
+	[OptionSetMetadata("Microsoft Dynamics 365 for Outlook", 1033)]
+	MicrosoftDynamics365forOutlook = 1,
 
-    [EnumMember]
-    [OptionSetMetadata("Server-Side Synchronization or Email Router", 1033)]
-    ServerSideSynchronizationorEmailRouter = 2,
+	[EnumMember]
+	[OptionSetMetadata("Server-Side Synchronization or Email Router", 1033)]
+	ServerSideSynchronizationorEmailRouter = 2,
 
-    [EnumMember]
-    [OptionSetMetadata("Forward Mailbox", 1033)]
-    ForwardMailbox = 3,
+	[EnumMember]
+	[OptionSetMetadata("Forward Mailbox", 1033)]
+	ForwardMailbox = 3,
 }

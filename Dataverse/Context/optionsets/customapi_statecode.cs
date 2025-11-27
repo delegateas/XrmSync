@@ -8,11 +8,11 @@ namespace XrmSync.Dataverse.Context;
 public enum customapi_statecode
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("Active", 1033)]
-    Active = 0,
+	[EnumMember]
+	[OptionSetMetadata("Active", 1033)]
+	Active = 0,
 
-    [EnumMember]
-    [OptionSetMetadata("Inactive", 1033)]
-    Inactive = 1,
+	[EnumMember]
+	[OptionSetMetadata("Inactive", 1033)]
+	Inactive = 1,
 }

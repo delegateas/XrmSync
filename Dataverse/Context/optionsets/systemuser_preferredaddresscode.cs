@@ -8,11 +8,11 @@ namespace XrmSync.Dataverse.Context;
 public enum systemuser_preferredaddresscode
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("Mailing Address", 1033)]
-    MailingAddress = 1,
+	[EnumMember]
+	[OptionSetMetadata("Mailing Address", 1033)]
+	MailingAddress = 1,
 
-    [EnumMember]
-    [OptionSetMetadata("Other Address", 1033)]
-    OtherAddress = 2,
+	[EnumMember]
+	[OptionSetMetadata("Other Address", 1033)]
+	OtherAddress = 2,
 }

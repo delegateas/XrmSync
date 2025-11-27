@@ -1,4 +1,4 @@
-﻿using XrmSync.Model.CustomApi;
+using XrmSync.Model.CustomApi;
 using XrmSync.Model.Plugin;
 
 namespace XrmSync.SyncService;

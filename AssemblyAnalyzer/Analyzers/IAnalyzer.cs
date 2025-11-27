@@ -1,6 +1,6 @@
-﻿namespace XrmSync.Analyzer.Analyzers;
+namespace XrmSync.Analyzer.Analyzers;
 
 public interface IAnalyzer<T>
 {
-    List<T> AnalyzeTypes(IEnumerable<Type> types, string prefix);
+	List<T> AnalyzeTypes(IEnumerable<Type> types, string prefix);
 }

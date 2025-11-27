@@ -1,6 +1,6 @@
-﻿namespace XrmSync.SyncService.Validation;
+namespace XrmSync.SyncService.Validation;
 
 public interface IValidator<T>
 {
-    void ValidateOrThrow(IEnumerable<T> items);
+	void ValidateOrThrow(IEnumerable<T> items);
 }

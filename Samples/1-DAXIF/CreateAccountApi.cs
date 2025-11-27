@@ -1,34 +1,34 @@
-﻿namespace SamplePlugins
+namespace SamplePlugins
 {
-    using System;
-    using Microsoft.Xrm.Sdk;
+	using System;
+	using Microsoft.Xrm.Sdk;
 
-    public class CreateAccountApi : CustomAPI
-    {
-        public CreateAccountApi() : base(typeof(CreateAccountApi))
-        {
-            RegisterCustomAPI(nameof(CreateAccountApi), Execute)
-                .AddRequestParameter(new CustomAPIConfig.CustomAPIRequestParameter("Name", RequestParameterType.String))
-                .AddResponseProperty(new CustomAPIConfig.CustomAPIResponseProperty("Name", RequestParameterType.String));
-        }
+	public class CreateAccountApi : CustomAPI
+	{
+		public CreateAccountApi() : base(typeof(CreateAccountApi))
+		{
+			RegisterCustomAPI(nameof(CreateAccountApi), Execute)
+				.AddRequestParameter(new CustomAPIConfig.CustomAPIRequestParameter("Name", RequestParameterType.String))
+				.AddResponseProperty(new CustomAPIConfig.CustomAPIResponseProperty("Name", RequestParameterType.String));
+		}
 
-        protected void Execute(LocalPluginContext localContext)
-        {
-            if (localContext == null)
-            {
-                throw new ArgumentNullException("localContext");
-            }
+		protected void Execute(LocalPluginContext localContext)
+		{
+			if (localContext == null)
+			{
+				throw new ArgumentNullException("localContext");
+			}
 
-            var service = localContext.OrganizationService;
+			var service = localContext.OrganizationService;
 
-            var name = localContext.PluginExecutionContext.InputParameters["Name"] as string;
+			var name = localContext.PluginExecutionContext.InputParameters["Name"] as string;
 
-            service.Create(new Entity("account")
-            {
-                ["name"] = name
-            });
+			service.Create(new Entity("account")
+			{
+				["name"] = name
+			});
 
-            localContext.PluginExecutionContext.OutputParameters["Name"] = name;
-        }
-    }
+			localContext.PluginExecutionContext.OutputParameters["Name"] = name;
+		}
+	}
 }

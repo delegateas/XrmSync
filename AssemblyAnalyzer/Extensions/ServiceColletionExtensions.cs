@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using XrmSync.Analyzer.Analyzers;
 using XrmSync.Analyzer.Reader;
@@ -7,38 +7,38 @@ namespace XrmSync.Analyzer.Extensions;
 
 public static class ServiceColletionExtensions
 {
-    public static IServiceCollection AddLocalReader(this IServiceCollection services)
-    {
-        return services.AddSingleton<ILocalReader, LocalReader>();
-    }
+	public static IServiceCollection AddLocalReader(this IServiceCollection services)
+	{
+		return services.AddSingleton<ILocalReader, LocalReader>();
+	}
 
-    public static IServiceCollection AddAssemblyAnalyzer(this IServiceCollection services)
-    {
-        return services
-            .AddSingleton<IAssemblyAnalyzer, AssemblyAnalyzer>()
-            .AddAnalyzers();
-    }
+	public static IServiceCollection AddAssemblyAnalyzer(this IServiceCollection services)
+	{
+		return services
+			.AddSingleton<IAssemblyAnalyzer, AssemblyAnalyzer>()
+			.AddAnalyzers();
+	}
 
-    public static IServiceCollection AddAnalyzers(this IServiceCollection services)
-    {
-        var assembly = Assembly.GetExecutingAssembly();
+	public static IServiceCollection AddAnalyzers(this IServiceCollection services)
+	{
+		var assembly = Assembly.GetExecutingAssembly();
 
-        // Find all types that implement IAnalyzer<T>
-        var analyzerTypes = assembly.GetTypes()
-            .Where(type => type is { IsClass: true, IsAbstract: false } &&
-                type.GetInterfaces().Any(i => i.IsGenericType &&
-                    i.GetGenericTypeDefinition() == typeof(IAnalyzer<>)))
-            .ToList();
+		// Find all types that implement IAnalyzer<T>
+		var analyzerTypes = assembly.GetTypes()
+			.Where(type => type is { IsClass: true, IsAbstract: false } &&
+				type.GetInterfaces().Any(i => i.IsGenericType &&
+					i.GetGenericTypeDefinition() == typeof(IAnalyzer<>)))
+			.ToList();
 
-        foreach (var analyzerType in analyzerTypes)
-        {
-            // Get the specific IValidationRule<T> interface this type implements
-            var analyzerInterface = analyzerType.GetInterfaces()
-                .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAnalyzer<>));
+		foreach (var analyzerType in analyzerTypes)
+		{
+			// Get the specific IValidationRule<T> interface this type implements
+			var analyzerInterface = analyzerType.GetInterfaces()
+				.First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAnalyzer<>));
 
-            services.AddSingleton(analyzerInterface, analyzerType);
-        }
+			services.AddSingleton(analyzerInterface, analyzerType);
+		}
 
-        return services;
-    }
+		return services;
+	}
 }

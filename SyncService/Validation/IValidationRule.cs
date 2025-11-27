@@ -1,8 +1,8 @@
-﻿namespace XrmSync.SyncService.Validation;
+namespace XrmSync.SyncService.Validation;
 
 internal interface IValidationRule<TEntity>
 {
-    string ErrorMessage(TEntity item);
+	string ErrorMessage(TEntity item);
 
-    IEnumerable<TEntity> GetViolations(IEnumerable<TEntity> items);
+	IEnumerable<TEntity> GetViolations(IEnumerable<TEntity> items);
 }

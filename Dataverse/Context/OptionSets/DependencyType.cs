@@ -8,19 +8,19 @@ namespace XrmSync.Dataverse.Context;
 public enum dependencytype
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("None", 1033)]
-    None = 0,
+	[EnumMember]
+	[OptionSetMetadata("None", 1033)]
+	None = 0,
 
-    [EnumMember]
-    [OptionSetMetadata("Solution Internal", 1033)]
-    SolutionInternal = 1,
+	[EnumMember]
+	[OptionSetMetadata("Solution Internal", 1033)]
+	SolutionInternal = 1,
 
-    [EnumMember]
-    [OptionSetMetadata("Published", 1033)]
-    Published = 2,
+	[EnumMember]
+	[OptionSetMetadata("Published", 1033)]
+	Published = 2,
 
-    [EnumMember]
-    [OptionSetMetadata("Unpublished", 1033)]
-    Unpublished = 4,
+	[EnumMember]
+	[OptionSetMetadata("Unpublished", 1033)]
+	Unpublished = 4,
 }

@@ -8,15 +8,15 @@ namespace XrmSync.Dataverse.Context;
 public enum customapi_allowedcustomprocessingsteptype
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("None", 1033)]
-    None = 0,
+	[EnumMember]
+	[OptionSetMetadata("None", 1033)]
+	None = 0,
 
-    [EnumMember]
-    [OptionSetMetadata("Async Only", 1033)]
-    AsyncOnly = 1,
+	[EnumMember]
+	[OptionSetMetadata("Async Only", 1033)]
+	AsyncOnly = 1,
 
-    [EnumMember]
-    [OptionSetMetadata("Sync and Async", 1033)]
-    SyncandAsync = 2,
+	[EnumMember]
+	[OptionSetMetadata("Sync and Async", 1033)]
+	SyncandAsync = 2,
 }

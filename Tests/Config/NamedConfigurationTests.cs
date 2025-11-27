@@ -7,11 +7,11 @@ namespace Tests.Config;
 
 public class NamedConfigurationTests
 {
-    [Fact]
-    public void ResolveConfigurationNameWithSpecificNameReturnsRequestedName()
-    {
-        // Arrange
-        const string configJson = """
+	[Fact]
+	public void ResolveConfigurationNameWithSpecificNameReturnsRequestedName()
+	{
+		// Arrange
+		const string configJson = """
         {
           "XrmSync": {
             "DryRun": false,
@@ -43,35 +43,35 @@ public class NamedConfigurationTests
         }
         """;
 
-        var tempFile = Path.GetTempFileName();
-        File.WriteAllText(tempFile, configJson);
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
 
-        try
-        {
-            var configReader = new TestConfigReader(tempFile);
-            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty with { ProfileName = "dev" }));
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty with { ProfileName = "dev" }));
 
-            // Act
-            var profile = builder.GetProfile("dev");
+			// Act
+			var profile = builder.GetProfile("dev");
 
-            // Assert
-            Assert.NotNull(profile);
-            Assert.Equal("dev", profile.Name);
-            Assert.Single(profile.Sync);
-            var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
-            Assert.Equal("dev.dll", pluginSync.AssemblyPath);
-        }
-        finally
-        {
-            File.Delete(tempFile);
-        }
-    }
+			// Assert
+			Assert.NotNull(profile);
+			Assert.Equal("dev", profile.Name);
+			Assert.Single(profile.Sync);
+			var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+			Assert.Equal("dev.dll", pluginSync.AssemblyPath);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
 
-    [Fact]
-    public void ResolveConfigurationNameWithMultipleProfilesAndNoSpecificNameThrowsException()
-    {
-        // Arrange
-        const string configJson = """
+	[Fact]
+	public void ResolveConfigurationNameWithMultipleProfilesAndNoSpecificNameThrowsException()
+	{
+		// Arrange
+		const string configJson = """
         {
           "XrmSync": {
             "DryRun": false,
@@ -103,30 +103,30 @@ public class NamedConfigurationTests
         }
         """;
 
-        var tempFile = Path.GetTempFileName();
-        File.WriteAllText(tempFile, configJson);
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
 
-        try
-        {
-            var configReader = new TestConfigReader(tempFile);
-            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
 
-            // Act & Assert
-            var exception = Assert.Throws<XrmSync.Model.Exceptions.XrmSyncException>(() => builder.GetProfile(null));
-            Assert.Contains("Multiple profiles found", exception.Message);
-            Assert.Contains("--profile", exception.Message);
-        }
-        finally
-        {
-            File.Delete(tempFile);
-        }
-    }
+			// Act & Assert
+			var exception = Assert.Throws<XrmSync.Model.Exceptions.XrmSyncException>(() => builder.GetProfile(null));
+			Assert.Contains("Multiple profiles found", exception.Message);
+			Assert.Contains("--profile", exception.Message);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
 
-    [Fact]
-    public void ResolveConfigurationNameWithSingleConfigReturnsThatConfig()
-    {
-        // Arrange
-        const string configJson = """
+	[Fact]
+	public void ResolveConfigurationNameWithSingleConfigReturnsThatConfig()
+	{
+		// Arrange
+		const string configJson = """
         {
           "XrmSync": {
             "DryRun": false,
@@ -148,37 +148,37 @@ public class NamedConfigurationTests
         }
         """;
 
-        var tempFile = Path.GetTempFileName();
-        File.WriteAllText(tempFile, configJson);
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
 
-        try
-        {
-            var configReader = new TestConfigReader(tempFile);
-            var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
 
-            // Act
-            var profile = builder.GetProfile(null);
+			// Act
+			var profile = builder.GetProfile(null);
 
-            // Assert
-            Assert.NotNull(profile);
-            Assert.Equal("myconfig", profile.Name);
-            Assert.Single(profile.Sync);
-            var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
-            Assert.Equal("myconfig.dll", pluginSync.AssemblyPath);
-        }
-        finally
-        {
-            File.Delete(tempFile);
-        }
-    }
+			// Assert
+			Assert.NotNull(profile);
+			Assert.Equal("myconfig", profile.Name);
+			Assert.Single(profile.Sync);
+			var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+			Assert.Equal("myconfig.dll", pluginSync.AssemblyPath);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
 
-    private class TestConfigReader(string configFile) : IConfigReader
-    {
-        public IConfiguration GetConfiguration()
-        {
-            return new ConfigurationBuilder()
-                .AddJsonFile(configFile)
-                .Build();
-        }
-    }
+	private class TestConfigReader(string configFile) : IConfigReader
+	{
+		public IConfiguration GetConfiguration()
+		{
+			return new ConfigurationBuilder()
+				.AddJsonFile(configFile)
+				.Build();
+		}
+	}
 }

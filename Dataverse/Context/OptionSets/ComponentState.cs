@@ -8,19 +8,19 @@ namespace XrmSync.Dataverse.Context;
 public enum componentstate
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("Published", 1033)]
-    Published = 0,
+	[EnumMember]
+	[OptionSetMetadata("Published", 1033)]
+	Published = 0,
 
-    [EnumMember]
-    [OptionSetMetadata("Unpublished", 1033)]
-    Unpublished = 1,
+	[EnumMember]
+	[OptionSetMetadata("Unpublished", 1033)]
+	Unpublished = 1,
 
-    [EnumMember]
-    [OptionSetMetadata("Deleted", 1033)]
-    Deleted = 2,
+	[EnumMember]
+	[OptionSetMetadata("Deleted", 1033)]
+	Deleted = 2,
 
-    [EnumMember]
-    [OptionSetMetadata("Deleted Unpublished", 1033)]
-    DeletedUnpublished = 3,
+	[EnumMember]
+	[OptionSetMetadata("Deleted Unpublished", 1033)]
+	DeletedUnpublished = 3,
 }

@@ -1,6 +1,6 @@
-﻿namespace XrmSync.SyncService;
+namespace XrmSync.SyncService;
 
 public interface ISyncService
 {
-    Task Sync(CancellationToken cancellation);
+	Task Sync(CancellationToken cancellation);
 }

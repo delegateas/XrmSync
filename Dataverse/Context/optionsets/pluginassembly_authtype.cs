@@ -8,7 +8,7 @@ namespace XrmSync.Dataverse.Context;
 public enum pluginassembly_authtype
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("BasicAuth", 1033)]
-    BasicAuth = 0,
+	[EnumMember]
+	[OptionSetMetadata("BasicAuth", 1033)]
+	BasicAuth = 0,
 }

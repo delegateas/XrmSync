@@ -1,79 +1,79 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using XrmSync.Commands;
 
 namespace XrmSync;
 
 internal class CommandLineBuilder
 {
-    private readonly List<IXrmSyncCommand> commands = [];
-    private bool withRootCommandHandler;
+	private readonly List<IXrmSyncCommand> commands = [];
+	private bool withRootCommandHandler;
 
-    /// <summary>
-    /// Adds a command to the root command
-    /// </summary>
-    public CommandLineBuilder AddCommand(IXrmSyncCommand command)
-    {
-        commands.Add(command);
-        return this;
-    }
+	/// <summary>
+	/// Adds a command to the root command
+	/// </summary>
+	public CommandLineBuilder AddCommand(IXrmSyncCommand command)
+	{
+		commands.Add(command);
+		return this;
+	}
 
-    /// <summary>
-    /// Adds multiple commands to the root command
-    /// </summary>
-    public CommandLineBuilder AddCommands(params IXrmSyncCommand[] commands)
-    {
-        foreach (var command in commands)
-        {
-            AddCommand(command);
-        }
-        return this;
-    }
+	/// <summary>
+	/// Adds multiple commands to the root command
+	/// </summary>
+	public CommandLineBuilder AddCommands(params IXrmSyncCommand[] commands)
+	{
+		foreach (var command in commands)
+		{
+			AddCommand(command);
+		}
+		return this;
+	}
 
-    /// <summary>
-    /// Sets up the root command handler to execute all configured sub-commands
-    /// </summary>
-    public CommandLineBuilder WithRootCommandHandler()
-    {
-        withRootCommandHandler = true;
+	/// <summary>
+	/// Sets up the root command handler to execute all configured sub-commands
+	/// </summary>
+	public CommandLineBuilder WithRootCommandHandler()
+	{
+		withRootCommandHandler = true;
 
-        return this;
-    }
+		return this;
+	}
 
-    /// <summary>
-    /// Builds and returns the configured root command
-    /// </summary>
-    public RootCommand Build()
-    {
-        RootCommand rootCommand = [
-            ..commands.Select(c => c.GetCommand()), // Register all known sub-commands
+	/// <summary>
+	/// Builds and returns the configured root command
+	/// </summary>
+	public RootCommand Build()
+	{
+		RootCommand rootCommand = [
+			..commands.Select(c => c.GetCommand()), // Register all known sub-commands
         ];
-        rootCommand.Description = "XrmSync - Synchronize your Dataverse plugins and webresources";
+		rootCommand.Description = "XrmSync - Synchronize your Dataverse plugins and webresources";
 
-        if (withRootCommandHandler)
-        {
-            XrmSyncRootCommand rootCommandHandler = new (commands);
+		if (withRootCommandHandler)
+		{
+			XrmSyncRootCommand rootCommandHandler = new(commands);
 
-            foreach (var option in rootCommandHandler.Options)
-            {
-                rootCommand.Add(option);
-            }
+			foreach (var option in rootCommandHandler.Options)
+			{
+				rootCommand.Add(option);
+			}
 
-            // The XrmSyncRootCommand already has its handler set via SetAction in its constructor
-            // We just need to invoke it when the root command is called with no subcommand
-            rootCommand.SetAction(async (parseResult, cancellationToken) =>
-            {
-                // If a subcommand was invoked, don't execute the root handler
-                if (parseResult.CommandResult.Command != rootCommand)
-                {
-                    return 0; // Let the subcommand handle it
-                }
+			// The XrmSyncRootCommand already has its handler set via SetAction in its constructor
+			// We just need to invoke it when the root command is called with no subcommand
+			rootCommand.SetAction(async (parseResult, cancellationToken) =>
+			{
+				// If a subcommand was invoked, don't execute the root handler
+				if (parseResult.CommandResult.Command != rootCommand)
+				{
+					return 0; // Let the subcommand handle it
+				}
 
-                // Otherwise, execute the root command handler
-                var rootParseResult = rootCommandHandler.GetCommand().Parse(parseResult.Tokens.Select(t => t.Value).ToArray());
-                return await rootParseResult.InvokeAsync(cancellationToken: cancellationToken);
-            });
-        }
+				// Otherwise, execute the root command handler
+				var rootParseResult = rootCommandHandler.GetCommand().Parse(parseResult.Tokens.Select(t => t.Value).ToArray());
+				return await rootParseResult.InvokeAsync(cancellationToken: cancellationToken);
+			});
+		}
 
-        return rootCommand;
-    }
+		return rootCommand;
+	}
 }

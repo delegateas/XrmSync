@@ -4,13 +4,13 @@ namespace XrmSync.Dataverse.Context;
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 public sealed class OptionSetMetadataAttribute : Attribute
 {
-    public string Label { get; }
+	public string Label { get; }
 
-    public int Lcid { get; }
+	public int Lcid { get; }
 
-    public OptionSetMetadataAttribute(string label, int lcid)
-    {
-        Label = label;
-        Lcid = lcid;
-    }
+	public OptionSetMetadataAttribute(string label, int lcid)
+	{
+		Label = label;
+		Lcid = lcid;
+	}
 }

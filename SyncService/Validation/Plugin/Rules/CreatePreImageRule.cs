@@ -5,10 +5,10 @@ namespace XrmSync.SyncService.Validation.Plugin.Rules;
 
 internal class CreatePreImageRule : IValidationRule<Step>
 {
-    public string ErrorMessage(Step item) => item.EventOperation + " events do not support pre-images";
+	public string ErrorMessage(Step item) => item.EventOperation + " events do not support pre-images";
 
-    public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
-    {
-        return items.Where(x => x.EventOperation == nameof(EventOperation.Create) && x.PluginImages.Any(image => image.ImageType == ImageType.PreImage));
-    }
+	public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
+	{
+		return items.Where(x => x.EventOperation == nameof(EventOperation.Create) && x.PluginImages.Any(image => image.ImageType == ImageType.PreImage));
+	}
 }

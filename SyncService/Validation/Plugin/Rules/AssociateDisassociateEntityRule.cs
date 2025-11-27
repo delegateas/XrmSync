@@ -5,13 +5,13 @@ namespace XrmSync.SyncService.Validation.Plugin.Rules;
 
 internal class AssociateDisassociateEntityRule : IValidationRule<Step>
 {
-    public string ErrorMessage(Step item) => item.EventOperation + " event must target all entities";
+	public string ErrorMessage(Step item) => item.EventOperation + " event must target all entities";
 
-    public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
-    {
-        var adSteps = items.Where(x => x.EventOperation == nameof(EventOperation.Associate) ||
-            x.EventOperation == nameof(EventOperation.Disassociate));
-        
-        return adSteps.Where(x => !string.IsNullOrWhiteSpace(x.LogicalName));
-    }
+	public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
+	{
+		var adSteps = items.Where(x => x.EventOperation == nameof(EventOperation.Associate) ||
+			x.EventOperation == nameof(EventOperation.Disassociate));
+
+		return adSteps.Where(x => !string.IsNullOrWhiteSpace(x.LogicalName));
+	}
 }

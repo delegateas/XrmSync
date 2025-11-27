@@ -1,5 +1,4 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace XrmSync.Commands;
 
@@ -8,8 +7,8 @@ namespace XrmSync.Commands;
 /// </summary>
 internal interface IXrmSyncCommand
 {
-    /// <summary>
-    /// Gets the command instance with all options and handlers configured
-    /// </summary>
-    Command GetCommand();
+	/// <summary>
+	/// Gets the command instance with all options and handlers configured
+	/// </summary>
+	Command GetCommand();
 }

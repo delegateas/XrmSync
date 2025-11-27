@@ -8,50 +8,50 @@ namespace XrmSync.Dataverse;
 
 internal class PluginAssemblyWriter(IDataverseWriter writer, IOptions<PluginSyncCommandOptions> configuration) : IPluginAssemblyWriter
 {
-    private Dictionary<string, object> Parameters { get; } = new() {
-            { "SolutionUniqueName", configuration.Value.SolutionName }
-    };
+	private Dictionary<string, object> Parameters { get; } = new() {
+			{ "SolutionUniqueName", configuration.Value.SolutionName }
+	};
 
-    public Guid CreatePluginAssembly(string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
-    {
-        var entity = new PluginAssembly
-        {
-            Name = pluginName,
-            Content = GetBase64StringFromFile(dllPath),
-            SourceHash = sourceHash,
-            IsolationMode = pluginassembly_isolationmode.Sandbox,
-            Version = assemblyVersion,
-            Description = description
-        };
+	public Guid CreatePluginAssembly(string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
+	{
+		var entity = new PluginAssembly
+		{
+			Name = pluginName,
+			Content = GetBase64StringFromFile(dllPath),
+			SourceHash = sourceHash,
+			IsolationMode = pluginassembly_isolationmode.Sandbox,
+			Version = assemblyVersion,
+			Description = description
+		};
 
-        return writer.Create(entity, Parameters);
-    }
+		return writer.Create(entity, Parameters);
+	}
 
-    public void UpdatePluginAssembly(Guid assemblyId, string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
-    {
-        var entity = new PluginAssembly()
-        {
-            Id = assemblyId,
-            Name = pluginName,
-            Content = GetBase64StringFromFile(dllPath),
-            SourceHash = sourceHash,
-            IsolationMode = pluginassembly_isolationmode.Sandbox,
-            Version = assemblyVersion,
-            Description = description
-        };
+	public void UpdatePluginAssembly(Guid assemblyId, string pluginName, string dllPath, string sourceHash, string assemblyVersion, string description)
+	{
+		var entity = new PluginAssembly()
+		{
+			Id = assemblyId,
+			Name = pluginName,
+			Content = GetBase64StringFromFile(dllPath),
+			SourceHash = sourceHash,
+			IsolationMode = pluginassembly_isolationmode.Sandbox,
+			Version = assemblyVersion,
+			Description = description
+		};
 
-        writer.Update(entity);
-    }
+		writer.Update(entity);
+	}
 
-    private static string GetBase64StringFromFile(string dllPath)
-    {
-        // Reads the file at dllPath and returns its contents as a Base64 string
-        if (string.IsNullOrWhiteSpace(dllPath))
-            throw new XrmSyncException("DLL path must not be null or empty.");
-        if (!File.Exists(dllPath))
-            throw new XrmSyncException($"DLL file not found: {dllPath}");
+	private static string GetBase64StringFromFile(string dllPath)
+	{
+		// Reads the file at dllPath and returns its contents as a Base64 string
+		if (string.IsNullOrWhiteSpace(dllPath))
+			throw new XrmSyncException("DLL path must not be null or empty.");
+		if (!File.Exists(dllPath))
+			throw new XrmSyncException($"DLL file not found: {dllPath}");
 
-        byte[] fileBytes = File.ReadAllBytes(dllPath);
-        return Convert.ToBase64String(fileBytes);
-    }
+		byte[] fileBytes = File.ReadAllBytes(dllPath);
+		return Convert.ToBase64String(fileBytes);
+	}
 }

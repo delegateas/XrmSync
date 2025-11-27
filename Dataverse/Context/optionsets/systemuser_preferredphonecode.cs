@@ -8,19 +8,19 @@ namespace XrmSync.Dataverse.Context;
 public enum systemuser_preferredphonecode
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("Main Phone", 1033)]
-    MainPhone = 1,
+	[EnumMember]
+	[OptionSetMetadata("Main Phone", 1033)]
+	MainPhone = 1,
 
-    [EnumMember]
-    [OptionSetMetadata("Other Phone", 1033)]
-    OtherPhone = 2,
+	[EnumMember]
+	[OptionSetMetadata("Other Phone", 1033)]
+	OtherPhone = 2,
 
-    [EnumMember]
-    [OptionSetMetadata("Home Phone", 1033)]
-    HomePhone = 3,
+	[EnumMember]
+	[OptionSetMetadata("Home Phone", 1033)]
+	HomePhone = 3,
 
-    [EnumMember]
-    [OptionSetMetadata("Mobile Phone", 1033)]
-    MobilePhone = 4,
+	[EnumMember]
+	[OptionSetMetadata("Mobile Phone", 1033)]
+	MobilePhone = 4,
 }

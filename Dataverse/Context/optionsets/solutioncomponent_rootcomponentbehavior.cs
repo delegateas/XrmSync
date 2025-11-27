@@ -8,15 +8,15 @@ namespace XrmSync.Dataverse.Context;
 public enum solutioncomponent_rootcomponentbehavior
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("Include Subcomponents", 1033)]
-    IncludeSubcomponents = 0,
+	[EnumMember]
+	[OptionSetMetadata("Include Subcomponents", 1033)]
+	IncludeSubcomponents = 0,
 
-    [EnumMember]
-    [OptionSetMetadata("Do not include subcomponents", 1033)]
-    Donotincludesubcomponents = 1,
+	[EnumMember]
+	[OptionSetMetadata("Do not include subcomponents", 1033)]
+	Donotincludesubcomponents = 1,
 
-    [EnumMember]
-    [OptionSetMetadata("Include As Shell Only", 1033)]
-    IncludeAsShellOnly = 2,
+	[EnumMember]
+	[OptionSetMetadata("Include As Shell Only", 1033)]
+	IncludeAsShellOnly = 2,
 }

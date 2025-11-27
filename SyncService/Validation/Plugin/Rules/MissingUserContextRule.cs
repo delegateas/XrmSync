@@ -5,10 +5,10 @@ namespace XrmSync.SyncService.Validation.Plugin.Rules;
 
 internal class MissingUserContextRule(IPluginReader pluginReader) : IValidationRule<Step>
 {
-    public string ErrorMessage(Step item) => "Defined user context is not in the system";
+	public string ErrorMessage(Step item) => "Defined user context is not in the system";
 
-    public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
-    {
-        return pluginReader.GetMissingUserContexts(items);
-    }
+	public IEnumerable<Step> GetViolations(IEnumerable<Step> items)
+	{
+		return pluginReader.GetMissingUserContexts(items);
+	}
 }

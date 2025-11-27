@@ -1,7 +1,7 @@
-﻿namespace XrmSync.SyncService;
+namespace XrmSync.SyncService;
 
 internal interface IDescription
 {
-    string SyncDescription { get; }
-    string ToolHeader { get; }
+	string SyncDescription { get; }
+	string ToolHeader { get; }
 }

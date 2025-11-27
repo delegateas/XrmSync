@@ -1,4 +1,3 @@
-﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using XrmSync.Dataverse.Context;
 using XrmSync.Dataverse.Extensions;
@@ -10,36 +9,36 @@ namespace XrmSync.Dataverse;
 
 internal class WebresourceWriter(IDataverseWriter writer, IOptions<WebresourceSyncCommandOptions> configuration) : IWebresourceWriter
 {
-    private Dictionary<string, object> Parameters { get; } = new() {
-            { "SolutionUniqueName", configuration.Value.SolutionName }
-    };
+	private Dictionary<string, object> Parameters { get; } = new() {
+			{ "SolutionUniqueName", configuration.Value.SolutionName }
+	};
 
-    public void Create(IEnumerable<WebresourceDefinition> webresources)
-    {
-        foreach (var wr in webresources)
-        {
-            writer.Create(new WebResource
-            {
-                Name = wr.Name,
-                Content = wr.Content,
-                DisplayName = wr.DisplayName,
-                WebResourceType = (webresource_webresourcetype)wr.Type
-            }, Parameters);
-        }
-    }
+	public void Create(IEnumerable<WebresourceDefinition> webresources)
+	{
+		foreach (var wr in webresources)
+		{
+			writer.Create(new WebResource
+			{
+				Name = wr.Name,
+				Content = wr.Content,
+				DisplayName = wr.DisplayName,
+				WebResourceType = (webresource_webresourcetype)wr.Type
+			}, Parameters);
+		}
+	}
 
-    public void Update(IEnumerable<WebresourceDefinition> webresources)
-    {
-        writer.UpdateMultiple(webresources.Select(wr => new WebResource
-        {
-            Id = wr.Id,
-            Content = wr.Content,
-            DisplayName = wr.DisplayName
-        }));
-    }
+	public void Update(IEnumerable<WebresourceDefinition> webresources)
+	{
+		writer.UpdateMultiple(webresources.Select(wr => new WebResource
+		{
+			Id = wr.Id,
+			Content = wr.Content,
+			DisplayName = wr.DisplayName
+		}));
+	}
 
-    public void Delete(IEnumerable<WebresourceDefinition> webresources)
-    {
-        writer.DeleteMultiple(webresources.ToDeleteRequests(WebResource.EntityLogicalName));
-    }
+	public void Delete(IEnumerable<WebresourceDefinition> webresources)
+	{
+		writer.DeleteMultiple(webresources.ToDeleteRequests(WebResource.EntityLogicalName));
+	}
 }

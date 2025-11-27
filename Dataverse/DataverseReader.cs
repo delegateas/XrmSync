@@ -13,101 +13,101 @@ namespace XrmSync.Dataverse;
 
 internal sealed class DataverseReader(ServiceClient serviceClient) : IDataverseReader
 {
-    private readonly Lazy<DataverseContext> lazyContext = new(() => new DataverseContext(serviceClient));
-    private readonly Lazy<string> lazyConnectedHost = new(serviceClient.ConnectedOrgUriActual.GetLeftPart(UriPartial.Authority));
+	private readonly Lazy<DataverseContext> lazyContext = new(() => new DataverseContext(serviceClient));
+	private readonly Lazy<string> lazyConnectedHost = new(serviceClient.ConnectedOrgUriActual.GetLeftPart(UriPartial.Authority));
 
-    private DataverseContext DataverseContext => lazyContext.Value;
+	private DataverseContext DataverseContext => lazyContext.Value;
 
-    public string ConnectedHost => lazyConnectedHost.Value;
+	public string ConnectedHost => lazyConnectedHost.Value;
 
-    public IQueryable<SolutionComponent> SolutionComponents => DataverseContext.SolutionComponentSet;
+	public IQueryable<SolutionComponent> SolutionComponents => DataverseContext.SolutionComponentSet;
 
-    public IQueryable<PluginAssembly> PluginAssemblies => DataverseContext.PluginAssemblySet;
+	public IQueryable<PluginAssembly> PluginAssemblies => DataverseContext.PluginAssemblySet;
 
-    public IQueryable<CustomAPI> CustomApis => DataverseContext.CustomAPISet;
+	public IQueryable<CustomAPI> CustomApis => DataverseContext.CustomAPISet;
 
-    public IQueryable<CustomAPIRequestParameter> CustomApiRequestParameters => DataverseContext.CustomAPIRequestParameterSet;
+	public IQueryable<CustomAPIRequestParameter> CustomApiRequestParameters => DataverseContext.CustomAPIRequestParameterSet;
 
-    public IQueryable<CustomAPIResponseProperty> CustomApiResponseProperties => DataverseContext.CustomAPIResponsePropertySet;
+	public IQueryable<CustomAPIResponseProperty> CustomApiResponseProperties => DataverseContext.CustomAPIResponsePropertySet;
 
-    public IQueryable<PluginType> PluginTypes => DataverseContext.PluginTypeSet;
+	public IQueryable<PluginType> PluginTypes => DataverseContext.PluginTypeSet;
 
-    public IQueryable<SdkMessage> SdkMessages => DataverseContext.SdkMessageSet;
+	public IQueryable<SdkMessage> SdkMessages => DataverseContext.SdkMessageSet;
 
-    public IQueryable<SdkMessageFilter> SdkMessageFilters => DataverseContext.SdkMessageFilterSet;
+	public IQueryable<SdkMessageFilter> SdkMessageFilters => DataverseContext.SdkMessageFilterSet;
 
-    public IQueryable<Solution> Solutions => DataverseContext.SolutionSet;
+	public IQueryable<Solution> Solutions => DataverseContext.SolutionSet;
 
-    public IQueryable<Publisher> Publishers => DataverseContext.PublisherSet;
+	public IQueryable<Publisher> Publishers => DataverseContext.PublisherSet;
 
-    public IQueryable<SystemUser> SystemUsers => DataverseContext.SystemUserSet;
+	public IQueryable<SystemUser> SystemUsers => DataverseContext.SystemUserSet;
 
-    public IQueryable<WebResource> WebResources => DataverseContext.WebResourceSet;
+	public IQueryable<WebResource> WebResources => DataverseContext.WebResourceSet;
 
-    public IQueryable<Dependency> Dependencies => DataverseContext.DependencySet;
+	public IQueryable<Dependency> Dependencies => DataverseContext.DependencySet;
 
-    public List<TEntity> RetrieveByColumn<TEntity, TValue>(
-        Expression<Func<TEntity, TValue?>> inColumn,
-        IEnumerable<TValue> values,
-        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
-    {
-        return RetrieveByColumn(inColumn, values, [], columns);
-    }
+	public List<TEntity> RetrieveByColumn<TEntity, TValue>(
+		Expression<Func<TEntity, TValue?>> inColumn,
+		IEnumerable<TValue> values,
+		params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
+	{
+		return RetrieveByColumn(inColumn, values, [], columns);
+	}
 
-    public List<TEntity> RetrieveByColumn<TEntity>(
-        Expression<Func<TEntity, Guid?>> inColumn,
-        IEnumerable<Guid> ids,
-        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
-    {
-        return RetrieveByColumn(inColumn, ids, [], columns);
-    }
+	public List<TEntity> RetrieveByColumn<TEntity>(
+		Expression<Func<TEntity, Guid?>> inColumn,
+		IEnumerable<Guid> ids,
+		params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
+	{
+		return RetrieveByColumn(inColumn, ids, [], columns);
+	}
 
-    public List<TEntity> RetrieveByColumn<TEntity>(
-        Expression<Func<TEntity, EntityReference?>> inColumn,
-        IEnumerable<Guid> ids,
-        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
-    {
-        return RetrieveByColumn(inColumn, ids, [], columns);
-    }
+	public List<TEntity> RetrieveByColumn<TEntity>(
+		Expression<Func<TEntity, EntityReference?>> inColumn,
+		IEnumerable<Guid> ids,
+		params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
+	{
+		return RetrieveByColumn(inColumn, ids, [], columns);
+	}
 
-    public List<TEntity> RetrieveByColumn<TEntity>(
-        Expression<Func<TEntity, EntityReference?>> inColumn,
-        IEnumerable<Guid> ids,
-        IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
-        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
-    {
-        return RetrieveByColumn<TEntity, EntityReference?, Guid>(inColumn, ids, additionalConditions, columns);
-    }
+	public List<TEntity> RetrieveByColumn<TEntity>(
+		Expression<Func<TEntity, EntityReference?>> inColumn,
+		IEnumerable<Guid> ids,
+		IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
+		params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
+	{
+		return RetrieveByColumn<TEntity, EntityReference?, Guid>(inColumn, ids, additionalConditions, columns);
+	}
 
-    public List<TEntity> RetrieveByColumn<TEntity, TInValue, TValue>(
-        Expression<Func<TEntity, TInValue?>> inColumn,
-        IEnumerable<TValue> values,
-        IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
-        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
-    {
-        if (!values.Any())
-        {
-            return [];
-        }
+	public List<TEntity> RetrieveByColumn<TEntity, TInValue, TValue>(
+		Expression<Func<TEntity, TInValue?>> inColumn,
+		IEnumerable<TValue> values,
+		IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
+		params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
+	{
+		if (!values.Any())
+		{
+			return [];
+		}
 
-        var query = GetFilterByValuesQueryExpresion(inColumn, values, additionalConditions, columns);
+		var query = GetFilterByValuesQueryExpresion(inColumn, values, additionalConditions, columns);
 
-        var result = serviceClient.RetrieveMultiple(query);
-        return [.. result.Entities.Select(e => e.ToEntity<TEntity>())];
-    }
+		var result = serviceClient.RetrieveMultiple(query);
+		return [.. result.Entities.Select(e => e.ToEntity<TEntity>())];
+	}
 
-    private static QueryExpression GetFilterByValuesQueryExpresion<TEntity, TInValue, TValue>(
-        Expression<Func<TEntity, TInValue?>> inColumn,
-        IEnumerable<TValue?> values,
-        IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
-        params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
-    {
-        var instance = Activator.CreateInstance<TEntity>();
-        var query = new QueryExpression(instance.LogicalName);
-        query.ColumnSet.AddColumns([.. columns.Select(c => c.GetColumnName())]);
-        query.Criteria.AddCondition(inColumn.GetColumnName(), ConditionOperator.In, [.. values]);
-        query.AddConditions(additionalConditions);
+	private static QueryExpression GetFilterByValuesQueryExpresion<TEntity, TInValue, TValue>(
+		Expression<Func<TEntity, TInValue?>> inColumn,
+		IEnumerable<TValue?> values,
+		IEnumerable<(Expression<Func<TEntity, object?>> column, IEnumerable<object> values)> additionalConditions,
+		params Expression<Func<TEntity, object?>>[] columns) where TEntity : Entity
+	{
+		var instance = Activator.CreateInstance<TEntity>();
+		var query = new QueryExpression(instance.LogicalName);
+		query.ColumnSet.AddColumns([.. columns.Select(c => c.GetColumnName())]);
+		query.Criteria.AddCondition(inColumn.GetColumnName(), ConditionOperator.In, [.. values]);
+		query.AddConditions(additionalConditions);
 
-        return query;
-    }
+		return query;
+	}
 }

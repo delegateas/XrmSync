@@ -8,11 +8,11 @@ namespace XrmSync.Dataverse.Context;
 public enum sdkmessageprocessingstep_statecode
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("Enabled", 1033)]
-    Enabled = 0,
+	[EnumMember]
+	[OptionSetMetadata("Enabled", 1033)]
+	Enabled = 0,
 
-    [EnumMember]
-    [OptionSetMetadata("Disabled", 1033)]
-    Disabled = 1,
+	[EnumMember]
+	[OptionSetMetadata("Disabled", 1033)]
+	Disabled = 1,
 }

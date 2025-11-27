@@ -1,8 +1,8 @@
-﻿using XrmSync.Model;
+using XrmSync.Model;
 
 namespace XrmSync.Dataverse.Interfaces;
 
 public interface IPluginAssemblyReader
 {
-    AssemblyInfo? GetPluginAssembly(Guid solutionId, string assemblyName);
+	AssemblyInfo? GetPluginAssembly(Guid solutionId, string assemblyName);
 }

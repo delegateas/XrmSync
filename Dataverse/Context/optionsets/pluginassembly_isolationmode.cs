@@ -8,15 +8,15 @@ namespace XrmSync.Dataverse.Context;
 public enum pluginassembly_isolationmode
 #pragma warning restore CS8981
 {
-    [EnumMember]
-    [OptionSetMetadata("None", 1033)]
-    None = 1,
+	[EnumMember]
+	[OptionSetMetadata("None", 1033)]
+	None = 1,
 
-    [EnumMember]
-    [OptionSetMetadata("Sandbox", 1033)]
-    Sandbox = 2,
+	[EnumMember]
+	[OptionSetMetadata("Sandbox", 1033)]
+	Sandbox = 2,
 
-    [EnumMember]
-    [OptionSetMetadata("External", 1033)]
-    External = 3,
+	[EnumMember]
+	[OptionSetMetadata("External", 1033)]
+	External = 3,
 }

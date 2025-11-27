@@ -1,27 +1,27 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace XrmSync.Options;
 
 public interface IConfigReader
 {
-    IConfiguration GetConfiguration();
+	IConfiguration GetConfiguration();
 }
 
 internal class ConfigReader() : IConfigReader
 {
-    public const string CONFIG_FILE_BASE = "appsettings";
+	public const string CONFIG_FILE_BASE = "appsettings";
 
-    private IConfiguration? configuration;
+	private IConfiguration? configuration;
 
-    public IConfiguration GetConfiguration()
-    {
-        configuration ??= new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile($"{CONFIG_FILE_BASE}.json", optional: true)
-                .AddJsonFile($"{CONFIG_FILE_BASE}.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production"}.json", optional: true)
-                .AddEnvironmentVariables()
-                .Build();
+	public IConfiguration GetConfiguration()
+	{
+		configuration ??= new ConfigurationBuilder()
+				.SetBasePath(Directory.GetCurrentDirectory())
+				.AddJsonFile($"{CONFIG_FILE_BASE}.json", optional: true)
+				.AddJsonFile($"{CONFIG_FILE_BASE}.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production"}.json", optional: true)
+				.AddEnvironmentVariables()
+				.Build();
 
-        return configuration;
-    }
+		return configuration;
+	}
 }

@@ -9,84 +9,84 @@ namespace Tests.Logging;
 
 public class CIModeDemonstrationTests
 {
-    [Fact]
-    public void DemonstrateCIModePassedToFormatter()
-    {
-        // This test demonstrates that CI mode is properly passed to the formatter through options
+	[Fact]
+	public void DemonstrateCIModePassedToFormatter()
+	{
+		// This test demonstrates that CI mode is properly passed to the formatter through options
 
-        // Arrange - Create service provider with CI mode enabled via AddLogger parameter
-        var services = new ServiceCollection()
-            .AddSingleton(Options.Create(new XrmSyncConfiguration(
-                DryRun: false,
-                LogLevel: LogLevel.Debug,
-                CiMode: true, // Explicitly enable CI mode
-                Profiles: new List<ProfileConfiguration>()
-            )))
-            .AddLogger()
-            .BuildServiceProvider();
+		// Arrange - Create service provider with CI mode enabled via AddLogger parameter
+		var services = new ServiceCollection()
+			.AddSingleton(Options.Create(new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Debug,
+				CiMode: true, // Explicitly enable CI mode
+				Profiles: new List<ProfileConfiguration>()
+			)))
+			.AddLogger()
+			.BuildServiceProvider();
 
-        var configOptions = services.GetRequiredService<IOptions<XrmSyncConfiguration>>();
+		var configOptions = services.GetRequiredService<IOptions<XrmSyncConfiguration>>();
 
-        // Capture what the logger would send to the formatter
-        var capturedMessages = new List<(LogLevel Level, string Message)>();
-        var testLogger = new TestCaptureLogger(capturedMessages);
-        var syncLogger = new SyncLogger<CIModeDemonstrationTests>(
-            new TestLoggerFactory(testLogger),
-            configOptions
-        );
+		// Capture what the logger would send to the formatter
+		var capturedMessages = new List<(LogLevel Level, string Message)>();
+		var testLogger = new TestCaptureLogger(capturedMessages);
+		var syncLogger = new SyncLogger<CIModeDemonstrationTests>(
+			new TestLoggerFactory(testLogger),
+			configOptions
+		);
 
-        // Act
-        syncLogger.LogWarning("This is a warning in CI mode");
-        syncLogger.LogError("This is an error in CI mode");
-        syncLogger.LogInformation("This is info in CI mode");
+		// Act
+		syncLogger.LogWarning("This is a warning in CI mode");
+		syncLogger.LogError("This is an error in CI mode");
+		syncLogger.LogInformation("This is info in CI mode");
 
-        // Assert
-        Assert.Equal(3, capturedMessages.Count);
+		// Assert
+		Assert.Equal(3, capturedMessages.Count);
 
-        // All messages should pass through directly without wrapping
-        var warningMessage = capturedMessages[0];
-        var errorMessage = capturedMessages[1];
-        var infoMessage = capturedMessages[2];
+		// All messages should pass through directly without wrapping
+		var warningMessage = capturedMessages[0];
+		var errorMessage = capturedMessages[1];
+		var infoMessage = capturedMessages[2];
 
-        Assert.Equal(LogLevel.Warning, warningMessage.Level);
-        Assert.Equal("This is a warning in CI mode", warningMessage.Message);
+		Assert.Equal(LogLevel.Warning, warningMessage.Level);
+		Assert.Equal("This is a warning in CI mode", warningMessage.Message);
 
-        Assert.Equal(LogLevel.Error, errorMessage.Level);
-        Assert.Equal("This is an error in CI mode", errorMessage.Message);
+		Assert.Equal(LogLevel.Error, errorMessage.Level);
+		Assert.Equal("This is an error in CI mode", errorMessage.Message);
 
-        Assert.Equal(LogLevel.Information, infoMessage.Level);
-        Assert.Equal("This is info in CI mode", infoMessage.Message);
-    }
+		Assert.Equal(LogLevel.Information, infoMessage.Level);
+		Assert.Equal("This is info in CI mode", infoMessage.Message);
+	}
 
-    private class TestCaptureLogger : ILogger
-    {
-        private readonly List<(LogLevel Level, string Message)> _capturedMessages;
+	private class TestCaptureLogger : ILogger
+	{
+		private readonly List<(LogLevel Level, string Message)> _capturedMessages;
 
-        public TestCaptureLogger(List<(LogLevel Level, string Message)> capturedMessages)
-        {
-            _capturedMessages = capturedMessages;
-        }
+		public TestCaptureLogger(List<(LogLevel Level, string Message)> capturedMessages)
+		{
+			_capturedMessages = capturedMessages;
+		}
 
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-        public bool IsEnabled(LogLevel logLevel) => true;
+		public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+		public bool IsEnabled(LogLevel logLevel) => true;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            _capturedMessages.Add((logLevel, formatter(state, exception)));
-        }
-    }
+		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+		{
+			_capturedMessages.Add((logLevel, formatter(state, exception)));
+		}
+	}
 
-    private class TestLoggerFactory : ILoggerFactory
-    {
-        private readonly ILogger _logger;
+	private class TestLoggerFactory : ILoggerFactory
+	{
+		private readonly ILogger _logger;
 
-        public TestLoggerFactory(ILogger logger)
-        {
-            _logger = logger;
-        }
+		public TestLoggerFactory(ILogger logger)
+		{
+			_logger = logger;
+		}
 
-        public void AddProvider(ILoggerProvider provider) { }
-        public ILogger CreateLogger(string categoryName) => _logger;
-        public void Dispose() { }
-    }
+		public void AddProvider(ILoggerProvider provider) { }
+		public ILogger CreateLogger(string categoryName) => _logger;
+		public void Dispose() { }
+	}
 }
