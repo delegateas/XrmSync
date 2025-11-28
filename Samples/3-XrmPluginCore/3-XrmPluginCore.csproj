@@ -7,6 +7,9 @@
 		<RootNamespace>SamplePlugins</RootNamespace>
 		<AssemblyName>SamplePlugins</AssemblyName>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<!-- Emit source generator output to disk for inspection -->
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -15,7 +18,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.59" />
-		<PackageReference Include="XrmPluginCore" Version="1.1.0" />
+		<PackageReference Include="XrmPluginCore" Version="1.2.3" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,0 +1,10 @@
+<Project>
+	<!-- Import parent Directory.Build.props -->
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+	<!-- Override TreatWarningsAsErrors for sample projects -->
+	<!-- Sample projects may trigger XPC4003 warnings during initial build before generated types exist -->
+	<PropertyGroup>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	</PropertyGroup>
+</Project>

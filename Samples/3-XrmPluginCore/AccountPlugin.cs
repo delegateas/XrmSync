@@ -13,10 +13,10 @@ namespace SamplePlugins
 			RegisterStep<Account, IAccountService>(
 				EventOperation.Update,
 				ExecutionStage.PostOperation,
-				s => s.TraceExecution())
+				nameof(IAccountService.HandleUpdate))
 				.AddFilteredAttributes(x => x.Name, x => x.AccountNumber, x => x.Telephone1) // Added Telephone1
-				.AddImage(ImageType.PreImage, x => x.Name, x => x.AccountNumber, x => x.Telephone1) // Added Telephone1
-				.AddImage(ImageType.PostImage, x => x.Name, x => x.Telephone1); // Added Telephone1
+				.WithPreImage(x => x.Name, x => x.AccountNumber, x => x.Telephone1) // Added Telephone1
+				.WithPostImage(x => x.Name, x => x.Telephone1); // Added Telephone1
 
 			// EXISTING: Create step (same as SamplePlugins - no change)
 			RegisterStep<Account, IAccountService>(
@@ -35,16 +35,16 @@ namespace SamplePlugins
 			RegisterStep<Account, IAccountService>(
 				EventOperation.Delete,
 				ExecutionStage.PreOperation,
-				s => s.TraceExecution())
-				.AddImage(ImageType.PreImage, x => x.Name, x => x.AccountNumber);
+				nameof(IAccountService.HandleDelete))
+				.WithPreImage(x => x.Name, x => x.AccountNumber);
 
 			// NEW: Additional Update step with different stage - CREATE difference
 			RegisterStep<Account, IAccountService>(
 				EventOperation.Update,
 				ExecutionStage.PreOperation,
-				s => s.TraceExecution())
+				nameof(IAccountService.HandleUpdate))
 				.AddFilteredAttributes(x => x.Description)
-				.AddImage(ImageType.PreImage, x => x.Description);
+				.WithPreImage(x => x.Description);
 		}
 	}
 }

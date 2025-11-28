@@ -8,12 +8,12 @@ namespace XrmSync.Model;
 
 public record XrmSyncConfiguration(bool DryRun, LogLevel LogLevel, bool CiMode, List<ProfileConfiguration> Profiles)
 {
-	public static XrmSyncConfiguration Empty => new(false, LogLevel.Information, false, new List<ProfileConfiguration>());
+	public static XrmSyncConfiguration Empty => new(false, LogLevel.Information, false, []);
 }
 
 public record ProfileConfiguration(string Name, string SolutionName, List<SyncItem> Sync)
 {
-	public static ProfileConfiguration Empty => new(string.Empty, string.Empty, new List<SyncItem>());
+	public static ProfileConfiguration Empty => new(string.Empty, string.Empty, []);
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
