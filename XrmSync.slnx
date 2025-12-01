@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Samples/">
+    <File Path="Samples/.editorconfig" />
     <File Path="Samples/README.md" />
     <Project Path="Samples/1-DAXIF/1-DAXIF.csproj" />
     <Project Path="Samples/2-Hybrid/2-Hybrid.csproj" />

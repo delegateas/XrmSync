@@ -19,7 +19,7 @@ namespace SamplePlugins
 
 	/// <summary>
 	/// Base class for all Plugins.
-	/// </summary>    
+	/// </summary>
 	public class Plugin : IPlugin
 	{
 
@@ -29,37 +29,27 @@ namespace SamplePlugins
 			internal IServiceProvider ServiceProvider
 			{
 				get;
-
-				private set;
 			}
 
 			internal IOrganizationService OrganizationService
 			{
 				get;
-
-				private set;
 			}
 
 			// Delegate A/S added:
 			internal IOrganizationService OrganizationAdminService
 			{
 				get;
-
-				private set;
 			}
 
 			internal IPluginExecutionContext PluginExecutionContext
 			{
 				get;
-
-				private set;
 			}
 
 			internal ITracingService TracingService
 			{
 				get;
-
-				private set;
 			}
 
 			private LocalPluginContext()
@@ -115,7 +105,7 @@ namespace SamplePlugins
 
 		/// <summary>
 		/// Gets the List of events that the plug-in should fire for. Each List
-		/// Item is a <see cref="Tuple"/> containing the Pipeline Stage, Message and (optionally) the Primary Entity. 
+		/// Item is a <see cref="Tuple"/> containing the Pipeline Stage, Message and (optionally) the Primary Entity.
 		/// In addition, the fourth parameter provide the delegate to invoke on a matching registration.
 		/// </summary>
 		protected Collection<Tuple<int, string, string, Action<LocalPluginContext>>> RegisteredEvents
@@ -138,8 +128,6 @@ namespace SamplePlugins
 		protected string ChildClassName
 		{
 			get;
-
-			private set;
 		}
 
 		/// <summary>
@@ -157,10 +145,10 @@ namespace SamplePlugins
 		/// </summary>
 		/// <param name="serviceProvider">The service provider.</param>
 		/// <remarks>
-		/// For improved performance, Microsoft Dynamics CRM caches plug-in instances. 
-		/// The plug-in's Execute method should be written to be stateless as the constructor 
-		/// is not called for every invocation of the plug-in. Also, multiple system threads 
-		/// could execute the plug-in at the same time. All per invocation state information 
+		/// For improved performance, Microsoft Dynamics CRM caches plug-in instances.
+		/// The plug-in's Execute method should be written to be stateless as the constructor
+		/// is not called for every invocation of the plug-in. Also, multiple system threads
+		/// could execute the plug-in at the same time. All per invocation state information
 		/// is stored in the context. This means that you should not use global variables in plug-ins.
 		/// </remarks>
 		public void Execute(IServiceProvider serviceProvider)
