@@ -23,7 +23,7 @@
         "type": "Direct",
         "requested": "[1.2.3, )",
         "resolved": "1.2.3",
-        "contentHash": "04Cl0sWIVsmwvKRGJWPJqaNjr7LeCc/YzQmIGyPaYO5IGxC3og4VvJwxj6xl+/KyGFmcGUejANhBKAIv/nIcMw==",
+        "contentHash": "iBDjTZ9agEYvFwYfIlMtj7vwfD/45S7Q663OZU66cllL7avG2pdHosavrJeaVqJovjJnbMJgAjU2IXFo2LVYFw==",
         "dependencies": {
           "Microsoft.CrmSdk.CoreAssemblies": "9.0.2.59",
           "Microsoft.Extensions.DependencyInjection": "9.0.9",
