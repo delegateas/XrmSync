@@ -2,7 +2,7 @@
   "profiles": {
     "XrmSync": {
       "commandName": "Project",
-      "commandLineArgs": "--profile hybrid"
+      "commandLineArgs": "--profile analyze-bedrock"
     }
   }
 }
