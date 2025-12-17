@@ -8,6 +8,13 @@
         "xrmcontext"
       ],
       "rollForward": false
+    },
+    "xrmmockup.metadatagenerator": {
+      "version": "1.0.1",
+      "commands": [
+        "xrmmockup-metadata"
+      ],
+      "rollForward": false
     }
   }
 }

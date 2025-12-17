@@ -1,4 +1,3 @@
-using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System.Linq.Expressions;
@@ -8,17 +7,17 @@ using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 
 [assembly: InternalsVisibleTo("Tests")]
+[assembly: InternalsVisibleTo("Tests.Integration")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace XrmSync.Dataverse;
 
-internal sealed class DataverseReader(ServiceClient serviceClient) : IDataverseReader
+internal sealed class DataverseReader(IOrganizationServiceProvider serviceProvider) : IDataverseReader
 {
-	private readonly Lazy<DataverseContext> lazyContext = new(() => new DataverseContext(serviceClient));
-	private readonly Lazy<string> lazyConnectedHost = new(serviceClient.ConnectedOrgUriActual.GetLeftPart(UriPartial.Authority));
+	private readonly Lazy<DataverseContext> lazyContext = new(() => new DataverseContext(serviceProvider.Service));
 
 	private DataverseContext DataverseContext => lazyContext.Value;
 
-	public string ConnectedHost => lazyConnectedHost.Value;
+	public string ConnectedHost => serviceProvider.ConnectedHost;
 
 	public IQueryable<SolutionComponent> SolutionComponents => DataverseContext.SolutionComponentSet;
 
@@ -92,7 +91,7 @@ internal sealed class DataverseReader(ServiceClient serviceClient) : IDataverseR
 
 		var query = GetFilterByValuesQueryExpresion(inColumn, values, additionalConditions, columns);
 
-		var result = serviceClient.RetrieveMultiple(query);
+		var result = serviceProvider.Service.RetrieveMultiple(query);
 		return [.. result.Entities.Select(e => e.ToEntity<TEntity>())];
 	}
 

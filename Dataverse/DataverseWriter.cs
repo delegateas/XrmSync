@@ -1,28 +1,27 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
+using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
-using XrmSync.Dataverse.Extensions;
 
 namespace XrmSync.Dataverse;
 
 internal sealed class DataverseWriter : IDataverseWriter
 {
-	private readonly ServiceClient serviceClient;
+	private readonly IOrganizationService service;
 	private readonly ILogger<DataverseWriter> logger;
 
-	public DataverseWriter(ServiceClient serviceClient, ILogger<DataverseWriter> logger, IOptions<ExecutionModeOptions> configuration)
+	public DataverseWriter(IOrganizationServiceProvider serviceProvider, ILogger<DataverseWriter> logger, IOptions<ExecutionModeOptions> configuration)
 	{
 		if (configuration.Value.DryRun)
 		{
 			throw new XrmSyncException("Cannot perform write operations in dry run mode. Please disable dry run to proceed with writing to Dataverse.");
 		}
 
-		this.serviceClient = serviceClient;
+		service = serviceProvider.Service;
 		this.logger = logger;
 	}
 
@@ -35,7 +34,7 @@ internal sealed class DataverseWriter : IDataverseWriter
 
 		if (parameters == null)
 		{
-			return serviceClient.Create(entity);
+			return service.Create(entity);
 		}
 
 		var req = new CreateRequest
@@ -44,7 +43,7 @@ internal sealed class DataverseWriter : IDataverseWriter
 		};
 		req.Parameters.AddRange(parameters);
 
-		return serviceClient.Execute(req) is CreateResponse response
+		return service.Execute(req) is CreateResponse response
 			? response.id
 			: throw new InvalidOperationException("Failed to create entity with provided parameters.");
 	}
@@ -56,7 +55,7 @@ internal sealed class DataverseWriter : IDataverseWriter
 			throw new XrmSyncException("The provided entity cannot be null.");
 		}
 
-		serviceClient.Update(entity);
+		service.Update(entity);
 	}
 
 	public void UpdateMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity
@@ -129,7 +128,7 @@ internal sealed class DataverseWriter : IDataverseWriter
 					ReturnResponses = true,
 				}
 			};
-			var response = (ExecuteMultipleResponse)serviceClient.Execute(req);
+			var response = (ExecuteMultipleResponse)service.Execute(req);
 			responses.AddRange([.. response.Responses]);
 		}
 

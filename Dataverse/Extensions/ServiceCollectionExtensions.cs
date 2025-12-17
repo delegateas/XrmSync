@@ -8,9 +8,12 @@ namespace XrmSync.Dataverse.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-	public static IServiceCollection AddDataverseConnection(this IServiceCollection services)
+	/// <summary>
+	/// Registers all Dataverse services (readers, writers).
+	/// Requires <see cref="IOrganizationServiceProvider"/> to be registered first.
+	/// </summary>
+	public static IServiceCollection AddDataverseServices(this IServiceCollection services)
 	{
-		services.AddDataverse();
 		services.AddSingleton<IDataverseReader, DataverseReader>();
 		services.AddSingleton<IDataverseWriter>((sp) =>
 		{
@@ -37,5 +40,16 @@ public static class ServiceCollectionExtensions
 		services.AddSingleton<IWebresourceWriter, WebresourceWriter>();
 
 		return services;
+	}
+
+	/// <summary>
+	/// Registers Dataverse connection (ServiceClient) and all services.
+	/// For production use.
+	/// </summary>
+	public static IServiceCollection AddDataverseConnection(this IServiceCollection services)
+	{
+		services.AddDataverse();
+		services.AddSingleton<IOrganizationServiceProvider, ServiceClientProvider>();
+		return services.AddDataverseServices();
 	}
 }

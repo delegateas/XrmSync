@@ -25,6 +25,7 @@
     <File Path=".github/actions/build-and-test/action.yml" />
   </Folder>
   <Folder Name="/Solution files/scripts/">
+    <File Path="scripts/Generate-XrmMockupMetadata.ps1" />
     <File Path="scripts/Set-VersionFromChangelog.ps1" />
     <File Path="scripts/Test-Samples.ps1" />
   </Folder>
@@ -37,5 +38,6 @@
   <Project Path="Model/Model.csproj" />
   <Project Path="SyncService/SyncService.csproj" />
   <Project Path="Tests/Tests.csproj" />
+  <Project Path="Tests.Integration/Tests.Integration.csproj" />
   <Project Path="XrmSync/XrmSync.csproj" />
 </Solution>
