@@ -15,41 +15,41 @@ namespace Tests.Plugins;
 
 public class PluginServiceTests
 {
-	private readonly ILogger<PluginSyncService> _logger = Substitute.For<ILogger<PluginSyncService>>();
-	private readonly IPluginAssemblyReader _pluginAssemblyReader = Substitute.For<IPluginAssemblyReader>();
-	private readonly IPluginAssemblyWriter _pluginAssemblyWriter = Substitute.For<IPluginAssemblyWriter>();
-	private readonly IPluginReader _pluginReader = Substitute.For<IPluginReader>();
-	private readonly IPluginWriter _pluginWriter = Substitute.For<IPluginWriter>();
-	private readonly IValidator<PluginDefinition> _pluginValidator = Substitute.For<IValidator<PluginDefinition>>();
-	private readonly IValidator<CustomApiDefinition> _customApiValidator = Substitute.For<IValidator<CustomApiDefinition>>();
-	private readonly ICustomApiReader _customApiReader = Substitute.For<ICustomApiReader>();
-	private readonly ICustomApiWriter _customApiWriter = Substitute.For<ICustomApiWriter>();
-	private readonly ILocalReader _assemblyReader = Substitute.For<ILocalReader>();
-	private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
-	private readonly IDifferenceCalculator _differenceUtility = Substitute.For<IDifferenceCalculator>();
-	private readonly IDescription _description = new Description();
-	private readonly IPrintService _printService = Substitute.For<IPrintService>();
-	private readonly PluginSyncCommandOptions _options = new(string.Empty, "solution");
+	private readonly ILogger<PluginSyncService> logger = Substitute.For<ILogger<PluginSyncService>>();
+	private readonly IPluginAssemblyReader pluginAssemblyReader = Substitute.For<IPluginAssemblyReader>();
+	private readonly IPluginAssemblyWriter pluginAssemblyWriter = Substitute.For<IPluginAssemblyWriter>();
+	private readonly IPluginReader pluginReader = Substitute.For<IPluginReader>();
+	private readonly IPluginWriter pluginWriter = Substitute.For<IPluginWriter>();
+	private readonly IValidator<PluginDefinition> pluginValidator = Substitute.For<IValidator<PluginDefinition>>();
+	private readonly IValidator<CustomApiDefinition> customApiValidator = Substitute.For<IValidator<CustomApiDefinition>>();
+	private readonly ICustomApiReader customApiReader = Substitute.For<ICustomApiReader>();
+	private readonly ICustomApiWriter customApiWriter = Substitute.For<ICustomApiWriter>();
+	private readonly ILocalReader assemblyReader = Substitute.For<ILocalReader>();
+	private readonly ISolutionReader solutionReader = Substitute.For<ISolutionReader>();
+	private readonly IDifferenceCalculator differenceUtility = Substitute.For<IDifferenceCalculator>();
+	private readonly IDescription description = new Description();
+	private readonly IPrintService printService = Substitute.For<IPrintService>();
+	private readonly PluginSyncCommandOptions options = new(string.Empty, "solution");
 
-	private readonly PluginSyncService _plugin;
+	private readonly PluginSyncService plugin;
 
 	public PluginServiceTests()
 	{
-		_plugin = new PluginSyncService(
-			_pluginAssemblyReader,
-			_pluginAssemblyWriter,
-			_pluginReader,
-			_pluginWriter,
-			_pluginValidator,
-			_customApiValidator,
-			_customApiReader,
-			_customApiWriter,
-			_assemblyReader,
-			_solutionReader,
-			_differenceUtility,
-			_description,
-			_printService,
-			Options.Create(_options), _logger);
+		plugin = new PluginSyncService(
+			pluginAssemblyReader,
+			pluginAssemblyWriter,
+			pluginReader,
+			pluginWriter,
+			pluginValidator,
+			customApiValidator,
+			customApiReader,
+			customApiWriter,
+			assemblyReader,
+			solutionReader,
+			differenceUtility,
+			description,
+			printService,
+			Options.Create(options), logger);
 	}
 
 	[Fact]
@@ -64,15 +64,15 @@ public class PluginServiceTests
 			Plugins = []
 		};
 		var expectedId = Guid.NewGuid();
-		_pluginAssemblyWriter.CreatePluginAssembly(assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription)
+		pluginAssemblyWriter.CreatePluginAssembly(assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, description.SyncDescription)
 			.Returns(expectedId);
 
 		// Act
-		var result = _plugin.CreatePluginAssembly(assembly);
+		var result = plugin.CreatePluginAssembly(assembly);
 
 		// Assert
 		Assert.Equal(expectedId, result.Id);
-		_pluginAssemblyWriter.Received(1).CreatePluginAssembly(assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription);
+		pluginAssemblyWriter.Received(1).CreatePluginAssembly(assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, description.SyncDescription);
 	}
 
 	[Fact]
@@ -89,10 +89,10 @@ public class PluginServiceTests
 		};
 
 		// Act
-		_plugin.UpdatePluginAssembly(assemblyId, assembly);
+		plugin.UpdatePluginAssembly(assemblyId, assembly);
 
 		// Assert
-		_pluginAssemblyWriter.Received(1).UpdatePluginAssembly(assemblyId, assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, _description.SyncDescription);
+		pluginAssemblyWriter.Received(1).UpdatePluginAssembly(assemblyId, assembly.Name, assembly.DllPath, assembly.Hash, assembly.Version, description.SyncDescription);
 	}
 
 	[Fact]
@@ -205,9 +205,9 @@ public class PluginServiceTests
 			}
 		};
 
-		_pluginWriter.CreatePluginTypes(pluginTypes.ArgMatches(), Arg.Any<Guid>(), Arg.Any<string>()).Returns(createdTypes);
-		_pluginWriter.CreatePluginSteps(pluginSteps.ArgMatches(), Arg.Any<string>()).Returns(createdSteps);
-		_customApiWriter.CreateCustomApis(customApis.ArgMatches(), Arg.Any<string>()).Returns(createdCustomApis);
+		pluginWriter.CreatePluginTypes(pluginTypes.ArgMatches(), Arg.Any<Guid>(), Arg.Any<string>()).Returns(createdTypes);
+		pluginWriter.CreatePluginSteps(pluginSteps.ArgMatches(), Arg.Any<string>()).Returns(createdSteps);
+		customApiWriter.CreateCustomApis(customApis.ArgMatches(), Arg.Any<string>()).Returns(createdCustomApis);
 
 		var differences = new Differences(
 			Difference<PluginDefinition>.Empty with
@@ -237,15 +237,15 @@ public class PluginServiceTests
 		);
 
 		// Act
-		_plugin.DoCreates(differences, crmAssembly);
+		plugin.DoCreates(differences, crmAssembly);
 
 		// Assert
-		_pluginWriter.Received(1).CreatePluginTypes(pluginTypes.ArgMatches(), crmAssembly.Id, _description.SyncDescription);
-		_pluginWriter.Received(1).CreatePluginSteps(pluginSteps.ArgMatches(), _description.SyncDescription);
-		_pluginWriter.Received(1).CreatePluginImages(pluginImages.ArgMatches());
-		_customApiWriter.Received(1).CreateCustomApis(customApis.ArgMatches(), _description.SyncDescription);
-		_customApiWriter.Received(1).CreateRequestParameters(requestParams.ArgMatches());
-		_customApiWriter.Received(1).CreateResponseProperties(responseProps.ArgMatches());
+		pluginWriter.Received(1).CreatePluginTypes(pluginTypes.ArgMatches(), crmAssembly.Id, description.SyncDescription);
+		pluginWriter.Received(1).CreatePluginSteps(pluginSteps.ArgMatches(), description.SyncDescription);
+		pluginWriter.Received(1).CreatePluginImages(pluginImages.ArgMatches());
+		customApiWriter.Received(1).CreateCustomApis(customApis.ArgMatches(), description.SyncDescription);
+		customApiWriter.Received(1).CreateRequestParameters(requestParams.ArgMatches());
+		customApiWriter.Received(1).CreateResponseProperties(responseProps.ArgMatches());
 	}
 
 	[Fact]
@@ -287,7 +287,7 @@ public class PluginServiceTests
 		List<ParentReference<ResponseProperty, CustomApiDefinition>> resps = [];
 
 		// Act
-		_plugin.DoDeletes(new Differences(
+		plugin.DoDeletes(new Differences(
 			Difference<PluginDefinition>.Empty with { Deletes = types },
 			Difference<Step, PluginDefinition>.Empty with { Deletes = steps },
 			Difference<Image, Step>.Empty with { Deletes = images },
@@ -297,12 +297,12 @@ public class PluginServiceTests
 		));
 
 		// Assert
-		_pluginWriter.Received(1).DeletePluginImages(images.ConvertAll(i => i.Entity).ArgMatches());
-		_pluginWriter.Received(1).DeletePluginSteps(steps.ConvertAll(s => s.Entity).ArgMatches());
-		_pluginWriter.Received(1).DeletePluginTypes(types);
-		_customApiWriter.Received(1).DeleteCustomApiRequestParameters(reqs.ConvertAll(r => r.Entity).ArgMatches());
-		_customApiWriter.Received(1).DeleteCustomApiResponseProperties(resps.ConvertAll(r => r.Entity).ArgMatches());
-		_customApiWriter.Received(1).DeleteCustomApiDefinitions(apis);
+		pluginWriter.Received(1).DeletePluginImages(images.ConvertAll(i => i.Entity).ArgMatches());
+		pluginWriter.Received(1).DeletePluginSteps(steps.ConvertAll(s => s.Entity).ArgMatches());
+		pluginWriter.Received(1).DeletePluginTypes(types);
+		customApiWriter.Received(1).DeleteCustomApiRequestParameters(reqs.ConvertAll(r => r.Entity).ArgMatches());
+		customApiWriter.Received(1).DeleteCustomApiResponseProperties(resps.ConvertAll(r => r.Entity).ArgMatches());
+		customApiWriter.Received(1).DeleteCustomApiDefinitions(apis);
 	}
 
 	[Fact]
@@ -319,13 +319,13 @@ public class PluginServiceTests
 		);
 
 		// Act
-		_plugin.DoUpdates(data);
+		plugin.DoUpdates(data);
 
 		// Assert
-		_pluginWriter.Received(1).UpdatePluginSteps(data.PluginSteps.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches(), _description.SyncDescription);
-		_pluginWriter.Received(1).UpdatePluginImages(data.PluginImages.Updates.ConvertAll(upd => upd.Local).ArgMatches());
-		_customApiWriter.Received(1).UpdateCustomApis(data.CustomApis.Updates.ConvertAll(upd => upd.Local).ArgMatches(), _description.SyncDescription);
-		_customApiWriter.Received(1).UpdateRequestParameters(data.RequestParameters.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches());
-		_customApiWriter.Received(1).UpdateResponseProperties(data.ResponseProperties.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches());
+		pluginWriter.Received(1).UpdatePluginSteps(data.PluginSteps.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches(), description.SyncDescription);
+		pluginWriter.Received(1).UpdatePluginImages(data.PluginImages.Updates.ConvertAll(upd => upd.Local).ArgMatches());
+		customApiWriter.Received(1).UpdateCustomApis(data.CustomApis.Updates.ConvertAll(upd => upd.Local).ArgMatches(), description.SyncDescription);
+		customApiWriter.Received(1).UpdateRequestParameters(data.RequestParameters.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches());
+		customApiWriter.Received(1).UpdateResponseProperties(data.ResponseProperties.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches());
 	}
 }

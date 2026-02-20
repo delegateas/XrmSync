@@ -11,12 +11,12 @@ namespace Tests.Plugins;
 
 public class AssemblyReaderTests
 {
-	private readonly ILogger<LocalReader> _logger = Substitute.For<ILogger<LocalReader>>();
-	private readonly LocalReader _assemblyReader;
+	private readonly ILogger<LocalReader> logger = Substitute.For<ILogger<LocalReader>>();
+	private readonly LocalReader assemblyReader;
 
 	public AssemblyReaderTests()
 	{
-		_assemblyReader = new LocalReader(_logger, Options.Create(SharedOptions.Empty));
+		assemblyReader = new LocalReader(logger, Options.Create(SharedOptions.Empty));
 	}
 
 	[Fact]
@@ -26,7 +26,7 @@ public class AssemblyReaderTests
 		string? assemblyPath = null;
 
 		// Act & Assert
-		await Assert.ThrowsAsync<AnalysisException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath!, "new", CancellationToken.None));
+		await Assert.ThrowsAsync<AnalysisException>(() => assemblyReader.ReadAssemblyAsync(assemblyPath!, "new", CancellationToken.None));
 	}
 
 	[Fact]
@@ -36,7 +36,7 @@ public class AssemblyReaderTests
 		var assemblyPath = "";
 
 		// Act & Assert
-		await Assert.ThrowsAsync<AnalysisException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath, "new", CancellationToken.None));
+		await Assert.ThrowsAsync<AnalysisException>(() => assemblyReader.ReadAssemblyAsync(assemblyPath, "new", CancellationToken.None));
 	}
 
 	[Fact]
@@ -46,7 +46,7 @@ public class AssemblyReaderTests
 		var assemblyPath = "   ";
 
 		// Act & Assert
-		await Assert.ThrowsAsync<AnalysisException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath, "new", CancellationToken.None));
+		await Assert.ThrowsAsync<AnalysisException>(() => assemblyReader.ReadAssemblyAsync(assemblyPath, "new", CancellationToken.None));
 	}
 
 	[Fact]
@@ -63,7 +63,7 @@ public class AssemblyReaderTests
 		// Since we can't easily mock the process execution without major refactoring,
 		// we'll verify that the method correctly validates input parameters
 		// The actual process execution testing would require integration tests
-		await Assert.ThrowsAsync<AnalysisException>(() => _assemblyReader.ReadAssemblyAsync(assemblyPath, "new", CancellationToken.None));
+		await Assert.ThrowsAsync<AnalysisException>(() => assemblyReader.ReadAssemblyAsync(assemblyPath, "new", CancellationToken.None));
 	}
 
 	[Theory]

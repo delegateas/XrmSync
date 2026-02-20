@@ -15,14 +15,14 @@ namespace Tests.Plugins;
 
 public class DifferenceUtilityTests
 {
-	private readonly DifferenceCalculator _differenceUtility;
+	private readonly DifferenceCalculator differenceUtility;
 
 	public DifferenceUtilityTests()
 	{
 		var logger = new LoggerFactory().CreateLogger<PrintService>();
 		var description = new Description();
 		var options = new ExecutionModeOptions(true);
-		_differenceUtility = new DifferenceCalculator(
+		differenceUtility = new DifferenceCalculator(
 			new PluginDefinitionComparer(),
 			new PluginStepComparer(),
 			new PluginImageComparer(),
@@ -90,7 +90,7 @@ public class DifferenceUtilityTests
 		};
 
 		// Act
-		var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
+		var differences = differenceUtility.CalculateDifferences(localData, remoteData);
 
 		// Assert
 		Assert.Single(differences.Types.Creates);
@@ -127,7 +127,7 @@ public class DifferenceUtilityTests
 		};
 
 		// Act
-		var differences = _differenceUtility.CalculateDifferences(emptyData, emptyData);
+		var differences = differenceUtility.CalculateDifferences(emptyData, emptyData);
 
 		// Assert
 		Assert.Empty(differences.Types.Creates);
@@ -186,7 +186,7 @@ public class DifferenceUtilityTests
 		};
 
 		// Act
-		var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
+		var differences = differenceUtility.CalculateDifferences(localData, remoteData);
 
 		// Assert
 		Assert.Empty(differences.PluginSteps.Creates);
@@ -277,7 +277,7 @@ public class DifferenceUtilityTests
 		};
 
 		// Act
-		var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
+		var differences = differenceUtility.CalculateDifferences(localData, remoteData);
 
 		// Assert
 		Assert.Equal([remoteCustomApi], differences.CustomApis.Deletes);
@@ -356,8 +356,8 @@ public class DifferenceUtilityTests
 		};
 
 		// Act
-		var differences = _differenceUtility.CalculateDifferences(localData, remoteData);
-		var differencesTwo = _differenceUtility.CalculateDifferences(localData, remoteDataTwo);
+		var differences = differenceUtility.CalculateDifferences(localData, remoteData);
+		var differencesTwo = differenceUtility.CalculateDifferences(localData, remoteDataTwo);
 
 		// Assert
 
