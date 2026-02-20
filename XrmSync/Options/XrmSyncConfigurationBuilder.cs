@@ -1,14 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Options;
 
-#pragma warning disable CS9113 // Parameter is unread - false positive, used in GetProfile method
-internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOptions<SharedOptions> options) : IConfigurationBuilder
-#pragma warning restore CS9113
+internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConfigurationBuilder
 {
 
 	public static class SectionName
@@ -26,7 +23,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
 
 		return new XrmSyncConfiguration(
 			xrmSyncSection.GetValue<bool>(SectionName.DryRun),
-			xrmSyncSection.GetValue<LogLevel?>(SectionName.LogLevel) ?? Microsoft.Extensions.Logging.LogLevel.Information,
+			xrmSyncSection.GetValue<LogLevel?>(SectionName.LogLevel) ?? LogLevel.Information,
 			xrmSyncSection.GetValue<bool>(SectionName.CiMode),
 			BuildProfiles(xrmSyncSection)
 		);
@@ -101,17 +98,20 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
 		return config.Profiles.FirstOrDefault(p => p.Name.Equals(resolvedProfileName, StringComparison.OrdinalIgnoreCase));
 	}
 
-	private string? ResolveProfileName(string? requestedName, List<ProfileConfiguration> profiles)
+	private static string? ResolveProfileName(string? requestedName, List<ProfileConfiguration> profiles)
 	{
 		if (profiles.Count == 0)
 		{
 			return null;
 		}
 
-		// If requested name exists, use it
-		if (!string.IsNullOrWhiteSpace(requestedName) && profiles.Any(p => p.Name.Equals(requestedName, StringComparison.OrdinalIgnoreCase)))
+		// If no name requested, fall back to "default"
+		var effectiveName = requestedName ?? "default";
+
+		// If effective name matches a profile, use it
+		if (profiles.Any(p => p.Name.Equals(effectiveName, StringComparison.OrdinalIgnoreCase)))
 		{
-			return requestedName;
+			return effectiveName;
 		}
 
 		// If only one profile exists, use it automatically
@@ -120,7 +120,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration, IOption
 			return profiles[0].Name;
 		}
 
-		// If multiple profiles exist and no profile specified, require explicit selection
-		throw new XrmSyncException($"Multiple profiles found. Use --profile to specify which profile to use, or run 'xrmsync config list' to see available profiles.");
+		// Multiple profiles, no match
+		throw new XrmSyncException("Multiple profiles found. Use --profile to specify which profile to use, name a profile 'default', or run 'xrmsync config list' to see available profiles.");
 	}
 }

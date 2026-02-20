@@ -15,33 +15,33 @@ namespace XrmSync.Commands;
 internal class PluginAnalyzeCommand : XrmSyncCommandBase
 {
 
-	private readonly Option<string> _assemblyFile;
-	private readonly Option<string> _prefix;
-	private readonly Option<bool> _prettyPrint;
+	private readonly Option<string> assemblyFile;
+	private readonly Option<string> prefix;
+	private readonly Option<bool> prettyPrint;
 
 	public PluginAnalyzeCommand() : base("analyze", "Analyze a plugin assembly and output info as JSON")
 	{
-		_assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
+		assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
 		{
 			Description = CliOptions.Assembly.Description,
 			Arity = ArgumentArity.ZeroOrOne
 		};
 
-		_prefix = new(CliOptions.Analysis.Prefix.Primary, CliOptions.Analysis.Prefix.Aliases)
+		prefix = new(CliOptions.Analysis.Prefix.Primary, CliOptions.Analysis.Prefix.Aliases)
 		{
 			Description = CliOptions.Analysis.Prefix.Description,
 			Arity = ArgumentArity.ZeroOrOne
 		};
 
-		_prettyPrint = new(CliOptions.Analysis.PrettyPrint.Primary, CliOptions.Analysis.PrettyPrint.Aliases)
+		prettyPrint = new(CliOptions.Analysis.PrettyPrint.Primary, CliOptions.Analysis.PrettyPrint.Aliases)
 		{
 			Description = CliOptions.Analysis.PrettyPrint.Description,
 			Required = false
 		};
 
-		Add(_assemblyFile);
-		Add(_prefix);
-		Add(_prettyPrint);
+		Add(assemblyFile);
+		Add(prefix);
+		Add(prettyPrint);
 		AddSharedOptions();
 
 		SetAction(ExecuteAsync);
@@ -49,9 +49,9 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
-		var assemblyPath = parseResult.GetValue(_assemblyFile);
-		var publisherPrefix = parseResult.GetValue(_prefix);
-		var prettyPrint = parseResult.GetValue(_prettyPrint);
+		var assemblyPath = parseResult.GetValue(assemblyFile);
+		var publisherPrefix = parseResult.GetValue(prefix);
+		var prettyPrint = parseResult.GetValue(this.prettyPrint);
 		var sharedOptions = GetSharedOptionValues(parseResult);
 
 		// Build service provider
@@ -77,15 +77,9 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 				// Otherwise try to get from profile
 				else
 				{
-					var profile = config.Profiles.FirstOrDefault(p =>
-						p.Name.Equals(sharedOptions.ProfileName, StringComparison.OrdinalIgnoreCase));
-
-					if (profile == null)
-					{
-						throw new InvalidOperationException(
+					var profile = sp.GetRequiredService<IConfigurationBuilder>().GetProfile(sharedOptions.ProfileName) ?? throw new InvalidOperationException(
 							$"Profile '{sharedOptions.ProfileName}' not found. " +
 							"Either specify --assembly and --publisher-prefix, or use --profile with a valid profile name.");
-					}
 
 					var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
 					if (pluginAnalysisItem == null)

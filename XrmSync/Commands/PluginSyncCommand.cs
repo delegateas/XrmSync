@@ -62,23 +62,15 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 				// Otherwise try to get from profile
 				else
 				{
-					var profile = config.Profiles.FirstOrDefault(p =>
-						p.Name.Equals(sharedOptions.ProfileName, StringComparison.OrdinalIgnoreCase));
-
-					if (profile == null)
-					{
-						throw new InvalidOperationException(
+					var profile = sp.GetRequiredService<IConfigurationBuilder>().GetProfile(sharedOptions.ProfileName)
+						?? throw new InvalidOperationException(
 							$"Profile '{sharedOptions.ProfileName}' not found. " +
 							"Either specify --assembly and --solution, or use --profile with a valid profile name.");
-					}
 
-					var pluginSyncItem = profile.Sync.OfType<PluginSyncItem>().FirstOrDefault();
-					if (pluginSyncItem == null)
-					{
-						throw new InvalidOperationException(
+					var pluginSyncItem = profile.Sync.OfType<PluginSyncItem>().FirstOrDefault()
+						?? throw new InvalidOperationException(
 							$"Profile '{profile.Name}' does not contain a Plugin sync item. " +
 							"Either specify --assembly and --solution, or use a profile with a Plugin sync item.");
-					}
 
 					finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath)
 						? assemblyPath

@@ -76,7 +76,7 @@ xrmsync webresources --folder "path/to/webresources" --solution-name "YourSoluti
 For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
 ```bash
 # Run all configured commands (plugins, webresources, analysis)
-# If only one profile exists, it's used automatically without --profile
+# If only one profile exists, or a profile named "default" exists, it's used automatically
 xrmsync --profile myprofile
 
 # Run a specific command with configuration
@@ -274,7 +274,10 @@ XrmSync supports multiple named configurations within a single appsettings.json 
 # If only one profile exists, it's used automatically
 xrmsync
 
-# If multiple profiles exist, you must specify which one to use
+# If multiple profiles exist, a profile named "default" is used automatically
+xrmsync
+
+# Otherwise, specify which profile to use
 xrmsync --profile <profile-name>
 ```
 
@@ -491,7 +494,7 @@ xrmsync webresources --folder "wwwroot" --solution-name "MyCustomSolution" --dry
 # from the specified profile
 xrmsync --profile myprofile
 
-# If only one profile exists, it's used automatically
+# If only one profile exists, or a profile named "default" exists, it's used automatically
 xrmsync
 ```
 

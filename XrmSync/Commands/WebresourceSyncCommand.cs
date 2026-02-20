@@ -11,17 +11,17 @@ namespace XrmSync.Commands
 {
 	internal class WebresourceSyncCommand : XrmSyncSyncCommandBase
 	{
-		private readonly Option<string> _webresourceRoot;
+		private readonly Option<string> webresourceRoot;
 
 		public WebresourceSyncCommand() : base("webresources", "Synchronize webresources from a local folder with Dataverse")
 		{
-			_webresourceRoot = new(CliOptions.Webresource.Primary, CliOptions.Webresource.Aliases)
+			webresourceRoot = new(CliOptions.Webresource.Primary, CliOptions.Webresource.Aliases)
 			{
 				Description = CliOptions.Webresource.Description,
 				Arity = ArgumentArity.ZeroOrOne
 			};
 
-			Add(_webresourceRoot);
+			Add(webresourceRoot);
 
 			AddSharedOptions();
 			AddSyncSharedOptions();
@@ -31,7 +31,7 @@ namespace XrmSync.Commands
 
 		private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 		{
-			var folderPath = parseResult.GetValue(_webresourceRoot);
+			var folderPath = parseResult.GetValue(webresourceRoot);
 			var (solutionName, dryRun, logLevel, ciMode) = GetSyncSharedOptionValues(parseResult);
 			var sharedOptions = GetSharedOptionValues(parseResult);
 
@@ -63,23 +63,15 @@ namespace XrmSync.Commands
 					// Otherwise try to get from profile
 					else
 					{
-						var profile = config.Profiles.FirstOrDefault(p =>
-							p.Name.Equals(sharedOptions.ProfileName, StringComparison.OrdinalIgnoreCase));
-
-						if (profile == null)
-						{
-							throw new InvalidOperationException(
+						var profile = sp.GetRequiredService<IConfigurationBuilder>().GetProfile(sharedOptions.ProfileName)
+							?? throw new InvalidOperationException(
 								$"Profile '{sharedOptions.ProfileName}' not found. " +
 								"Either specify --folder and --solution, or use --profile with a valid profile name.");
-						}
 
-						var webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault();
-						if (webresourceSyncItem == null)
-						{
-							throw new InvalidOperationException(
+						var webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault()
+							?? throw new InvalidOperationException(
 								$"Profile '{profile.Name}' does not contain a Webresource sync item. " +
 								"Either specify --folder and --solution, or use a profile with a Webresource sync item.");
-						}
 
 						finalFolderPath = !string.IsNullOrWhiteSpace(folderPath)
 							? folderPath

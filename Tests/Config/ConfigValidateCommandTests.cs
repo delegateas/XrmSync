@@ -64,7 +64,7 @@ public class ConfigValidateCommandTests
 			var configReader = new TestConfigReader(tempFile);
 			var configuration = configReader.GetConfiguration();
 			var sharedOptions = Options.Create(SharedOptions.Empty);
-			var builder = new XrmSyncConfigurationBuilder(configuration, sharedOptions);
+			var builder = new XrmSyncConfigurationBuilder(configuration);
 			var config = builder.Build();
 			var configOptions = Options.Create(config);
 
@@ -122,7 +122,7 @@ public class ConfigValidateCommandTests
 			var configReader = new TestConfigReader(tempFile);
 			var configuration = configReader.GetConfiguration();
 			var sharedOptions = Options.Create(SharedOptions.Empty);
-			var builder = new XrmSyncConfigurationBuilder(configuration, sharedOptions);
+			var builder = new XrmSyncConfigurationBuilder(configuration);
 			var config = builder.Build();
 			var configOptions = Options.Create(config);
 
@@ -154,7 +154,7 @@ public class ConfigValidateCommandTests
 			var configReader = new TestConfigReader(tempFile);
 			var configuration = configReader.GetConfiguration();
 			var sharedOptions = Options.Create(SharedOptions.Empty);
-			var builder = new XrmSyncConfigurationBuilder(configuration, sharedOptions);
+			var builder = new XrmSyncConfigurationBuilder(configuration);
 			var config = builder.Build();
 			var configOptions = Options.Create(config);
 

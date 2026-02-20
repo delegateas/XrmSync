@@ -4,6 +4,7 @@ using System.CommandLine;
 using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
+using XrmSync.Options;
 
 namespace XrmSync.Commands;
 
@@ -81,9 +82,9 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		var xrmSyncConfig = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<XrmSyncConfiguration>>().Value;
 		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncRootCommand>>();
 
-		// Find the profile
-		var profile = xrmSyncConfig.Profiles.FirstOrDefault(p =>
-			p.Name.Equals(sharedOptions.ProfileName, StringComparison.OrdinalIgnoreCase));
+		// Find the profile using centralized resolution (handles single-profile auto-select and "default" convention)
+		var configBuilder = serviceProvider.GetRequiredService<IConfigurationBuilder>();
+		var profile = configBuilder.GetProfile(sharedOptions.ProfileName);
 
 		if (profile == null)
 		{
@@ -91,8 +92,11 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			return E_ERROR;
 		}
 
-		logger.LogInformation("Running XrmSync with profile: {profileName} (DryRun: {dryRun})",
-			profile.Name, xrmSyncConfig.DryRun);
+		if (logger.IsEnabled(LogLevel.Information))
+		{
+			logger.LogInformation("Running XrmSync with profile: {profileName} (DryRun: {dryRun})",
+				profile.Name, xrmSyncConfig.DryRun);
+		}
 
 		if (profile.Sync.Count == 0)
 		{
@@ -113,7 +117,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			int result = syncItem switch
 			{
 				PluginSyncItem plugin => await ExecutePluginSync(plugin, profile, sharedOptions, overrides, xrmSyncConfig),
-				PluginAnalysisSyncItem analysis => await ExecutePluginAnalysis(analysis, sharedOptions, overrides, xrmSyncConfig),
+				PluginAnalysisSyncItem analysis => await ExecutePluginAnalysis(analysis, sharedOptions),
 				WebresourceSyncItem webresource => await ExecuteWebresourceSync(webresource, profile, sharedOptions, overrides, xrmSyncConfig),
 				_ => LogUnknownSyncItemType(logger, syncItem.SyncType)
 			};
@@ -149,9 +153,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
 	private async Task<int> ExecutePluginAnalysis(
 		PluginAnalysisSyncItem syncItem,
-		SharedOptions sharedOptions,
-		ArgumentOverrides overrides,
-		XrmSyncConfiguration config)
+		SharedOptions sharedOptions)
 	{
 		var args = new List<string>
 		{

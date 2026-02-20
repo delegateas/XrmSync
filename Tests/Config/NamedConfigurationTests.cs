@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using XrmSync.Model;
 using XrmSync.Options;
 
@@ -49,7 +48,7 @@ public class NamedConfigurationTests
 		try
 		{
 			var configReader = new TestConfigReader(tempFile);
-			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty with { ProfileName = "dev" }));
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
 
 			// Act
 			var profile = builder.GetProfile("dev");
@@ -109,7 +108,7 @@ public class NamedConfigurationTests
 		try
 		{
 			var configReader = new TestConfigReader(tempFile);
-			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
 
 			// Act & Assert
 			var exception = Assert.Throws<XrmSync.Model.Exceptions.XrmSyncException>(() => builder.GetProfile(null));
@@ -154,7 +153,7 @@ public class NamedConfigurationTests
 		try
 		{
 			var configReader = new TestConfigReader(tempFile);
-			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration(), Options.Create(SharedOptions.Empty));
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
 
 			// Act
 			var profile = builder.GetProfile(null);
@@ -165,6 +164,67 @@ public class NamedConfigurationTests
 			Assert.Single(profile.Sync);
 			var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
 			Assert.Equal("myconfig.dll", pluginSync.AssemblyPath);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
+	[Fact]
+	public void ResolveConfigurationNameWithMultipleProfilesAndDefaultProfileReturnsDefault()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "DryRun": false,
+            "LogLevel": "Information",
+            "CiMode": false,
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "DefaultSolution",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "default.dll"
+                  }
+                ]
+              },
+              {
+                "Name": "dev",
+                "SolutionName": "DevSolution",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "dev.dll"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile(null);
+
+			// Assert
+			Assert.NotNull(profile);
+			Assert.Equal("default", profile.Name);
+			Assert.Equal("DefaultSolution", profile.SolutionName);
+			Assert.Single(profile.Sync);
+			var pluginSync = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+			Assert.Equal("default.dll", pluginSync.AssemblyPath);
 		}
 		finally
 		{
