@@ -187,6 +187,21 @@ public class TestDataProducer
 	}
 
 	/// <summary>
+	/// Creates a solution component linking an entity to a solution.
+	/// Component type constants: 91=PluginAssembly, 90=PluginType, 92=SDKMessageProcessingStep, 61=WebResource, 68=CustomAPI.
+	/// </summary>
+	public Guid ProduceSolutionComponent(Guid solutionId, Guid objectId, int componentType)
+	{
+		var component = new Entity("solutioncomponent")
+		{
+			["solutionid"] = new EntityReference("solution", solutionId),
+			["objectid"] = objectId,
+			["componenttype"] = new OptionSetValue(componentType)
+		};
+		return service.Create(component);
+	}
+
+	/// <summary>
 	/// Creates a custom API.
 	/// </summary>
 	public Guid ProduceCustomApi(

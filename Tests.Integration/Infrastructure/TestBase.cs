@@ -34,6 +34,36 @@ public abstract class TestBase
 	/// </summary>
 	protected IServiceProvider BuildServiceProvider()
 	{
+		return BuildBaseServices().BuildServiceProvider();
+	}
+
+	/// <summary>
+	/// Builds a service provider with Dataverse services and PluginSyncCommandOptions registered.
+	/// Use this when testing writers that depend on IOptions&lt;PluginSyncCommandOptions&gt;.
+	/// </summary>
+	protected IServiceProvider BuildPluginServiceProvider(string solutionName)
+	{
+		return BuildBaseServices()
+			.AddSingleton(Options.Create(new PluginSyncCommandOptions("test.dll", solutionName)))
+			.BuildServiceProvider();
+	}
+
+	/// <summary>
+	/// Builds a service provider with Dataverse services and WebresourceSyncCommandOptions registered.
+	/// Use this when testing writers that depend on IOptions&lt;WebresourceSyncCommandOptions&gt;.
+	/// </summary>
+	protected IServiceProvider BuildWebresourceServiceProvider(string solutionName)
+	{
+		return BuildBaseServices()
+			.AddSingleton(Options.Create(new WebresourceSyncCommandOptions("test/", solutionName)))
+			.BuildServiceProvider();
+	}
+
+	/// <summary>
+	/// Creates a base service collection with all common Dataverse services registered.
+	/// </summary>
+	private IServiceCollection BuildBaseServices()
+	{
 		var services = new ServiceCollection();
 
 		// Register test service provider (XrmMockup's IOrganizationService)
@@ -47,7 +77,7 @@ public abstract class TestBase
 
 		services.AddLogging();
 
-		return services.BuildServiceProvider();
+		return services;
 	}
 
 	/// <summary>
