@@ -29,6 +29,21 @@ internal class DifferenceCalculator(
 
 		printer.Print(pluginStepsDifference, "Plugin Steps", x => x.Entity.Name);
 
+		// Reset image IDs for recreated steps so images are re-created alongside their parent
+		var recreatedStepIds = pluginStepsDifference.Creates
+			.Where(c => c.Remote != null)
+			.Select(c => c.Local.Entity.Id)
+			.ToHashSet();
+
+		foreach (var plugin in localData.Plugins)
+		{
+			foreach (var step in plugin.PluginSteps.Where(s => recreatedStepIds.Contains(s.Id)))
+			{
+				foreach (var image in step.PluginImages)
+					image.Id = Guid.Empty;
+			}
+		}
+
 		var pluginImagesDifference =
 			localData.Plugins
 			.Select(localPlugin =>
@@ -49,6 +64,25 @@ internal class DifferenceCalculator(
 		var customApiDifference =
 			GetDifference(localData.CustomApis, remoteData?.CustomApis ?? [], customApiComparer);
 		printer.Print(customApiDifference, "Custom APIs", x => x.Name);
+
+		// Reset child IDs for recreated CustomAPIs so children are re-created alongside their parent
+		var recreatedApiIds = customApiDifference.Creates
+			.Where(c => c.Remote != null)
+			.Select(c => c.Local.Id)
+			.ToHashSet();
+
+		foreach (var api in localData.CustomApis.Where(a => recreatedApiIds.Contains(a.Id)))
+		{
+			foreach (var param in api.RequestParameters)
+			{
+				param.Id = Guid.Empty;
+			}
+
+			foreach (var prop in api.ResponseProperties)
+			{
+				prop.Id = Guid.Empty;
+			}
+		}
 
 		var customApiRequestDifference =
 			GetDifferences(localData, remoteData,

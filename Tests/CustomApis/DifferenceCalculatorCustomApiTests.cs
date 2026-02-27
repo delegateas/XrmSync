@@ -636,4 +636,86 @@ public class DifferenceCalculatorCustomApiTests
 			nameof(ResponseProperty.UniqueName)
 		], propNames);
 	}
+
+	// ========== Recreation: Children preserved ==========
+
+	[Fact]
+	public void RecreatedCustomApiIncludesUnchangedRequestParametersInCreates()
+	{
+		// Arrange — CustomAPI is recreated (IsFunction changed), but its RequestParameter is identical
+		var apiId = Guid.NewGuid();
+		var pluginTypeId = Guid.NewGuid();
+		var paramId = Guid.NewGuid();
+
+		var param = CreateRequestParameter("Param1", id: paramId);
+		var remoteParam = CreateRequestParameter("Param1", id: paramId);
+
+		var localApi = CreateCustomApi("TestApi", id: apiId);
+		localApi.PluginType = new PluginType("PluginType") { Id = pluginTypeId };
+		localApi.IsFunction = true; // Changed — triggers recreation
+		localApi.RequestParameters = [param];
+
+		var remoteApi = CreateCustomApi("TestApi", id: apiId);
+		remoteApi.PluginType = new PluginType("PluginType") { Id = pluginTypeId };
+		remoteApi.IsFunction = false; // Different — triggers recreation
+		remoteApi.RequestParameters = [remoteParam];
+
+		var local = CreateAssemblyInfo([localApi]);
+		var remote = CreateAssemblyInfo([remoteApi]);
+
+		// Act
+		var differences = differenceCalculator.CalculateDifferences(local, remote);
+
+		// Assert — CustomAPI should be recreated
+		Assert.Single(differences.CustomApis.Creates);
+		Assert.Single(differences.CustomApis.Deletes);
+
+		// Assert — the unchanged RequestParameter must also be in Creates (re-created with new parent)
+		Assert.Single(differences.RequestParameters.Creates);
+		Assert.Equal("Param1", differences.RequestParameters.Creates[0].Local.Entity.Name);
+
+		// And the old one must be in Deletes (explicitly deleted before parent)
+		Assert.Single(differences.RequestParameters.Deletes);
+		Assert.Equal("Param1", differences.RequestParameters.Deletes[0].Entity.Name);
+	}
+
+	[Fact]
+	public void RecreatedCustomApiIncludesUnchangedResponsePropertiesInCreates()
+	{
+		// Arrange — CustomAPI is recreated (IsFunction changed), but its ResponseProperty is identical
+		var apiId = Guid.NewGuid();
+		var pluginTypeId = Guid.NewGuid();
+		var propId = Guid.NewGuid();
+
+		var prop = CreateResponseProperty("Prop1", id: propId);
+		var remoteProp = CreateResponseProperty("Prop1", id: propId);
+
+		var localApi = CreateCustomApi("TestApi", id: apiId);
+		localApi.PluginType = new PluginType("PluginType") { Id = pluginTypeId };
+		localApi.IsFunction = true;
+		localApi.ResponseProperties = [prop];
+
+		var remoteApi = CreateCustomApi("TestApi", id: apiId);
+		remoteApi.PluginType = new PluginType("PluginType") { Id = pluginTypeId };
+		remoteApi.IsFunction = false;
+		remoteApi.ResponseProperties = [remoteProp];
+
+		var local = CreateAssemblyInfo([localApi]);
+		var remote = CreateAssemblyInfo([remoteApi]);
+
+		// Act
+		var differences = differenceCalculator.CalculateDifferences(local, remote);
+
+		// Assert — CustomAPI should be recreated
+		Assert.Single(differences.CustomApis.Creates);
+		Assert.Single(differences.CustomApis.Deletes);
+
+		// Assert — the unchanged ResponseProperty must also be in Creates
+		Assert.Single(differences.ResponseProperties.Creates);
+		Assert.Equal("Prop1", differences.ResponseProperties.Creates[0].Local.Entity.Name);
+
+		// And the old one must be in Deletes
+		Assert.Single(differences.ResponseProperties.Deletes);
+		Assert.Equal("Prop1", differences.ResponseProperties.Deletes[0].Entity.Name);
+	}
 }

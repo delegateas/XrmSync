@@ -483,4 +483,76 @@ public class DifferenceUtilityTests
 			nameof(CustomApiDefinition.IsPrivate)
 		], propNames);
 	}
+
+	[Fact]
+	public void RecreatedStepIncludesUnchangedImagesInCreates()
+	{
+		// Arrange — Step is recreated (ExecutionStage changed), but its Image is identical
+		var pluginId = Guid.NewGuid();
+		var stepId = Guid.NewGuid();
+		var imageId = Guid.NewGuid();
+
+		var localImage = new Image("TestImage")
+		{
+			Id = imageId,
+			ImageType = ImageType.PreImage,
+			Attributes = "name,description",
+			EntityAlias = "preimage"
+		};
+
+		var remoteImage = localImage with { }; // Identical
+
+		var localStep = new Step("TestStep")
+		{
+			Id = stepId,
+			ExecutionStage = ExecutionStage.PostOperation, // Changed — triggers recreation
+			EventOperation = "Update",
+			LogicalName = "account",
+			Deployment = 0,
+			ExecutionMode = 0,
+			ExecutionOrder = 1,
+			FilteredAttributes = string.Empty,
+			UserContext = Guid.Empty,
+			AsyncAutoDelete = false,
+			PluginImages = [localImage]
+		};
+
+		var remoteStep = localStep with
+		{
+			ExecutionStage = ExecutionStage.PreOperation, // Different — triggers recreation
+			PluginImages = [remoteImage]
+		};
+
+		var localType = new PluginDefinition("TestType") { Id = pluginId, PluginSteps = [localStep] };
+		var remoteType = new PluginDefinition("TestType") { Id = pluginId, PluginSteps = [remoteStep] };
+
+		var localData = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [localType],
+			CustomApis = []
+		};
+
+		var remoteData = localData with
+		{
+			Plugins = [remoteType]
+		};
+
+		// Act
+		var differences = differenceUtility.CalculateDifferences(localData, remoteData);
+
+		// Assert — Step should be recreated
+		Assert.Single(differences.PluginSteps.Creates);
+		Assert.Single(differences.PluginSteps.Deletes);
+
+		// Assert — the unchanged Image must also be in Creates (re-created with new parent step)
+		Assert.Single(differences.PluginImages.Creates);
+		Assert.Equal("TestImage", differences.PluginImages.Creates[0].Local.Entity.Name);
+
+		// And the old one must be in Deletes
+		Assert.Single(differences.PluginImages.Deletes);
+		Assert.Equal("TestImage", differences.PluginImages.Deletes[0].Entity.Name);
+	}
 }
