@@ -25,7 +25,7 @@
     <File Path=".github/actions/build-and-test/action.yml" />
   </Folder>
   <Folder Name="/Solution files/scripts/">
-    <File Path="scripts/Generate-XrmMockupMetadata.ps1" />
+    <File Path="scripts/Build-Package.ps1" />
     <File Path="scripts/Set-VersionFromChangelog.ps1" />
     <File Path="scripts/Test-Samples.ps1" />
   </Folder>
