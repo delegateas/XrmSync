@@ -1,3 +1,8 @@
+### v1.0.0-preview.15 - 27 February 2026
+* Fix: When re-creating CustomAPI / Plugins, now re-create dependencies as well
+* Fix: CustomAPI creation was broken
+* Fix: Default profile handling. Now defaults to "default" if none specified, and fallbacks to picking the only profile if only one is specified
+
 ### v1.0.0-preview.14 - 18 November 2025
 * Add: Validation rule to prevent duplicate webresource creation
 * Refactor: The configuration format has been updated
