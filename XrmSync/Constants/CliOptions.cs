@@ -63,7 +63,7 @@ internal static class CliOptions
 		internal static class LogLevel
 		{
 			public const string Primary = "--log-level";
-			public static readonly string[] Aliases = ["-l", "--ll"];
+			public static readonly string[] Aliases = ["-l", "--ll", "--loglevel"];
 			public const string Description = "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) (Default: Information)";
 		}
 	}
