@@ -82,6 +82,8 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
 	{
 		var (filename, args) = await GetExecutionInfoAsync(assemblyDllPath, publisherPrefix, configName, cancellationToken);
 
+		logger.LogTrace("Executing command to read assembly: {Filename} {Arguments}", filename, args);
+
 		var result = await RunCommandAsync(filename, args, cancellationToken);
 		if (result.ExitCode != 0)
 		{
@@ -104,8 +106,11 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
 
 #if DEBUG
 		// In debug, try to invoke the currently executing assembly first
+		// Skip if the process is dotnet.exe (e.g. running via "dotnet run" or "dotnet tool run")
+		// since we'd lose the xrmsync command prefix
 		var currentProcess = Process.GetCurrentProcess().MainModule?.FileName ?? "";
-		if (!string.IsNullOrEmpty(currentProcess))
+		if (!string.IsNullOrEmpty(currentProcess)
+			&& !Path.GetFileNameWithoutExtension(currentProcess).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
 		{
 			logger.LogTrace("Using current process executable for analysis: {Executable}", currentProcess);
 			return (currentProcess, baseArgs);
