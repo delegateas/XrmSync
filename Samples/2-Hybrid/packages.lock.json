@@ -21,9 +21,9 @@
       },
       "XrmPluginCore": {
         "type": "Direct",
-        "requested": "[1.2.4, )",
-        "resolved": "1.2.4",
-        "contentHash": "JZ/e1NK9Erv8kk+lEzATWf60tnjQbMEhK0FjxW0prgVd3oK6TfFupGsNu47htWaSRCxD0uPsFmv+DjpQZTxhKw==",
+        "requested": "[1.2.6, )",
+        "resolved": "1.2.6",
+        "contentHash": "MpZwL4Jv2Lht2OyP5IQCRcfRu5z297YNNOIolaqv5EGl7hkJGmUHoelUPNIJ3TiRLiwF2nxxfs1AaBLXcYI+mQ==",
         "dependencies": {
           "Microsoft.CrmSdk.CoreAssemblies": "9.0.2.59",
           "Microsoft.Extensions.DependencyInjection": "9.0.9",
