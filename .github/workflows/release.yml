@@ -24,7 +24,15 @@ jobs:
         with:
           configuration: Release
           skip-analyzer-tests: true
-      
+
+      - name: 📎 Add packages to release
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'release'
+        with:
+          files: |
+            ./XrmSync/nupkg/*.nupkg
+            ./XrmSync/nupkg/*.snupkg
+
       - name: Publish to NuGet
         shell: pwsh
         run: |
