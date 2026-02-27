@@ -249,6 +249,132 @@ public class PluginServiceTests
 	}
 
 	[Fact]
+	public void DoCreatesResolvesCustomApiPluginTypeIdFromNewlyCreatedTypes()
+	{
+		// Arrange
+		var crmAssembly = new AssemblyInfo("TestAssembly")
+		{
+			Id = Guid.NewGuid(),
+			DllPath = "path",
+			Hash = "hash",
+			Version = "1.0.0.0",
+			Plugins = []
+		};
+
+		// A new plugin type (not yet in Dataverse)
+		var sharedTypeName = "Namespace.MyCustomApiPlugin";
+		var pluginType = new PluginDefinition(sharedTypeName) { PluginSteps = [] };
+
+		// A new custom API referencing the same plugin type by name, but with Id = Guid.Empty
+		var customApi = new CustomApiDefinition("TestCustomApi")
+		{
+			UniqueName = "new_test_custom_api",
+			Description = "Test",
+			DisplayName = "Test",
+			BoundEntityLogicalName = string.Empty,
+			ExecutePrivilegeName = string.Empty,
+			PluginType = new PluginType(sharedTypeName), // Id defaults to Guid.Empty
+			RequestParameters = [],
+			ResponseProperties = []
+		};
+
+		var expectedPluginTypeId = Guid.NewGuid();
+
+		// Mock CreatePluginTypes to simulate Dataverse assigning an ID
+		pluginWriter.CreatePluginTypes(Arg.Any<ICollection<PluginDefinition>>(), Arg.Any<Guid>(), Arg.Any<string>())
+			.Returns(callInfo =>
+			{
+				var types = callInfo.ArgAt<ICollection<PluginDefinition>>(0);
+				foreach (var t in types)
+					t.Id = expectedPluginTypeId;
+				return types;
+			});
+
+		var differences = new Differences(
+			Difference<PluginDefinition>.Empty with
+			{
+				Creates = [EntityDifference<PluginDefinition>.FromLocal(pluginType)]
+			},
+			Difference<Step, PluginDefinition>.Empty,
+			Difference<Image, Step>.Empty,
+			Difference<CustomApiDefinition>.Empty with
+			{
+				Creates = [EntityDifference<CustomApiDefinition>.FromLocal(customApi)]
+			},
+			Difference<RequestParameter, CustomApiDefinition>.Empty,
+			Difference<ResponseProperty, CustomApiDefinition>.Empty
+		);
+
+		// Act
+		plugin.DoCreates(differences, crmAssembly);
+
+		// Assert — the custom API's PluginType.Id should have been resolved to the newly created type's ID
+		Assert.Equal(expectedPluginTypeId, customApi.PluginType.Id);
+	}
+
+	[Fact]
+	public void AlignCustomApiIdsTransfersPluginTypeId()
+	{
+		// Arrange
+		var remotePluginTypeId = Guid.NewGuid();
+		var remoteCustomApiId = Guid.NewGuid();
+
+		var localCustomApi = new CustomApiDefinition("TestApi")
+		{
+			UniqueName = "new_test_api",
+			Description = "Test",
+			DisplayName = "Test",
+			BoundEntityLogicalName = string.Empty,
+			ExecutePrivilegeName = string.Empty,
+			PluginType = new PluginType("Namespace.MyPlugin"), // Id = Guid.Empty
+			RequestParameters = [],
+			ResponseProperties = []
+		};
+
+		var remoteCustomApi = new CustomApiDefinition("TestApi")
+		{
+			Id = remoteCustomApiId,
+			UniqueName = "new_test_api",
+			Description = "Test",
+			DisplayName = "Test",
+			BoundEntityLogicalName = string.Empty,
+			ExecutePrivilegeName = string.Empty,
+			PluginType = new PluginType("Namespace.MyPlugin") { Id = remotePluginTypeId },
+			RequestParameters = [],
+			ResponseProperties = []
+		};
+
+		var localAssembly = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [],
+			CustomApis = [localCustomApi]
+		};
+
+		var crmAssembly = new AssemblyInfo("TestAssembly")
+		{
+			Id = Guid.NewGuid(),
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [],
+			CustomApis = [remoteCustomApi]
+		};
+
+		// Act — AlignCustomApiIds is private static, so we invoke it via reflection
+		var method = typeof(PluginSyncService).GetMethod("AlignCustomApiIds",
+			System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+		Assert.NotNull(method);
+		method.Invoke(null, [localAssembly, crmAssembly]);
+
+		// Assert
+		Assert.Equal(remoteCustomApiId, localCustomApi.Id);
+		Assert.Equal(remotePluginTypeId, localCustomApi.PluginType.Id);
+	}
+
+	[Fact]
 	public void DeletePluginsCallsWriter()
 	{
 		// Arrange
@@ -304,6 +430,157 @@ public class PluginServiceTests
 		customApiWriter.Received(1).DeleteCustomApiResponseProperties(resps.ConvertAll(r => r.Entity).ArgMatches());
 		customApiWriter.Received(1).DeleteCustomApiDefinitions(apis);
 	}
+
+	#region IncludeCustomApiPluginTypes
+
+	[Fact]
+	public void IncludeCustomApiPluginTypesAddsBackingTypeToPlugins()
+	{
+		// Arrange
+		var localAssembly = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [new PluginDefinition("Namespace.ExistingPlugin") { PluginSteps = [] }],
+			CustomApis = [
+				new CustomApiDefinition("TestApi")
+				{
+					UniqueName = "new_test_api",
+					Description = "Test",
+					DisplayName = "Test",
+					BoundEntityLogicalName = string.Empty,
+					ExecutePrivilegeName = string.Empty,
+					PluginType = new PluginType("Namespace.CustomApiBackingType"),
+					RequestParameters = [],
+					ResponseProperties = []
+				}
+			]
+		};
+
+		// Act
+		PluginSyncService.IncludeCustomApiPluginTypes(localAssembly);
+
+		// Assert — the backing type should be added alongside the existing plugin
+		Assert.Equal(2, localAssembly.Plugins.Count);
+		Assert.Contains(localAssembly.Plugins, p => p.Name == "Namespace.ExistingPlugin");
+		Assert.Contains(localAssembly.Plugins, p => p.Name == "Namespace.CustomApiBackingType");
+
+		var injected = localAssembly.Plugins.Single(p => p.Name == "Namespace.CustomApiBackingType");
+		Assert.Empty(injected.PluginSteps);
+	}
+
+	[Fact]
+	public void IncludeCustomApiPluginTypesDoesNotDuplicateExistingType()
+	{
+		// Arrange — the custom API backing type already exists in Plugins (e.g. it also has steps)
+		var localAssembly = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [new PluginDefinition("Namespace.SharedType") { PluginSteps = [
+				new("Step1") {
+					ExecutionStage = ExecutionStage.PreValidation,
+					EventOperation = "Create",
+					LogicalName = "account",
+					Deployment = 0,
+					ExecutionMode = 0,
+					ExecutionOrder = 1,
+					FilteredAttributes = string.Empty,
+					UserContext = Guid.Empty,
+					AsyncAutoDelete = false,
+					PluginImages = []
+				}
+			] }],
+			CustomApis = [
+				new CustomApiDefinition("TestApi")
+				{
+					UniqueName = "new_test_api",
+					Description = "Test",
+					DisplayName = "Test",
+					BoundEntityLogicalName = string.Empty,
+					ExecutePrivilegeName = string.Empty,
+					PluginType = new PluginType("Namespace.SharedType"),
+					RequestParameters = [],
+					ResponseProperties = []
+				}
+			]
+		};
+
+		// Act
+		PluginSyncService.IncludeCustomApiPluginTypes(localAssembly);
+
+		// Assert — no duplicate; the existing entry with its step is preserved
+		Assert.Single(localAssembly.Plugins);
+		Assert.Single(localAssembly.Plugins[0].PluginSteps);
+	}
+
+	[Fact]
+	public void IncludeCustomApiPluginTypesHandlesMultipleApisWithSameBackingType()
+	{
+		// Arrange — two custom APIs reference the same backing type
+		var localAssembly = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [],
+			CustomApis = [
+				new CustomApiDefinition("Api1")
+				{
+					UniqueName = "new_api1",
+					Description = "Test",
+					DisplayName = "Test",
+					BoundEntityLogicalName = string.Empty,
+					ExecutePrivilegeName = string.Empty,
+					PluginType = new PluginType("Namespace.SharedBackingType"),
+					RequestParameters = [],
+					ResponseProperties = []
+				},
+				new CustomApiDefinition("Api2")
+				{
+					UniqueName = "new_api2",
+					Description = "Test",
+					DisplayName = "Test",
+					BoundEntityLogicalName = string.Empty,
+					ExecutePrivilegeName = string.Empty,
+					PluginType = new PluginType("Namespace.SharedBackingType"),
+					RequestParameters = [],
+					ResponseProperties = []
+				}
+			]
+		};
+
+		// Act
+		PluginSyncService.IncludeCustomApiPluginTypes(localAssembly);
+
+		// Assert — only one entry added despite two APIs referencing the same type
+		Assert.Single(localAssembly.Plugins);
+		Assert.Equal("Namespace.SharedBackingType", localAssembly.Plugins[0].Name);
+	}
+
+	[Fact]
+	public void IncludeCustomApiPluginTypesNoOpsWithEmptyCustomApis()
+	{
+		// Arrange
+		var localAssembly = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [new PluginDefinition("Namespace.Plugin") { PluginSteps = [] }],
+			CustomApis = []
+		};
+
+		// Act
+		PluginSyncService.IncludeCustomApiPluginTypes(localAssembly);
+
+		// Assert — nothing changed
+		Assert.Single(localAssembly.Plugins);
+	}
+
+	#endregion
 
 	[Fact]
 	public void UpdatePluginsCallsWriter()

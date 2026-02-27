@@ -43,6 +43,9 @@ internal class PluginSyncService(
 		// Read the data from the local assembly and from Dataverse
 		var (localAssembly, crmAssembly) = await ReadData(cancellationToken);
 
+		// Ensure custom API backing types are in the Plugins pipeline so they get aligned and created
+		IncludeCustomApiPluginTypes(localAssembly);
+
 		// Align the local and remote info, matching IDs
 		AlignPluginsIds(localAssembly, crmAssembly);
 		AlignCustomApiIds(localAssembly, crmAssembly);
@@ -64,6 +67,19 @@ internal class PluginSyncService(
 
 		// Done
 		log.LogInformation("Plugin synchronization was completed successfully");
+	}
+
+	internal static void IncludeCustomApiPluginTypes(AssemblyInfo localAssembly)
+	{
+		var existingPluginNames = new HashSet<string>(localAssembly.Plugins.Select(p => p.Name));
+		foreach (var api in localAssembly.CustomApis)
+		{
+			if (!existingPluginNames.Contains(api.PluginType.Name))
+			{
+				localAssembly.Plugins.Add(new PluginDefinition(api.PluginType.Name) { PluginSteps = [] });
+				existingPluginNames.Add(api.PluginType.Name);
+			}
+		}
 	}
 
 	private void AlignPluginsIds(AssemblyInfo localAssembly, AssemblyInfo? crmAssembly)
@@ -115,6 +131,7 @@ internal class PluginSyncService(
 				return;
 
 			localCustomApi.Id = crmCustomApi.Id;
+			localCustomApi.PluginType = localCustomApi.PluginType with { Id = crmCustomApi.PluginType.Id };
 
 			// Transfer IDs for request parameters
 			crmCustomApi.RequestParameters.ForEach(crmParameter =>
@@ -242,7 +259,7 @@ internal class PluginSyncService(
 
 		return assemblyInfo with
 		{
-			Plugins = [.. pluginDefinitions.Where(p => p.PluginSteps.Count > 0)],
+			Plugins = [.. pluginDefinitions],
 			CustomApis = customApiReader.GetCustomApis(solutionId),
 		};
 	}
@@ -312,6 +329,21 @@ internal class PluginSyncService(
 		pluginWriter.CreatePluginTypes(differences.Types.Creates.ConvertAll(c => c.Local), dataverseAssembly.Id, description.SyncDescription);
 		pluginWriter.CreatePluginSteps(differences.PluginSteps.Creates.ConvertAll(c => c.Local), description.SyncDescription);
 		pluginWriter.CreatePluginImages(differences.PluginImages.Creates.ConvertAll(c => c.Local));
+
+		// Resolve CustomAPI PluginType references from newly created and existing plugin types
+		var allPluginTypes = differences.Types.Creates.ConvertAll(c => c.Local)
+			.Concat(dataverseAssembly.Plugins)
+			.ToDictionary(p => p.Name, p => p.Id);
+
+		foreach (var create in differences.CustomApis.Creates)
+		{
+			if (create.Local.PluginType.Id == Guid.Empty
+				&& allPluginTypes.TryGetValue(create.Local.PluginType.Name, out var resolvedId))
+			{
+				create.Local.PluginType = create.Local.PluginType with { Id = resolvedId };
+			}
+		}
+
 		customApiWriter.CreateCustomApis(differences.CustomApis.Creates.ConvertAll(c => c.Local), description.SyncDescription);
 		customApiWriter.CreateRequestParameters(differences.RequestParameters.Creates.ConvertAll(c => c.Local));
 		customApiWriter.CreateResponseProperties(differences.ResponseProperties.Creates.ConvertAll(c => c.Local));

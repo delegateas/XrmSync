@@ -302,6 +302,101 @@ public class DifferenceUtilityTests
 	}
 
 	[Fact]
+	public void CalculateDifferencesDeletesRemoteSteplessTypeNotInLocal()
+	{
+		// Arrange — remote has a step-less type that doesn't exist locally
+		// This simulates the behavior after removing the step-count filter:
+		// orphaned step-less types in Dataverse should be deleted
+		var remoteSteplessType = new PluginDefinition("Namespace.OrphanedType") { Id = Guid.NewGuid(), PluginSteps = [] };
+		var sharedType = new PluginDefinition("Namespace.SharedPlugin") { Id = Guid.NewGuid(), PluginSteps = [] };
+
+		var localData = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [sharedType],
+			CustomApis = []
+		};
+
+		var remoteData = localData with
+		{
+			Plugins = [sharedType, remoteSteplessType]
+		};
+
+		// Act
+		var differences = differenceUtility.CalculateDifferences(localData, remoteData);
+
+		// Assert — the orphaned step-less type should be marked for deletion
+		Assert.Single(differences.Types.Deletes);
+		Assert.Equal("Namespace.OrphanedType", differences.Types.Deletes[0].Name);
+		Assert.Empty(differences.Types.Creates);
+	}
+
+	[Fact]
+	public void CalculateDifferencesDoesNotDeleteSteplessTypeWhenInjectedLocally()
+	{
+		// Arrange — a custom API backing type exists on both sides (step-less)
+		// After IncludeCustomApiPluginTypes, the type is in local Plugins with an aligned ID
+		// so the diff calculator should NOT mark it for deletion
+		var typeId = Guid.NewGuid();
+		var localBackingType = new PluginDefinition("Namespace.CustomApiBackingType") { Id = typeId, PluginSteps = [] };
+		var remoteBackingType = new PluginDefinition("Namespace.CustomApiBackingType") { Id = typeId, PluginSteps = [] };
+
+		var localData = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [localBackingType],
+			CustomApis = []
+		};
+
+		var remoteData = localData with
+		{
+			Plugins = [remoteBackingType]
+		};
+
+		// Act
+		var differences = differenceUtility.CalculateDifferences(localData, remoteData);
+
+		// Assert — nothing to create, update, or delete
+		Assert.Empty(differences.Types.Creates);
+		Assert.Empty(differences.Types.Deletes);
+		Assert.Empty(differences.Types.Updates);
+	}
+
+	[Fact]
+	public void CalculateDifferencesCreatesNewSteplessTypeFromLocal()
+	{
+		// Arrange — a new custom API backing type exists locally (Id = Guid.Empty, injected by IncludeCustomApiPluginTypes)
+		// but doesn't exist in remote yet. Should be marked for creation.
+		var localBackingType = new PluginDefinition("Namespace.NewBackingType") { PluginSteps = [] };
+
+		var localData = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [localBackingType],
+			CustomApis = []
+		};
+
+		var remoteData = localData with
+		{
+			Plugins = []
+		};
+
+		// Act
+		var differences = differenceUtility.CalculateDifferences(localData, remoteData);
+
+		// Assert — the new backing type should be marked for creation
+		Assert.Single(differences.Types.Creates);
+		Assert.Equal("Namespace.NewBackingType", differences.Types.Creates[0].Local.Name);
+		Assert.Empty(differences.Types.Deletes);
+	}
+
+	[Fact]
 	public void CalculateDifferenceUnchangableUpdatesAndChangableDetectedRequiresRecreate()
 	{
 		var localCustomApi = new CustomApiDefinition("test_custom_api")
