@@ -46,7 +46,7 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
 		return assemblyInfo;
 	}
 
-	public List<WebresourceDefinition> ReadWebResourceFolder(string folderPath, string prefix)
+	public List<WebresourceDefinition> ReadWebResourceFolder(string folderPath, string prefix, IEnumerable<string>? fileExtensions = null)
 	{
 		var absolutePath = Path.GetFullPath(folderPath);
 		logger.LogInformation("Reading webresources from folder: {FolderPath}", absolutePath);
@@ -54,6 +54,8 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
 		{
 			throw new AnalysisException($"Webresource folder does not exist: {absolutePath}");
 		}
+
+		var allowedTypes = WebresourceTypeMap.ResolveTypes(fileExtensions);
 
 		var files = Directory.EnumerateFiles(absolutePath, "*.*", SearchOption.AllDirectories);
 		return [.. files.Select(f =>
@@ -67,11 +69,11 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
 					extension: ext
 				);
 			})
-			.Where(f => webresourceTypeMap.ContainsKey(f.extension))
+			.Where(f => WebresourceTypeMap.ExtensionToType.ContainsKey(f.extension) && (allowedTypes.Count == 0 || allowedTypes.Contains(WebresourceTypeMap.ExtensionToType[f.extension])))
 			.Select(f => new WebresourceDefinition(
 				Name: f.relativePath.Replace('\\', '/'),
 				DisplayName: Path.GetFileName(f.relativePath),
-				Type: webresourceTypeMap[f.extension],
+				Type: WebresourceTypeMap.ExtensionToType[f.extension],
 				Content: Convert.ToBase64String(File.ReadAllBytes(f.fullPath))
 			))
 			.OrderBy(d => d.Name)
@@ -229,25 +231,4 @@ internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> 
 		public required string Output { get; init; }
 		public required string Error { get; init; }
 	}
-
-	private readonly Dictionary<string, WebresourceType> webresourceTypeMap = new()
-	{
-		{ ".html", WebresourceType.HTML },
-		{ ".htm", WebresourceType.HTML },
-		{ ".css", WebresourceType.CSS },
-		{ ".js", WebresourceType.JS },
-		{ ".xml", WebresourceType.XML },
-		{ ".xaml", WebresourceType.XML },
-		{ ".xsd", WebresourceType.XML },
-		{ ".xsl", WebresourceType.XSL },
-		{ ".xslt", WebresourceType.XSL },
-		{ ".png", WebresourceType.PNG },
-		{ ".jpg", WebresourceType.JPG },
-		{ ".jpeg", WebresourceType.JPG },
-		{ ".gif", WebresourceType.GIF },
-		{ ".xap", WebresourceType.XAP },
-		{ ".ico", WebresourceType.ICO },
-		{ ".svg", WebresourceType.SVG },
-		{ ".resx", WebresourceType.RSX }
-	};
 }

@@ -26,6 +26,16 @@ internal static class CliOptions
 	}
 
 	/// <summary>
+	/// File extension filter options
+	/// </summary>
+	internal static class FileExtensions
+	{
+		public const string Primary = "--file-extensions";
+		public static readonly string[] Aliases = ["--ext", "-e"];
+		public const string Description = "File extensions to include in the sync (e.g. js css). When omitted, all supported types are synced.";
+	}
+
+	/// <summary>
 	/// Solution name options
 	/// </summary>
 	internal static class Solution

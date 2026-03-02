@@ -186,6 +186,12 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			CliOptions.Solution.Primary, profile.SolutionName
 		};
 
+		if (syncItem.FileExtensions is { Count: > 0 })
+		{
+			args.Add(CliOptions.FileExtensions.Primary);
+			args.AddRange(syncItem.FileExtensions);
+		}
+
 		if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
 		{
 			args.Add(CliOptions.Config.Profile.Primary);

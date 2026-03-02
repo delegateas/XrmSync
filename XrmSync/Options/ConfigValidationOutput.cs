@@ -194,6 +194,8 @@ internal class ConfigValidationOutput(
 				break;
 			case WebresourceSyncItem webresource:
 				Console.WriteLine($"      Folder Path: {webresource.FolderPath}");
+				if (webresource.FileExtensions is { Count: > 0 })
+					Console.WriteLine($"      File Extensions: {string.Join(", ", webresource.FileExtensions)}");
 				break;
 		}
 	}

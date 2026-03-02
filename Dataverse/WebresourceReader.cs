@@ -1,41 +1,59 @@
+using Microsoft.Xrm.Sdk.Query;
 using XrmSync.Dataverse.Context;
+using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model.Webresource;
-
 namespace XrmSync.Dataverse;
 
-internal class WebresourceReader(IDataverseReader reader) : IWebresourceReader
+internal class WebresourceReader(IDataverseReader reader, IOrganizationServiceProvider serviceProvider) : IWebresourceReader
 {
-	public List<WebresourceDefinition> GetWebresources(Guid solutionId)
+	public List<WebresourceDefinition> GetWebresources(Guid solutionId, IEnumerable<WebresourceType>? allowedTypes = null)
 	{
-		// Yes, the join operation is heavy,
-		// Yes, we use RetrieveByColumn in the other getters.
-		// However, this call is limited by having to fetch the contents of the webresources, so the join is neglible in comparison.
-		return [.. (
-			from wr in reader.WebResources
-			join sc in reader.SolutionComponents on wr.Id equals sc.ObjectId
-			where
-				sc.SolutionId != null && sc.SolutionId.Id == solutionId
-				&& wr.IsManaged != true
-			orderby wr.Name
-			select new
-			{
-				wr.Id,
-				wr.Name,
-				wr.DisplayName,
-				wr.WebResourceType,
-				wr.Content
-			}
-		).AsEnumerable()
-		.Select(wr => new WebresourceDefinition(
-			wr.Name ?? string.Empty,
-			wr.DisplayName ?? string.Empty,
-			(WebresourceType)(wr.WebResourceType ?? 0),
-			wr.Content ?? string.Empty
-		)
+		var query = new QueryExpression(WebResource.EntityLogicalName)
 		{
-			Id = wr.Id
-		})];
+			ColumnSet = new ColumnSet(
+				WebResource.ColumnName(x => x.Name),
+				WebResource.ColumnName(x => x.DisplayName),
+				WebResource.ColumnName(x => x.WebResourceType),
+				WebResource.ColumnName(x => x.Content)),
+			Orders = { new OrderExpression(WebResource.ColumnName(x => x.Name), OrderType.Ascending) }
+		};
+
+		// Join to solutioncomponent to filter by solution
+		var solutionComponentLink = query.AddLink(
+			SolutionComponent.EntityLogicalName,
+			WebResource.ColumnName(x => x.WebResourceId),
+			SolutionComponent.ColumnName(x => x.ObjectId));
+
+		solutionComponentLink.LinkCriteria.AddCondition(
+			SolutionComponent.ColumnName(x => x.SolutionId), ConditionOperator.Equal, solutionId);
+
+		// Filter out managed webresources
+		query.Criteria.AddCondition(
+			WebResource.ColumnName(x => x.IsManaged), ConditionOperator.NotEqual, true);
+
+		// Filter by allowed types if specified
+		var typesList = allowedTypes?.ToList();
+		if (typesList is { Count: > 0 })
+		{
+			query.Criteria.AddCondition(
+				WebResource.ColumnName(x => x.WebResourceType), ConditionOperator.In,
+				[.. typesList.Select(t => (object)(int)t)]);
+		}
+
+		var result = serviceProvider.Service.RetrieveMultiple(query);
+
+		return [.. result.Entities
+			.Select(e => e.ToEntity<WebResource>())
+			.Select(wr => new WebresourceDefinition(
+				wr.Name ?? string.Empty,
+				wr.DisplayName ?? string.Empty,
+				(WebresourceType)(wr.WebResourceType ?? 0),
+				wr.Content ?? string.Empty
+			)
+			{
+				Id = wr.Id
+			})];
 	}
 
 	public IEnumerable<WebresourceDependency> GetWebresourcesWithDependencies(IEnumerable<WebresourceDefinition> webresources)

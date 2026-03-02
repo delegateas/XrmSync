@@ -307,4 +307,81 @@ public class WebresourceSyncServiceTests
 		// Assert
 		_printService.Received(1).PrintHeader(Arg.Any<PrintHeaderOptions>());
 	}
+
+	[Fact]
+	public async Task SyncPassesFileExtensionsToLocalReader()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var solutionPrefix = "test";
+		var optionsWithExtensions = new WebresourceSyncCommandOptions("C:\\WebResources", "TestSolution", ["js"]);
+		var service = new WebresourceSyncService(
+			Options.Create(optionsWithExtensions), _logger, _localReader, _solutionReader,
+			_webresourceReader, _webresourceWriter, _webresourceValidator, _printService);
+
+		_solutionReader.RetrieveSolution(optionsWithExtensions.SolutionName).Returns((solutionId, solutionPrefix));
+		_localReader.ReadWebResourceFolder(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>?>())
+			.Returns(new List<WebresourceDefinition>());
+		_webresourceReader.GetWebresources(Arg.Any<Guid>(), Arg.Any<IEnumerable<WebresourceType>?>())
+			.Returns(new List<WebresourceDefinition>());
+
+		// Act
+		await service.Sync(CancellationToken.None);
+
+		// Assert - verify file extensions were passed through
+		_localReader.Received(1).ReadWebResourceFolder(
+			optionsWithExtensions.FolderPath,
+			$"{solutionPrefix}_{optionsWithExtensions.SolutionName}",
+			Arg.Is<IEnumerable<string>?>(ext => ext != null && ext.Contains("js")));
+	}
+
+	[Fact]
+	public async Task SyncPassesAllowedTypesToRemoteReader()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var solutionPrefix = "test";
+		var optionsWithExtensions = new WebresourceSyncCommandOptions("C:\\WebResources", "TestSolution", ["js", "css"]);
+		var service = new WebresourceSyncService(
+			Options.Create(optionsWithExtensions), _logger, _localReader, _solutionReader,
+			_webresourceReader, _webresourceWriter, _webresourceValidator, _printService);
+
+		_solutionReader.RetrieveSolution(optionsWithExtensions.SolutionName).Returns((solutionId, solutionPrefix));
+		_localReader.ReadWebResourceFolder(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>?>())
+			.Returns(new List<WebresourceDefinition>());
+		_webresourceReader.GetWebresources(Arg.Any<Guid>(), Arg.Any<IEnumerable<WebresourceType>?>())
+			.Returns(new List<WebresourceDefinition>());
+
+		// Act
+		await service.Sync(CancellationToken.None);
+
+		// Assert - verify allowed types include JS and CSS
+		_webresourceReader.Received(1).GetWebresources(
+			solutionId,
+			Arg.Is<IEnumerable<WebresourceType>?>(types =>
+				types != null &&
+				types.Contains(WebresourceType.JS) &&
+				types.Contains(WebresourceType.CSS)));
+	}
+
+	[Fact]
+	public async Task SyncPassesNullAllowedTypesWhenNoFileExtensions()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var solutionPrefix = "test";
+		_solutionReader.RetrieveSolution(_options.SolutionName).Returns((solutionId, solutionPrefix));
+		_localReader.ReadWebResourceFolder(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>?>())
+			.Returns(new List<WebresourceDefinition>());
+		_webresourceReader.GetWebresources(Arg.Any<Guid>(), Arg.Any<IEnumerable<WebresourceType>?>())
+			.Returns(new List<WebresourceDefinition>());
+
+		// Act
+		await _service.Sync(CancellationToken.None);
+
+		// Assert - verify no type filter is applied (null)
+		_webresourceReader.Received(1).GetWebresources(
+			solutionId,
+			Arg.Is<IEnumerable<WebresourceType>?>(types => types == null));
+	}
 }

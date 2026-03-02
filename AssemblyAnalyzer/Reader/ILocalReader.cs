@@ -15,5 +15,5 @@ public interface ILocalReader
 	/// </summary>
 	Task<AssemblyInfo> ReadAssemblyAsync(string assemblyDllPath, string publisherPrefix, CancellationToken cancellationToken);
 
-	List<WebresourceDefinition> ReadWebResourceFolder(string folderPath, string prefix);
+	List<WebresourceDefinition> ReadWebResourceFolder(string folderPath, string prefix, IEnumerable<string>? fileExtensions = null);
 }

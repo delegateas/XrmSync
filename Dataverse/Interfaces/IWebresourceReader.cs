@@ -4,7 +4,7 @@ namespace XrmSync.Dataverse.Interfaces;
 
 public interface IWebresourceReader
 {
-	List<WebresourceDefinition> GetWebresources(Guid solutionId);
+	List<WebresourceDefinition> GetWebresources(Guid solutionId, IEnumerable<WebresourceType>? allowedTypes = null);
 
 	/// <summary>
 	/// Gets the webresources that have dependencies (i.e., objects that depend on them).

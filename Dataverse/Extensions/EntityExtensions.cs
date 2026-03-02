@@ -44,4 +44,18 @@ public static class EntityExtensions
 
 		return attributeLogicalNameAttribute.LogicalName;
 	}
+
+	/// <summary>
+	/// Static extension method on Entity-derived types for type-safe column name resolution.
+	/// <example>
+	/// <code>
+	/// var name = WebResource.Col(x => x.Name);
+	/// </code>
+	/// </example>
+	/// </summary>
+	extension<TEntity>(TEntity) where TEntity : Entity
+	{
+		public static string ColumnName(Expression<Func<TEntity, object?>> lambda)
+			=> lambda.GetColumnName();
+	}
 }

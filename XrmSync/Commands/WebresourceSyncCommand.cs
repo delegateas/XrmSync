@@ -12,6 +12,7 @@ namespace XrmSync.Commands
 	internal class WebresourceSyncCommand : XrmSyncSyncCommandBase
 	{
 		private readonly Option<string> webresourceRoot;
+		private readonly Option<string[]> fileExtensions;
 
 		public WebresourceSyncCommand() : base("webresources", "Synchronize webresources from a local folder with Dataverse")
 		{
@@ -21,7 +22,15 @@ namespace XrmSync.Commands
 				Arity = ArgumentArity.ZeroOrOne
 			};
 
+			fileExtensions = new(CliOptions.FileExtensions.Primary, CliOptions.FileExtensions.Aliases)
+			{
+				Description = CliOptions.FileExtensions.Description,
+				Arity = ArgumentArity.ZeroOrMore,
+				AllowMultipleArgumentsPerToken = true
+			};
+
 			Add(webresourceRoot);
+			Add(fileExtensions);
 
 			AddSharedOptions();
 			AddSyncSharedOptions();
@@ -32,6 +41,7 @@ namespace XrmSync.Commands
 		private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 		{
 			var folderPath = parseResult.GetValue(webresourceRoot);
+			var extensionsValue = parseResult.GetValue(fileExtensions);
 			var (solutionName, dryRun, logLevel, ciMode) = GetSyncSharedOptionValues(parseResult);
 			var sharedOptions = GetSharedOptionValues(parseResult);
 
@@ -53,6 +63,7 @@ namespace XrmSync.Commands
 					// Determine folder path and solution name
 					string finalFolderPath;
 					string finalSolutionName;
+					WebresourceSyncItem? webresourceSyncItem = null;
 
 					// If CLI options provided, use them (standalone mode)
 					if (!string.IsNullOrWhiteSpace(folderPath) && !string.IsNullOrWhiteSpace(solutionName))
@@ -68,7 +79,7 @@ namespace XrmSync.Commands
 								$"Profile '{sharedOptions.ProfileName}' not found. " +
 								"Either specify --folder and --solution, or use --profile with a valid profile name.");
 
-						var webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault()
+						webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault()
 							?? throw new InvalidOperationException(
 								$"Profile '{profile.Name}' does not contain a Webresource sync item. " +
 								"Either specify --folder and --solution, or use a profile with a Webresource sync item.");
@@ -81,7 +92,11 @@ namespace XrmSync.Commands
 							: profile.SolutionName;
 					}
 
-					return Microsoft.Extensions.Options.Options.Create(new WebresourceSyncCommandOptions(finalFolderPath, finalSolutionName));
+					var finalExtensions = extensionsValue is { Length: > 0 }
+						? extensionsValue.ToList()
+						: webresourceSyncItem?.FileExtensions;
+
+					return Microsoft.Extensions.Options.Options.Create(new WebresourceSyncCommandOptions(finalFolderPath, finalSolutionName, finalExtensions));
 				})
 				.AddSingleton(sp =>
 				{

@@ -232,6 +232,100 @@ public class NamedConfigurationTests
 		}
 	}
 
+	[Fact]
+	public void WebresourceSyncItemParsesFileExtensionsFromConfig()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "Sync": [
+                  {
+                    "Type": "Webresource",
+                    "FolderPath": "wwwroot",
+                    "FileExtensions": ["js", "css"]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			var webresourceSync = Assert.IsType<WebresourceSyncItem>(profile.Sync[0]);
+			Assert.Equal("wwwroot", webresourceSync.FolderPath);
+			Assert.NotNull(webresourceSync.FileExtensions);
+			Assert.Equal(["js", "css"], webresourceSync.FileExtensions);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
+	[Fact]
+	public void WebresourceSyncItemWithoutFileExtensionsDefaultsToNull()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "Sync": [
+                  {
+                    "Type": "Webresource",
+                    "FolderPath": "wwwroot"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			var webresourceSync = Assert.IsType<WebresourceSyncItem>(profile.Sync[0]);
+			Assert.Equal("wwwroot", webresourceSync.FolderPath);
+			Assert.Null(webresourceSync.FileExtensions);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
 	private class TestConfigReader(string configFile) : IConfigReader
 	{
 		public IConfiguration GetConfiguration()

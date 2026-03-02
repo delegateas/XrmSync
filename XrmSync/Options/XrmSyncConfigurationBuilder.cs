@@ -76,7 +76,8 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 					itemSection.GetValue<bool>(nameof(PluginAnalysisSyncItem.PrettyPrint))
 				),
 				"Webresource" => new WebresourceSyncItem(
-					itemSection.GetValue<string>(nameof(WebresourceSyncItem.FolderPath)) ?? string.Empty
+					itemSection.GetValue<string>(nameof(WebresourceSyncItem.FolderPath)) ?? string.Empty,
+					itemSection.GetSection(nameof(WebresourceSyncItem.FileExtensions)).Get<List<string>>()
 				),
 				_ => null
 			};

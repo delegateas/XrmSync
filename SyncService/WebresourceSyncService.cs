@@ -57,11 +57,15 @@ internal class WebresourceSyncService(
 		var (solutionId, solutionPrefix) = solutionReader.RetrieveSolution(options.SolutionName);
 
 		var prefix = $"{solutionPrefix}_{options.SolutionName}";
+		var allowedTypes = WebresourceTypeMap.ResolveTypes(options.FileExtensions);
 
-		var local = localReader.ReadWebResourceFolder(options.FolderPath, prefix);
+		if (allowedTypes.Count > 0)
+			log.LogInformation("Filtering webresources by types: {types}", string.Join(", ", allowedTypes));
+
+		var local = localReader.ReadWebResourceFolder(options.FolderPath, prefix, options.FileExtensions);
 		log.LogInformation("Identified {count} webresources in local folder", local.Count);
 
-		var remote = webresourceReader.GetWebresources(solutionId);
+		var remote = webresourceReader.GetWebresources(solutionId, allowedTypes.Count > 0 ? allowedTypes : null);
 		log.LogInformation("Identified {count} webresources registered in CRM", remote.Count);
 
 		return (local, remote);

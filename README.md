@@ -71,6 +71,12 @@ xrmsync plugins --assembly "path/to/your/plugin.dll" --solution-name "YourSoluti
 xrmsync webresources --folder "path/to/webresources" --solution-name "YourSolutionName"
 ```
 
+#### Filtering by File Type
+
+```bash
+xrmsync webresources --folder "path/to/webresources" --solution-name "YourSolutionName" --file-extensions js css
+```
+
 ### Configuration File Usage
 
 For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
@@ -108,6 +114,7 @@ xrmsync plugins --dry-run --log-level Debug
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
 | `--folder` | `-w`, `--path` | Path to the root folder containing the webresources to sync | Yes* |
+| `--file-extensions` | `-e`, `--ext` | File extensions to include (e.g. js css). When omitted, all supported types are synced. | No |
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
@@ -250,7 +257,8 @@ The configuration uses a profile-based structure under the XrmSync section, with
           },
           {
             "Type": "Webresource",
-            "FolderPath": "path/to/webresources"
+            "FolderPath": "path/to/webresources",
+            "FileExtensions": ["js", "css"]
           },
           {
             "Type": "PluginAnalysis",
@@ -362,6 +370,7 @@ Each sync item must have a `Type` property indicating the sync type:
 |----------|------|-------------|---------|
 | `Type` | string | Must be "Webresource" | Required |
 | `FolderPath` | string | Path to the root folder containing webresources | Required |
+| `FileExtensions` | string[] | File extensions to include (e.g. `["js", "css"]`). When omitted, all supported types are synced. | null |
 
 **Plugin Analysis Item (Type: "PluginAnalysis")**
 
@@ -413,7 +422,8 @@ Each sync item must have a `Type` property indicating the sync type:
           },
           {
             "Type": "Webresource",
-            "FolderPath": "wwwroot"
+            "FolderPath": "wwwroot",
+            "FileExtensions": ["js", "css", "html"]
           },
           {
             "Type": "PluginAnalysis",
@@ -481,6 +491,11 @@ xrmsync plugins --assembly "MyPlugin.dll" --solution-name "MyCustomSolution"
 #### Webresource synchronization:
 ```bash
 xrmsync webresources --folder "wwwroot" --solution-name "MyCustomSolution"
+```
+
+#### Webresource sync filtered by file type:
+```bash
+xrmsync webresources --folder "wwwroot" --solution-name "MyCustomSolution" --file-extensions js css
 ```
 
 #### Dry run for webresources:

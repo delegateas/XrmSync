@@ -43,6 +43,9 @@ dotnet run --project XrmSync -- plugins --assembly "path/to/plugin.dll" --soluti
 # Webresource sync
 dotnet run --project XrmSync -- webresources --folder "path/to/webresources" --solution-name "MySolution"
 
+# Webresource sync (only specific file types)
+dotnet run --project XrmSync -- webresources --folder "path/to/webresources" --solution-name "MySolution" --file-extensions js css
+
 # Plugin analysis
 dotnet run --project XrmSync -- analyze --assembly "path/to/plugin.dll" --pretty-print
 ```
@@ -101,7 +104,8 @@ The solution is organized into distinct layers with clear separation of concerns
           },
           {
             "Type": "Webresource",
-            "FolderPath": "../path/to/webresources"
+            "FolderPath": "../path/to/webresources",
+            "FileExtensions": ["js", "css"]
           },
           {
             "Type": "PluginAnalysis",
@@ -187,6 +191,8 @@ Example: For file `wwwroot/js/script.js` with publisher prefix `abc` and solutio
 - Webresource name: `abc_CustomSolution/js/script.js`
 
 Supported file types: `.html`, `.htm`, `.css`, `.js`, `.xml`, `.png`, `.jpg`, `.gif`, `.ico`, `.svg`, `.resx`, `.xsl`, `.xslt`
+
+The `--file-extensions` (`--ext` / `-e`) option filters which file types to sync, both locally and from Dataverse. When omitted, all supported types are synced.
 
 ## Codebase Conventions
 

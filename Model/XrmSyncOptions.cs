@@ -42,7 +42,7 @@ public record PluginAnalysisSyncItem(string AssemblyPath, string PublisherPrefix
 	public override string SyncType => "PluginAnalysis";
 }
 
-public record WebresourceSyncItem(string FolderPath) : SyncItem
+public record WebresourceSyncItem(string FolderPath, List<string>? FileExtensions = null) : SyncItem
 {
 	public static WebresourceSyncItem Empty => new(string.Empty);
 
@@ -66,7 +66,7 @@ public record PluginAnalysisCommandOptions(string AssemblyPath, string Publisher
 	public static PluginAnalysisCommandOptions Empty => new(string.Empty, "new", false);
 }
 
-public record WebresourceSyncCommandOptions(string FolderPath, string SolutionName)
+public record WebresourceSyncCommandOptions(string FolderPath, string SolutionName, List<string>? FileExtensions = null)
 {
 	public static WebresourceSyncCommandOptions Empty => new(string.Empty, string.Empty);
 }
