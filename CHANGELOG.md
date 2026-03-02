@@ -1,3 +1,6 @@
+### v1.0.0-preview.16 - 2 March 2026
+* Add: Support for specifying which file types should be synchronized during WebResource sync
+
 ### v1.0.0-preview.15 - 27 February 2026
 * Fix: When re-creating CustomAPI / Plugins, now re-create dependencies as well
 * Fix: CustomAPI creation was broken
