@@ -451,9 +451,9 @@ public class OptionsValidationTests
 	}
 
 	[Fact]
-	public void ValidatorProfileNotFoundThrowsValidationException()
+	public void ValidatorNoProfilesAndNoProfileNamePassesValidation()
 	{
-		// Arrange
+		// Arrange - No profiles configured, no profile name specified (CLI mode)
 		var config = new XrmSyncConfiguration(
 			DryRun: false,
 			LogLevel: LogLevel.Information,
@@ -461,11 +461,33 @@ public class OptionsValidationTests
 			Profiles: new List<ProfileConfiguration>()
 		);
 
+		// Act & Assert - Should not throw (CLI mode, no profile validation needed)
+		var validator = new XrmSyncConfigurationValidator(
+			Options.Create(config),
+			Options.Create(new SharedOptions(null)));
+		validator.Validate(ConfigurationScope.PluginSync);
+	}
+
+	[Fact]
+	public void ValidatorExplicitProfileNotFoundThrowsException()
+	{
+		// Arrange - Multiple profiles, none matching the requested name
+		var config = new XrmSyncConfiguration(
+			DryRun: false,
+			LogLevel: LogLevel.Information,
+			CiMode: false,
+			Profiles: new List<ProfileConfiguration>
+			{
+				new("dev", "DevSolution", new List<SyncItem> { new PluginSyncItem("dev.dll") }),
+				new("prod", "ProdSolution", new List<SyncItem> { new PluginSyncItem("prod.dll") })
+			}
+		);
+
 		// Act & Assert
 		var validator = new XrmSyncConfigurationValidator(
 			Options.Create(config),
 			Options.Create(CreateSharedOptions("nonexistent")));
-		var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+		var exception = Assert.Throws<XrmSync.Model.Exceptions.XrmSyncException>(
 			() => validator.Validate(ConfigurationScope.PluginSync));
 		Assert.Contains("Profile 'nonexistent' not found", exception.Message);
 	}

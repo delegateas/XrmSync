@@ -26,18 +26,11 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 
 	private static IEnumerable<Model.Exceptions.OptionsValidationException> ValidateInternal(ConfigurationScope scope, XrmSyncConfiguration configuration, string? profileName)
 	{
-		// Find the profile to validate
-		var profile = configuration.Profiles.FirstOrDefault(p => p.Name.Equals(profileName, StringComparison.OrdinalIgnoreCase));
+		// Resolve profile using shared logic
+		var profile = configuration.ResolveProfile(profileName);
 
 		if (profile == null)
 		{
-			// If a specific profile name was requested but not found, throw an error
-			if (!string.IsNullOrWhiteSpace(profileName))
-			{
-				yield return new Model.Exceptions.OptionsValidationException("Profile", new[] { $"Profile '{profileName}' not found in configuration." });
-				yield break;
-			}
-
 			// No profiles configured and no specific profile requested, validation passes (CLI mode)
 			yield break;
 		}

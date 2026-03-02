@@ -7,6 +7,7 @@ namespace XrmSync.Options;
 
 internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConfigurationBuilder
 {
+	private XrmSyncConfiguration? cachedConfiguration;
 
 	public static class SectionName
 	{
@@ -19,14 +20,21 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 
 	public XrmSyncConfiguration Build()
 	{
+		if (cachedConfiguration != null)
+		{
+			return cachedConfiguration;
+		}
+
 		var xrmSyncSection = configuration.GetSection(SectionName.XrmSync);
 
-		return new XrmSyncConfiguration(
+		cachedConfiguration = new XrmSyncConfiguration(
 			xrmSyncSection.GetValue<bool>(SectionName.DryRun),
 			xrmSyncSection.GetValue<LogLevel?>(SectionName.LogLevel) ?? LogLevel.Information,
 			xrmSyncSection.GetValue<bool>(SectionName.CiMode),
 			BuildProfiles(xrmSyncSection)
 		);
+
+		return cachedConfiguration;
 	}
 
 	private List<ProfileConfiguration> BuildProfiles(IConfigurationSection xrmSyncSection)
@@ -93,35 +101,6 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 
 	public ProfileConfiguration? GetProfile(string? profileName)
 	{
-		var config = Build();
-		var resolvedProfileName = ResolveProfileName(profileName, config.Profiles);
-
-		return config.Profiles.FirstOrDefault(p => p.Name.Equals(resolvedProfileName, StringComparison.OrdinalIgnoreCase));
-	}
-
-	private static string? ResolveProfileName(string? requestedName, List<ProfileConfiguration> profiles)
-	{
-		if (profiles.Count == 0)
-		{
-			return null;
-		}
-
-		// If no name requested, fall back to "default"
-		var effectiveName = requestedName ?? "default";
-
-		// If effective name matches a profile, use it
-		if (profiles.Any(p => p.Name.Equals(effectiveName, StringComparison.OrdinalIgnoreCase)))
-		{
-			return effectiveName;
-		}
-
-		// If only one profile exists, use it automatically
-		if (profiles.Count == 1)
-		{
-			return profiles[0].Name;
-		}
-
-		// Multiple profiles, no match
-		throw new XrmSyncException("Multiple profiles found. Use --profile to specify which profile to use, name a profile 'default', or run 'xrmsync config list' to see available profiles.");
+		return Build().ResolveProfile(profileName);
 	}
 }

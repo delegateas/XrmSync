@@ -20,11 +20,11 @@ internal class ConfigValidationOutput(
 		var configSource = GetConfigurationSource();
 
 		var config = configOptions.Value;
-		var profile = config.Profiles.FirstOrDefault(p => p.Name.Equals(profileName, StringComparison.OrdinalIgnoreCase));
+		var profile = config.ResolveProfile(profileName);
 
 		if (profile == null)
 		{
-			Console.WriteLine($"Profile '{profileName}' not found in {configSource}");
+			Console.WriteLine($"No profiles configured in {configSource}");
 			return Task.CompletedTask;
 		}
 
