@@ -77,9 +77,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 				// Otherwise try to get from profile
 				else
 				{
-					var profile = sp.GetRequiredService<IConfigurationBuilder>().GetProfile(sharedOptions.ProfileName) ?? throw new InvalidOperationException(
-							$"Profile '{sharedOptions.ProfileName}' not found. " +
-							"Either specify --assembly and --publisher-prefix, or use --profile with a valid profile name.");
+					var profile = GetRequiredProfile(sp, sharedOptions.ProfileName, "--assembly and --publisher-prefix");
 
 					var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
 					if (pluginAnalysisItem == null)

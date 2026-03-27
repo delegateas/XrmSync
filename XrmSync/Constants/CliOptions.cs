@@ -92,6 +92,33 @@ internal static class CliOptions
 	}
 
 	/// <summary>
+	/// Managed identity options
+	/// </summary>
+	internal static class ManagedIdentity
+	{
+		internal static class Operation
+		{
+			public const string Primary = "--operation";
+			public static readonly string[] Aliases = ["-o", "--op"];
+			public const string Description = "The operation to perform: Remove or Ensure";
+		}
+
+		internal static class ClientId
+		{
+			public const string Primary = "--client-id";
+			public static readonly string[] Aliases = ["--cid"];
+			public const string Description = "Azure AD application (client) ID for the managed identity";
+		}
+
+		internal static class TenantId
+		{
+			public const string Primary = "--tenant-id";
+			public static readonly string[] Aliases = ["--tid"];
+			public const string Description = "Azure AD tenant ID for the managed identity";
+		}
+	}
+
+	/// <summary>
 	/// Analysis-specific options
 	/// </summary>
 	internal static class Analysis

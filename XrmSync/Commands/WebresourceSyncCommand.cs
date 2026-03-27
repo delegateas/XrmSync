@@ -74,10 +74,7 @@ namespace XrmSync.Commands
 					// Otherwise try to get from profile
 					else
 					{
-						var profile = sp.GetRequiredService<IConfigurationBuilder>().GetProfile(sharedOptions.ProfileName)
-							?? throw new InvalidOperationException(
-								$"Profile '{sharedOptions.ProfileName}' not found. " +
-								"Either specify --folder and --solution, or use --profile with a valid profile name.");
+						var profile = GetRequiredProfile(sp, sharedOptions.ProfileName, "--folder and --solution");
 
 						webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault()
 							?? throw new InvalidOperationException(

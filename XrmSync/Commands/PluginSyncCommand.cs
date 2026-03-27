@@ -62,10 +62,7 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 				// Otherwise try to get from profile
 				else
 				{
-					var profile = sp.GetRequiredService<IConfigurationBuilder>().GetProfile(sharedOptions.ProfileName)
-						?? throw new InvalidOperationException(
-							$"Profile '{sharedOptions.ProfileName}' not found. " +
-							"Either specify --assembly and --solution, or use --profile with a valid profile name.");
+					var profile = GetRequiredProfile(sp, sharedOptions.ProfileName, "--assembly and --solution");
 
 					var pluginSyncItem = profile.Sync.OfType<PluginSyncItem>().FirstOrDefault()
 						?? throw new InvalidOperationException(

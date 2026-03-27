@@ -119,6 +119,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 				PluginSyncItem plugin => await ExecutePluginSync(plugin, profile, sharedOptions, overrides, xrmSyncConfig),
 				PluginAnalysisSyncItem analysis => await ExecutePluginAnalysis(analysis, sharedOptions),
 				WebresourceSyncItem webresource => await ExecuteWebresourceSync(webresource, profile, sharedOptions, overrides, xrmSyncConfig),
+				IdentitySyncItem identity => await ExecuteIdentity(identity, profile, sharedOptions, overrides, xrmSyncConfig),
 				_ => LogUnknownSyncItemType(logger, syncItem.SyncType)
 			};
 
@@ -200,6 +201,36 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
 		AddCommonArgs(args, overrides, config);
 		return await ExecuteSubCommand("webresources", [.. args]);
+	}
+
+	private async Task<int> ExecuteIdentity(
+		IdentitySyncItem syncItem,
+		ProfileConfiguration profile,
+		SharedOptions sharedOptions,
+		ArgumentOverrides overrides,
+		XrmSyncConfiguration config)
+	{
+		var args = new List<string>
+		{
+			CliOptions.ManagedIdentity.Operation.Primary, syncItem.Operation.ToString(),
+			CliOptions.Assembly.Primary, syncItem.AssemblyPath,
+			CliOptions.Solution.Primary, profile.SolutionName
+		};
+
+		if (syncItem.Operation == IdentityOperation.Ensure)
+		{
+			args.AddRange([CliOptions.ManagedIdentity.ClientId.Primary, syncItem.ClientId ?? string.Empty]);
+			args.AddRange([CliOptions.ManagedIdentity.TenantId.Primary, syncItem.TenantId ?? string.Empty]);
+		}
+
+		if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
+		{
+			args.Add(CliOptions.Config.Profile.Primary);
+			args.Add(sharedOptions.ProfileName);
+		}
+
+		AddCommonArgs(args, overrides, config);
+		return await ExecuteSubCommand("identity", [.. args]);
 	}
 
 	private static void AddCommonArgs(List<string> args, ArgumentOverrides overrides, XrmSyncConfiguration config)

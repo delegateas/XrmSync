@@ -75,18 +75,19 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 
 			SyncItem? syncItem = type switch
 			{
-				"Plugin" => new PluginSyncItem(
+				PluginSyncItem.TypeName => new PluginSyncItem(
 					itemSection.GetValue<string>(nameof(PluginSyncItem.AssemblyPath)) ?? string.Empty
 				),
-				"PluginAnalysis" => new PluginAnalysisSyncItem(
+				PluginAnalysisSyncItem.TypeName => new PluginAnalysisSyncItem(
 					itemSection.GetValue<string>(nameof(PluginAnalysisSyncItem.AssemblyPath)) ?? string.Empty,
 					itemSection.GetValue<string>(nameof(PluginAnalysisSyncItem.PublisherPrefix)) ?? "new",
 					itemSection.GetValue<bool>(nameof(PluginAnalysisSyncItem.PrettyPrint))
 				),
-				"Webresource" => new WebresourceSyncItem(
+				WebresourceSyncItem.TypeName => new WebresourceSyncItem(
 					itemSection.GetValue<string>(nameof(WebresourceSyncItem.FolderPath)) ?? string.Empty,
 					itemSection.GetSection(nameof(WebresourceSyncItem.FileExtensions)).Get<List<string>>()
 				),
+				IdentitySyncItem.TypeName => BuildIdentitySyncItem(itemSection),
 				_ => null
 			};
 
@@ -97,6 +98,22 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 		}
 
 		return syncItems;
+	}
+
+	private static IdentitySyncItem? BuildIdentitySyncItem(IConfigurationSection itemSection)
+	{
+		var operationStr = itemSection.GetValue<string>(nameof(IdentitySyncItem.Operation)) ?? string.Empty;
+		if (!Enum.TryParse<IdentityOperation>(operationStr, ignoreCase: true, out var operation))
+		{
+			return null;
+		}
+
+		return new IdentitySyncItem(
+			operation,
+			itemSection.GetValue<string>(nameof(IdentitySyncItem.AssemblyPath)) ?? string.Empty,
+			itemSection.GetValue<string>(nameof(IdentitySyncItem.ClientId)),
+			itemSection.GetValue<string>(nameof(IdentitySyncItem.TenantId))
+		);
 	}
 
 	public ProfileConfiguration? GetProfile(string? profileName)

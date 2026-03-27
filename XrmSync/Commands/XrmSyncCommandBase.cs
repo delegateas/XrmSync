@@ -45,6 +45,17 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	}
 
 	/// <summary>
+	/// Resolves the profile by name, throwing a consistent error if not found
+	/// </summary>
+	protected static ProfileConfiguration GetRequiredProfile(IServiceProvider sp, string? profileName, string optionsHint)
+	{
+		return sp.GetRequiredService<IConfigurationBuilder>().GetProfile(profileName)
+			?? throw new InvalidOperationException(
+				$"Profile '{profileName}' not found. " +
+				$"Either specify {optionsHint}, or use --profile with a valid profile name.");
+	}
+
+	/// <summary>
 	/// Validates configuration and runs the action
 	/// </summary>
 	protected static async Task<bool> RunAction(
