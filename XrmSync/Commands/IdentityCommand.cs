@@ -21,7 +21,8 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 		operation = new(CliOptions.ManagedIdentity.Operation.Primary, CliOptions.ManagedIdentity.Operation.Aliases)
 		{
 			Description = CliOptions.ManagedIdentity.Operation.Description,
-			Arity = ArgumentArity.ZeroOrOne
+			Arity = ArgumentArity.ExactlyOne,
+			Required = true
 		};
 
 		assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
@@ -87,6 +88,23 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 					finalSolutionName = solutionName;
 					finalClientId = clientIdValue;
 					finalTenantId = tenantIdValue;
+
+					if (finalOperation == IdentityOperation.Ensure)
+					{
+						var errors = new List<string>();
+						if (string.IsNullOrWhiteSpace(finalClientId))
+							errors.Add("Client ID is required and cannot be empty.");
+						else if (!Guid.TryParse(finalClientId, out _))
+							errors.Add("Client ID must be a valid GUID.");
+
+						if (string.IsNullOrWhiteSpace(finalTenantId))
+							errors.Add("Tenant ID is required and cannot be empty.");
+						else if (!Guid.TryParse(finalTenantId, out _))
+							errors.Add("Tenant ID must be a valid GUID.");
+
+						if (errors.Count > 0)
+							throw new Model.Exceptions.OptionsValidationException("identity --operation Ensure", errors);
+					}
 				}
 				else
 				{

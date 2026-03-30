@@ -67,8 +67,15 @@ internal class IdentitySyncService(
 		log.LogInformation("Ensuring managed identity for assembly '{assemblyName}' in solution '{solutionName}'",
 			assemblyName, options.SolutionName);
 
-		if (!Guid.TryParse(options.ClientId, out var clientId) || !Guid.TryParse(options.TenantId, out var tenantId))
-			throw new XrmSyncException("ClientId and TenantId must be valid GUIDs for the Ensure operation.");
+		if (!Guid.TryParse(options.ClientId, out var clientId))
+			throw new XrmSyncException(string.IsNullOrWhiteSpace(options.ClientId)
+				? "Client ID is required and cannot be empty."
+				: "Client ID must be a valid GUID.");
+
+		if (!Guid.TryParse(options.TenantId, out var tenantId))
+			throw new XrmSyncException(string.IsNullOrWhiteSpace(options.TenantId)
+				? "Tenant ID is required and cannot be empty."
+				: "Tenant ID must be a valid GUID.");
 
 		var (solutionId, _) = solutionReader.RetrieveSolution(options.SolutionName);
 		var result = managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, assemblyName);

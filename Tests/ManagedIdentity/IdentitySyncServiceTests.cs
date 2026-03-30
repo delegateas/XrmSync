@@ -173,6 +173,54 @@ public class IdentitySyncServiceTests
 	}
 
 	[Fact]
+	public async Task EnsureThrowsWhenClientIdIsNull()
+	{
+		// Arrange
+		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
+		var service = CreateService(IdentityOperation.Ensure, clientId: null, tenantId: Guid.NewGuid().ToString());
+
+		// Act & Assert
+		var exception = await Assert.ThrowsAsync<XrmSyncException>(() => service.Sync(CancellationToken.None));
+		Assert.Equal("Client ID is required and cannot be empty.", exception.Message);
+	}
+
+	[Fact]
+	public async Task EnsureThrowsWhenClientIdIsNotAValidGuid()
+	{
+		// Arrange
+		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
+		var service = CreateService(IdentityOperation.Ensure, clientId: "not-a-guid", tenantId: Guid.NewGuid().ToString());
+
+		// Act & Assert
+		var exception = await Assert.ThrowsAsync<XrmSyncException>(() => service.Sync(CancellationToken.None));
+		Assert.Equal("Client ID must be a valid GUID.", exception.Message);
+	}
+
+	[Fact]
+	public async Task EnsureThrowsWhenTenantIdIsNull()
+	{
+		// Arrange
+		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
+		var service = CreateService(IdentityOperation.Ensure, clientId: Guid.NewGuid().ToString(), tenantId: null);
+
+		// Act & Assert
+		var exception = await Assert.ThrowsAsync<XrmSyncException>(() => service.Sync(CancellationToken.None));
+		Assert.Equal("Tenant ID is required and cannot be empty.", exception.Message);
+	}
+
+	[Fact]
+	public async Task EnsureThrowsWhenTenantIdIsNotAValidGuid()
+	{
+		// Arrange
+		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
+		var service = CreateService(IdentityOperation.Ensure, clientId: Guid.NewGuid().ToString(), tenantId: "not-a-guid");
+
+		// Act & Assert
+		var exception = await Assert.ThrowsAsync<XrmSyncException>(() => service.Sync(CancellationToken.None));
+		Assert.Equal("Tenant ID must be a valid GUID.", exception.Message);
+	}
+
+	[Fact]
 	public async Task EnsureThrowsWhenAssemblyNotFound()
 	{
 		// Arrange
