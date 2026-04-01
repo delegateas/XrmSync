@@ -18,6 +18,7 @@ XrmSync is a powerful tool that helps you manage and synchronize your Microsoft 
 - **Intelligent Synchronization**: Compares local definitions with Dataverse and performs only necessary changes
 - **Custom API Support**: Handles custom API definitions, request parameters, and response properties
 - **Webresource Sync**: Synchronizes HTML, CSS, JavaScript, images, and other webresources from local folders
+- **Managed Identity Management**: Link or remove Azure AD managed identities for plugin assemblies
 - **Dry Run Mode**: Preview changes without actually modifying your Dataverse environment
 - **Solution-aware**: Deploys plugins and webresources to specific Dataverse solutions
 - **Flexible Connection**: Supports connection string and URL-based Dataverse connections
@@ -159,6 +160,38 @@ The webresource name in Dataverse is determined by the file path relative to the
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
 | No options | | Lists all profiles from appsettings.json | N/A |
+
+### Managed Identity Management
+
+Link or remove a managed identity for a plugin assembly already deployed in Dataverse.
+
+**Ensure** — creates a managed identity and links it to the assembly if one is not already linked:
+```bash
+xrmsync identity --operation Ensure --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName" --client-id "<azure-app-client-id>" --tenant-id "<azure-tenant-id>"
+```
+
+**Remove** — deletes the managed identity linked to the assembly (if any):
+```bash
+xrmsync identity --operation Remove --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName"
+```
+
+#### Identity Command Options
+
+| Option | Short | Description | Required |
+|--------|-------|-------------|----------|
+| `--operation` | `-o`, `--op` | Operation to perform: `Ensure` or `Remove` | Yes |
+| `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
+| `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
+| `--client-id` | `--cid` | Azure AD application (client) ID for the managed identity | Yes (Ensure only) |
+| `--tenant-id` | `--tid` | Azure AD tenant ID for the managed identity | Yes (Ensure only) |
+| `--dry-run` | | Perform a dry run without making changes | No |
+| `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
+| `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
+| `--profile` | `-p`, `--profile-name` | Name of the profile to load from appsettings.json | No |
+
+*Required when not present in appsettings.json
+
+> **Note**: The `--assembly` option is used to locate the plugin assembly that is already registered in Dataverse. The `Ensure` operation is idempotent — if a managed identity is already linked, no action is taken.
 
 ### Assembly Analysis
 
@@ -381,6 +414,16 @@ Each sync item must have a `Type` property indicating the sync type:
 | `PublisherPrefix` | string | Publisher prefix for unique names | "new" |
 | `PrettyPrint` | boolean | Pretty print the JSON output | false |
 
+**Identity Sync Item (Type: "Identity")**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| `Type` | string | Must be "Identity" | Required |
+| `Operation` | string | Operation to perform: `Ensure` or `Remove` | Required |
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `ClientId` | string | Azure AD application (client) ID (GUID) | Required for Ensure |
+| `TenantId` | string | Azure AD tenant ID (GUID) | Required for Ensure |
+
 #### Example Configuration Files
 
 **Basic sync configuration:**
@@ -403,7 +446,7 @@ Each sync item must have a `Type` property indicating the sync type:
 }
 ```
 
-**Full configuration with plugins, webresources, and analysis:**
+**Full configuration with plugins, webresources, analysis, and managed identity:**
 
 ```json
 {
@@ -430,6 +473,13 @@ Each sync item must have a `Type` property indicating the sync type:
             "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
             "PublisherPrefix": "contoso",
             "PrettyPrint": true
+          },
+          {
+            "Type": "Identity",
+            "Operation": "Ensure",
+            "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+            "ClientId": "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d",
+            "TenantId": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
           }
         ]
       }
@@ -706,4 +756,4 @@ For issues, questions, or contributions, please visit the [GitHub repository](ht
 
 ---
 
-**Copyright (c) 2025 Context& A/S**
+**Copyright (c) 2026 Context& A/S**
