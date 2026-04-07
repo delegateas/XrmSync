@@ -12,9 +12,8 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
 	{
 		var typeNames = types.Where(t => (t.FullName ?? string.Empty).StartsWith("XrmPluginCore")).Select(t => t.FullName).ToList();
 
-		var pluginBaseType = types.FirstOrDefault(t => t.FullName == typeof(IPluginDefinition).FullName);
-		if (pluginBaseType is null)
-			return [];
+		var pluginBaseType = types.FirstOrDefault(t => t.FullName == typeof(IPluginDefinition).FullName)
+			?? typeof(IPluginDefinition);
 
 		var validTypes = ValidateCandidates(
 			types.Where(t => t.IsAssignableTo(pluginBaseType) && t != pluginBaseType),

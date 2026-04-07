@@ -31,15 +31,14 @@ public class DAXIFPluginAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithAbstractPluginThrowsAggregateException()
+	public void AnalyzeTypesWithAbstractPluginSkipsItSilently()
 	{
+		// Abstract types cannot be instantiated by Dataverse and are silently excluded
 		var types = new[] { typeof(Plugin), typeof(AbstractPlugin) };
 
-		var ex = Assert.Throws<AggregateException>(() => _analyzer.AnalyzeTypes(types, "new"));
+		var result = _analyzer.AnalyzeTypes(types, "new");
 
-		Assert.Single(ex.InnerExceptions);
-		Assert.Contains("AbstractPlugin", ex.InnerExceptions[0].Message);
-		Assert.Contains("abstract", ex.InnerExceptions[0].Message);
+		Assert.Empty(result);
 	}
 
 	[Fact]
@@ -55,13 +54,15 @@ public class DAXIFPluginAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithMultipleInvalidPluginsReportsAllErrors()
+	public void AnalyzeTypesWithAbstractAndNoCtorPluginReportsOnlyConcreteErrors()
 	{
+		// Abstract types are silently skipped; only concrete types missing a ctor are errors
 		var types = new[] { typeof(Plugin), typeof(AbstractPlugin), typeof(NoCtorPlugin) };
 
 		var ex = Assert.Throws<AggregateException>(() => _analyzer.AnalyzeTypes(types, "new"));
 
-		Assert.Equal(2, ex.InnerExceptions.Count);
+		Assert.Single(ex.InnerExceptions);
+		Assert.Contains("NoCtorPlugin", ex.InnerExceptions[0].Message);
 	}
 
 	[Fact]
@@ -115,15 +116,14 @@ public class DAXIFCustomApiAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithAbstractCustomApiThrowsAggregateException()
+	public void AnalyzeTypesWithAbstractCustomApiSkipsItSilently()
 	{
+		// Abstract types cannot be instantiated by Dataverse and are silently excluded
 		var types = new[] { typeof(CustomAPI), typeof(AbstractCustomApi) };
 
-		var ex = Assert.Throws<AggregateException>(() => _analyzer.AnalyzeTypes(types, "new"));
+		var result = _analyzer.AnalyzeTypes(types, "new");
 
-		Assert.Single(ex.InnerExceptions);
-		Assert.Contains("AbstractCustomApi", ex.InnerExceptions[0].Message);
-		Assert.Contains("abstract", ex.InnerExceptions[0].Message);
+		Assert.Empty(result);
 	}
 
 	[Fact]
@@ -139,13 +139,15 @@ public class DAXIFCustomApiAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithMultipleInvalidCustomApisReportsAllErrors()
+	public void AnalyzeTypesWithAbstractAndNoCtorCustomApiReportsOnlyConcreteErrors()
 	{
+		// Abstract types are silently skipped; only concrete types missing a ctor are errors
 		var types = new[] { typeof(CustomAPI), typeof(AbstractCustomApi), typeof(NoCtorCustomApi) };
 
 		var ex = Assert.Throws<AggregateException>(() => _analyzer.AnalyzeTypes(types, "new"));
 
-		Assert.Equal(2, ex.InnerExceptions.Count);
+		Assert.Single(ex.InnerExceptions);
+		Assert.Contains("NoCtorCustomApi", ex.InnerExceptions[0].Message);
 	}
 
 	[Fact]

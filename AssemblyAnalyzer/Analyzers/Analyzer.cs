@@ -11,16 +11,16 @@ internal abstract class Analyzer
 
 		foreach (var t in list)
 		{
-			if (t.IsAbstract)
-				errors.Add(new AnalysisException($"The {entityKind} '{t.Name}' is an abstract type and is therefore not valid. The {entityKind} will not be synchronized"));
-			else if (t.GetConstructor(Type.EmptyTypes) == null)
+			if (t.IsAbstract) // covers both abstract classes and interfaces — skip silently
+				continue;
+			if (t.GetConstructor(Type.EmptyTypes) == null)
 				errors.Add(new AnalysisException($"The {entityKind} '{t.Name}' does not have a public parameterless constructor and is therefore not valid. The {entityKind} will not be synchronized"));
 		}
 
 		if (errors.Count > 0)
 			throw new AggregateException(errors);
 
-		return list;
+		return list.Where(t => !t.IsAbstract);
 	}
 
 	protected static T? GetRegistrationFromType<T>(string methodName, Type pluginType) where T : class

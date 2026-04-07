@@ -24,17 +24,17 @@ $samplesPath = Join-Path $rootPath "Samples"
 $samples = @{
     "2-Hybrid" = @{
         ProjectPath = Join-Path $samplesPath "2-Hybrid"
-        AssemblyName = "ILMerged.SamplePlugins.dll"
+        AssemblyName = "SamplePlugins.dll"
         Framework = "Hybrid (Custom + XrmPluginCore patterns)"
     }
     "3-XrmPluginCore" = @{
         ProjectPath = Join-Path $samplesPath "3-XrmPluginCore" 
-        AssemblyName = "ILMerged.SamplePlugins.dll"
+        AssemblyName = "SamplePlugins.dll"
         Framework = "XrmPluginCore"
     }
     "4-Full-DAXIF" = @{
         ProjectPath = Join-Path $samplesPath "4-Full-DAXIF"
-        AssemblyName = "ILMerged.SamplePlugins.dll" 
+        AssemblyName = "SamplePlugins.dll" 
         Framework = "Custom Plugin base class (Extended)"
     }
 }

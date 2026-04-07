@@ -33,15 +33,25 @@ public class CorePluginAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithAbstractPluginThrowsAggregateException()
+	public void AnalyzeTypesWithAbstractPluginSkipsItSilently()
 	{
+		// Abstract types cannot be instantiated by Dataverse and are silently excluded
 		var types = new[] { typeof(IPluginDefinition), typeof(AbstractPlugin) };
 
-		var ex = Assert.Throws<AggregateException>(() => _analyzer.AnalyzeTypes(types, "new"));
+		var result = _analyzer.AnalyzeTypes(types, "new");
 
-		Assert.Single(ex.InnerExceptions);
-		Assert.Contains("AbstractPlugin", ex.InnerExceptions[0].Message);
-		Assert.Contains("abstract", ex.InnerExceptions[0].Message);
+		Assert.Empty(result);
+	}
+
+	[Fact]
+	public void AnalyzeTypesWithInterfacePluginSkipsItSilently()
+	{
+		// Interfaces are inherently abstract and must not be validated as concrete types
+		var types = new[] { typeof(IPluginDefinition), typeof(IPluginExtension) };
+
+		var result = _analyzer.AnalyzeTypes(types, "new");
+
+		Assert.Empty(result);
 	}
 
 	[Fact]
@@ -57,13 +67,15 @@ public class CorePluginAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithMultipleInvalidPluginsReportsAllErrors()
+	public void AnalyzeTypesWithAbstractAndNoCtorPluginReportsOnlyConcreteErrors()
 	{
+		// Abstract types are silently skipped; only concrete types missing a ctor are errors
 		var types = new[] { typeof(IPluginDefinition), typeof(AbstractPlugin), typeof(NoCtorPlugin) };
 
 		var ex = Assert.Throws<AggregateException>(() => _analyzer.AnalyzeTypes(types, "new"));
 
-		Assert.Equal(2, ex.InnerExceptions.Count);
+		Assert.Single(ex.InnerExceptions);
+		Assert.Contains("NoCtorPlugin", ex.InnerExceptions[0].Message);
 	}
 
 	[Fact]
@@ -77,6 +89,8 @@ public class CorePluginAnalyzerTests
 
 		Assert.Empty(result);
 	}
+
+	private interface IPluginExtension : IPluginDefinition { }
 
 	private abstract class AbstractPlugin : IPluginDefinition
 	{
@@ -123,15 +137,25 @@ public class CoreCustomApiAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithAbstractCustomApiThrowsAggregateException()
+	public void AnalyzeTypesWithAbstractCustomApiSkipsItSilently()
 	{
+		// Abstract types cannot be instantiated by Dataverse and are silently excluded
 		var types = new[] { typeof(ICustomApiDefinition), typeof(AbstractCustomApi) };
 
-		var ex = Assert.Throws<AggregateException>(() => _analyzer.AnalyzeTypes(types, "new"));
+		var result = _analyzer.AnalyzeTypes(types, "new");
 
-		Assert.Single(ex.InnerExceptions);
-		Assert.Contains("AbstractCustomApi", ex.InnerExceptions[0].Message);
-		Assert.Contains("abstract", ex.InnerExceptions[0].Message);
+		Assert.Empty(result);
+	}
+
+	[Fact]
+	public void AnalyzeTypesWithInterfaceCustomApiSkipsItSilently()
+	{
+		// Interfaces are inherently abstract and must not be validated as concrete types
+		var types = new[] { typeof(ICustomApiDefinition), typeof(ICustomApiExtension) };
+
+		var result = _analyzer.AnalyzeTypes(types, "new");
+
+		Assert.Empty(result);
 	}
 
 	[Fact]
@@ -147,13 +171,15 @@ public class CoreCustomApiAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithMultipleInvalidCustomApisReportsAllErrors()
+	public void AnalyzeTypesWithAbstractAndNoCtorCustomApiReportsOnlyConcreteErrors()
 	{
+		// Abstract types are silently skipped; only concrete types missing a ctor are errors
 		var types = new[] { typeof(ICustomApiDefinition), typeof(AbstractCustomApi), typeof(NoCtorCustomApi) };
 
 		var ex = Assert.Throws<AggregateException>(() => _analyzer.AnalyzeTypes(types, "new"));
 
-		Assert.Equal(2, ex.InnerExceptions.Count);
+		Assert.Single(ex.InnerExceptions);
+		Assert.Contains("NoCtorCustomApi", ex.InnerExceptions[0].Message);
 	}
 
 	[Fact]
@@ -167,6 +193,8 @@ public class CoreCustomApiAnalyzerTests
 
 		Assert.Empty(result);
 	}
+
+	private interface ICustomApiExtension : ICustomApiDefinition { }
 
 	private abstract class AbstractCustomApi : ICustomApiDefinition
 	{

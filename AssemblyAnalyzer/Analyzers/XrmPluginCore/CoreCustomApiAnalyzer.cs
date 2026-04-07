@@ -10,9 +10,8 @@ internal class CoreCustomApiAnalyzer : CoreAnalyzer, IAnalyzer<CustomApiDefiniti
 {
 	public List<CustomApiDefinition> AnalyzeTypes(IEnumerable<Type> types, string prefix)
 	{
-		var customApiBaseType = types.FirstOrDefault(t => t.FullName == typeof(ICustomApiDefinition).FullName);
-		if (customApiBaseType is null)
-			return [];
+		var customApiBaseType = types.FirstOrDefault(t => t.FullName == typeof(ICustomApiDefinition).FullName)
+			?? typeof(ICustomApiDefinition);
 
 		var validTypes = ValidateCandidates(
 			types.Where(t => t.IsAssignableTo(customApiBaseType) && t != customApiBaseType),
