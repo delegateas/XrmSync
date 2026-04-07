@@ -103,9 +103,8 @@ public class OptionsValidationTests
 	public void PluginSyncValidatorWrongFileExtensionThrowsValidationException()
 	{
 		// Arrange — create a real file with a non-.dll extension so the validator reaches the extension check
-		var tempFile = Path.GetTempFileName();
-		var exePath = Path.ChangeExtension(tempFile, ".exe");
-		File.Move(tempFile, exePath);
+		var exePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".exe");
+		File.WriteAllBytes(exePath, []);
 
 		try
 		{
