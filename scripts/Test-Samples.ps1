@@ -240,6 +240,18 @@ function Test-BaselineRegression {
     } else {
         Write-Host "  FAIL: $SampleName output differs from baseline ($baselineFile)" -ForegroundColor Red
         Write-Host "  If this change is intentional, run with -UpdateBaseline to update the baseline." -ForegroundColor Yellow
+
+        # Write current output to a temp file and show an inline diff against the baseline
+        $currentTempFile = [System.IO.Path]::GetTempFileName()
+        try {
+            $currentNormalized | ConvertTo-Json -Depth 10 | Out-File -FilePath $currentTempFile -Encoding UTF8
+            Write-Host "`n--- baseline ($baselineFile)" -ForegroundColor Gray
+            Write-Host "+++ current output" -ForegroundColor Gray
+            & git diff --no-index --unified=3 $baselineFile $currentTempFile
+        } finally {
+            Remove-Item $currentTempFile -ErrorAction SilentlyContinue
+        }
+
         return $false
     }
 }

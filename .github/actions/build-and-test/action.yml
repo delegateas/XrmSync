@@ -23,7 +23,7 @@ runs:
   using: 'composite'
   steps:
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '10.0.x'
     
@@ -32,7 +32,7 @@ runs:
       run: ./scripts/Set-VersionFromChangelog.ps1 -ChangelogPath CHANGELOG.md -CsprojPath XrmSync/XrmSync.csproj
     
     - name: Cache NuGet packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.nuget/packages
         key: nuget-${{ runner.os }}-${{ hashFiles('**/packages.lock.json') }}
@@ -70,7 +70,7 @@ runs:
         }
     
     - name: Upload analyzer JSON results
-      if: inputs.skip-analyzer-tests != 'true' && inputs.upload-analyzer-results == 'true'
+      if: always() && inputs.skip-analyzer-tests != 'true' && inputs.upload-analyzer-results == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: analyzer-results
