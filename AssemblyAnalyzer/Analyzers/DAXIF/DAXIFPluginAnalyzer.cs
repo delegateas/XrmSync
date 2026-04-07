@@ -27,18 +27,8 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
 			return [];
 		}
 
-		static bool IsValid(Type x) => !x.IsAbstract && x.GetConstructor(Type.EmptyTypes) != null;
-
 		var plugins = types.Where(x => x.IsSubclassOf(pluginBaseType));
-		var validPlugins = plugins.Where(IsValid);
-
-		foreach (var plugin in plugins.Where(x => !IsValid(x)))
-		{
-			if (plugin.IsAbstract)
-				throw new AnalysisException($"The plugin '{plugin.Name}' is an abstract type and is therefore not valid. The plugin will not be synchronized");
-			if (plugin.GetConstructor(Type.EmptyTypes) == null)
-				throw new AnalysisException($"The plugin '{plugin.Name}' does not contain an empty contructor and is therefore not valid. The plugin will not be synchronized");
-		}
+		var validPlugins = ValidateCandidates(plugins, "plugin");
 
 		return [.. validPlugins
 			.Select(pluginType => {

@@ -25,7 +25,7 @@ internal class DAXIFCustomApiAnalyzer : Analyzer, IAnalyzer<CustomApiDefinition>
 		if (customApiType.GetMethod(MethodName) is null)
 			return [];
 
-		var customApiTypes = types.Where(x => x.IsSubclassOf(customApiType) && !x.IsAbstract && x.GetConstructor(Type.EmptyTypes) != null);
+		var customApiTypes = ValidateCandidates(types.Where(x => x.IsSubclassOf(customApiType)), "custom API");
 		return [..customApiTypes
 		.Select(pluginType =>
 		{

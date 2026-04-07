@@ -16,8 +16,9 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
 		if (pluginBaseType is null)
 			return [];
 
-		var validTypes = types
-			.Where(t => t.IsAssignableTo(pluginBaseType) && t.GetConstructor(Type.EmptyTypes) != null && !t.IsAbstract);
+		var validTypes = ValidateCandidates(
+			types.Where(t => t.IsAssignableTo(pluginBaseType) && t != pluginBaseType),
+			"plugin");
 
 		return [.. AnalyzeTypesInner(validTypes)];
 	}
