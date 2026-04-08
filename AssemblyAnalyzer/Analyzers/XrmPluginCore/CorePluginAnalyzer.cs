@@ -10,14 +10,12 @@ internal class CorePluginAnalyzer : CoreAnalyzer, IAnalyzer<PluginDefinition>
 {
 	public List<PluginDefinition> AnalyzeTypes(IEnumerable<Type> types, string prefix)
 	{
-		var typeNames = types.Where(t => (t.FullName ?? string.Empty).StartsWith("XrmPluginCore")).Select(t => t.FullName).ToList();
+		var pluginBaseType = types.FirstOrDefault(t => t.FullName == typeof(IPluginDefinition).FullName)
+			?? typeof(IPluginDefinition);
 
-		var pluginBaseType = types.FirstOrDefault(t => t.FullName == typeof(IPluginDefinition).FullName);
-		if (pluginBaseType is null)
-			return [];
-
-		var validTypes = types
-			.Where(t => t.IsAssignableTo(pluginBaseType) && t.GetConstructor(Type.EmptyTypes) != null && !t.IsAbstract);
+		var validTypes = ValidateCandidates(
+			types.Where(t => t.IsAssignableTo(pluginBaseType) && t != pluginBaseType),
+			"plugin");
 
 		return [.. AnalyzeTypesInner(validTypes)];
 	}

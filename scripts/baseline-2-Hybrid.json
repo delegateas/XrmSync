@@ -1,0 +1,324 @@
+{
+  "CustomApis": [
+    {
+      "PluginType": {
+        "Name": "SamplePlugins.CreateAccountApi"
+      },
+      "UniqueName": "new_CreateAccountApi",
+      "DisplayName": "CreateAccountApi",
+      "Description": "Description",
+      "IsFunction": false,
+      "EnabledForWorkflow": false,
+      "BindingType": 0,
+      "BoundEntityLogicalName": "",
+      "AllowedCustomProcessingStepType": 0,
+      "OwnerId": "00000000-0000-0000-0000-000000000000",
+      "IsCustomizable": false,
+      "IsPrivate": true,
+      "ExecutePrivilegeName": "",
+      "RequestParameters": [
+        {
+          "UniqueName": "Name",
+          "DisplayName": "CreateAccountApi-In-Name",
+          "IsCustomizable": false,
+          "IsOptional": false,
+          "LogicalEntityName": "",
+          "Type": 10,
+          "Name": "CreateAccountApi-In-Name"
+        },
+        {
+          "UniqueName": "Phone",
+          "DisplayName": "CreateAccountApi-In-Phone",
+          "IsCustomizable": false,
+          "IsOptional": true,
+          "LogicalEntityName": "",
+          "Type": 10,
+          "Name": "CreateAccountApi-In-Phone"
+        }
+      ],
+      "ResponseProperties": [
+        {
+          "UniqueName": "Name",
+          "DisplayName": "CreateAccountApi-Out-Name",
+          "IsCustomizable": false,
+          "LogicalEntityName": "",
+          "Type": 10,
+          "Name": "CreateAccountApi-Out-Name"
+        },
+        {
+          "UniqueName": "AccountId",
+          "DisplayName": "CreateAccountApi-Out-AccountId",
+          "IsCustomizable": false,
+          "LogicalEntityName": "",
+          "Type": 12,
+          "Name": "CreateAccountApi-Out-AccountId"
+        }
+      ],
+      "Name": "CreateAccountApi"
+    },
+    {
+      "PluginType": {
+        "Name": "SamplePlugins.DeleteAccountApi"
+      },
+      "UniqueName": "new_DeleteAccountApi",
+      "DisplayName": "DeleteAccountApi",
+      "Description": "Description",
+      "IsFunction": false,
+      "EnabledForWorkflow": false,
+      "BindingType": 0,
+      "BoundEntityLogicalName": "",
+      "AllowedCustomProcessingStepType": 0,
+      "OwnerId": "00000000-0000-0000-0000-000000000000",
+      "IsCustomizable": true,
+      "IsPrivate": true,
+      "ExecutePrivilegeName": "",
+      "RequestParameters": [
+        {
+          "UniqueName": "AccountId",
+          "DisplayName": "DeleteAccountApi-In-AccountId",
+          "IsCustomizable": false,
+          "IsOptional": false,
+          "LogicalEntityName": "",
+          "Type": 12,
+          "Name": "DeleteAccountApi-In-AccountId"
+        },
+        {
+          "UniqueName": "ForceDelete",
+          "DisplayName": "DeleteAccountApi-In-ForceDelete",
+          "IsCustomizable": false,
+          "IsOptional": true,
+          "LogicalEntityName": "",
+          "Type": 0,
+          "Name": "DeleteAccountApi-In-ForceDelete"
+        }
+      ],
+      "ResponseProperties": [
+        {
+          "UniqueName": "Deleted",
+          "DisplayName": "DeleteAccountApi-Out-Deleted",
+          "IsCustomizable": false,
+          "LogicalEntityName": "",
+          "Type": 0,
+          "Name": "DeleteAccountApi-Out-Deleted"
+        },
+        {
+          "UniqueName": "Message",
+          "DisplayName": "DeleteAccountApi-Out-Message",
+          "IsCustomizable": false,
+          "LogicalEntityName": "",
+          "Type": 10,
+          "Name": "DeleteAccountApi-Out-Message"
+        }
+      ],
+      "Name": "DeleteAccountApi"
+    },
+    {
+      "PluginType": {
+        "Name": "SamplePlugins.UpdateAccountApi"
+      },
+      "UniqueName": "new_UpdateAccountApi",
+      "DisplayName": "UpdateAccountApi",
+      "Description": "Description",
+      "IsFunction": false,
+      "EnabledForWorkflow": false,
+      "BindingType": 1,
+      "BoundEntityLogicalName": "account",
+      "AllowedCustomProcessingStepType": 2,
+      "OwnerId": "00000000-0000-0000-0000-000000000000",
+      "IsCustomizable": false,
+      "IsPrivate": false,
+      "ExecutePrivilegeName": "",
+      "RequestParameters": [
+        {
+          "UniqueName": "AccountId",
+          "DisplayName": "UpdateAccountApi-In-AccountId",
+          "IsCustomizable": false,
+          "IsOptional": false,
+          "LogicalEntityName": "",
+          "Type": 12,
+          "Name": "UpdateAccountApi-In-AccountId"
+        },
+        {
+          "UniqueName": "NewName",
+          "DisplayName": "UpdateAccountApi-In-NewName",
+          "IsCustomizable": false,
+          "IsOptional": false,
+          "LogicalEntityName": "",
+          "Type": 10,
+          "Name": "UpdateAccountApi-In-NewName"
+        },
+        {
+          "UniqueName": "Industry",
+          "DisplayName": "UpdateAccountApi-In-Industry",
+          "IsCustomizable": false,
+          "IsOptional": true,
+          "LogicalEntityName": "",
+          "Type": 10,
+          "Name": "UpdateAccountApi-In-Industry"
+        }
+      ],
+      "ResponseProperties": [
+        {
+          "UniqueName": "Success",
+          "DisplayName": "UpdateAccountApi-Out-Success",
+          "IsCustomizable": false,
+          "LogicalEntityName": "",
+          "Type": 0,
+          "Name": "UpdateAccountApi-Out-Success"
+        },
+        {
+          "UniqueName": "UpdatedName",
+          "DisplayName": "UpdateAccountApi-Out-UpdatedName",
+          "IsCustomizable": false,
+          "LogicalEntityName": "",
+          "Type": 10,
+          "Name": "UpdateAccountApi-Out-UpdatedName"
+        }
+      ],
+      "Name": "UpdateAccountApi"
+    }
+  ],
+  "Plugins": [
+    {
+      "PluginSteps": [
+        {
+          "ExecutionStage": 20,
+          "EventOperation": "Create",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "name,emailaddress1",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [],
+          "Name": "SamplePlugins.AccountDuplicatePlugin: Synchronous Pre Create of account"
+        },
+        {
+          "ExecutionStage": 40,
+          "EventOperation": "Update",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "telephone1,fax",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [
+            {
+              "EntityAlias": "PreImage",
+              "ImageType": 0,
+              "Attributes": "telephone1",
+              "Name": "PreImage"
+            },
+            {
+              "EntityAlias": "PostImage",
+              "ImageType": 1,
+              "Attributes": "telephone1,fax",
+              "Name": "PostImage"
+            }
+          ],
+          "Name": "SamplePlugins.AccountDuplicatePlugin: Synchronous Post Update of account"
+        }
+      ],
+      "Name": "SamplePlugins.AccountDuplicatePlugin"
+    },
+    {
+      "PluginSteps": [
+        {
+          "ExecutionStage": 40,
+          "EventOperation": "Update",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "name,accountnumber,telephone1",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [
+            {
+              "EntityAlias": "PreImage",
+              "ImageType": 0,
+              "Attributes": "name,accountnumber,telephone1",
+              "Name": "PreImage"
+            },
+            {
+              "EntityAlias": "PostImage",
+              "ImageType": 1,
+              "Attributes": "name,telephone1",
+              "Name": "PostImage"
+            }
+          ],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Post Update of account"
+        },
+        {
+          "ExecutionStage": 40,
+          "EventOperation": "Create",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Post Create of account"
+        },
+        {
+          "ExecutionStage": 20,
+          "EventOperation": "Create",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "accountnumber,websiteurl",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Create of account"
+        },
+        {
+          "ExecutionStage": 20,
+          "EventOperation": "Delete",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [
+            {
+              "EntityAlias": "PreImage",
+              "ImageType": 0,
+              "Attributes": "name,accountnumber",
+              "Name": "PreImage"
+            }
+          ],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Delete of account"
+        },
+        {
+          "ExecutionStage": 20,
+          "EventOperation": "Update",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "description",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [
+            {
+              "EntityAlias": "PreImage",
+              "ImageType": 0,
+              "Attributes": "description",
+              "Name": "PreImage"
+            }
+          ],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Update of account"
+        }
+      ],
+      "Name": "SamplePlugins.AccountPlugin"
+    }
+  ]
+}

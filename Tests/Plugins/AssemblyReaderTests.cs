@@ -76,9 +76,9 @@ public class AssemblyReaderTests
 	{
 		// Arange
 #if DEBUG
-		var assemblyPath = $"../../../../Samples/{sampleFolder}/bin/Debug/net462/ILMerged.SamplePlugins.dll";
+		var assemblyPath = $"../../../../Samples/{sampleFolder}/bin/Debug/net462/SamplePlugins.dll";
 #else
-        var assemblyPath = $"../../../../Samples/{sampleFolder}/bin/Release/net462/ILMerged.SamplePlugins.dll";
+        var assemblyPath = $"../../../../Samples/{sampleFolder}/bin/Release/net462/SamplePlugins.dll";
 #endif
 
 		var analyzer = new AssemblyAnalyzer(
@@ -91,7 +91,7 @@ public class AssemblyReaderTests
 
 		// Assert
 		Assert.NotNull(assemblyInfo);
-		Assert.Equal("ILMerged.SamplePlugins", assemblyInfo.Name);
+		Assert.Equal("SamplePlugins", assemblyInfo.Name);
 		Assert.Equal(Guid.Empty, assemblyInfo.Id);
 		Assert.Equal("1.0.0.0", assemblyInfo.Version);
 		Assert.Equal(Path.GetFullPath(assemblyPath), assemblyInfo.DllPath);
