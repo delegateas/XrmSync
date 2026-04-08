@@ -30,16 +30,22 @@ internal class DAXIFPluginAnalyzer : Analyzer, IAnalyzer<PluginDefinition>
 		var plugins = types.Where(x => x.IsSubclassOf(pluginBaseType));
 		var validPlugins = ValidateCandidates(plugins, "plugin");
 
-		return [.. validPlugins
-			.Select(pluginType => {
-				var pluginTuples =
-					GetRegistrationFromType<IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>>(MethodName, pluginType)
-					?? throw new AnalysisException($"{MethodName}() returned null for type {pluginType.FullName}");
+		var result = new List<PluginDefinition>();
+		foreach (var pluginType in validPlugins)
+		{
+			var pluginTuples =
+				GetRegistrationFromType<IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>>(MethodName, pluginType)
+				?? throw new AnalysisException($"{MethodName}() returned null for type {pluginType.FullName}");
 
-				return new PluginDefinition(pluginType.FullName ?? string.Empty) {
-					PluginSteps = [.. GetSteps(pluginTuples)]
-				};
-			})];
+			var steps = GetSteps(pluginTuples).ToList();
+			if (steps.Count == 0)
+				continue;
+
+			result.Add(new PluginDefinition(pluginType.FullName ?? string.Empty) {
+				PluginSteps = steps
+			});
+		}
+		return result;
 	}
 
 	private static IEnumerable<Step> GetSteps(IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>> pluginTuples)
