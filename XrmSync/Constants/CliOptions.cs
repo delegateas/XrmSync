@@ -89,6 +89,12 @@ internal static class CliOptions
 			public static readonly string[] Aliases = ["--profile-name", "-p"];
 			public const string Description = "Name of the profile to load from appsettings.json (automatically uses single profile if only one exists)";
 		}
+
+		public static class All
+		{
+			public const string Primary = "--all";
+			public const string Description = "Validate all profiles found in the configuration";
+		}
 	}
 
 	/// <summary>

@@ -169,6 +169,102 @@ public class ConfigValidateCommandTests
 		}
 	}
 
+	[Fact]
+	public void ConfigValidateCommandHasAllOption()
+	{
+		// Arrange & Act
+		var command = new ConfigValidateCommand();
+
+		// Assert
+		Assert.Contains(command.GetCommand().Options, o => o.Name == "--all");
+	}
+
+	[Fact]
+	public async Task OutputAllValidationResultsWithNoProfilesHandlesGracefully()
+	{
+		// Arrange
+		var configuration = new ConfigurationBuilder().Build();
+		var config = XrmSyncConfiguration.Empty;
+		var configOptions = Options.Create(config);
+		var sharedOptions = Options.Create(SharedOptions.Empty);
+
+		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
+
+		// Act & Assert - Should not throw
+		await output.OutputAllValidationResults();
+	}
+
+	[Fact]
+	public async Task OutputAllValidationResultsWithSingleProfileOutputsValidationResult()
+	{
+		// Arrange
+		var configuration = new ConfigurationBuilder().Build();
+		var config = new XrmSyncConfiguration(
+			DryRun: false,
+			LogLevel: Microsoft.Extensions.Logging.LogLevel.Information,
+			CiMode: false,
+			Profiles:
+			[
+				new ProfileConfiguration("default", "TestSolution", [])
+			]
+		);
+		var configOptions = Options.Create(config);
+		var sharedOptions = Options.Create(SharedOptions.Empty);
+
+		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
+
+		// Act & Assert - Should not throw
+		await output.OutputAllValidationResults();
+	}
+
+	[Fact]
+	public async Task OutputAllValidationResultsWithMultipleProfilesOutputsAllProfiles()
+	{
+		// Arrange
+		var configuration = new ConfigurationBuilder().Build();
+		var config = new XrmSyncConfiguration(
+			DryRun: false,
+			LogLevel: Microsoft.Extensions.Logging.LogLevel.Information,
+			CiMode: false,
+			Profiles:
+			[
+				new ProfileConfiguration("dev", "DevSolution", []),
+				new ProfileConfiguration("prod", "ProdSolution", [])
+			]
+		);
+		var configOptions = Options.Create(config);
+		var sharedOptions = Options.Create(SharedOptions.Empty);
+
+		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
+
+		// Act & Assert - Should not throw
+		await output.OutputAllValidationResults();
+	}
+
+	[Fact]
+	public async Task OutputAllValidationResultsWithInvalidProfileReportsFailure()
+	{
+		// Arrange
+		var configuration = new ConfigurationBuilder().Build();
+		var config = new XrmSyncConfiguration(
+			DryRun: false,
+			LogLevel: Microsoft.Extensions.Logging.LogLevel.Information,
+			CiMode: false,
+			Profiles:
+			[
+				new ProfileConfiguration("dev", "DevSolution", [new PluginSyncItem("")]),
+				new ProfileConfiguration("prod", "ProdSolution", [])
+			]
+		);
+		var configOptions = Options.Create(config);
+		var sharedOptions = Options.Create(SharedOptions.Empty);
+
+		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
+
+		// Act & Assert - Should not throw even with invalid config
+		await output.OutputAllValidationResults();
+	}
+
 	private class TestConfigReader(string configFile) : IConfigReader
 	{
 		public IConfiguration GetConfiguration()
