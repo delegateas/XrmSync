@@ -4,6 +4,25 @@ namespace XrmSync.Analyzer.Analyzers;
 
 internal abstract class Analyzer
 {
+	protected static IEnumerable<Type> ValidateCandidates(IEnumerable<Type> candidates, string entityKind)
+	{
+		var list = candidates.ToList();
+		var errors = new List<AnalysisException>();
+
+		foreach (var t in list)
+		{
+			if (t.IsAbstract) // covers both abstract classes and interfaces — skip silently
+				continue;
+			if (t.GetConstructor(Type.EmptyTypes) == null)
+				errors.Add(new AnalysisException($"The {entityKind} '{t.Name}' does not have a public parameterless constructor and is therefore not valid. The {entityKind} will not be synchronized"));
+		}
+
+		if (errors.Count > 0)
+			throw new AggregateException(errors);
+
+		return list.Where(t => !t.IsAbstract);
+	}
+
 	protected static T? GetRegistrationFromType<T>(string methodName, Type pluginType) where T : class
 	{
 		var getRegistrationMethod = pluginType.GetMethod(methodName)

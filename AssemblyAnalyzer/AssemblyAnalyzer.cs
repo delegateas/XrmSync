@@ -32,13 +32,21 @@ internal class AssemblyAnalyzer(IEnumerable<IAnalyzer<PluginDefinition>> pluginA
 		if (!types.Any())
 			throw new AnalysisException("No types found in the assembly. Ensure the assembly contains valid plugin or custom API types.");
 
-		return new AssemblyInfo(dllName)
+		try
 		{
-			Version = assemblyVersion,
-			Hash = hash,
-			DllPath = dllFullPath,
-			Plugins = [.. pluginAnalyzers.SelectMany(a => a.AnalyzeTypes(types, prefix)).OrderBy(d => d.Name)],
-			CustomApis = [.. customApiAnalyzers.SelectMany(a => a.AnalyzeTypes(types, prefix)).OrderBy(d => d.Name)],
-		};
+			return new AssemblyInfo(dllName)
+			{
+				Version = assemblyVersion,
+				Hash = hash,
+				DllPath = dllFullPath,
+				Plugins = [.. pluginAnalyzers.SelectMany(a => a.AnalyzeTypes(types, prefix)).OrderBy(d => d.Name)],
+				CustomApis = [.. customApiAnalyzers.SelectMany(a => a.AnalyzeTypes(types, prefix)).OrderBy(d => d.Name)],
+			};
+		}
+		catch (AggregateException ex)
+		{
+			var messages = string.Join(Environment.NewLine, ex.InnerExceptions.Select(e => $"  - {e.Message}"));
+			throw new AnalysisException($"Assembly analysis failed with {ex.InnerExceptions.Count} error(s):{Environment.NewLine}{messages}", ex);
+		}
 	}
 }

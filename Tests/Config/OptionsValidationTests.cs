@@ -102,27 +102,37 @@ public class OptionsValidationTests
 	[Fact]
 	public void PluginSyncValidatorWrongFileExtensionThrowsValidationException()
 	{
-		// Arrange
-		var config = new XrmSyncConfiguration(
-			DryRun: false,
-			LogLevel: LogLevel.Information,
-			CiMode: false,
-			Profiles: new List<ProfileConfiguration>
-			{
-				new("default", "TestSolution", new List<SyncItem>
-				{
-					new PluginSyncItem("testhost.exe")
-				})
-			}
-		);
+		// Arrange — create a real file with a non-.dll extension so the validator reaches the extension check
+		var exePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".exe");
+		File.WriteAllBytes(exePath, []);
 
-		// Act & Assert
-		var validator = new XrmSyncConfigurationValidator(
-			Options.Create(config),
-			Options.Create(CreateSharedOptions()));
-		var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
-			() => validator.Validate(ConfigurationScope.PluginSync));
-		Assert.Contains("Assembly file must have a .dll extension", exception.Message);
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new PluginSyncItem(exePath)
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+				() => validator.Validate(ConfigurationScope.PluginSync));
+			Assert.Contains("Assembly file must have a .dll extension", exception.Message);
+		}
+		finally
+		{
+			File.Delete(exePath);
+		}
 	}
 
 	[Fact]
