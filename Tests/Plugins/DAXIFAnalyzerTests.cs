@@ -66,14 +66,25 @@ public class DAXIFPluginAnalyzerTests
 	}
 
 	[Fact]
-	public void AnalyzeTypesWithValidPluginReturnsPluginDefinition()
+	public void AnalyzeTypesWithPluginWithNoStepsIsExcluded()
 	{
-		var types = new[] { typeof(Plugin), typeof(ValidPlugin) };
+		// A plugin that registers no steps should be silently excluded
+		var types = new[] { typeof(Plugin), typeof(EmptyPlugin) };
+
+		var result = _analyzer.AnalyzeTypes(types, "new");
+
+		Assert.Empty(result);
+	}
+
+	[Fact]
+	public void AnalyzeTypesWithValidPluginWithStepsReturnsPluginDefinition()
+	{
+		var types = new[] { typeof(Plugin), typeof(ValidPluginWithSteps) };
 
 		var result = _analyzer.AnalyzeTypes(types, "new");
 
 		Assert.Single(result);
-		Assert.Equal(typeof(ValidPlugin).FullName, result[0].Name);
+		Assert.Equal(typeof(ValidPluginWithSteps).FullName, result[0].Name);
 	}
 
 	// The DAXIF analyzer identifies the base type by the class name "Plugin"
@@ -91,9 +102,22 @@ public class DAXIFPluginAnalyzerTests
 		public NoCtorPlugin(string _) { }
 	}
 
-	private class ValidPlugin : Plugin
+	private class EmptyPlugin : Plugin
 	{
-		public ValidPlugin() { }
+		public EmptyPlugin() { }
+	}
+
+	private class ValidPluginWithSteps : Plugin
+	{
+		public ValidPluginWithSteps() { }
+
+		public new IEnumerable<Tuple<StepConfig, ExtendedStepConfig, IEnumerable<ImageTuple>>>
+			PluginProcessingStepConfigs() => [
+				Tuple.Create(
+					Tuple.Create<string?, int, string?, string?>(typeof(ValidPluginWithSteps).FullName, 40, "Create", "account"),
+					Tuple.Create<int, int, string?, int, string?, string?>(0, 0, null, 1, null, null),
+					Enumerable.Empty<ImageTuple>())
+			];
 	}
 }
 
