@@ -219,6 +219,7 @@ internal class ConfigValidationOutput(
 				PluginSyncItem plugin => ValidatePluginSync(plugin),
 				PluginAnalysisSyncItem analysis => ValidatePluginAnalysis(analysis),
 				WebresourceSyncItem webresource => ValidateWebresource(webresource),
+				IdentitySyncItem identity => ValidateIdentity(identity),
 				_ => new List<string> { "Unknown sync item type" }
 			};
 
@@ -264,6 +265,15 @@ internal class ConfigValidationOutput(
 				Console.WriteLine($"      Folder Path: {webresource.FolderPath}");
 				if (webresource.FileExtensions is { Count: > 0 })
 					Console.WriteLine($"      File Extensions: {string.Join(", ", webresource.FileExtensions)}");
+				break;
+			case IdentitySyncItem identity:
+				Console.WriteLine($"      Operation: {identity.Operation}");
+				Console.WriteLine($"      Assembly Path: {identity.AssemblyPath}");
+				if (identity.Operation == IdentityOperation.Ensure)
+				{
+					Console.WriteLine($"      Client ID: {identity.ClientId}");
+					Console.WriteLine($"      Tenant ID: {identity.TenantId}");
+				}
 				break;
 		}
 	}
@@ -324,6 +334,35 @@ internal class ConfigValidationOutput(
 		return errors;
 	}
 
+	private List<string> ValidateIdentity(IdentitySyncItem identity)
+	{
+		var errors = new List<string>();
+
+		if (string.IsNullOrWhiteSpace(identity.AssemblyPath))
+		{
+			errors.Add("Assembly path is required and cannot be empty.");
+		}
+		else if (!Path.GetExtension(identity.AssemblyPath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+		{
+			errors.Add("Assembly file must have a .dll extension.");
+		}
+		else if (!File.Exists(Path.GetFullPath(identity.AssemblyPath)))
+		{
+			errors.Add($"Assembly file does not exist: {identity.AssemblyPath}");
+		}
+
+		if (identity.Operation == IdentityOperation.Ensure)
+		{
+			if (string.IsNullOrWhiteSpace(identity.ClientId) || !Guid.TryParse(identity.ClientId, out _))
+				errors.Add("Client ID must be a valid GUID.");
+
+			if (string.IsNullOrWhiteSpace(identity.TenantId) || !Guid.TryParse(identity.TenantId, out _))
+				errors.Add("Tenant ID must be a valid GUID.");
+		}
+
+		return errors;
+	}
+
 	private List<string> GetAvailableCommands(ProfileConfiguration profile)
 	{
 		var commands = new List<string>();
@@ -343,6 +382,10 @@ internal class ConfigValidationOutput(
 				case WebresourceSyncItem:
 					if (!commands.Contains("webresources"))
 						commands.Add("webresources");
+					break;
+				case IdentitySyncItem:
+					if (!commands.Contains("identity"))
+						commands.Add("identity");
 					break;
 			}
 		}

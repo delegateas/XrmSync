@@ -600,6 +600,45 @@ public class OptionsValidationTests
 	}
 
 	[Fact]
+	public void IdentityEnsureValidatorMissingTenantIdThrowsValidationException()
+	{
+		// Arrange
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d", null)
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+				() => validator.Validate(ConfigurationScope.Identity));
+			Assert.Contains("Tenant ID is required", exception.Message);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
 	public void IdentityEnsureValidatorInvalidTenantIdThrowsValidationException()
 	{
 		// Arrange
