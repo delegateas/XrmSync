@@ -78,6 +78,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 				DryRun = dryRunOverride || baseOptions.DryRun
 			})
 			.AddSingleton<IDescription, Description>()
+			.AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
 			.AddLogger()
 			.BuildServiceProvider();
 
@@ -107,6 +108,18 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		if (profile.Sync.Count == 0)
 		{
 			logger.LogWarning("Profile '{profileName}' has no sync items configured. Nothing to execute.", profile.Name);
+			return E_ERROR;
+		}
+
+		// Validate entire profile configuration upfront before executing any sync items
+		try
+		{
+			var validator = serviceProvider.GetRequiredService<IConfigurationValidator>();
+			validator.Validate(ConfigurationScope.All);
+		}
+		catch (Exception ex)
+		{
+			logger.LogCritical("Configuration validation failed — aborting:{nl}{message}", Environment.NewLine, ex.Message);
 			return E_ERROR;
 		}
 
