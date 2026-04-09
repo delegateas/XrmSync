@@ -13,7 +13,11 @@ internal class Description : IDescription
 		{
 			var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
 			var toolName = assembly.GetName().Name;
-			var version = assembly.GetName().Version?.ToString() ?? "unknown";
+			var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+			var version = (informationalVersion != null
+				? informationalVersion.Split('+')[0]
+				: assembly.GetName().Version?.ToString())
+				?? "unknown";
 			return $"{toolName} v{version}";
 		});
 
