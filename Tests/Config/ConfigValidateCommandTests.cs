@@ -6,6 +6,13 @@ using XrmSync.Options;
 
 namespace Tests.Config;
 
+file sealed class ConsoleOutputSuppressor : IDisposable
+{
+	private readonly TextWriter _original = Console.Out;
+	public ConsoleOutputSuppressor() => Console.SetOut(TextWriter.Null);
+	public void Dispose() => Console.SetOut(_original);
+}
+
 public class ConfigValidateCommandTests
 {
 	[Fact]
@@ -71,6 +78,7 @@ public class ConfigValidateCommandTests
 			var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 			// Act & Assert - Should not throw
+			using var _ = new ConsoleOutputSuppressor();
 			await output.OutputValidationResult();
 		}
 		finally
@@ -129,6 +137,7 @@ public class ConfigValidateCommandTests
 			var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 			// Act & Assert - Should not throw
+			using var _ = new ConsoleOutputSuppressor();
 			await output.OutputConfigList();
 		}
 		finally
@@ -161,6 +170,7 @@ public class ConfigValidateCommandTests
 			var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 			// Act & Assert - Should not throw
+			using var _ = new ConsoleOutputSuppressor();
 			await output.OutputConfigList();
 		}
 		finally
@@ -191,6 +201,7 @@ public class ConfigValidateCommandTests
 		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 		// Act & Assert - Should not throw
+		using var _ = new ConsoleOutputSuppressor();
 		await output.OutputAllValidationResults();
 	}
 
@@ -214,6 +225,7 @@ public class ConfigValidateCommandTests
 		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 		// Act & Assert - Should not throw
+		using var _ = new ConsoleOutputSuppressor();
 		await output.OutputAllValidationResults();
 	}
 
@@ -238,6 +250,7 @@ public class ConfigValidateCommandTests
 		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 		// Act & Assert - Should not throw
+		using var _ = new ConsoleOutputSuppressor();
 		await output.OutputAllValidationResults();
 	}
 
@@ -262,6 +275,7 @@ public class ConfigValidateCommandTests
 		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 		// Act & Assert - Should not throw even with invalid config
+		using var _ = new ConsoleOutputSuppressor();
 		await output.OutputAllValidationResults();
 	}
 
