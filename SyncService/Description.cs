@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace XrmSync.SyncService;
 
-internal class Description : IDescription
+public class Description : IDescription
 {
 	private readonly Lazy<string> _toolHeader;
 	private readonly Lazy<string> _syncDescription;

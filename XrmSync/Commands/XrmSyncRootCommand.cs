@@ -5,6 +5,7 @@ using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Options;
+using XrmSync.SyncService;
 
 namespace XrmSync.Commands;
 
@@ -76,11 +77,13 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 				CiMode = ciModeOverride || baseOptions.CiMode,
 				DryRun = dryRunOverride || baseOptions.DryRun
 			})
+			.AddSingleton<IDescription, Description>()
 			.AddLogger()
 			.BuildServiceProvider();
 
 		var xrmSyncConfig = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<XrmSyncConfiguration>>().Value;
 		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncRootCommand>>();
+		var description = serviceProvider.GetRequiredService<IDescription>();
 
 		// Find the profile using centralized resolution (handles single-profile auto-select and "default" convention)
 		var configBuilder = serviceProvider.GetRequiredService<IConfigurationBuilder>();
@@ -92,10 +95,13 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			return E_ERROR;
 		}
 
-		if (logger.IsEnabled(LogLevel.Information))
+		logger.LogInformation("{header}", description.ToolHeader);
+		logger.LogInformation("Running with profile: {profileName}", profile.Name);
+
+		if (xrmSyncConfig.DryRun)
 		{
-			logger.LogInformation("Running XrmSync with profile: {profileName} (DryRun: {dryRun})",
-				profile.Name, xrmSyncConfig.DryRun);
+			logger.LogInformation("***** DRY RUN *****");
+			logger.LogInformation("No changes will be made to Dataverse.");
 		}
 
 		if (profile.Sync.Count == 0)
