@@ -4,6 +4,7 @@ using XrmSync.Constants;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
+using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands;
 
@@ -53,6 +54,26 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 			?? throw new InvalidOperationException(
 				$"Profile '{profileName}' not found. " +
 				$"Either specify {optionsHint}, or use --profile with a valid profile name.");
+	}
+
+	/// <summary>
+	/// Loads configuration directly and resolves a profile.
+	/// Returns null when no profiles are configured.
+	/// Throws XrmSyncException when an explicitly requested profile is not found.
+	/// </summary>
+	protected static ProfileConfiguration? LoadProfile(string? profileName)
+	{
+		var configuration = new ConfigReader().GetConfiguration();
+		return new XrmSyncConfigurationBuilder(configuration).GetProfile(profileName);
+	}
+
+	/// <summary>
+	/// Writes validation errors to stderr and returns E_ERROR.
+	/// </summary>
+	protected static int ValidationError(string prefix, IEnumerable<string> errors)
+	{
+		Console.Error.WriteLine(new OptionsValidationException(prefix, errors).Message);
+		return E_ERROR;
 	}
 
 	/// <summary>

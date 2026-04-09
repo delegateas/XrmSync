@@ -4,8 +4,10 @@ using System.CommandLine;
 using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
+using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;
+using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands;
 
@@ -63,6 +65,61 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 		var (solutionName, dryRun, logLevel, ciMode) = GetSyncSharedOptionValues(parseResult);
 		var sharedOptions = GetSharedOptionValues(parseResult);
 
+		// Resolve final options eagerly (CLI + profile merge)
+		IdentityOperation finalOperation;
+		string finalAssemblyPath;
+		string finalSolutionName;
+		string? finalClientId;
+		string? finalTenantId;
+
+		if (sharedOptions.ProfileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName))
+		{
+			// Standalone mode: all required values supplied via CLI
+			finalOperation = operationValue;
+			finalAssemblyPath = assemblyPath;
+			finalSolutionName = solutionName;
+			finalClientId = clientIdValue;
+			finalTenantId = tenantIdValue;
+		}
+		else
+		{
+			// Profile mode: merge profile values with CLI overrides
+			ProfileConfiguration? profile;
+			try { profile = LoadProfile(sharedOptions.ProfileName); }
+			catch (XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
+
+			var syncItem = profile?.Sync.OfType<IdentitySyncItem>().FirstOrDefault(i => i.Operation == operationValue);
+			if (profile == null || syncItem == null)
+			{
+				Console.Error.WriteLine(
+					profile == null
+						? "No profiles configured. Specify --assembly and --solution, or add a profile to appsettings.json."
+						: $"Profile '{profile.Name}' does not contain an Identity {operationValue} sync item. Specify --assembly and --solution, or add a matching Identity sync item to the profile.");
+				return E_ERROR;
+			}
+
+			finalOperation = syncItem.Operation;
+			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : syncItem.AssemblyPath;
+			finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
+			finalClientId = !string.IsNullOrWhiteSpace(clientIdValue) ? clientIdValue : syncItem.ClientId;
+			finalTenantId = !string.IsNullOrWhiteSpace(tenantIdValue) ? tenantIdValue : syncItem.TenantId;
+		}
+
+		// Validate resolved values
+		var errors = XrmSyncConfigurationValidator.ValidateAssemblyPath(finalAssemblyPath)
+			.Concat(XrmSyncConfigurationValidator.ValidateSolutionName(finalSolutionName))
+			.ToList();
+
+		if (finalOperation == IdentityOperation.Ensure)
+		{
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(finalClientId ?? string.Empty, "Client ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(finalTenantId ?? string.Empty, "Tenant ID"));
+		}
+
+		if (errors.Count > 0)
+			return ValidationError($"identity --operation {finalOperation}", errors);
+
+		// Build service provider with validated options
 		var serviceProvider = new ServiceCollection()
 			.AddIdentityService()
 			.AddXrmSyncConfiguration(sharedOptions)
@@ -73,75 +130,16 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 					CiMode = ciMode ?? baseOptions.CiMode,
 					DryRun = dryRun ?? baseOptions.DryRun
 				})
-			.AddSingleton(sp =>
-			{
-				IdentityOperation finalOperation;
-				string finalAssemblyPath;
-				string finalSolutionName;
-				string? finalClientId;
-				string? finalTenantId;
-
-				if (!string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName))
-				{
-					finalOperation = operationValue;
-					finalAssemblyPath = assemblyPath;
-					finalSolutionName = solutionName;
-					finalClientId = clientIdValue;
-					finalTenantId = tenantIdValue;
-
-					if (finalOperation == IdentityOperation.Ensure)
-					{
-						var errors = new List<string>();
-						if (string.IsNullOrWhiteSpace(finalClientId))
-							errors.Add("Client ID is required and cannot be empty.");
-						else if (!Guid.TryParse(finalClientId, out _))
-							errors.Add("Client ID must be a valid GUID.");
-
-						if (string.IsNullOrWhiteSpace(finalTenantId))
-							errors.Add("Tenant ID is required and cannot be empty.");
-						else if (!Guid.TryParse(finalTenantId, out _))
-							errors.Add("Tenant ID must be a valid GUID.");
-
-						if (errors.Count > 0)
-							throw new Model.Exceptions.OptionsValidationException("identity --operation Ensure", errors);
-					}
-				}
-				else
-				{
-					var profile = GetRequiredProfile(sp, sharedOptions.ProfileName, "--assembly and --solution");
-
-					var syncItem = profile.Sync.OfType<IdentitySyncItem>().FirstOrDefault(i => i.Operation == operationValue)
-						?? throw new InvalidOperationException(
-							$"Profile '{profile.Name}' does not contain an Identity {operationValue} sync item. " +
-							"Either specify --assembly and --solution, or use a profile with a matching Identity sync item.");
-
-					finalOperation = syncItem.Operation;
-					finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath)
-						? assemblyPath
-						: syncItem.AssemblyPath;
-					finalSolutionName = !string.IsNullOrWhiteSpace(solutionName)
-						? solutionName
-						: profile.SolutionName;
-					finalClientId = !string.IsNullOrWhiteSpace(clientIdValue)
-						? clientIdValue
-						: syncItem.ClientId;
-					finalTenantId = !string.IsNullOrWhiteSpace(tenantIdValue)
-						? tenantIdValue
-						: syncItem.TenantId;
-				}
-
-				return Microsoft.Extensions.Options.Options.Create(
-					new IdentityCommandOptions(finalOperation, finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId));
-			})
+			.AddSingleton(MSOptions.Create(new IdentityCommandOptions(finalOperation, finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId)))
 			.AddSingleton(sp =>
 			{
 				var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
-				return Microsoft.Extensions.Options.Options.Create(new ExecutionModeOptions(config.DryRun));
+				return MSOptions.Create(new ExecutionModeOptions(config.DryRun));
 			})
 			.AddLogger()
 			.BuildServiceProvider();
 
-		return await RunAction(serviceProvider, ConfigurationScope.Identity, CommandAction, cancellationToken)
+		return await RunAction(serviceProvider, ConfigurationScope.None, CommandAction, cancellationToken)
 			? E_OK
 			: E_ERROR;
 	}

@@ -9,6 +9,7 @@ using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
+using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands;
 
@@ -54,54 +55,56 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 		var prettyPrint = parseResult.GetValue(this.prettyPrint);
 		var sharedOptions = GetSharedOptionValues(parseResult);
 
-		// Build service provider
+		// Resolve final options eagerly (CLI + profile merge)
+		string finalAssemblyPath;
+		string finalPublisherPrefix;
+		bool finalPrettyPrint;
+
+		if (sharedOptions.ProfileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix))
+		{
+			// Standalone mode: all required values supplied via CLI
+			finalAssemblyPath = assemblyPath;
+			finalPublisherPrefix = publisherPrefix;
+			finalPrettyPrint = prettyPrint;
+		}
+		else
+		{
+			// Profile mode: merge profile values with CLI overrides
+			ProfileConfiguration? profile;
+			try { profile = LoadProfile(sharedOptions.ProfileName); }
+			catch (XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
+
+			var pluginAnalysisItem = profile?.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
+			if (profile == null || pluginAnalysisItem == null)
+			{
+				Console.Error.WriteLine(
+					profile == null
+						? "No profiles configured. Specify --assembly and --prefix, or add a profile to appsettings.json."
+						: $"Profile '{profile.Name}' does not contain a PluginAnalysis sync item. Specify --assembly and --prefix, or add a PluginAnalysis sync item to the profile.");
+				return E_ERROR;
+			}
+
+			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : pluginAnalysisItem.AssemblyPath;
+			finalPublisherPrefix = !string.IsNullOrWhiteSpace(publisherPrefix) ? publisherPrefix : pluginAnalysisItem.PublisherPrefix;
+			finalPrettyPrint = prettyPrint || pluginAnalysisItem.PrettyPrint;
+		}
+
+		// Validate resolved values
+		var errors = XrmSyncConfigurationValidator.ValidateAssemblyPath(finalAssemblyPath)
+			.Concat(XrmSyncConfigurationValidator.ValidatePublisherPrefix(finalPublisherPrefix))
+			.ToList();
+		if (errors.Count > 0)
+			return ValidationError("analyze", errors);
+
+		// Build service provider with validated options
 		var serviceProvider = GetAnalyzerServices()
 			.AddXrmSyncConfiguration(sharedOptions)
 			.AddOptions(baseOptions => baseOptions)
-			.AddSingleton(sp =>
-			{
-				var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
-
-				// Determine assembly path, publisher prefix, and pretty print
-				string finalAssemblyPath;
-				string finalPublisherPrefix;
-				bool finalPrettyPrint;
-
-				// If CLI options provided, use them (standalone mode)
-				if (!string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix))
-				{
-					finalAssemblyPath = assemblyPath;
-					finalPublisherPrefix = publisherPrefix;
-					finalPrettyPrint = prettyPrint;
-				}
-				// Otherwise try to get from profile
-				else
-				{
-					var profile = GetRequiredProfile(sp, sharedOptions.ProfileName, "--assembly and --publisher-prefix");
-
-					var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
-					if (pluginAnalysisItem == null)
-					{
-						throw new InvalidOperationException(
-							$"Profile '{profile.Name}' does not contain a PluginAnalysis sync item. " +
-							"Either specify --assembly and --publisher-prefix, or use a profile with a PluginAnalysis sync item.");
-					}
-
-					finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath)
-						? assemblyPath
-						: pluginAnalysisItem.AssemblyPath;
-					finalPublisherPrefix = !string.IsNullOrWhiteSpace(publisherPrefix)
-						? publisherPrefix
-						: pluginAnalysisItem.PublisherPrefix;
-					finalPrettyPrint = prettyPrint || pluginAnalysisItem.PrettyPrint;
-				}
-
-				return Microsoft.Extensions.Options.Options.Create(new PluginAnalysisCommandOptions(finalAssemblyPath, finalPublisherPrefix, finalPrettyPrint));
-			})
+			.AddSingleton(MSOptions.Create(new PluginAnalysisCommandOptions(finalAssemblyPath, finalPublisherPrefix, finalPrettyPrint)))
 			.AddLogger()
 			.BuildServiceProvider();
 
-		return await RunAction(serviceProvider, ConfigurationScope.PluginAnalysis, CommandAction, cancellationToken)
+		return await RunAction(serviceProvider, ConfigurationScope.None, CommandAction, cancellationToken)
 			? E_OK
 			: E_ERROR;
 	}

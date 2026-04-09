@@ -6,6 +6,7 @@ using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;
+using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands
 {
@@ -45,7 +46,48 @@ namespace XrmSync.Commands
 			var (solutionName, dryRun, logLevel, ciMode) = GetSyncSharedOptionValues(parseResult);
 			var sharedOptions = GetSharedOptionValues(parseResult);
 
-			// Build service provider
+			// Resolve final options eagerly (CLI + profile merge)
+			string finalFolderPath;
+			string finalSolutionName;
+			List<string>? finalExtensions;
+
+			if (sharedOptions.ProfileName == null && !string.IsNullOrWhiteSpace(folderPath) && !string.IsNullOrWhiteSpace(solutionName))
+			{
+				// Standalone mode: all required values supplied via CLI
+				finalFolderPath = folderPath;
+				finalSolutionName = solutionName;
+				finalExtensions = extensionsValue is { Length: > 0 } ? extensionsValue.ToList() : null;
+			}
+			else
+			{
+				// Profile mode: merge profile values with CLI overrides
+				ProfileConfiguration? profile;
+				try { profile = LoadProfile(sharedOptions.ProfileName); }
+				catch (Model.Exceptions.XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
+
+				var webresourceSyncItem = profile?.Sync.OfType<WebresourceSyncItem>().FirstOrDefault();
+				if (profile == null || webresourceSyncItem == null)
+				{
+					Console.Error.WriteLine(
+						profile == null
+							? "No profiles configured. Specify --folder and --solution, or add a profile to appsettings.json."
+							: $"Profile '{profile.Name}' does not contain a Webresource sync item. Specify --folder and --solution, or add a Webresource sync item to the profile.");
+					return E_ERROR;
+				}
+
+				finalFolderPath = !string.IsNullOrWhiteSpace(folderPath) ? folderPath : webresourceSyncItem.FolderPath;
+				finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
+				finalExtensions = extensionsValue is { Length: > 0 } ? extensionsValue.ToList() : webresourceSyncItem.FileExtensions;
+			}
+
+			// Validate resolved values
+			var errors = XrmSyncConfigurationValidator.ValidateFolderPath(finalFolderPath)
+				.Concat(XrmSyncConfigurationValidator.ValidateSolutionName(finalSolutionName))
+				.ToList();
+			if (errors.Count > 0)
+				return ValidationError("webresources", errors);
+
+			// Build service provider with validated options
 			var serviceProvider = GetWebresourceSyncServices()
 				.AddXrmSyncConfiguration(sharedOptions)
 				.AddOptions(
@@ -56,54 +98,16 @@ namespace XrmSync.Commands
 						DryRun = dryRun ?? options.DryRun
 					}
 				)
+				.AddSingleton(MSOptions.Create(new WebresourceSyncCommandOptions(finalFolderPath, finalSolutionName, finalExtensions)))
 				.AddSingleton(sp =>
 				{
 					var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
-
-					// Determine folder path and solution name
-					string finalFolderPath;
-					string finalSolutionName;
-					WebresourceSyncItem? webresourceSyncItem = null;
-
-					// If CLI options provided, use them (standalone mode)
-					if (!string.IsNullOrWhiteSpace(folderPath) && !string.IsNullOrWhiteSpace(solutionName))
-					{
-						finalFolderPath = folderPath;
-						finalSolutionName = solutionName;
-					}
-					// Otherwise try to get from profile
-					else
-					{
-						var profile = GetRequiredProfile(sp, sharedOptions.ProfileName, "--folder and --solution");
-
-						webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault()
-							?? throw new InvalidOperationException(
-								$"Profile '{profile.Name}' does not contain a Webresource sync item. " +
-								"Either specify --folder and --solution, or use a profile with a Webresource sync item.");
-
-						finalFolderPath = !string.IsNullOrWhiteSpace(folderPath)
-							? folderPath
-							: webresourceSyncItem.FolderPath;
-						finalSolutionName = !string.IsNullOrWhiteSpace(solutionName)
-							? solutionName
-							: profile.SolutionName;
-					}
-
-					var finalExtensions = extensionsValue is { Length: > 0 }
-						? extensionsValue.ToList()
-						: webresourceSyncItem?.FileExtensions;
-
-					return Microsoft.Extensions.Options.Options.Create(new WebresourceSyncCommandOptions(finalFolderPath, finalSolutionName, finalExtensions));
-				})
-				.AddSingleton(sp =>
-				{
-					var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
-					return Microsoft.Extensions.Options.Options.Create(new ExecutionModeOptions(config.DryRun));
+					return MSOptions.Create(new ExecutionModeOptions(config.DryRun));
 				})
 				.AddLogger()
 				.BuildServiceProvider();
 
-			return await RunAction(serviceProvider, ConfigurationScope.WebresourceSync, CommandAction, cancellationToken)
+			return await RunAction(serviceProvider, ConfigurationScope.None, CommandAction, cancellationToken)
 				? E_OK
 				: E_ERROR;
 		}
