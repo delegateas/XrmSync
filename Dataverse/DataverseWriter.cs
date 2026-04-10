@@ -58,6 +58,11 @@ internal sealed class DataverseWriter : IDataverseWriter
 		service.Update(entity);
 	}
 
+	public void Delete(Entity entity)
+	{
+		service.Delete(entity.LogicalName, entity.Id);
+	}
+
 	public void UpdateMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity
 		=> PerformAsBulk(entities.Select(e => new UpdateRequest { Target = e }));
 

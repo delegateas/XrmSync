@@ -5,6 +5,8 @@ using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Options;
+using XrmSync.SyncService;
+using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands;
 
@@ -25,6 +27,9 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 	private readonly Option<bool> dryRun;
 	private readonly Option<bool> ciMode;
 	private readonly Option<LogLevel?> logLevel;
+	private readonly Option<string?> assembly;
+	private readonly Option<string?> solution;
+	private readonly IReadOnlyList<ProfileOverrideProvider> profileOverrideProviders;
 
 	public XrmSyncRootCommand(List<IXrmSyncCommand> subCommands)
 		: base("xrmsync", "XrmSync - Synchronize your Dataverse plugins and webresources")
@@ -32,27 +37,31 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		this.subCommands = subCommands;
 
 		// Add override options
-		dryRun = new(CliOptions.Execution.DryRun.Primary, CliOptions.Execution.DryRun.Aliases)
-		{
-			Description = CliOptions.Execution.DryRun.Description,
-			Required = false
-		};
+		dryRun = CliOptions.Execution.DryRun.CreateOption<bool>();
+		ciMode = CliOptions.Logging.CiMode.CreateOption<bool>();
+		logLevel = CliOptions.Logging.LogLevel.CreateOption<LogLevel?>();
 
-		ciMode = new(CliOptions.Logging.CiMode.Primary, CliOptions.Logging.CiMode.Aliases)
-		{
-			Description = CliOptions.Logging.CiMode.Description,
-			Required = false
-		};
-
-		logLevel = new(CliOptions.Logging.LogLevel.Primary, CliOptions.Logging.LogLevel.Aliases)
-		{
-			Description = CliOptions.Logging.LogLevel.Description,
-			Required = false
-		};
+		// Shared options owned by root command, passed into command override providers
+		assembly = CliOptions.Assembly.CreateOption<string?>();
+		solution = CliOptions.Solution.CreateOption<string?>();
 
 		Add(dryRun);
 		Add(ciMode);
 		Add(logLevel);
+		Add(assembly);
+		Add(solution);
+
+		// Discover and register override options from sub-commands
+		var providers = new List<ProfileOverrideProvider>();
+		foreach (var cmd in subCommands)
+		{
+			var provider = cmd.GetProfileOverrides(assembly, solution);
+			if (provider == null) continue;
+			providers.Add(provider);
+			foreach (var option in provider.Options)
+				Add(option);
+		}
+		profileOverrideProviders = providers.AsReadOnly();
 
 		AddSharedOptions();
 		SetAction(ExecuteAsync);
@@ -67,58 +76,109 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		var ciModeOverride = parseResult.GetValue(ciMode);
 		var logLevelOverride = parseResult.GetValue(logLevel);
 
-		// Build service provider
-		var serviceProvider = new ServiceCollection()
-			.AddXrmSyncConfiguration(sharedOptions)
-			.AddOptions(baseOptions => baseOptions with
-			{
-				LogLevel = logLevelOverride ?? baseOptions.LogLevel,
-				CiMode = ciModeOverride || baseOptions.CiMode,
-				DryRun = dryRunOverride || baseOptions.DryRun
-			})
-			.AddLogger()
-			.BuildServiceProvider();
-
-		var xrmSyncConfig = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<XrmSyncConfiguration>>().Value;
-		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncRootCommand>>();
-
-		// Find the profile using centralized resolution (handles single-profile auto-select and "default" convention)
-		var configBuilder = serviceProvider.GetRequiredService<IConfigurationBuilder>();
-		var profile = configBuilder.GetProfile(sharedOptions.ProfileName);
-
-		if (profile == null)
+		// Load raw profile and config from appsettings
+		ProfileConfiguration? rawProfile;
+		XrmSyncConfiguration rawConfig;
+		try
 		{
-			logger.LogError("Profile '{profileName}' not found. Use 'xrmsync config list' to see available profiles.", sharedOptions.ProfileName);
+			(rawProfile, rawConfig) = LoadProfileAndConfig(sharedOptions.ProfileName);
+		}
+		catch (Model.Exceptions.XrmSyncException ex)
+		{
+			Console.Error.WriteLine(ex.Message);
 			return E_ERROR;
 		}
 
-		if (logger.IsEnabled(LogLevel.Information))
+		if (rawProfile == null)
 		{
-			logger.LogInformation("Running XrmSync with profile: {profileName} (DryRun: {dryRun})",
-				profile.Name, xrmSyncConfig.DryRun);
+			Console.Error.WriteLine($"Profile '{sharedOptions.ProfileName}' not found. Use 'xrmsync config list' to see available profiles.");
+			return E_ERROR;
 		}
 
-		if (profile.Sync.Count == 0)
+		// Merge CLI overrides into each sync item via advertised providers
+		var mergedSync = rawProfile.Sync.Select(item =>
 		{
-			logger.LogWarning("Profile '{profileName}' has no sync items configured. Nothing to execute.", profile.Name);
+			foreach (var provider in profileOverrideProviders)
+			{
+				var merged = provider.MergeSyncItem(item, parseResult);
+				if (merged != null) return merged;
+			}
+			return item;
+		}).ToList();
+
+		// Apply solution override at profile level
+		var solutionOverride = parseResult.GetValue(solution);
+		var mergedSolutionName = !string.IsNullOrWhiteSpace(solutionOverride) ? solutionOverride : rawProfile.SolutionName;
+		var mergedProfile = rawProfile with { SolutionName = mergedSolutionName, Sync = mergedSync };
+
+		// Build merged config: profile with CLI-overridden sync items + execution mode overrides
+		var mergedConfig = rawConfig with
+		{
+			DryRun = dryRunOverride || rawConfig.DryRun,
+			CiMode = ciModeOverride || rawConfig.CiMode,
+			LogLevel = logLevelOverride ?? rawConfig.LogLevel,
+			Profiles = rawConfig.Profiles
+				.Select(p => p.Name == mergedProfile.Name ? mergedProfile : p)
+				.ToList()
+		};
+
+		// Build DI service provider with merged config
+		var serviceProvider = new ServiceCollection()
+			.AddSingleton(MSOptions.Create(mergedConfig))
+			.AddSingleton(MSOptions.Create(sharedOptions))
+			.AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
+			.AddSingleton<IDescription, Description>()
+			.AddLogger()
+			.BuildServiceProvider();
+
+		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncRootCommand>>();
+		var description = serviceProvider.GetRequiredService<IDescription>();
+
+		logger.LogInformation("{header}", description.ToolHeader);
+		logger.LogInformation("Running with profile: {profileName}", mergedProfile.Name);
+
+		if (mergedConfig.DryRun)
+		{
+			logger.LogInformation("***** DRY RUN *****");
+			logger.LogInformation("No changes will be made to Dataverse.");
+		}
+
+		if (mergedProfile.Sync.Count == 0)
+		{
+			logger.LogWarning("Profile '{profileName}' has no sync items configured. Nothing to execute.", mergedProfile.Name);
+			return E_ERROR;
+		}
+
+		// Validate merged profile configuration upfront before executing any sync items.
+		// Identity credentials (ClientId/TenantId) are now included because they may be
+		// supplied via CLI overrides (--client-id, --tenant-id) and are already merged above.
+		try
+		{
+			var validator = serviceProvider.GetRequiredService<IConfigurationValidator>();
+			validator.Validate(ConfigurationScope.All);
+		}
+		catch (Exception ex)
+		{
+			logger.LogCritical("Configuration validation failed — aborting:{nl}{message}", Environment.NewLine, ex.Message);
 			return E_ERROR;
 		}
 
 		var success = true;
 
-		// Create argument overrides DTO
-		var overrides = new ArgumentOverrides(dryRunOverride, ciModeOverride, logLevelOverride);
+		// Create argument overrides DTO from merged config values
+		var overrides = new ArgumentOverrides(mergedConfig.DryRun, mergedConfig.CiMode, mergedConfig.LogLevel);
 
-		// Execute each sync item in the profile
-		foreach (var syncItem in profile.Sync)
+		// Execute each sync item in the merged profile
+		foreach (var syncItem in mergedProfile.Sync)
 		{
 			logger.LogInformation("Executing {syncType} sync item...", syncItem.SyncType);
 
 			int result = syncItem switch
 			{
-				PluginSyncItem plugin => await ExecutePluginSync(plugin, profile, sharedOptions, overrides, xrmSyncConfig),
+				PluginSyncItem plugin => await ExecutePluginSync(plugin, mergedProfile, sharedOptions, overrides, mergedConfig),
 				PluginAnalysisSyncItem analysis => await ExecutePluginAnalysis(analysis, sharedOptions),
-				WebresourceSyncItem webresource => await ExecuteWebresourceSync(webresource, profile, sharedOptions, overrides, xrmSyncConfig),
+				WebresourceSyncItem webresource => await ExecuteWebresourceSync(webresource, mergedProfile, sharedOptions, overrides, mergedConfig),
+				IdentitySyncItem identity => await ExecuteIdentity(identity, mergedProfile, sharedOptions, overrides, mergedConfig),
 				_ => LogUnknownSyncItemType(logger, syncItem.SyncType)
 			};
 
@@ -200,6 +260,39 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
 		AddCommonArgs(args, overrides, config);
 		return await ExecuteSubCommand("webresources", [.. args]);
+	}
+
+	private async Task<int> ExecuteIdentity(
+		IdentitySyncItem syncItem,
+		ProfileConfiguration profile,
+		SharedOptions sharedOptions,
+		ArgumentOverrides overrides,
+		XrmSyncConfiguration config)
+	{
+		var args = new List<string>
+		{
+			CliOptions.ManagedIdentity.Operation.Primary, syncItem.Operation.ToString(),
+			CliOptions.Assembly.Primary, syncItem.AssemblyPath,
+			CliOptions.Solution.Primary, profile.SolutionName
+		};
+
+		if (syncItem.Operation == IdentityOperation.Ensure)
+		{
+			// Values are guaranteed non-empty at this point (validation passed)
+			if (!string.IsNullOrWhiteSpace(syncItem.ClientId))
+				args.AddRange([CliOptions.ManagedIdentity.ClientId.Primary, syncItem.ClientId]);
+			if (!string.IsNullOrWhiteSpace(syncItem.TenantId))
+				args.AddRange([CliOptions.ManagedIdentity.TenantId.Primary, syncItem.TenantId]);
+		}
+
+		if (!string.IsNullOrWhiteSpace(sharedOptions.ProfileName))
+		{
+			args.Add(CliOptions.Config.Profile.Primary);
+			args.Add(sharedOptions.ProfileName);
+		}
+
+		AddCommonArgs(args, overrides, config);
+		return await ExecuteSubCommand("identity", [.. args]);
 	}
 
 	private static void AddCommonArgs(List<string> args, ArgumentOverrides overrides, XrmSyncConfiguration config)

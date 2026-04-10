@@ -44,10 +44,16 @@ Write-Host "`nRestoring dependencies..." -ForegroundColor Yellow
 dotnet restore $csprojPath
 if ($LASTEXITCODE -ne 0) { Write-Error "Failed to restore dependencies" }
 
+dotnet restore $testsPath
+if ($LASTEXITCODE -ne 0) { Write-Error "Failed to restore test dependencies" }
+
 # 3. Build
 Write-Host "`nBuilding..." -ForegroundColor Yellow
 dotnet build $csprojPath --no-restore --configuration $Configuration
 if ($LASTEXITCODE -ne 0) { Write-Error "Build failed" }
+
+dotnet build $testsPath --no-restore --configuration $Configuration
+if ($LASTEXITCODE -ne 0) { Write-Error "Test build failed" }
 
 # 4. Test
 Write-Host "`nRunning tests..." -ForegroundColor Yellow

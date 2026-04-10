@@ -39,6 +39,9 @@ public static class ServiceCollectionExtensions
 		services.AddSingleton<IWebresourceReader, WebresourceReader>();
 		services.AddSingleton<IWebresourceWriter, WebresourceWriter>();
 
+		services.AddSingleton<IManagedIdentityReader, ManagedIdentityReader>();
+		services.AddSingleton<IManagedIdentityWriter, ManagedIdentityWriter>();
+
 		return services;
 	}
 
