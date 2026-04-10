@@ -20,6 +20,9 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 	private readonly Option<string> prefix;
 	private readonly Option<bool> prettyPrint;
 
+	// Root-level override options (advertised to XrmSyncRootCommand via GetProfileOverrides)
+	private readonly Option<string?> rootPrefix = CliOptions.Analysis.Prefix.CreateOption<string?>();
+
 	public PluginAnalyzeCommand() : base("analyze", "Analyze a plugin assembly and output info as JSON")
 	{
 		assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
@@ -48,6 +51,24 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 		SetAction(ExecuteAsync);
 	}
 
+	/// <summary>
+	/// Advertises --prefix as a root-level override.
+	/// The shared assembly option is used in the merge callback but owned by the root command.
+	/// </summary>
+	public override ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => new(
+		options: [rootPrefix],
+		mergeSyncItem: (item, parseResult) =>
+		{
+			if (item is not PluginAnalysisSyncItem analysis) return null;
+			var assemblyValue = parseResult.GetValue(assembly);
+			var prefixValue = parseResult.GetValue(rootPrefix);
+			return analysis with
+			{
+				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyValue) ? assemblyValue : analysis.AssemblyPath,
+				PublisherPrefix = !string.IsNullOrWhiteSpace(prefixValue) ? prefixValue : analysis.PublisherPrefix
+			};
+		});
+
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
 		var assemblyPath = parseResult.GetValue(assemblyFile);
@@ -74,19 +95,18 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 			try { profile = LoadProfile(sharedOptions.ProfileName); }
 			catch (XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
 
-			var pluginAnalysisItem = profile?.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
-			if (profile == null || pluginAnalysisItem == null)
+			if (profile == null)
 			{
-				Console.Error.WriteLine(
-					profile == null
-						? "No profiles configured. Specify --assembly and --prefix, or add a profile to appsettings.json."
-						: $"Profile '{profile.Name}' does not contain a PluginAnalysis sync item. Specify --assembly and --prefix, or add a PluginAnalysis sync item to the profile.");
+				Console.Error.WriteLine("No profiles configured. Specify --assembly and --prefix, or add a profile to appsettings.json.");
 				return E_ERROR;
 			}
 
-			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : pluginAnalysisItem.AssemblyPath;
-			finalPublisherPrefix = !string.IsNullOrWhiteSpace(publisherPrefix) ? publisherPrefix : pluginAnalysisItem.PublisherPrefix;
-			finalPrettyPrint = prettyPrint || pluginAnalysisItem.PrettyPrint;
+			// Sync item is optional — if absent, CLI must supply all analysis-specific values
+			var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
+
+			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : (pluginAnalysisItem?.AssemblyPath ?? string.Empty);
+			finalPublisherPrefix = !string.IsNullOrWhiteSpace(publisherPrefix) ? publisherPrefix : (pluginAnalysisItem?.PublisherPrefix ?? string.Empty);
+			finalPrettyPrint = prettyPrint || (pluginAnalysisItem?.PrettyPrint ?? false);
 		}
 
 		// Validate resolved values

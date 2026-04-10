@@ -8,54 +8,41 @@ internal static class CliOptions
 	/// <summary>
 	/// Assembly/Plugin options
 	/// </summary>
-	internal static class Assembly
-	{
-		public const string Primary = "--assembly";
-		public static readonly string[] Aliases = ["--assembly-file", "-a", "--af"];
-		public const string Description = "Path to the plugin assembly (*.dll)";
-	}
+	public static readonly CliOptionDescriptor Assembly = new(
+		"--assembly", ["--assembly-file", "-a", "--af"],
+		"Path to the plugin assembly (*.dll)");
 
 	/// <summary>
 	/// Webresource folder options
 	/// </summary>
-	internal static class Webresource
-	{
-		public const string Primary = "--folder";
-		public static readonly string[] Aliases = ["--webresources", "-w", "--wr", "--path"];
-		public const string Description = "Path to the root folder containing the webresources to sync";
-	}
+	public static readonly CliOptionDescriptor Webresource = new(
+		"--folder", ["--webresources", "-w", "--wr", "--path"],
+		"Path to the root folder containing the webresources to sync");
 
 	/// <summary>
 	/// File extension filter options
 	/// </summary>
-	internal static class FileExtensions
-	{
-		public const string Primary = "--file-extensions";
-		public static readonly string[] Aliases = ["--ext", "-e"];
-		public const string Description = "File extensions to include in the sync (e.g. js css). When omitted, all supported types are synced.";
-	}
+	public static readonly CliOptionDescriptor FileExtensions = new(
+		"--file-extensions", ["--ext", "-e"],
+		"File extensions to include in the sync (e.g. js css). When omitted, all supported types are synced.",
+		Arity: System.CommandLine.ArgumentArity.ZeroOrMore,
+		AllowMultipleArgumentsPerToken: true);
 
 	/// <summary>
 	/// Solution name options
 	/// </summary>
-	internal static class Solution
-	{
-		public const string Primary = "--solution";
-		public static readonly string[] Aliases = ["--solution-name", "--sn", "-n"];
-		public const string Description = "Name of the solution";
-	}
+	public static readonly CliOptionDescriptor Solution = new(
+		"--solution", ["--solution-name", "--sn", "-n"],
+		"Name of the solution");
 
 	/// <summary>
 	/// Execution mode options
 	/// </summary>
 	internal static class Execution
 	{
-		internal static class DryRun
-		{
-			public const string Primary = "--dry-run";
-			public static readonly string[] Aliases = ["--dryrun", "--dr"];
-			public const string Description = "Perform a dry run without making changes to Dataverse";
-		}
+		public static readonly CliOptionDescriptor DryRun = new(
+			"--dry-run", ["--dryrun", "--dr"],
+			"Perform a dry run without making changes to Dataverse");
 	}
 
 	/// <summary>
@@ -63,19 +50,13 @@ internal static class CliOptions
 	/// </summary>
 	internal static class Logging
 	{
-		internal static class CiMode
-		{
-			public const string Primary = "--ci-mode";
-			public static readonly string[] Aliases = ["--ci"];
-			public const string Description = "Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems";
-		}
+		public static readonly CliOptionDescriptor CiMode = new(
+			"--ci-mode", ["--ci"],
+			"Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems");
 
-		internal static class LogLevel
-		{
-			public const string Primary = "--log-level";
-			public static readonly string[] Aliases = ["-l", "--ll", "--loglevel"];
-			public const string Description = "Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) (Default: Information)";
-		}
+		public static readonly CliOptionDescriptor LogLevel = new(
+			"--log-level", ["-l", "--ll", "--loglevel"],
+			"Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) (Default: Information)");
 	}
 
 	/// <summary>
@@ -83,18 +64,13 @@ internal static class CliOptions
 	/// </summary>
 	internal static class Config
 	{
-		public static class Profile
-		{
-			public const string Primary = "--profile";
-			public static readonly string[] Aliases = ["--profile-name", "-p"];
-			public const string Description = "Name of the profile to load from appsettings.json (automatically uses single profile if only one exists)";
-		}
+		public static readonly CliOptionDescriptor Profile = new(
+			"--profile", ["--profile-name", "-p"],
+			"Name of the profile to load from appsettings.json (automatically uses single profile if only one exists)");
 
-		public static class All
-		{
-			public const string Primary = "--all";
-			public const string Description = "Validate all profiles found in the configuration";
-		}
+		public static readonly CliOptionDescriptor All = new(
+			"--all", [],
+			"Validate all profiles found in the configuration");
 	}
 
 	/// <summary>
@@ -102,26 +78,17 @@ internal static class CliOptions
 	/// </summary>
 	internal static class ManagedIdentity
 	{
-		internal static class Operation
-		{
-			public const string Primary = "--operation";
-			public static readonly string[] Aliases = ["-o", "--op"];
-			public const string Description = "The operation to perform: Remove or Ensure";
-		}
+		public static readonly CliOptionDescriptor Operation = new(
+			"--operation", ["-o", "--op"],
+			"The operation to perform: Remove or Ensure");
 
-		internal static class ClientId
-		{
-			public const string Primary = "--client-id";
-			public static readonly string[] Aliases = ["--cid"];
-			public const string Description = "Azure AD application (client) ID for the managed identity";
-		}
+		public static readonly CliOptionDescriptor ClientId = new(
+			"--client-id", ["--cid"],
+			"Azure AD application (client) ID for the managed identity");
 
-		internal static class TenantId
-		{
-			public const string Primary = "--tenant-id";
-			public static readonly string[] Aliases = ["--tid"];
-			public const string Description = "Azure AD tenant ID for the managed identity";
-		}
+		public static readonly CliOptionDescriptor TenantId = new(
+			"--tenant-id", ["--tid"],
+			"Azure AD tenant ID for the managed identity");
 	}
 
 	/// <summary>
@@ -129,18 +96,12 @@ internal static class CliOptions
 	/// </summary>
 	internal static class Analysis
 	{
-		public static class Prefix
-		{
-			public const string Primary = "--prefix";
-			public static readonly string[] Aliases = ["--publisher-prefix", "-p"];
-			public const string Description = "Publisher prefix for unique names (Default: new)";
-		}
+		public static readonly CliOptionDescriptor Prefix = new(
+			"--prefix", ["--publisher-prefix", "-pp"],
+			"Publisher prefix for unique names (Default: new)");
 
-		public static class PrettyPrint
-		{
-			public const string Primary = "--pretty-print";
-			public static readonly string[] Aliases = ["--pp"];
-			public const string Description = "Pretty print the JSON output";
-		}
+		public static readonly CliOptionDescriptor PrettyPrint = new(
+			"--pretty-print", ["--pp"],
+			"Pretty print the JSON output");
 	}
 }

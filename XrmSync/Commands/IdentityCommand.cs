@@ -18,6 +18,10 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 	private readonly Option<string> clientId;
 	private readonly Option<string> tenantId;
 
+	// Root-level override options (advertised to XrmSyncRootCommand via GetProfileOverrides)
+	private readonly Option<string?> rootClientId = CliOptions.ManagedIdentity.ClientId.CreateOption<string?>();
+	private readonly Option<string?> rootTenantId = CliOptions.ManagedIdentity.TenantId.CreateOption<string?>();
+
 	public IdentityCommand() : base("identity", "Manage the managed identity linked to a plugin assembly")
 	{
 		operation = new(CliOptions.ManagedIdentity.Operation.Primary, CliOptions.ManagedIdentity.Operation.Aliases)
@@ -56,6 +60,26 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 		SetAction(ExecuteAsync);
 	}
 
+	/// <summary>
+	/// Advertises --client-id and --tenant-id as root-level overrides.
+	/// The shared assembly option is used in the merge callback but owned by the root command.
+	/// </summary>
+	public override ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => new(
+		options: [rootClientId, rootTenantId],
+		mergeSyncItem: (item, parseResult) =>
+		{
+			if (item is not IdentitySyncItem identity) return null;
+			var clientIdValue = parseResult.GetValue(rootClientId);
+			var tenantIdValue = parseResult.GetValue(rootTenantId);
+			var assemblyValue = parseResult.GetValue(assembly);
+			return identity with
+			{
+				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyValue) ? assemblyValue : identity.AssemblyPath,
+				ClientId = !string.IsNullOrWhiteSpace(clientIdValue) ? clientIdValue : identity.ClientId,
+				TenantId = !string.IsNullOrWhiteSpace(tenantIdValue) ? tenantIdValue : identity.TenantId
+			};
+		});
+
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
 		var operationValue = parseResult.GetValue(operation);
@@ -88,21 +112,20 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 			try { profile = LoadProfile(sharedOptions.ProfileName); }
 			catch (XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
 
-			var syncItem = profile?.Sync.OfType<IdentitySyncItem>().FirstOrDefault(i => i.Operation == operationValue);
-			if (profile == null || syncItem == null)
+			if (profile == null)
 			{
-				Console.Error.WriteLine(
-					profile == null
-						? "No profiles configured. Specify --assembly and --solution, or add a profile to appsettings.json."
-						: $"Profile '{profile.Name}' does not contain an Identity {operationValue} sync item. Specify --assembly and --solution, or add a matching Identity sync item to the profile.");
+				Console.Error.WriteLine("No profiles configured. Specify --assembly and --solution, or add a profile to appsettings.json.");
 				return E_ERROR;
 			}
 
-			finalOperation = syncItem.Operation;
-			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : syncItem.AssemblyPath;
+			// Sync item is optional — if absent, CLI must supply all identity-specific values
+			var syncItem = profile.Sync.OfType<IdentitySyncItem>().FirstOrDefault(i => i.Operation == operationValue);
+
+			finalOperation = operationValue;
+			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : (syncItem?.AssemblyPath ?? string.Empty);
 			finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
-			finalClientId = !string.IsNullOrWhiteSpace(clientIdValue) ? clientIdValue : syncItem.ClientId;
-			finalTenantId = !string.IsNullOrWhiteSpace(tenantIdValue) ? tenantIdValue : syncItem.TenantId;
+			finalClientId = !string.IsNullOrWhiteSpace(clientIdValue) ? clientIdValue : syncItem?.ClientId;
+			finalTenantId = !string.IsNullOrWhiteSpace(tenantIdValue) ? tenantIdValue : syncItem?.TenantId;
 		}
 
 		// Validate resolved values

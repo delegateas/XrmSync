@@ -30,6 +30,21 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 		SetAction(ExecuteAsync);
 	}
 
+	/// <summary>
+	/// Plugin sync has no unique override options — it only uses the shared assembly + solution options.
+	/// </summary>
+	public override ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => new(
+		options: [],
+		mergeSyncItem: (item, parseResult) =>
+		{
+			if (item is not PluginSyncItem plugin) return null;
+			var assemblyValue = parseResult.GetValue(assembly);
+			return plugin with
+			{
+				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyValue) ? assemblyValue : plugin.AssemblyPath
+			};
+		});
+
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
 		var assemblyPath = parseResult.GetValue(assemblyFile);
@@ -53,17 +68,16 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 			try { profile = LoadProfile(sharedOptions.ProfileName); }
 			catch (Model.Exceptions.XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
 
-			var pluginSyncItem = profile?.Sync.OfType<PluginSyncItem>().FirstOrDefault();
-			if (profile == null || pluginSyncItem == null)
+			if (profile == null)
 			{
-				Console.Error.WriteLine(
-					profile == null
-						? "No profiles configured. Specify --assembly and --solution, or add a profile to appsettings.json."
-						: $"Profile '{profile.Name}' does not contain a Plugin sync item. Specify --assembly and --solution, or add a Plugin sync item to the profile.");
+				Console.Error.WriteLine("No profiles configured. Specify --assembly and --solution, or add a profile to appsettings.json.");
 				return E_ERROR;
 			}
 
-			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : pluginSyncItem.AssemblyPath;
+			// Sync item is optional — if absent, CLI must supply all plugin-specific values
+			var pluginSyncItem = profile.Sync.OfType<PluginSyncItem>().FirstOrDefault();
+
+			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : (pluginSyncItem?.AssemblyPath ?? string.Empty);
 			finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
 		}
 

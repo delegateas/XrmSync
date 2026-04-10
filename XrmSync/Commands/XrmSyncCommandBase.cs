@@ -22,6 +22,12 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	public Command GetCommand() => this;
 
 	/// <summary>
+	/// Default implementation: this command advertises no profile overrides.
+	/// Override in subclasses to expose sync-item-specific CLI options on the root command.
+	/// </summary>
+	public virtual ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => null;
+
+	/// <summary>
 	/// Adds shared options to the command (profile)
 	/// </summary>
 	protected void AddSharedOptions()
@@ -65,6 +71,20 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	{
 		var configuration = new ConfigReader().GetConfiguration();
 		return new XrmSyncConfigurationBuilder(configuration).GetProfile(profileName);
+	}
+
+	/// <summary>
+	/// Loads configuration and resolves a profile, returning both.
+	/// Returns null profile when no profiles are configured.
+	/// Throws XrmSyncException when an explicitly requested profile is not found.
+	/// </summary>
+	protected static (ProfileConfiguration? Profile, XrmSyncConfiguration Config) LoadProfileAndConfig(string? profileName)
+	{
+		var configuration = new ConfigReader().GetConfiguration();
+		var builder = new XrmSyncConfigurationBuilder(configuration);
+		var config = builder.Build();
+		var profile = builder.GetProfile(profileName);
+		return (profile, config);
 	}
 
 	/// <summary>

@@ -15,6 +15,10 @@ namespace XrmSync.Commands
 		private readonly Option<string> webresourceRoot;
 		private readonly Option<string[]> fileExtensions;
 
+		// Root-level override options (advertised to XrmSyncRootCommand via GetProfileOverrides)
+		private readonly Option<string?> rootFolder = CliOptions.Webresource.CreateOption<string?>();
+		private readonly Option<string[]?> rootFileExtensions = CliOptions.FileExtensions.CreateOption<string[]?>();
+
 		public WebresourceSyncCommand() : base("webresources", "Synchronize webresources from a local folder with Dataverse")
 		{
 			webresourceRoot = new(CliOptions.Webresource.Primary, CliOptions.Webresource.Aliases)
@@ -38,6 +42,24 @@ namespace XrmSync.Commands
 
 			SetAction(ExecuteAsync);
 		}
+
+		/// <summary>
+		/// Advertises --folder and --file-extensions as root-level overrides.
+		/// The shared solution option is used in the merge callback but owned by the root command.
+		/// </summary>
+		public override ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => new(
+			options: [rootFolder, rootFileExtensions],
+			mergeSyncItem: (item, parseResult) =>
+			{
+				if (item is not WebresourceSyncItem webresource) return null;
+				var folderValue = parseResult.GetValue(rootFolder);
+				var extensions = parseResult.GetValue(rootFileExtensions);
+				return webresource with
+				{
+					FolderPath = !string.IsNullOrWhiteSpace(folderValue) ? folderValue : webresource.FolderPath,
+					FileExtensions = extensions is { Length: > 0 } ? extensions.ToList() : webresource.FileExtensions
+				};
+			});
 
 		private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 		{
@@ -65,19 +87,18 @@ namespace XrmSync.Commands
 				try { profile = LoadProfile(sharedOptions.ProfileName); }
 				catch (Model.Exceptions.XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
 
-				var webresourceSyncItem = profile?.Sync.OfType<WebresourceSyncItem>().FirstOrDefault();
-				if (profile == null || webresourceSyncItem == null)
+				if (profile == null)
 				{
-					Console.Error.WriteLine(
-						profile == null
-							? "No profiles configured. Specify --folder and --solution, or add a profile to appsettings.json."
-							: $"Profile '{profile.Name}' does not contain a Webresource sync item. Specify --folder and --solution, or add a Webresource sync item to the profile.");
+					Console.Error.WriteLine("No profiles configured. Specify --folder and --solution, or add a profile to appsettings.json.");
 					return E_ERROR;
 				}
 
-				finalFolderPath = !string.IsNullOrWhiteSpace(folderPath) ? folderPath : webresourceSyncItem.FolderPath;
+				// Sync item is optional — if absent, CLI must supply all webresource-specific values
+				var webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault();
+
+				finalFolderPath = !string.IsNullOrWhiteSpace(folderPath) ? folderPath : (webresourceSyncItem?.FolderPath ?? string.Empty);
 				finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
-				finalExtensions = extensionsValue is { Length: > 0 } ? extensionsValue.ToList() : webresourceSyncItem.FileExtensions;
+				finalExtensions = extensionsValue is { Length: > 0 } ? extensionsValue.ToList() : webresourceSyncItem?.FileExtensions;
 			}
 
 			// Validate resolved values
