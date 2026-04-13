@@ -95,6 +95,36 @@ You can also override specific options when using a configuration file:
 xrmsync plugins --dry-run --log-level Debug
 ```
 
+#### Runtime CLI Overrides
+
+When running via `--profile`, any sync-item field that isn't stored in the profile (e.g. credentials that shouldn't be committed to source control) can be supplied directly on the root command:
+
+```bash
+# Supply managed identity credentials at runtime
+xrmsync --profile pipepro --client-id <guid> --tenant-id <guid>
+
+# Override the assembly path without editing appsettings.json
+xrmsync --profile dev --assembly path/to/MyPlugin.dll
+
+# Override folder and restrict file types
+xrmsync --profile dev --folder path/to/webresources --file-extensions js css
+
+# Combine profile with execution overrides and credential overrides
+xrmsync --profile prod --dry-run --client-id <guid> --tenant-id <guid>
+```
+
+The root command accepts the following override options in addition to `--dry-run`, `--ci-mode`, and `--log-level`:
+
+| Option | Applies to |
+|--------|-----------|
+| `--assembly` | Plugin sync, Plugin analysis, Identity |
+| `--solution` | All sync types |
+| `--folder` | Webresource sync |
+| `--file-extensions` | Webresource sync |
+| `--prefix` | Plugin analysis |
+| `--client-id` | Identity (Ensure) |
+| `--tenant-id` | Identity (Ensure) |
+
 ### Command Line Options
 
 #### Plugins Command
@@ -142,7 +172,7 @@ The webresource name in Dataverse is determined by the file path relative to the
 | Option | Short | Description | Required |
 |--------|-------|-------------|----------|
 | `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
-| `--prefix` | `-p` | Publisher prefix for unique names | No (Default: "new") |
+| `--prefix` | `-pp` | Publisher prefix for unique names | No (Default: "new") |
 | `--pretty-print` | `--pp` | Pretty print the JSON output | No |
 
 *Required when not present in appsettings.json
@@ -207,11 +237,14 @@ This outputs JSON information about the plugin types, steps, and images found in
 You can validate your configuration files to ensure they are correctly set up:
 
 ```bash
-# Validate the default configuration
+# Validate the default (or only) profile
 xrmsync config validate
 
-# Validate a specific named configuration
+# Validate a specific named profile
 xrmsync config validate --profile dev
+
+# Validate all profiles at once
+xrmsync config validate --all
 ```
 
 The `config validate` command shows:
