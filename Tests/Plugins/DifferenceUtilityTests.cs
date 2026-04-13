@@ -29,7 +29,7 @@ public class DifferenceUtilityTests
 			new CustomApiComparer(description),
 			new RequestParameterComparer(),
 			new ResponsePropertyComparer(),
-			new PrintService(logger, Options.Create(options), new Description(), Substitute.For<IDataverseReader>())
+			new PrintService(logger, Options.Create(options), Substitute.For<IDataverseReader>())
 		);
 	}
 

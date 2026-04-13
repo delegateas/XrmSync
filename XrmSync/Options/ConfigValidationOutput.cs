@@ -38,37 +38,7 @@ internal class ConfigValidationOutput(
 		Console.WriteLine($"  CI Mode: {config.CiMode}");
 		Console.WriteLine();
 
-		// Display profile settings
-		Console.WriteLine($"✓ Profile '{profile.Name}'");
-		Console.WriteLine($"  Solution Name: {profile.SolutionName}");
-		Console.WriteLine();
-
-		// Display and validate sync items
-		var allValid = true;
-		if (profile.Sync.Count == 0)
-		{
-			Console.WriteLine("  ⊘ No sync items configured");
-			Console.WriteLine();
-		}
-		else
-		{
-			Console.WriteLine($"  Sync Items ({profile.Sync.Count}):");
-			Console.WriteLine();
-
-			for (int i = 0; i < profile.Sync.Count; i++)
-			{
-				var syncItem = profile.Sync[i];
-				allValid &= OutputSyncItemValidation(i + 1, syncItem, profile.Name);
-			}
-		}
-
-		// Display available commands
-		var availableCommands = GetAvailableCommands(profile);
-		if (availableCommands.Count != 0)
-		{
-			Console.WriteLine($"Available Commands: {string.Join(", ", availableCommands)}");
-			Console.WriteLine();
-		}
+		var allValid = OutputProfileValidation(profile);
 
 		// Final validation status
 		if (allValid)
@@ -78,6 +48,67 @@ internal class ConfigValidationOutput(
 		else
 		{
 			Console.WriteLine("Validation: FAILED - See errors above");
+		}
+
+		return Task.CompletedTask;
+	}
+
+	public Task OutputAllValidationResults(CancellationToken cancellationToken = default)
+	{
+		if (configOptions == null)
+		{
+			throw new InvalidOperationException("ConfigValidationOutput requires XrmSyncConfiguration to validate configuration.");
+		}
+
+		var config = configOptions.Value;
+		var configSource = GetConfigurationSource();
+
+		if (config.Profiles.Count == 0)
+		{
+			Console.WriteLine($"No profiles configured in {configSource}");
+			return Task.CompletedTask;
+		}
+
+		Console.WriteLine($"Validating all profiles (from {configSource})");
+		Console.WriteLine();
+
+		// Display global settings once
+		Console.WriteLine("✓ Global Configuration");
+		Console.WriteLine($"  Dry Run: {config.DryRun}");
+		Console.WriteLine($"  Log Level: {config.LogLevel}");
+		Console.WriteLine($"  CI Mode: {config.CiMode}");
+		Console.WriteLine();
+
+		var profileResults = new List<(string Name, bool Valid)>();
+
+		foreach (var profile in config.Profiles)
+		{
+			Console.WriteLine(new string('─', 40));
+			Console.WriteLine($"Profile: '{profile.Name}'");
+			Console.WriteLine();
+
+			var valid = OutputProfileValidation(profile);
+			profileResults.Add((profile.Name, valid));
+		}
+
+		Console.WriteLine(new string('─', 40));
+		Console.WriteLine();
+
+		// Summary
+		var passCount = profileResults.Count(r => r.Valid);
+		Console.WriteLine($"Summary: {passCount}/{profileResults.Count} profiles passed validation");
+
+		if (passCount < profileResults.Count)
+		{
+			var failed = profileResults.Where(r => !r.Valid).Select(r => r.Name);
+			Console.WriteLine($"Failed: {string.Join(", ", failed)}");
+			Console.WriteLine();
+			Console.WriteLine("Validation: FAILED");
+		}
+		else
+		{
+			Console.WriteLine();
+			Console.WriteLine("Validation: PASSED");
 		}
 
 		return Task.CompletedTask;
@@ -140,6 +171,43 @@ internal class ConfigValidationOutput(
 		return Task.CompletedTask;
 	}
 
+	private bool OutputProfileValidation(ProfileConfiguration profile)
+	{
+		// Display profile settings
+		Console.WriteLine($"✓ Profile '{profile.Name}'");
+		Console.WriteLine($"  Solution Name: {profile.SolutionName}");
+		Console.WriteLine();
+
+		// Display and validate sync items
+		var allValid = true;
+		if (profile.Sync.Count == 0)
+		{
+			Console.WriteLine("  ⊘ No sync items configured");
+			Console.WriteLine();
+		}
+		else
+		{
+			Console.WriteLine($"  Sync Items ({profile.Sync.Count}):");
+			Console.WriteLine();
+
+			for (int i = 0; i < profile.Sync.Count; i++)
+			{
+				var syncItem = profile.Sync[i];
+				allValid &= OutputSyncItemValidation(i + 1, syncItem, profile.Name);
+			}
+		}
+
+		// Display available commands
+		var availableCommands = GetAvailableCommands(profile);
+		if (availableCommands.Count != 0)
+		{
+			Console.WriteLine($"Available Commands: {string.Join(", ", availableCommands)}");
+			Console.WriteLine();
+		}
+
+		return allValid;
+	}
+
 	private bool OutputSyncItemValidation(int index, SyncItem syncItem, string profileName)
 	{
 		var itemLabel = $"  [{index}] {syncItem.SyncType}";
@@ -151,6 +219,7 @@ internal class ConfigValidationOutput(
 				PluginSyncItem plugin => ValidatePluginSync(plugin),
 				PluginAnalysisSyncItem analysis => ValidatePluginAnalysis(analysis),
 				WebresourceSyncItem webresource => ValidateWebresource(webresource),
+				IdentitySyncItem identity => ValidateIdentity(identity),
 				_ => new List<string> { "Unknown sync item type" }
 			};
 
@@ -197,60 +266,38 @@ internal class ConfigValidationOutput(
 				if (webresource.FileExtensions is { Count: > 0 })
 					Console.WriteLine($"      File Extensions: {string.Join(", ", webresource.FileExtensions)}");
 				break;
+			case IdentitySyncItem identity:
+				Console.WriteLine($"      Operation: {identity.Operation}");
+				Console.WriteLine($"      Assembly Path: {identity.AssemblyPath}");
+				if (identity.Operation == IdentityOperation.Ensure)
+				{
+					Console.WriteLine($"      Client ID: {identity.ClientId}");
+					Console.WriteLine($"      Tenant ID: {identity.TenantId}");
+				}
+				break;
 		}
 	}
 
-	private List<string> ValidatePluginSync(PluginSyncItem plugin)
+	private static List<string> ValidatePluginSync(PluginSyncItem plugin) =>
+		[.. XrmSyncConfigurationValidator.ValidateAssemblyPath(plugin.AssemblyPath)];
+
+	private static List<string> ValidatePluginAnalysis(PluginAnalysisSyncItem analysis) =>
+	[
+		.. XrmSyncConfigurationValidator.ValidateAssemblyPath(analysis.AssemblyPath),
+		.. XrmSyncConfigurationValidator.ValidatePublisherPrefix(analysis.PublisherPrefix)
+	];
+
+	private static List<string> ValidateWebresource(WebresourceSyncItem webresource) =>
+		[.. XrmSyncConfigurationValidator.ValidateFolderPath(webresource.FolderPath)];
+
+	private static List<string> ValidateIdentity(IdentitySyncItem identity)
 	{
-		var errors = new List<string>();
+		var errors = new List<string>(XrmSyncConfigurationValidator.ValidateAssemblyPath(identity.AssemblyPath));
 
-		if (string.IsNullOrWhiteSpace(plugin.AssemblyPath))
+		if (identity.Operation == IdentityOperation.Ensure)
 		{
-			errors.Add("Assembly path is required and cannot be empty.");
-		}
-		else if (!File.Exists(Path.GetFullPath(plugin.AssemblyPath)))
-		{
-			errors.Add($"Assembly file does not exist: {plugin.AssemblyPath}");
-		}
-		else if (!Path.GetExtension(plugin.AssemblyPath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
-		{
-			errors.Add("Assembly file must have a .dll extension.");
-		}
-
-		return errors;
-	}
-
-	private List<string> ValidatePluginAnalysis(PluginAnalysisSyncItem analysis)
-	{
-		var errors = ValidatePluginSync(new PluginSyncItem(analysis.AssemblyPath));
-
-		if (string.IsNullOrWhiteSpace(analysis.PublisherPrefix))
-		{
-			errors.Add("Publisher prefix is required and cannot be empty.");
-		}
-		else if (analysis.PublisherPrefix.Length < 2 || analysis.PublisherPrefix.Length > 8)
-		{
-			errors.Add("Publisher prefix must be between 2 and 8 characters.");
-		}
-		else if (!System.Text.RegularExpressions.Regex.IsMatch(analysis.PublisherPrefix, @"^[a-z][a-z0-9]{1,7}$"))
-		{
-			errors.Add("Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers.");
-		}
-
-		return errors;
-	}
-
-	private List<string> ValidateWebresource(WebresourceSyncItem webresource)
-	{
-		var errors = new List<string>();
-
-		if (string.IsNullOrWhiteSpace(webresource.FolderPath))
-		{
-			errors.Add("Webresource root path is required and cannot be empty.");
-		}
-		else if (!Directory.Exists(Path.GetFullPath(webresource.FolderPath)))
-		{
-			errors.Add($"Webresource root path does not exist: {webresource.FolderPath}");
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(identity.ClientId ?? string.Empty, "Client ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(identity.TenantId ?? string.Empty, "Tenant ID"));
 		}
 
 		return errors;
@@ -275,6 +322,10 @@ internal class ConfigValidationOutput(
 				case WebresourceSyncItem:
 					if (!commands.Contains("webresources"))
 						commands.Add("webresources");
+					break;
+				case IdentitySyncItem:
+					if (!commands.Contains("identity"))
+						commands.Add("identity");
 					break;
 			}
 		}

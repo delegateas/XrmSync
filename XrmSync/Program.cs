@@ -10,6 +10,7 @@ var command = new CommandLineBuilder()
 		new PluginSyncCommand(),
 		new PluginAnalyzeCommand(),
 		new WebresourceSyncCommand(),
+		new IdentityCommand(),
 		new ConfigCommand()
 	)
 	.WithRootCommandHandler()

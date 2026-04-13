@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace XrmSync.SyncService;
 
-internal class Description : IDescription
+public class Description : IDescription
 {
 	private readonly Lazy<string> _toolHeader;
 	private readonly Lazy<string> _syncDescription;
@@ -13,7 +13,11 @@ internal class Description : IDescription
 		{
 			var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
 			var toolName = assembly.GetName().Name;
-			var version = assembly.GetName().Version?.ToString() ?? "unknown";
+			var informationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+			var version = (informationalVersion != null
+				? informationalVersion.Split('+')[0]
+				: assembly.GetName().Version?.ToString())
+				?? "unknown";
 			return $"{toolName} v{version}";
 		});
 

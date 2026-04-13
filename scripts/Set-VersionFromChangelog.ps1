@@ -27,6 +27,7 @@ if ($versionLine -match $regex) {
 
     $xml.Save($resolved)
     Write-Host "Updated $CsprojPath with version $version"
+    exit 0
 } else {
     Write-Error 'No version found in CHANGELOG.md'
     exit 1

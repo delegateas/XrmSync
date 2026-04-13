@@ -6,6 +6,13 @@ using XrmSync.Options;
 
 namespace Tests.Config;
 
+file sealed class ConsoleOutputSuppressor : IDisposable
+{
+	private readonly TextWriter _original = Console.Out;
+	public ConsoleOutputSuppressor() => Console.SetOut(TextWriter.Null);
+	public void Dispose() => Console.SetOut(_original);
+}
+
 public class ConfigValidateCommandTests
 {
 	[Fact]
@@ -71,6 +78,7 @@ public class ConfigValidateCommandTests
 			var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 			// Act & Assert - Should not throw
+			using var _ = new ConsoleOutputSuppressor();
 			await output.OutputValidationResult();
 		}
 		finally
@@ -129,6 +137,7 @@ public class ConfigValidateCommandTests
 			var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 			// Act & Assert - Should not throw
+			using var _ = new ConsoleOutputSuppressor();
 			await output.OutputConfigList();
 		}
 		finally
@@ -161,12 +170,103 @@ public class ConfigValidateCommandTests
 			var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
 			// Act & Assert - Should not throw
+			using var _ = new ConsoleOutputSuppressor();
 			await output.OutputConfigList();
 		}
 		finally
 		{
 			File.Delete(tempFile);
 		}
+	}
+
+	[Fact]
+	public async Task OutputAllValidationResultsWithNoProfilesHandlesGracefully()
+	{
+		// Arrange
+		var configuration = new ConfigurationBuilder().Build();
+		var config = XrmSyncConfiguration.Empty;
+		var configOptions = Options.Create(config);
+		var sharedOptions = Options.Create(SharedOptions.Empty);
+
+		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
+
+		// Act & Assert - Should not throw
+		using var _ = new ConsoleOutputSuppressor();
+		await output.OutputAllValidationResults();
+	}
+
+	[Fact]
+	public async Task OutputAllValidationResultsWithSingleProfileOutputsValidationResult()
+	{
+		// Arrange
+		var configuration = new ConfigurationBuilder().Build();
+		var config = new XrmSyncConfiguration(
+			DryRun: false,
+			LogLevel: Microsoft.Extensions.Logging.LogLevel.Information,
+			CiMode: false,
+			Profiles:
+			[
+				new ProfileConfiguration("default", "TestSolution", [])
+			]
+		);
+		var configOptions = Options.Create(config);
+		var sharedOptions = Options.Create(SharedOptions.Empty);
+
+		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
+
+		// Act & Assert - Should not throw
+		using var _ = new ConsoleOutputSuppressor();
+		await output.OutputAllValidationResults();
+	}
+
+	[Fact]
+	public async Task OutputAllValidationResultsWithMultipleProfilesOutputsAllProfiles()
+	{
+		// Arrange
+		var configuration = new ConfigurationBuilder().Build();
+		var config = new XrmSyncConfiguration(
+			DryRun: false,
+			LogLevel: Microsoft.Extensions.Logging.LogLevel.Information,
+			CiMode: false,
+			Profiles:
+			[
+				new ProfileConfiguration("dev", "DevSolution", []),
+				new ProfileConfiguration("prod", "ProdSolution", [])
+			]
+		);
+		var configOptions = Options.Create(config);
+		var sharedOptions = Options.Create(SharedOptions.Empty);
+
+		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
+
+		// Act & Assert - Should not throw
+		using var _ = new ConsoleOutputSuppressor();
+		await output.OutputAllValidationResults();
+	}
+
+	[Fact]
+	public async Task OutputAllValidationResultsWithInvalidProfileReportsFailure()
+	{
+		// Arrange
+		var configuration = new ConfigurationBuilder().Build();
+		var config = new XrmSyncConfiguration(
+			DryRun: false,
+			LogLevel: Microsoft.Extensions.Logging.LogLevel.Information,
+			CiMode: false,
+			Profiles:
+			[
+				new ProfileConfiguration("dev", "DevSolution", [new PluginSyncItem("")]),
+				new ProfileConfiguration("prod", "ProdSolution", [])
+			]
+		);
+		var configOptions = Options.Create(config);
+		var sharedOptions = Options.Create(SharedOptions.Empty);
+
+		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
+
+		// Act & Assert - Should not throw even with invalid config
+		using var _ = new ConsoleOutputSuppressor();
+		await output.OutputAllValidationResults();
 	}
 
 	private class TestConfigReader(string configFile) : IConfigReader

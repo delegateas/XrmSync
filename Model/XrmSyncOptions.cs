@@ -55,9 +55,10 @@ public record ProfileConfiguration(string Name, string SolutionName, List<SyncIt
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
-[JsonDerivedType(typeof(PluginSyncItem), typeDiscriminator: "Plugin")]
-[JsonDerivedType(typeof(PluginAnalysisSyncItem), typeDiscriminator: "PluginAnalysis")]
-[JsonDerivedType(typeof(WebresourceSyncItem), typeDiscriminator: "Webresource")]
+[JsonDerivedType(typeof(PluginSyncItem), typeDiscriminator: PluginSyncItem.TypeName)]
+[JsonDerivedType(typeof(PluginAnalysisSyncItem), typeDiscriminator: PluginAnalysisSyncItem.TypeName)]
+[JsonDerivedType(typeof(WebresourceSyncItem), typeDiscriminator: WebresourceSyncItem.TypeName)]
+[JsonDerivedType(typeof(IdentitySyncItem), typeDiscriminator: IdentitySyncItem.TypeName)]
 public abstract record SyncItem
 {
 	[JsonIgnore]
@@ -66,26 +67,29 @@ public abstract record SyncItem
 
 public record PluginSyncItem(string AssemblyPath) : SyncItem
 {
+	public const string TypeName = "Plugin";
 	public static PluginSyncItem Empty => new(string.Empty);
 
 	[JsonIgnore]
-	public override string SyncType => "Plugin";
+	public override string SyncType => TypeName;
 }
 
 public record PluginAnalysisSyncItem(string AssemblyPath, string PublisherPrefix, bool PrettyPrint) : SyncItem
 {
+	public const string TypeName = "PluginAnalysis";
 	public static PluginAnalysisSyncItem Empty => new(string.Empty, "new", false);
 
 	[JsonIgnore]
-	public override string SyncType => "PluginAnalysis";
+	public override string SyncType => TypeName;
 }
 
 public record WebresourceSyncItem(string FolderPath, List<string>? FileExtensions = null) : SyncItem
 {
+	public const string TypeName = "Webresource";
 	public static WebresourceSyncItem Empty => new(string.Empty);
 
 	[JsonIgnore]
-	public override string SyncType => "Webresource";
+	public override string SyncType => TypeName;
 }
 
 public record SharedOptions(string? ProfileName)
@@ -107,6 +111,26 @@ public record PluginAnalysisCommandOptions(string AssemblyPath, string Publisher
 public record WebresourceSyncCommandOptions(string FolderPath, string SolutionName, List<string>? FileExtensions = null)
 {
 	public static WebresourceSyncCommandOptions Empty => new(string.Empty, string.Empty);
+}
+
+public enum IdentityOperation
+{
+	Remove,
+	Ensure
+}
+
+public record IdentitySyncItem(IdentityOperation Operation, string AssemblyPath, string? ClientId = null, string? TenantId = null) : SyncItem
+{
+	public const string TypeName = "Identity";
+	public static IdentitySyncItem Empty => new(IdentityOperation.Remove, string.Empty);
+
+	[JsonIgnore]
+	public override string SyncType => $"{TypeName} ({Operation})";
+}
+
+public record IdentityCommandOptions(IdentityOperation Operation, string AssemblyPath, string SolutionName, string? ClientId = null, string? TenantId = null)
+{
+	public static IdentityCommandOptions Empty => new(IdentityOperation.Remove, string.Empty, string.Empty);
 }
 
 public record ExecutionModeOptions(bool DryRun)
