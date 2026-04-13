@@ -278,86 +278,26 @@ internal class ConfigValidationOutput(
 		}
 	}
 
-	private List<string> ValidatePluginSync(PluginSyncItem plugin)
+	private static List<string> ValidatePluginSync(PluginSyncItem plugin) =>
+		[.. XrmSyncConfigurationValidator.ValidateAssemblyPath(plugin.AssemblyPath)];
+
+	private static List<string> ValidatePluginAnalysis(PluginAnalysisSyncItem analysis) =>
+	[
+		.. XrmSyncConfigurationValidator.ValidateAssemblyPath(analysis.AssemblyPath),
+		.. XrmSyncConfigurationValidator.ValidatePublisherPrefix(analysis.PublisherPrefix)
+	];
+
+	private static List<string> ValidateWebresource(WebresourceSyncItem webresource) =>
+		[.. XrmSyncConfigurationValidator.ValidateFolderPath(webresource.FolderPath)];
+
+	private static List<string> ValidateIdentity(IdentitySyncItem identity)
 	{
-		var errors = new List<string>();
-
-		if (string.IsNullOrWhiteSpace(plugin.AssemblyPath))
-		{
-			errors.Add("Assembly path is required and cannot be empty.");
-		}
-		else if (!File.Exists(Path.GetFullPath(plugin.AssemblyPath)))
-		{
-			errors.Add($"Assembly file does not exist: {plugin.AssemblyPath}");
-		}
-		else if (!Path.GetExtension(plugin.AssemblyPath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
-		{
-			errors.Add("Assembly file must have a .dll extension.");
-		}
-
-		return errors;
-	}
-
-	private List<string> ValidatePluginAnalysis(PluginAnalysisSyncItem analysis)
-	{
-		var errors = ValidatePluginSync(new PluginSyncItem(analysis.AssemblyPath));
-
-		if (string.IsNullOrWhiteSpace(analysis.PublisherPrefix))
-		{
-			errors.Add("Publisher prefix is required and cannot be empty.");
-		}
-		else if (analysis.PublisherPrefix.Length < 2 || analysis.PublisherPrefix.Length > 8)
-		{
-			errors.Add("Publisher prefix must be between 2 and 8 characters.");
-		}
-		else if (!System.Text.RegularExpressions.Regex.IsMatch(analysis.PublisherPrefix, @"^[a-z][a-z0-9]{1,7}$"))
-		{
-			errors.Add("Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers.");
-		}
-
-		return errors;
-	}
-
-	private List<string> ValidateWebresource(WebresourceSyncItem webresource)
-	{
-		var errors = new List<string>();
-
-		if (string.IsNullOrWhiteSpace(webresource.FolderPath))
-		{
-			errors.Add("Webresource root path is required and cannot be empty.");
-		}
-		else if (!Directory.Exists(Path.GetFullPath(webresource.FolderPath)))
-		{
-			errors.Add($"Webresource root path does not exist: {webresource.FolderPath}");
-		}
-
-		return errors;
-	}
-
-	private List<string> ValidateIdentity(IdentitySyncItem identity)
-	{
-		var errors = new List<string>();
-
-		if (string.IsNullOrWhiteSpace(identity.AssemblyPath))
-		{
-			errors.Add("Assembly path is required and cannot be empty.");
-		}
-		else if (!Path.GetExtension(identity.AssemblyPath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
-		{
-			errors.Add("Assembly file must have a .dll extension.");
-		}
-		else if (!File.Exists(Path.GetFullPath(identity.AssemblyPath)))
-		{
-			errors.Add($"Assembly file does not exist: {identity.AssemblyPath}");
-		}
+		var errors = new List<string>(XrmSyncConfigurationValidator.ValidateAssemblyPath(identity.AssemblyPath));
 
 		if (identity.Operation == IdentityOperation.Ensure)
 		{
-			if (string.IsNullOrWhiteSpace(identity.ClientId) || !Guid.TryParse(identity.ClientId, out _))
-				errors.Add("Client ID must be a valid GUID.");
-
-			if (string.IsNullOrWhiteSpace(identity.TenantId) || !Guid.TryParse(identity.TenantId, out _))
-				errors.Add("Tenant ID must be a valid GUID.");
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(identity.ClientId ?? string.Empty, "Client ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(identity.TenantId ?? string.Empty, "Tenant ID"));
 		}
 
 		return errors;
