@@ -91,7 +91,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
 		if (rawProfile == null)
 		{
-			Console.Error.WriteLine($"Profile '{sharedOptions.ProfileName}' not found. Use 'xrmsync config list' to see available profiles.");
+			Console.Error.WriteLine("No profiles configured. Add a profile to appsettings.json or run 'xrmsync config list'.");
 			return E_ERROR;
 		}
 
