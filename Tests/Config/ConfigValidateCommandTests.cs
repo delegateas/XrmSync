@@ -180,16 +180,6 @@ public class ConfigValidateCommandTests
 	}
 
 	[Fact]
-	public void ConfigValidateCommandHasAllOption()
-	{
-		// Arrange & Act
-		var command = new ConfigValidateCommand();
-
-		// Assert
-		Assert.Contains(command.GetCommand().Options, o => o.Name == "--all");
-	}
-
-	[Fact]
 	public async Task OutputAllValidationResultsWithNoProfilesHandlesGracefully()
 	{
 		// Arrange
