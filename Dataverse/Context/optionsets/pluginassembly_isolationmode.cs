@@ -2,21 +2,24 @@ using System.Runtime.Serialization;
 
 namespace XrmSync.Dataverse.Context;
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.21")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "4.0.0.25")]
 [DataContract]
 #pragma warning disable CS8981
 public enum pluginassembly_isolationmode
 #pragma warning restore CS8981
 {
-	[EnumMember]
-	[OptionSetMetadata("None", 1033)]
-	None = 1,
+    [EnumMember]
+    [OptionSetMetadata("None", 1033)]
+    [OptionSetMetadata("Ingen", 1030)]
+    None = 1,
 
-	[EnumMember]
-	[OptionSetMetadata("Sandbox", 1033)]
-	Sandbox = 2,
+    [EnumMember]
+    [OptionSetMetadata("Sandbox", 1033)]
+    [OptionSetMetadata("Sandkasse", 1030)]
+    Sandbox = 2,
 
-	[EnumMember]
-	[OptionSetMetadata("External", 1033)]
-	External = 3,
+    [EnumMember]
+    [OptionSetMetadata("External", 1033)]
+    [OptionSetMetadata("Ekstern", 1030)]
+    External = 3,
 }
