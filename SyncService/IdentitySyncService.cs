@@ -52,8 +52,8 @@ internal class IdentitySyncService(
 			return Task.CompletedTask;
 		}
 
-		log.LogInformation("Deleting managed identity '{managedIdentityId}' linked to assembly '{assemblyName}'",
-			managedIdentityRef.Id, assemblyName);
+		log.LogInformation("Deleting managed identity '{managedIdentityName}' linked to assembly '{assemblyName}'",
+			managedIdentityRef.Name, assemblyName);
 
 		managedIdentityWriter.Remove(managedIdentityRef.Id);
 
