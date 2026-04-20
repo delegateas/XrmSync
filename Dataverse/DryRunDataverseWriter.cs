@@ -51,6 +51,11 @@ internal class DryRunDataverseWriter : IDataverseWriter
 		LogOperation(entity);
 	}
 
+	public void Delete(Entity entity)
+	{
+		LogOperation(entity);
+	}
+
 	public void UpdateMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity
 	{
 		PerformAsBulk(entities.Select(e => new UpdateRequest { Target = e }));

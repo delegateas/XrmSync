@@ -54,3 +54,6 @@ test-outputs/
 *.dll
 !tools/*.exe
 !tools/*.dll
+
+# Claude files
+.claude/*.local.json

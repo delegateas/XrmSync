@@ -16,28 +16,10 @@ namespace XrmSync.Commands
 
 		protected virtual void AddSyncSharedOptions()
 		{
-			SolutionName = new(CliOptions.Solution.Primary, CliOptions.Solution.Aliases)
-			{
-				Description = CliOptions.Solution.Description,
-				Arity = ArgumentArity.ExactlyOne
-			};
-
-			DryRun = new(CliOptions.Execution.DryRun.Primary, CliOptions.Execution.DryRun.Aliases)
-			{
-				Description = CliOptions.Execution.DryRun.Description,
-				Required = false
-			};
-
-			LogLevel = new(CliOptions.Logging.LogLevel.Primary, CliOptions.Logging.LogLevel.Aliases)
-			{
-				Description = CliOptions.Logging.LogLevel.Description
-			};
-
-			CiMode = new(CliOptions.Logging.CiMode.Primary, CliOptions.Logging.CiMode.Aliases)
-			{
-				Description = CliOptions.Logging.CiMode.Description,
-				Required = false
-			};
+			SolutionName = CliOptions.Solution.CreateOption<string>();
+			DryRun = CliOptions.Execution.DryRun.CreateOption<bool?>();
+			LogLevel = CliOptions.Logging.LogLevel.CreateOption<LogLevel?>();
+			CiMode = CliOptions.Logging.CiMode.CreateOption<bool?>();
 
 			Add(SolutionName);
 			Add(DryRun);

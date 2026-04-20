@@ -12,4 +12,9 @@ internal class ConfigCommand : Command, IXrmSyncCommand
 	}
 
 	public Command GetCommand() => this;
+
+	/// <summary>
+	/// Config command has no profile sync items to override.
+	/// </summary>
+	public ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => null;
 }

@@ -10,7 +10,6 @@ namespace XrmSync.SyncService.Difference;
 internal class PrintService(
 	ILogger<PrintService> log,
 	IOptions<ExecutionModeOptions> configuration,
-	IDescription description,
 	IDataverseReader dataverseReader
 	) : IPrintService
 {
@@ -18,14 +17,6 @@ internal class PrintService(
 
 	public void PrintHeader(PrintHeaderOptions options)
 	{
-		log.LogInformation("{header}", description.ToolHeader);
-
-		if (configuration.Value.DryRun)
-		{
-			log.LogInformation("***** DRY RUN *****");
-			log.LogInformation("No changes will be made to Dataverse.");
-		}
-
 		if (!string.IsNullOrWhiteSpace(options.Message))
 		{
 			log.LogInformation("{message}", options.Message);

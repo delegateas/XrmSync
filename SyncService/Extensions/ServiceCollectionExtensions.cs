@@ -42,6 +42,14 @@ public static class ServiceCollectionExtensions
 			.AddValidationRules(); // Auto-discover validation rules
 	}
 
+	public static IServiceCollection AddIdentityService(this IServiceCollection services)
+	{
+		return services
+			.AddDataverseConnection()
+			.AddSingleton<IPrintService, PrintService>()
+			.AddSingleton<ISyncService, IdentitySyncService>();
+	}
+
 	private static IServiceCollection AddShared(this IServiceCollection services)
 	{
 		return services

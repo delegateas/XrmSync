@@ -461,6 +461,260 @@ public class OptionsValidationTests
 	}
 
 	[Fact]
+	public void IdentityRemoveValidatorValidOptionsPassesValidation()
+	{
+		// Arrange - Create a test DLL file
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new IdentitySyncItem(IdentityOperation.Remove, dllPath)
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			validator.Validate(ConfigurationScope.Identity); // Should not throw
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
+	public void IdentityRemoveValidatorEmptyAssemblyPathThrowsValidationException()
+	{
+		// Arrange
+		var config = new XrmSyncConfiguration(
+			DryRun: false,
+			LogLevel: LogLevel.Information,
+			CiMode: false,
+			Profiles: new List<ProfileConfiguration>
+			{
+				new("default", "TestSolution", new List<SyncItem>
+				{
+					new IdentitySyncItem(IdentityOperation.Remove, "")
+				})
+			}
+		);
+
+		// Act & Assert
+		var validator = new XrmSyncConfigurationValidator(
+			Options.Create(config),
+			Options.Create(CreateSharedOptions()));
+		var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+			() => validator.Validate(ConfigurationScope.Identity));
+		Assert.Contains("Assembly path is required", exception.Message);
+	}
+
+	[Fact]
+	public void IdentityEnsureValidatorValidOptionsPassesValidation()
+	{
+		// Arrange - Create a test DLL file
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d", "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d")
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			validator.Validate(ConfigurationScope.Identity); // Should not throw
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
+	public void IdentityEnsureValidatorMissingClientIdThrowsValidationException()
+	{
+		// Arrange
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, null, "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d")
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+				() => validator.Validate(ConfigurationScope.Identity));
+			Assert.Contains("Client ID is required", exception.Message);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
+	public void IdentityEnsureValidatorMissingTenantIdThrowsValidationException()
+	{
+		// Arrange
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d", null)
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+				() => validator.Validate(ConfigurationScope.Identity));
+			Assert.Contains("Tenant ID is required", exception.Message);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
+	public void IdentityEnsureValidatorInvalidTenantIdThrowsValidationException()
+	{
+		// Arrange
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d", "not-a-guid")
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+				() => validator.Validate(ConfigurationScope.Identity));
+			Assert.Contains("Tenant ID must be a valid GUID", exception.Message);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
+	public void IdentityRemoveValidatorDoesNotRequireClientIdOrTenantId()
+	{
+		// Arrange - Create a test DLL file
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new IdentitySyncItem(IdentityOperation.Remove, dllPath, null, null)
+					})
+				}
+			);
+
+			// Act & Assert - Should not throw even without ClientId/TenantId
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			validator.Validate(ConfigurationScope.Identity);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
 	public void ValidatorNoProfilesAndNoProfileNamePassesValidation()
 	{
 		// Arrange - No profiles configured, no profile name specified (CLI mode)

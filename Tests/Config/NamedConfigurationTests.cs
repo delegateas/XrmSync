@@ -326,6 +326,243 @@ public class NamedConfigurationTests
 		}
 	}
 
+	[Fact]
+	public void IdentityRemoveSyncItemParsesFromConfig()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "Sync": [
+                  {
+                    "Type": "Identity",
+                    "Operation": "Remove",
+                    "AssemblyPath": "plugins.dll"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			var identitySync = Assert.IsType<IdentitySyncItem>(profile.Sync[0]);
+			Assert.Equal(IdentityOperation.Remove, identitySync.Operation);
+			Assert.Equal("plugins.dll", identitySync.AssemblyPath);
+			Assert.Null(identitySync.ClientId);
+			Assert.Null(identitySync.TenantId);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
+	[Fact]
+	public void IdentityEnsureSyncItemParsesFromConfig()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "Sync": [
+                  {
+                    "Type": "Identity",
+                    "Operation": "Ensure",
+                    "AssemblyPath": "plugins.dll",
+                    "ClientId": "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d",
+                    "TenantId": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			var identitySync = Assert.IsType<IdentitySyncItem>(profile.Sync[0]);
+			Assert.Equal(IdentityOperation.Ensure, identitySync.Operation);
+			Assert.Equal("plugins.dll", identitySync.AssemblyPath);
+			Assert.Equal("d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d", identitySync.ClientId);
+			Assert.Equal("a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d", identitySync.TenantId);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
+	[Fact]
+	public void IdentitySyncItemOperationIsCaseInsensitive()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "Sync": [
+                  {
+                    "Type": "Identity",
+                    "Operation": "ensure",
+                    "AssemblyPath": "plugins.dll",
+                    "ClientId": "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d",
+                    "TenantId": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			var identitySync = Assert.IsType<IdentitySyncItem>(profile.Sync[0]);
+			Assert.Equal(IdentityOperation.Ensure, identitySync.Operation);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
+	[Fact]
+	public void IdentitySyncItemWithMissingOperationIsSkipped()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "Sync": [
+                  {
+                    "Type": "Identity",
+                    "AssemblyPath": "plugins.dll"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			Assert.Empty(profile.Sync);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
+	[Fact]
+	public void IdentitySyncItemWithInvalidOperationIsSkipped()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "Sync": [
+                  {
+                    "Type": "Identity",
+                    "Operation": "InvalidOp",
+                    "AssemblyPath": "plugins.dll"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var configReader = new TestConfigReader(tempFile);
+			var builder = new XrmSyncConfigurationBuilder(configReader.GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			Assert.Empty(profile.Sync);
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
 	private class TestConfigReader(string configFile) : IConfigReader
 	{
 		public IConfiguration GetConfiguration()

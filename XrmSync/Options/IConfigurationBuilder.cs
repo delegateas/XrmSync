@@ -10,7 +10,8 @@ internal enum ConfigurationScope
 	PluginSync = 1,
 	PluginAnalysis = 2,
 	WebresourceSync = 4,
-	All = PluginSync | PluginAnalysis | WebresourceSync
+	Identity = 8,
+	All = PluginSync | PluginAnalysis | WebresourceSync | Identity
 }
 
 internal interface IConfigurationValidator

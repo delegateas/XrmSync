@@ -9,9 +9,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 	public void Validate(ConfigurationScope scope)
 	{
 		if (scope == ConfigurationScope.None)
-		{
-			throw new Model.Exceptions.OptionsValidationException("No configuration scope specified for validation.");
-		}
+			return;
 
 		var exceptions = ValidateInternal(scope, configuration.Value, sharedOptions.Value.ProfileName).ToList();
 		if (exceptions.Count == 1)
@@ -72,8 +70,30 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 						yield return new Model.Exceptions.OptionsValidationException($"Webresource sync in profile '{profile.Name}'", errors);
 					}
 					break;
+
+				case IdentitySyncItem identity when scope.HasFlag(ConfigurationScope.Identity):
+					errors = Validate(identity).ToList();
+					if (errors.Count != 0)
+					{
+						yield return new Model.Exceptions.OptionsValidationException($"Identity ({identity.Operation}) in profile '{profile.Name}'", errors);
+					}
+					break;
 			}
 		}
+	}
+
+	private static IEnumerable<string> Validate(IdentitySyncItem syncItem)
+	{
+		var errors = new List<string>();
+		errors.AddRange(ValidateAssemblyPath(syncItem.AssemblyPath));
+
+		if (syncItem.Operation == IdentityOperation.Ensure)
+		{
+			errors.AddRange(ValidateGuid(syncItem.ClientId ?? string.Empty, "Client ID"));
+			errors.AddRange(ValidateGuid(syncItem.TenantId ?? string.Empty, "Tenant ID"));
+		}
+
+		return errors;
 	}
 
 	private static IEnumerable<string> Validate(PluginSyncItem syncItem)
@@ -98,29 +118,28 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 		];
 	}
 
-	private static IEnumerable<string> ValidateAssemblyPath(string assemblyPath)
+	internal static IEnumerable<string> ValidateAssemblyPath(string assemblyPath)
 	{
-		// Validate AssemblyPath
 		if (string.IsNullOrWhiteSpace(assemblyPath))
 		{
 			yield return "Assembly path is required and cannot be empty.";
+			yield break;
 		}
-		else if (!File.Exists(Path.GetFullPath(assemblyPath)))
+
+		var extension = Path.GetExtension(assemblyPath);
+		if (!string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase))
+		{
+			yield return "Assembly file must have a .dll extension.";
+			yield break;
+		}
+
+		if (!File.Exists(Path.GetFullPath(assemblyPath)))
 		{
 			yield return $"Assembly file does not exist: {assemblyPath}";
 		}
-		else
-		{
-			// Validate assembly file extension
-			var extension = Path.GetExtension(assemblyPath);
-			if (!string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase))
-			{
-				yield return "Assembly file must have a .dll extension.";
-			}
-		}
 	}
 
-	private static IEnumerable<string> ValidateFolderPath(string folderPath)
+	internal static IEnumerable<string> ValidateFolderPath(string folderPath)
 	{
 		// Validate FolderPath
 		if (string.IsNullOrWhiteSpace(folderPath))
@@ -133,7 +152,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 		}
 	}
 
-	private static IEnumerable<string> ValidateSolutionName(string? solutionName)
+	internal static IEnumerable<string> ValidateSolutionName(string? solutionName)
 	{
 		// Validate SolutionName
 		if (string.IsNullOrWhiteSpace(solutionName))
@@ -145,7 +164,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 			yield return "Solution name cannot exceed 65 characters.";
 		}
 	}
-	private static IEnumerable<string> ValidatePublisherPrefix(string publisherPrefix)
+	internal static IEnumerable<string> ValidatePublisherPrefix(string publisherPrefix)
 	{
 		// Validate PublisherPrefix
 		if (string.IsNullOrWhiteSpace(publisherPrefix))
@@ -159,6 +178,18 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 		else if (!ValidPublisherPrefix().IsMatch(publisherPrefix))
 		{
 			yield return "Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers.";
+		}
+	}
+
+	internal static IEnumerable<string> ValidateGuid(string value, string fieldName)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			yield return $"{fieldName} is required and cannot be empty.";
+		}
+		else if (!Guid.TryParse(value, out _))
+		{
+			yield return $"{fieldName} must be a valid GUID.";
 		}
 	}
 

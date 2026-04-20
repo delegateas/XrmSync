@@ -125,6 +125,8 @@ The solution is organized into distinct layers with clear separation of concerns
 - Commands registered via `CommandLineBuilder` pattern
 - Root command handler (`XrmSyncRootCommand`) can execute all configured sub-commands in sequence
 - Dependency injection container built per command execution
+- `CliOptionDescriptor` (in `Constants/`) is the single source of truth for each option's primary name, aliases, and description; it exposes `CreateOption<T>()` to eliminate duplication across command constructors
+- Commands advertise their runtime-overridable options to the root command via `IXrmSyncCommand.GetProfileOverrides(assembly, solution)`, which returns a `ProfileOverrideProvider` containing the options to add to the root command and a callback to merge CLI values into a profile sync item before execution
 
 **Multi-Framework Plugin Support**:
 The analyzer supports three plugin attribute patterns through strategy pattern:
@@ -165,9 +167,10 @@ See [DataverseConnection docs](https://github.com/delegateas/DataverseConnection
 ### Adding New Commands
 
 1. Create command class implementing `IXrmSyncCommand` extending `XrmSyncCommandBase`
-2. Define options using System.CommandLine `Option<T>` instances
+2. Define options using `CliOptions.<Group>.CreateOption<T>()` (add a new `CliOptionDescriptor` field to `CliOptions` if needed)
 3. Implement execution logic by building DI container with required services
 4. Register command in `Program.cs` via `CommandLineBuilder.AddCommand()`
+5. Override `GetProfileOverrides(assembly, solution)` to advertise any options that should be settable on the root command when running via `--profile`, and provide a merge callback that applies those values into the relevant `SyncItem` subtype
 
 ### Adding Validation Rules
 
