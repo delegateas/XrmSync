@@ -18,9 +18,9 @@ internal class ManagedIdentityWriter(IDataverseWriter writer) : IManagedIdentity
 			Name = name,
 			ApplicationId = applicationId,
 			TenantId = tenantId,
-			CredentialSource = managedidentity_credentialsource.ManagedIdentity,
-			SubjectScope = managedidentity_subjectscope.Environment,
-			ManagedIdentityVersion = 1
+			CredentialSource = credentialsource.IsManaged,
+			SubjectScope = subjectscope.EnviornmentScope,
+			Version = 1
 		}, null);
 	}
 
