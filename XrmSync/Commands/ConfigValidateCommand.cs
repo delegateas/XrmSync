@@ -8,10 +8,7 @@ namespace XrmSync.Commands;
 
 internal class ConfigValidateCommand : XrmSyncCommandBase
 {
-	private static readonly Option<bool> AllOption = new(CliOptions.Config.All.Primary)
-	{
-		Description = CliOptions.Config.All.Description
-	};
+	private static readonly Option<bool> AllOption = CliOptions.Config.All.CreateOption<bool>();
 
 	public ConfigValidateCommand() : base("validate", "Validate configuration from appsettings.json")
 	{

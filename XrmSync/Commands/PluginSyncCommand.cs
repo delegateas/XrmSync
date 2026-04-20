@@ -16,11 +16,7 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 
 	public PluginSyncCommand() : base("plugins", "Synchronize plugins in a plugin assembly with Dataverse")
 	{
-		assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
-		{
-			Description = CliOptions.Assembly.Description,
-			Arity = ArgumentArity.ZeroOrOne
-		};
+		assemblyFile = CliOptions.Assembly.CreateOption<string>();
 
 		Add(assemblyFile);
 

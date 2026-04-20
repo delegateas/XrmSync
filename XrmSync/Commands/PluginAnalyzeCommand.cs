@@ -25,23 +25,9 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 
 	public PluginAnalyzeCommand() : base("analyze", "Analyze a plugin assembly and output info as JSON")
 	{
-		assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
-		{
-			Description = CliOptions.Assembly.Description,
-			Arity = ArgumentArity.ZeroOrOne
-		};
-
-		prefix = new(CliOptions.Analysis.Prefix.Primary, CliOptions.Analysis.Prefix.Aliases)
-		{
-			Description = CliOptions.Analysis.Prefix.Description,
-			Arity = ArgumentArity.ZeroOrOne
-		};
-
-		prettyPrint = new(CliOptions.Analysis.PrettyPrint.Primary, CliOptions.Analysis.PrettyPrint.Aliases)
-		{
-			Description = CliOptions.Analysis.PrettyPrint.Description,
-			Required = false
-		};
+		assemblyFile = CliOptions.Assembly.CreateOption<string>();
+		prefix = CliOptions.Analysis.Prefix.CreateOption<string>();
+		prettyPrint = CliOptions.Analysis.PrettyPrint.CreateOption<bool>();
 
 		Add(assemblyFile);
 		Add(prefix);

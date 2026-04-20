@@ -32,11 +32,7 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	/// </summary>
 	protected void AddSharedOptions()
 	{
-		ProfileNameOption = new(CliOptions.Config.Profile.Primary, CliOptions.Config.Profile.Aliases)
-		{
-			Description = CliOptions.Config.Profile.Description,
-			Required = false
-		};
+		ProfileNameOption = CliOptions.Config.Profile.CreateOption<string?>();
 
 		Add(ProfileNameOption);
 	}

@@ -21,18 +21,8 @@ namespace XrmSync.Commands
 
 		public WebresourceSyncCommand() : base("webresources", "Synchronize webresources from a local folder with Dataverse")
 		{
-			webresourceRoot = new(CliOptions.Webresource.Primary, CliOptions.Webresource.Aliases)
-			{
-				Description = CliOptions.Webresource.Description,
-				Arity = ArgumentArity.ZeroOrOne
-			};
-
-			fileExtensions = new(CliOptions.FileExtensions.Primary, CliOptions.FileExtensions.Aliases)
-			{
-				Description = CliOptions.FileExtensions.Description,
-				Arity = ArgumentArity.ZeroOrMore,
-				AllowMultipleArgumentsPerToken = true
-			};
+			webresourceRoot = CliOptions.Webresource.CreateOption<string>();
+			fileExtensions = CliOptions.FileExtensions.CreateOption<string[]>();
 
 			Add(webresourceRoot);
 			Add(fileExtensions);

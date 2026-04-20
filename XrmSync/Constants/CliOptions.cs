@@ -10,14 +10,16 @@ internal static class CliOptions
 	/// </summary>
 	public static readonly CliOptionDescriptor Assembly = new(
 		"--assembly", ["--assembly-file", "-a", "--af"],
-		"Path to the plugin assembly (*.dll)");
+		"Path to the plugin assembly (*.dll)",
+		Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 	/// <summary>
 	/// Webresource folder options
 	/// </summary>
 	public static readonly CliOptionDescriptor Webresource = new(
 		"--folder", ["--webresources", "-w", "--wr", "--path"],
-		"Path to the root folder containing the webresources to sync");
+		"Path to the root folder containing the webresources to sync",
+		Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 	/// <summary>
 	/// File extension filter options
@@ -84,11 +86,13 @@ internal static class CliOptions
 
 		public static readonly CliOptionDescriptor ClientId = new(
 			"--client-id", ["--cid"],
-			"Azure AD application (client) ID for the managed identity");
+			"Azure AD application (client) ID for the managed identity",
+			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 		public static readonly CliOptionDescriptor TenantId = new(
 			"--tenant-id", ["--tid"],
-			"Azure AD tenant ID for the managed identity");
+			"Azure AD tenant ID for the managed identity",
+			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 	}
 
 	/// <summary>
@@ -98,7 +102,8 @@ internal static class CliOptions
 	{
 		public static readonly CliOptionDescriptor Prefix = new(
 			"--prefix", ["--publisher-prefix", "-pp"],
-			"Publisher prefix for unique names (Default: new)");
+			"Publisher prefix for unique names (Default: new)",
+			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 		public static readonly CliOptionDescriptor PrettyPrint = new(
 			"--pretty-print", ["--pp"],

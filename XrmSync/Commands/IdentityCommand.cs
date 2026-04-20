@@ -24,30 +24,10 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 
 	public IdentityCommand() : base("identity", "Manage the managed identity linked to a plugin assembly")
 	{
-		operation = new(CliOptions.ManagedIdentity.Operation.Primary, CliOptions.ManagedIdentity.Operation.Aliases)
-		{
-			Description = CliOptions.ManagedIdentity.Operation.Description,
-			Arity = ArgumentArity.ExactlyOne,
-			Required = true
-		};
-
-		assemblyFile = new(CliOptions.Assembly.Primary, CliOptions.Assembly.Aliases)
-		{
-			Description = CliOptions.Assembly.Description,
-			Arity = ArgumentArity.ZeroOrOne
-		};
-
-		clientId = new(CliOptions.ManagedIdentity.ClientId.Primary, CliOptions.ManagedIdentity.ClientId.Aliases)
-		{
-			Description = CliOptions.ManagedIdentity.ClientId.Description,
-			Arity = ArgumentArity.ZeroOrOne
-		};
-
-		tenantId = new(CliOptions.ManagedIdentity.TenantId.Primary, CliOptions.ManagedIdentity.TenantId.Aliases)
-		{
-			Description = CliOptions.ManagedIdentity.TenantId.Description,
-			Arity = ArgumentArity.ZeroOrOne
-		};
+		operation = CliOptions.ManagedIdentity.Operation.CreateOption<IdentityOperation>(required: true);
+		assemblyFile = CliOptions.Assembly.CreateOption<string>();
+		clientId = CliOptions.ManagedIdentity.ClientId.CreateOption<string>();
+		tenantId = CliOptions.ManagedIdentity.TenantId.CreateOption<string>();
 
 		Add(operation);
 		Add(assemblyFile);
