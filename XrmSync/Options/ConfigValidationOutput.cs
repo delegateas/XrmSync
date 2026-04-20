@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using XrmSync.Model;
+using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Options;
 
@@ -20,13 +21,23 @@ internal class ConfigValidationOutput(
 		var configSource = GetConfigurationSource();
 
 		var config = configOptions.Value;
-		var profile = config.ResolveProfile(profileName);
 
-		if (profile == null)
+		ProfileConfiguration profile;
+		try
 		{
-			Console.WriteLine($"No profiles configured in {configSource}");
-			return Task.CompletedTask;
+			var resolved = config.ResolveProfile(profileName);
+			if (resolved == null)
+			{
+				Console.WriteLine($"No profiles configured in {configSource}");
+				return Task.CompletedTask;
+			}
+			profile = resolved;
 		}
+		catch (XrmSyncException ex)
+		{
+			Console.WriteLine($"{ex.Message} Use --all to validate all profiles.");
+			return Task.CompletedTask;
+		};
 
 		Console.WriteLine($"Profile: '{profile.Name}' (from {configSource})");
 		Console.WriteLine();
