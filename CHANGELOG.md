@@ -1,5 +1,7 @@
 ### v1.0.0-preview.17 - 20 March 2026
 * Add: Managed Identity Ensure and Remove support
+* Fix: Unify check for public parameterless constructors in analyzer
+* Fix: Do not attempt to sync empty plugin types
 
 ### v1.0.0-preview.16 - 2 March 2026
 * Add: Support for specifying which file types should be synchronized during WebResource sync
