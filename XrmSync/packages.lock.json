@@ -38,6 +38,15 @@
         "resolved": "2.0.0",
         "contentHash": "Bjklzc5NoxqAGFi7BcGlY2TWAdB06Bq3a5sfRr3ubMRU80Mf98eyq3Y2UgR6xRV0TLznZmfe5T7mUjOunRNcdA=="
       },
+      "System.Security.Cryptography.Xml": {
+        "type": "Direct",
+        "requested": "[8.0.3, )",
+        "resolved": "8.0.3",
+        "contentHash": "1cHAWDYwOyyoRy+nxS7/Ro/Zcio6i5yHoIJ6xUA+fU8lNu4yGQgja5dEovAxBVud3RnfwRVWOl0B2vr+9LP/mg==",
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "8.0.1"
+        }
+      },
       "Azure.Core": {
         "type": "Transitive",
         "resolved": "1.44.1",
@@ -468,14 +477,6 @@
         "resolved": "6.0.0",
         "contentHash": "rp1gMNEZpvx9vP0JW0oHLxlf8oSiQgtno77Y4PLUBjSiDYoD77Y8uXHr1Ea5XG4/pIKhqAdxZ8v8OTUtqo9PeQ=="
       },
-      "System.Security.Cryptography.Xml": {
-        "type": "Transitive",
-        "resolved": "8.0.2",
-        "contentHash": "aDM/wm0ZGEZ6ZYJLzgqjp2FZdHbDHh6/OmpGfb7AdZ105zYmPn/83JRU2xLIbwgoNz9U1SLUTJN0v5th3qmvjA==",
-        "dependencies": {
-          "System.Security.Cryptography.Pkcs": "8.0.1"
-        }
-      },
       "System.Security.Permissions": {
         "type": "Transitive",
         "resolved": "6.0.0",
@@ -528,6 +529,7 @@
         "dependencies": {
           "DataverseConnection": "[1.1.1, )",
           "Microsoft.PowerPlatform.Dataverse.Client": "[1.2.10, )",
+          "System.Security.Cryptography.Xml": "[8.0.3, )",
           "XrmSync.Model": "[1.0.0, )"
         }
       },
@@ -545,6 +547,7 @@
           "Microsoft.Extensions.Logging": "[9.0.6, )",
           "Microsoft.Extensions.Logging.Console": "[9.0.6, )",
           "Microsoft.PowerPlatform.Dataverse.Client": "[1.2.10, )",
+          "System.Security.Cryptography.Xml": "[8.0.3, )",
           "XrmSync.Dataverse": "[1.0.0, )",
           "XrmSync.Model": "[1.0.0, )"
         }
