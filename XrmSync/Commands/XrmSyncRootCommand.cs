@@ -269,9 +269,15 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		ArgumentOverrides overrides,
 		XrmSyncConfiguration config)
 	{
+		if (syncItem.Operation == null)
+		{
+			Console.Error.WriteLine("Identity sync item has no operation configured and none was supplied via --operation.");
+			return E_ERROR;
+		}
+
 		var args = new List<string>
 		{
-			CliOptions.ManagedIdentity.Operation.Primary, syncItem.Operation.ToString(),
+			CliOptions.ManagedIdentity.Operation.Primary, syncItem.Operation.Value.ToString(),
 			CliOptions.Assembly.Primary, syncItem.AssemblyPath,
 			CliOptions.Solution.Primary, profile.SolutionName
 		};

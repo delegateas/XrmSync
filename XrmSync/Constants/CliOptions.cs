@@ -82,7 +82,8 @@ internal static class CliOptions
 	{
 		public static readonly CliOptionDescriptor Operation = new(
 			"--operation", ["-o", "--op"],
-			"The operation to perform: Remove or Ensure");
+			"The operation to perform: Remove or Ensure",
+			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 		public static readonly CliOptionDescriptor ClientId = new(
 			"--client-id", ["--cid"],

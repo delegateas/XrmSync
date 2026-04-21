@@ -119,13 +119,13 @@ public enum IdentityOperation
 	Ensure
 }
 
-public record IdentitySyncItem(IdentityOperation Operation, string AssemblyPath, string? ClientId = null, string? TenantId = null) : SyncItem
+public record IdentitySyncItem(IdentityOperation? Operation = null, string AssemblyPath = "", string? ClientId = null, string? TenantId = null) : SyncItem
 {
 	public const string TypeName = "Identity";
-	public static IdentitySyncItem Empty => new(IdentityOperation.Remove, string.Empty);
+	public static IdentitySyncItem Empty => new(AssemblyPath: string.Empty);
 
 	[JsonIgnore]
-	public override string SyncType => $"{TypeName} ({Operation})";
+	public override string SyncType => Operation.HasValue ? $"{TypeName} ({Operation})" : TypeName;
 }
 
 public record IdentityCommandOptions(IdentityOperation Operation, string AssemblyPath, string SolutionName, string? ClientId = null, string? TenantId = null)

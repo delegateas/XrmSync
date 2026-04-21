@@ -475,9 +475,9 @@ public class NamedConfigurationTests
 	}
 
 	[Fact]
-	public void IdentitySyncItemWithMissingOperationIsSkipped()
+	public void IdentitySyncItemWithMissingOperationParsesWithNullOperation()
 	{
-		// Arrange
+		// Arrange — operation absent from config; should be parsed with null Operation (to be supplied via CLI)
 		const string configJson = """
         {
           "XrmSync": {
@@ -508,9 +508,12 @@ public class NamedConfigurationTests
 			// Act
 			var profile = builder.GetProfile("default");
 
-			// Assert
+			// Assert — item is present with null operation (not skipped)
 			Assert.NotNull(profile);
-			Assert.Empty(profile.Sync);
+			Assert.Single(profile.Sync);
+			var identitySync = Assert.IsType<IdentitySyncItem>(profile.Sync[0]);
+			Assert.Null(identitySync.Operation);
+			Assert.Equal("plugins.dll", identitySync.AssemblyPath);
 		}
 		finally
 		{

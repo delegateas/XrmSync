@@ -102,11 +102,15 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 
 	private static IdentitySyncItem? BuildIdentitySyncItem(IConfigurationSection itemSection)
 	{
-		var operationStr = itemSection.GetValue<string>(nameof(IdentitySyncItem.Operation)) ?? string.Empty;
-		if (!Enum.TryParse<IdentityOperation>(operationStr, ignoreCase: true, out var operation))
+		var operationStr = itemSection.GetValue<string>(nameof(IdentitySyncItem.Operation));
+		IdentityOperation? operation = null;
+		if (operationStr != null)
 		{
-			return null;
+			if (!Enum.TryParse<IdentityOperation>(operationStr, ignoreCase: true, out var parsed))
+				return null; // Invalid string → skip as before
+			operation = parsed;
 		}
+		// operation == null → absent from config, to be supplied via CLI
 
 		return new IdentitySyncItem(
 			operation,
