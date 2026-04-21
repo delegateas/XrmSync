@@ -1,9 +1,12 @@
 using System.Runtime.CompilerServices;
 using XrmSync;
 using XrmSync.Commands;
+using XrmSync.SyncService;
 
 [assembly: InternalsVisibleTo("Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+
+Console.WriteLine(new Description().ToolHeader);
 
 var command = new CommandLineBuilder()
 	.AddCommands(

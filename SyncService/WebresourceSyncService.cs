@@ -18,15 +18,14 @@ internal class WebresourceSyncService(
 	ISolutionReader solutionReader,
 	IWebresourceReader webresourceReader,
 	IWebresourceWriter webresourceWriter,
-	IValidator<WebresourceDefinition> webresourceValidator,
-	IPrintService printService
+	IValidator<WebresourceDefinition> webresourceValidator
 	) : ISyncService
 {
 	private readonly WebresourceSyncCommandOptions options = config.Value;
 
 	public Task Sync(CancellationToken cancellation)
 	{
-		printService.PrintHeader(PrintHeaderOptions.Default with { Message = "Comparing webresources registered in Dataverse versus those found in your local code" });
+		log.LogInformation("Comparing webresources registered in Dataverse versus those found in your local code");
 
 		var (local, remote) = ReadData();
 

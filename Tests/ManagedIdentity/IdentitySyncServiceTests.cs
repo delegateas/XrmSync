@@ -15,7 +15,6 @@ public class IdentitySyncServiceTests
 	private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
 	private readonly IManagedIdentityReader _managedIdentityReader = Substitute.For<IManagedIdentityReader>();
 	private readonly IManagedIdentityWriter _managedIdentityWriter = Substitute.For<IManagedIdentityWriter>();
-	private readonly IPrintService _printService = Substitute.For<IPrintService>();
 	private readonly ILogger<IdentitySyncService> _logger = Substitute.For<ILogger<IdentitySyncService>>();
 
 	private readonly Guid _solutionId = Guid.NewGuid();
@@ -39,7 +38,6 @@ public class IdentitySyncServiceTests
 			_managedIdentityReader,
 			_managedIdentityWriter,
 			Options.Create(options),
-			_printService,
 			_logger);
 	}
 

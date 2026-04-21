@@ -134,7 +134,6 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncRootCommand>>();
 		var description = serviceProvider.GetRequiredService<IDescription>();
 
-		logger.LogInformation("{header}", description.ToolHeader);
 		logger.LogInformation("Running with profile: {profileName}", mergedProfile.Name);
 
 		if (mergedConfig.DryRun)

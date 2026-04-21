@@ -28,7 +28,6 @@ public class PluginServiceTests
 	private readonly ISolutionReader solutionReader = Substitute.For<ISolutionReader>();
 	private readonly IDifferenceCalculator differenceUtility = Substitute.For<IDifferenceCalculator>();
 	private readonly IDescription description = new Description();
-	private readonly IPrintService printService = Substitute.For<IPrintService>();
 	private readonly PluginSyncCommandOptions options = new(string.Empty, "solution");
 
 	private readonly PluginSyncService plugin;
@@ -48,7 +47,6 @@ public class PluginServiceTests
 			solutionReader,
 			differenceUtility,
 			description,
-			printService,
 			Options.Create(options), logger);
 	}
 

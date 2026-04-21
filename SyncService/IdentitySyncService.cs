@@ -12,17 +12,14 @@ internal class IdentitySyncService(
 	IManagedIdentityReader managedIdentityReader,
 	IManagedIdentityWriter managedIdentityWriter,
 	IOptions<IdentityCommandOptions> configuration,
-	IPrintService printService,
 	ILogger<IdentitySyncService> log) : ISyncService
 {
 	private readonly IdentityCommandOptions options = configuration.Value;
 
 	public Task Sync(CancellationToken cancellation)
 	{
-		printService.PrintHeader(PrintHeaderOptions.Default with
-		{
-			Message = $"{options.Operation} managed identity for assembly '{Path.GetFileNameWithoutExtension(options.AssemblyPath)}'"
-		});
+		log.LogInformation("{operation} managed identity for assembly '{assemblyName}'",
+			options.Operation, Path.GetFileNameWithoutExtension(options.AssemblyPath));
 
 		return options.Operation switch
 		{

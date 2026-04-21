@@ -1,6 +1,8 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using XrmSync.Constants;
+using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
@@ -101,6 +103,13 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 		Func<IServiceProvider, CancellationToken, Task<bool>> action,
 		CancellationToken cancellationToken)
 	{
+		var dataverseReader = serviceProvider.GetService<IDataverseReader>();
+		if (dataverseReader != null)
+		{
+			var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncCommandBase>>();
+			logger.LogInformation("Connected to Dataverse at {dataverseUrl}", dataverseReader.ConnectedHost);
+		}
+
 		// Validate options before taking further action
 		try
 		{
