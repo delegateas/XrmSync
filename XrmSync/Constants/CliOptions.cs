@@ -44,7 +44,8 @@ internal static class CliOptions
 	{
 		public static readonly CliOptionDescriptor DryRun = new(
 			"--dry-run", ["--dryrun", "--dr"],
-			"Perform a dry run without making changes to Dataverse");
+			"Perform a dry run without making changes to Dataverse",
+			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 	}
 
 	/// <summary>
@@ -54,7 +55,8 @@ internal static class CliOptions
 	{
 		public static readonly CliOptionDescriptor CiMode = new(
 			"--ci-mode", ["--ci"],
-			"Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems");
+			"Enable CI mode which prefixes all warnings and errors for easier parsing in CI systems",
+			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 		public static readonly CliOptionDescriptor LogLevel = new(
 			"--log-level", ["-l", "--ll", "--loglevel"],
@@ -82,7 +84,8 @@ internal static class CliOptions
 	{
 		public static readonly CliOptionDescriptor Operation = new(
 			"--operation", ["-o", "--op"],
-			"The operation to perform: Remove or Ensure");
+			"The operation to perform: Remove or Ensure",
+			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 		public static readonly CliOptionDescriptor ClientId = new(
 			"--client-id", ["--cid"],

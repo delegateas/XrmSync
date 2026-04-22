@@ -24,8 +24,8 @@ internal record ArgumentOverrides(bool DryRun, bool CiMode, LogLevel? LogLevel);
 internal class XrmSyncRootCommand : XrmSyncCommandBase
 {
 	private readonly List<IXrmSyncCommand> subCommands;
-	private readonly Option<bool> dryRun;
-	private readonly Option<bool> ciMode;
+	private readonly Option<bool?> dryRun;
+	private readonly Option<bool?> ciMode;
 	private readonly Option<LogLevel?> logLevel;
 	private readonly Option<string?> assembly;
 	private readonly Option<string?> solution;
@@ -37,8 +37,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		this.subCommands = subCommands;
 
 		// Add override options
-		dryRun = CliOptions.Execution.DryRun.CreateOption<bool>();
-		ciMode = CliOptions.Logging.CiMode.CreateOption<bool>();
+		dryRun = CliOptions.Execution.DryRun.CreateOption<bool?>();
+		ciMode = CliOptions.Logging.CiMode.CreateOption<bool?>();
 		logLevel = CliOptions.Logging.LogLevel.CreateOption<LogLevel?>();
 
 		// Shared options owned by root command, passed into command override providers
@@ -114,8 +114,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		// Build merged config: profile with CLI-overridden sync items + execution mode overrides
 		var mergedConfig = rawConfig with
 		{
-			DryRun = dryRunOverride || rawConfig.DryRun,
-			CiMode = ciModeOverride || rawConfig.CiMode,
+			DryRun = dryRunOverride ?? rawConfig.DryRun,
+			CiMode = ciModeOverride ?? rawConfig.CiMode,
 			LogLevel = logLevelOverride ?? rawConfig.LogLevel,
 			Profiles = rawConfig.Profiles
 				.Select(p => p.Name == mergedProfile.Name ? mergedProfile : p)
@@ -127,14 +127,11 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			.AddSingleton(MSOptions.Create(mergedConfig))
 			.AddSingleton(MSOptions.Create(sharedOptions))
 			.AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
-			.AddSingleton<IDescription, Description>()
 			.AddLogger()
 			.BuildServiceProvider();
 
 		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncRootCommand>>();
-		var description = serviceProvider.GetRequiredService<IDescription>();
 
-		logger.LogInformation("{header}", description.ToolHeader);
 		logger.LogInformation("Running with profile: {profileName}", mergedProfile.Name);
 
 		if (mergedConfig.DryRun)
@@ -178,7 +175,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 				PluginSyncItem plugin => await ExecutePluginSync(plugin, mergedProfile, sharedOptions, overrides, mergedConfig),
 				PluginAnalysisSyncItem analysis => await ExecutePluginAnalysis(analysis, sharedOptions),
 				WebresourceSyncItem webresource => await ExecuteWebresourceSync(webresource, mergedProfile, sharedOptions, overrides, mergedConfig),
-				IdentitySyncItem identity => await ExecuteIdentity(identity, mergedProfile, sharedOptions, overrides, mergedConfig),
+				IdentitySyncItem identity when identity.Operation == null => LogMissingIdentityOperation(logger),
+			IdentitySyncItem identity => await ExecuteIdentity(identity, mergedProfile, sharedOptions, overrides, mergedConfig),
 				_ => LogUnknownSyncItemType(logger, syncItem.SyncType)
 			};
 
@@ -271,7 +269,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 	{
 		var args = new List<string>
 		{
-			CliOptions.ManagedIdentity.Operation.Primary, syncItem.Operation.ToString(),
+			CliOptions.ManagedIdentity.Operation.Primary, syncItem.Operation!.Value.ToString(),
 			CliOptions.Assembly.Primary, syncItem.AssemblyPath,
 			CliOptions.Solution.Primary, profile.SolutionName
 		};
@@ -311,6 +309,12 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 	private static int LogUnknownSyncItemType(ILogger logger, string syncType)
 	{
 		logger.LogError("Unknown sync item type: {syncType}", syncType);
+		return E_ERROR;
+	}
+
+	private static int LogMissingIdentityOperation(ILogger logger)
+	{
+		logger.LogError("Identity sync item has no operation configured and none was supplied via --operation.");
 		return E_ERROR;
 	}
 

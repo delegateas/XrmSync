@@ -18,7 +18,6 @@ public class WebresourceSyncServiceTests
 	private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
 	private readonly IWebresourceReader _webresourceReader = Substitute.For<IWebresourceReader>();
 	private readonly IWebresourceWriter _webresourceWriter = Substitute.For<IWebresourceWriter>();
-	private readonly IPrintService _printService = Substitute.For<IPrintService>();
 	private readonly IValidator<WebresourceDefinition> _webresourceValidator = Substitute.For<IValidator<WebresourceDefinition>>();
 	private readonly WebresourceSyncCommandOptions _options = new("C:\\WebResources", "TestSolution");
 
@@ -33,8 +32,7 @@ public class WebresourceSyncServiceTests
 			_solutionReader,
 			_webresourceReader,
 			_webresourceWriter,
-			_webresourceValidator,
-			_printService
+			_webresourceValidator
 		);
 	}
 
@@ -292,23 +290,6 @@ public class WebresourceSyncServiceTests
 	}
 
 	[Fact]
-	public async Task SyncCallsPrintService()
-	{
-		// Arrange
-		var solutionId = Guid.NewGuid();
-		var solutionPrefix = "test";
-		_solutionReader.RetrieveSolution(_options.SolutionName).Returns((solutionId, solutionPrefix));
-		_localReader.ReadWebResourceFolder(Arg.Any<string>(), Arg.Any<string>()).Returns(new List<WebresourceDefinition>());
-		_webresourceReader.GetWebresources(solutionId).Returns(new List<WebresourceDefinition>());
-
-		// Act
-		await _service.Sync(CancellationToken.None);
-
-		// Assert
-		_printService.Received(1).PrintHeader(Arg.Any<PrintHeaderOptions>());
-	}
-
-	[Fact]
 	public async Task SyncPassesFileExtensionsToLocalReader()
 	{
 		// Arrange
@@ -317,7 +298,7 @@ public class WebresourceSyncServiceTests
 		var optionsWithExtensions = new WebresourceSyncCommandOptions("C:\\WebResources", "TestSolution", ["js"]);
 		var service = new WebresourceSyncService(
 			Options.Create(optionsWithExtensions), _logger, _localReader, _solutionReader,
-			_webresourceReader, _webresourceWriter, _webresourceValidator, _printService);
+			_webresourceReader, _webresourceWriter, _webresourceValidator);
 
 		_solutionReader.RetrieveSolution(optionsWithExtensions.SolutionName).Returns((solutionId, solutionPrefix));
 		_localReader.ReadWebResourceFolder(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>?>())
@@ -344,7 +325,7 @@ public class WebresourceSyncServiceTests
 		var optionsWithExtensions = new WebresourceSyncCommandOptions("C:\\WebResources", "TestSolution", ["js", "css"]);
 		var service = new WebresourceSyncService(
 			Options.Create(optionsWithExtensions), _logger, _localReader, _solutionReader,
-			_webresourceReader, _webresourceWriter, _webresourceValidator, _printService);
+			_webresourceReader, _webresourceWriter, _webresourceValidator);
 
 		_solutionReader.RetrieveSolution(optionsWithExtensions.SolutionName).Returns((solutionId, solutionPrefix));
 		_localReader.ReadWebResourceFolder(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>?>())

@@ -715,6 +715,45 @@ public class OptionsValidationTests
 	}
 
 	[Fact]
+	public void IdentityValidatorNullOperationThrowsValidationException()
+	{
+		// Arrange — operation absent (null), simulating a profile entry without Operation and no CLI override
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new IdentitySyncItem(AssemblyPath: dllPath)
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+				() => validator.Validate(ConfigurationScope.Identity));
+			Assert.Contains("Operation is required", exception.Message);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
 	public void ValidatorNoProfilesAndNoProfileNamePassesValidation()
 	{
 		// Arrange - No profiles configured, no profile name specified (CLI mode)

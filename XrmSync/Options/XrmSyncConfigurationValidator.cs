@@ -75,7 +75,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 					errors = Validate(identity).ToList();
 					if (errors.Count != 0)
 					{
-						yield return new Model.Exceptions.OptionsValidationException($"Identity ({identity.Operation}) in profile '{profile.Name}'", errors);
+						yield return new Model.Exceptions.OptionsValidationException($"Identity ({identity.Operation?.ToString() ?? "unknown"}) in profile '{profile.Name}'", errors);
 					}
 					break;
 			}
@@ -86,6 +86,12 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 	{
 		var errors = new List<string>();
 		errors.AddRange(ValidateAssemblyPath(syncItem.AssemblyPath));
+
+		if (syncItem.Operation == null)
+		{
+			errors.Add("Operation is required. Specify 'Remove' or 'Ensure' in the profile or via --operation.");
+			return errors;
+		}
 
 		if (syncItem.Operation == IdentityOperation.Ensure)
 		{

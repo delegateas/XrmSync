@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Linq.Expressions;
-using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.SyncService.Extensions;
 
@@ -9,24 +8,10 @@ namespace XrmSync.SyncService.Difference;
 
 internal class PrintService(
 	ILogger<PrintService> log,
-	IOptions<ExecutionModeOptions> configuration,
-	IDataverseReader dataverseReader
+	IOptions<ExecutionModeOptions> configuration
 	) : IPrintService
 {
 	private readonly LogLevel LogLevel = configuration.Value.DryRun ? LogLevel.Information : LogLevel.Debug;
-
-	public void PrintHeader(PrintHeaderOptions options)
-	{
-		if (!string.IsNullOrWhiteSpace(options.Message))
-		{
-			log.LogInformation("{message}", options.Message);
-		}
-
-		if (options.PrintConnection)
-		{
-			log.LogInformation("Connected to Dataverse at {dataverseUrl}", dataverseReader.ConnectedHost);
-		}
-	}
 
 	public void Print<TEntity>(Difference<TEntity> differences, string title, Func<TEntity, string> namePicker)
 		where TEntity : EntityBase
