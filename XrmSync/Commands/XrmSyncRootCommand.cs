@@ -175,7 +175,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 				PluginSyncItem plugin => await ExecutePluginSync(plugin, mergedProfile, sharedOptions, overrides, mergedConfig),
 				PluginAnalysisSyncItem analysis => await ExecutePluginAnalysis(analysis, sharedOptions),
 				WebresourceSyncItem webresource => await ExecuteWebresourceSync(webresource, mergedProfile, sharedOptions, overrides, mergedConfig),
-				IdentitySyncItem identity => await ExecuteIdentity(identity, mergedProfile, sharedOptions, overrides, mergedConfig),
+				IdentitySyncItem identity when identity.Operation == null => LogMissingIdentityOperation(logger),
+			IdentitySyncItem identity => await ExecuteIdentity(identity, mergedProfile, sharedOptions, overrides, mergedConfig),
 				_ => LogUnknownSyncItemType(logger, syncItem.SyncType)
 			};
 
@@ -266,15 +267,9 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		ArgumentOverrides overrides,
 		XrmSyncConfiguration config)
 	{
-		if (syncItem.Operation == null)
-		{
-			Console.Error.WriteLine("Identity sync item has no operation configured and none was supplied via --operation.");
-			return E_ERROR;
-		}
-
 		var args = new List<string>
 		{
-			CliOptions.ManagedIdentity.Operation.Primary, syncItem.Operation.Value.ToString(),
+			CliOptions.ManagedIdentity.Operation.Primary, syncItem.Operation!.Value.ToString(),
 			CliOptions.Assembly.Primary, syncItem.AssemblyPath,
 			CliOptions.Solution.Primary, profile.SolutionName
 		};
@@ -314,6 +309,12 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 	private static int LogUnknownSyncItemType(ILogger logger, string syncType)
 	{
 		logger.LogError("Unknown sync item type: {syncType}", syncType);
+		return E_ERROR;
+	}
+
+	private static int LogMissingIdentityOperation(ILogger logger)
+	{
+		logger.LogError("Identity sync item has no operation configured and none was supplied via --operation.");
 		return E_ERROR;
 	}
 

@@ -19,8 +19,9 @@ var command = new CommandLineBuilder()
 
 var parseResult = command.Parse(args);
 
-// Print the tool header for actual command execution, but not for --help or --version
+// Print the tool header for actual command execution, but not for --help or --version.
+// Written to stderr so stdout stays clean for machine-readable output (e.g. analyze JSON).
 if (!args.Any(a => a is "--help" or "-h" or "-?" or "--version"))
-	Console.WriteLine(new Description().ToolHeader);
+	Console.Error.WriteLine(new Description().ToolHeader);
 
 return await parseResult.InvokeAsync();
