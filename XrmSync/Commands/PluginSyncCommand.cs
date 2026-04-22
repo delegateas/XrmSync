@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.CommandLine;
 using XrmSync.Constants;
@@ -10,7 +11,7 @@ using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands;
 
-internal class PluginSyncCommand : XrmSyncSyncCommandBase
+internal class PluginSyncCommand : XrmSyncCommandBase
 {
 	private readonly Option<string> assemblyFile;
 
@@ -21,25 +22,16 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 		Add(assemblyFile);
 
 		AddSharedOptions();
-		AddSyncSharedOptions();
+		AddSyncOptions();
 
 		SetAction(ExecuteAsync);
 	}
 
-	/// <summary>
-	/// Plugin sync has no unique override options — it only uses the shared assembly + solution options.
-	/// </summary>
-	public override ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => new(
-		options: [],
-		mergeSyncItem: (item, parseResult) =>
-		{
-			if (item is not PluginSyncItem plugin) return null;
-			var assemblyValue = parseResult.GetValue(assembly);
-			return plugin with
-			{
-				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyValue) ? assemblyValue : plugin.AssemblyPath
-			};
-		});
+	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ProfileExecutionContext ctx, CancellationToken ct)
+	{
+		if (syncItem is not PluginSyncItem plugin) return null;
+		return await RunCore(plugin.AssemblyPath, ctx.SolutionName, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
+	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
@@ -77,16 +69,26 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 			finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
 		}
 
-		// Validate resolved values
-		var errors = XrmSyncConfigurationValidator.ValidateAssemblyPath(finalAssemblyPath)
-			.Concat(XrmSyncConfigurationValidator.ValidateSolutionName(finalSolutionName))
+		return await RunCore(finalAssemblyPath, finalSolutionName, dryRun, ciMode, logLevel, sharedOptions.ProfileName, cancellationToken);
+	}
+
+	private async Task<int> RunCore(
+		string assemblyPath,
+		string solutionName,
+		bool? dryRun,
+		bool? ciMode,
+		LogLevel? logLevel,
+		string? profileName,
+		CancellationToken ct)
+	{
+		var errors = XrmSyncConfigurationValidator.ValidateAssemblyPath(assemblyPath)
+			.Concat(XrmSyncConfigurationValidator.ValidateSolutionName(solutionName))
 			.ToList();
 		if (errors.Count > 0)
 			return ValidationError("plugins", errors);
 
-		// Build service provider with validated options
 		var serviceProvider = GetPluginSyncServices()
-			.AddXrmSyncConfiguration(sharedOptions)
+			.AddXrmSyncConfiguration(new SharedOptions(profileName))
 			.AddOptions(
 				baseOptions => baseOptions with
 				{
@@ -94,7 +96,7 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 					CiMode = ciMode ?? baseOptions.CiMode,
 					DryRun = dryRun ?? baseOptions.DryRun
 				})
-			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(finalAssemblyPath, finalSolutionName)))
+			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(assemblyPath, solutionName)))
 			.AddSingleton(sp =>
 			{
 				var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
@@ -103,7 +105,7 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 			.AddLogger()
 			.BuildServiceProvider();
 
-		return await RunAction(serviceProvider, ConfigurationScope.None, CommandAction, cancellationToken)
+		return await RunAction(serviceProvider, ConfigurationScope.None, SyncCommandAction, ct)
 			? E_OK
 			: E_ERROR;
 	}
@@ -111,9 +113,7 @@ internal class PluginSyncCommand : XrmSyncSyncCommandBase
 	private static IServiceCollection GetPluginSyncServices(IServiceCollection? services = null)
 	{
 		services ??= new ServiceCollection();
-
 		services.AddPluginSyncService();
-
 		return services;
 	}
 }

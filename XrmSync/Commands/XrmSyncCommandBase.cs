@@ -6,7 +6,7 @@ using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
-using MSOptions = Microsoft.Extensions.Options.Options;
+using XrmSync.SyncService;
 
 namespace XrmSync.Commands;
 
@@ -21,22 +21,44 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	// Shared options available to all commands
 	protected Option<string?> ProfileNameOption { get; private set; } = null!;
 
+	// Sync-specific shared options (populated by AddSyncOptions)
+	protected Option<string> SolutionName { get; private set; } = null!;
+	protected Option<bool?> DryRun { get; private set; } = null!;
+	protected Option<LogLevel?> LogLevel { get; private set; } = null!;
+	protected Option<bool?> CiMode { get; private set; } = null!;
+
 	public Command GetCommand() => this;
 
 	/// <summary>
-	/// Default implementation: this command advertises no profile overrides.
-	/// Override in subclasses to expose sync-item-specific CLI options on the root command.
+	/// Default implementation: this command does not handle profile sync items.
+	/// Override in sync sub-commands to handle a specific SyncItem subtype.
 	/// </summary>
-	public virtual ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => null;
+	public virtual Task<int?> ExecuteFromProfile(SyncItem syncItem, ProfileExecutionContext ctx, CancellationToken ct)
+		=> Task.FromResult<int?>(null);
 
 	/// <summary>
-	/// Adds shared options to the command (profile)
+	/// Adds the profile option to the command
 	/// </summary>
 	protected void AddSharedOptions()
 	{
 		ProfileNameOption = CliOptions.Config.Profile.CreateOption<string?>();
-
 		Add(ProfileNameOption);
+	}
+
+	/// <summary>
+	/// Adds sync-specific shared options: --solution, --dry-run, --log-level, --ci-mode
+	/// </summary>
+	protected void AddSyncOptions()
+	{
+		SolutionName = CliOptions.Solution.CreateOption<string>();
+		DryRun = CliOptions.Execution.DryRun.CreateOption<bool?>();
+		LogLevel = CliOptions.Logging.LogLevel.CreateOption<LogLevel?>();
+		CiMode = CliOptions.Logging.CiMode.CreateOption<bool?>();
+
+		Add(SolutionName);
+		Add(DryRun);
+		Add(LogLevel);
+		Add(CiMode);
 	}
 
 	/// <summary>
@@ -45,8 +67,19 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	protected SharedOptions GetSharedOptionValues(ParseResult parseResult)
 	{
 		var profileName = parseResult.GetValue(ProfileNameOption);
-
 		return new(profileName);
+	}
+
+	/// <summary>
+	/// Gets the sync-specific shared option values from a parse result
+	/// </summary>
+	protected (string? SolutionName, bool? DryRun, LogLevel? LogLevel, bool? CIMode) GetSyncSharedOptionValues(ParseResult parseResult)
+	{
+		var solutionName = parseResult.GetValue(SolutionName);
+		var dryRun = parseResult.GetValue(DryRun);
+		var logLevel = parseResult.GetValue(LogLevel);
+		var ciMode = parseResult.GetValue(CiMode);
+		return (solutionName, dryRun, logLevel, ciMode);
 	}
 
 	/// <summary>
@@ -123,5 +156,34 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 		}
 
 		return await action(serviceProvider, cancellationToken);
+	}
+
+	/// <summary>
+	/// Standard action for sync commands: runs ISyncService.Sync and handles common exceptions.
+	/// </summary>
+	protected static async Task<bool> SyncCommandAction(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+	{
+		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncCommandBase>>();
+		try
+		{
+			var syncService = serviceProvider.GetRequiredService<ISyncService>();
+			await syncService.Sync(cancellationToken);
+			return true;
+		}
+		catch (OptionsValidationException ex)
+		{
+			logger.LogCritical("Configuration validation failed:{nl}{message}", Environment.NewLine, ex.Message);
+			return false;
+		}
+		catch (XrmSyncException ex)
+		{
+			logger.LogError("Error during synchronization: {message}", ex.Message);
+			return false;
+		}
+		catch (Exception ex)
+		{
+			logger.LogCritical(ex, "An unexpected error occurred during synchronization: {message}", ex.Message);
+			return false;
+		}
 	}
 }

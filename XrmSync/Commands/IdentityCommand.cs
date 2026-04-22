@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.CommandLine;
 using XrmSync.Constants;
@@ -11,17 +12,12 @@ using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands;
 
-internal class IdentityCommand : XrmSyncSyncCommandBase
+internal class IdentityCommand : XrmSyncCommandBase
 {
 	private readonly Option<IdentityOperation?> operation;
 	private readonly Option<string> assemblyFile;
 	private readonly Option<string> clientId;
 	private readonly Option<string> tenantId;
-
-	// Root-level override options (advertised to XrmSyncRootCommand via GetProfileOverrides)
-	private readonly Option<IdentityOperation?> rootOperation = CliOptions.ManagedIdentity.Operation.CreateOption<IdentityOperation?>();
-	private readonly Option<string?> rootClientId = CliOptions.ManagedIdentity.ClientId.CreateOption<string?>();
-	private readonly Option<string?> rootTenantId = CliOptions.ManagedIdentity.TenantId.CreateOption<string?>();
 
 	public IdentityCommand() : base("identity", "Manage the managed identity linked to a plugin assembly")
 	{
@@ -36,32 +32,33 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 		Add(tenantId);
 
 		AddSharedOptions();
-		AddSyncSharedOptions();
+		AddSyncOptions();
 
 		SetAction(ExecuteAsync);
 	}
 
-	/// <summary>
-	/// Advertises --client-id and --tenant-id as root-level overrides.
-	/// The shared assembly option is used in the merge callback but owned by the root command.
-	/// </summary>
-	public override ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => new(
-		options: [rootOperation, rootClientId, rootTenantId],
-		mergeSyncItem: (item, parseResult) =>
+	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ProfileExecutionContext ctx, CancellationToken ct)
+	{
+		if (syncItem is not IdentitySyncItem identity) return null;
+
+		if (identity.Operation == null)
 		{
-			if (item is not IdentitySyncItem identity) return null;
-			var operationValue = parseResult.GetValue(rootOperation);
-			var clientIdValue = parseResult.GetValue(rootClientId);
-			var tenantIdValue = parseResult.GetValue(rootTenantId);
-			var assemblyValue = parseResult.GetValue(assembly);
-			return identity with
-			{
-				Operation = operationValue ?? identity.Operation,
-				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyValue) ? assemblyValue : identity.AssemblyPath,
-				ClientId = !string.IsNullOrWhiteSpace(clientIdValue) ? clientIdValue : identity.ClientId,
-				TenantId = !string.IsNullOrWhiteSpace(tenantIdValue) ? tenantIdValue : identity.TenantId
-			};
-		});
+			Console.Error.WriteLine("Identity sync item has no operation configured and none was supplied via --operation.");
+			return E_ERROR;
+		}
+
+		return await RunCore(
+			identity.Operation.Value,
+			identity.AssemblyPath,
+			ctx.SolutionName,
+			identity.ClientId,
+			identity.TenantId,
+			ctx.DryRun,
+			ctx.CiMode,
+			ctx.LogLevel,
+			ctx.ProfileName,
+			ct);
+	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
@@ -134,10 +131,38 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 		if (errors.Count > 0)
 			return ValidationError($"identity --operation {finalOperation?.ToString() ?? "<none>"}", errors);
 
-		// Build service provider with validated options
+		return await RunCore(finalOperation!.Value, finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, dryRun, ciMode, logLevel, sharedOptions.ProfileName, cancellationToken);
+	}
+
+	private async Task<int> RunCore(
+		IdentityOperation operation,
+		string assemblyPath,
+		string solutionName,
+		string? clientId,
+		string? tenantId,
+		bool? dryRun,
+		bool? ciMode,
+		LogLevel? logLevel,
+		string? profileName,
+		CancellationToken ct)
+	{
+		// Validate resolved values (when called from ExecuteAsync, validation already done above)
+		var errors = new List<string>();
+		errors.AddRange(XrmSyncConfigurationValidator.ValidateAssemblyPath(assemblyPath));
+		errors.AddRange(XrmSyncConfigurationValidator.ValidateSolutionName(solutionName));
+
+		if (operation == IdentityOperation.Ensure)
+		{
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(clientId ?? string.Empty, "Client ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(tenantId ?? string.Empty, "Tenant ID"));
+		}
+
+		if (errors.Count > 0)
+			return ValidationError($"identity --operation {operation}", errors);
+
 		var serviceProvider = new ServiceCollection()
 			.AddIdentityService()
-			.AddXrmSyncConfiguration(sharedOptions)
+			.AddXrmSyncConfiguration(new SharedOptions(profileName))
 			.AddOptions(
 				baseOptions => baseOptions with
 				{
@@ -145,7 +170,7 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 					CiMode = ciMode ?? baseOptions.CiMode,
 					DryRun = dryRun ?? baseOptions.DryRun
 				})
-			.AddSingleton(MSOptions.Create(new IdentityCommandOptions(finalOperation!.Value, finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId)))
+			.AddSingleton(MSOptions.Create(new IdentityCommandOptions(operation, assemblyPath, solutionName, clientId, tenantId)))
 			.AddSingleton(sp =>
 			{
 				var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
@@ -154,7 +179,7 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 			.AddLogger()
 			.BuildServiceProvider();
 
-		return await RunAction(serviceProvider, ConfigurationScope.None, CommandAction, cancellationToken)
+		return await RunAction(serviceProvider, ConfigurationScope.None, SyncCommandAction, ct)
 			? E_OK
 			: E_ERROR;
 	}

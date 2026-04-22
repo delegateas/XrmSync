@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.CommandLine;
 using XrmSync.Constants;
@@ -10,14 +11,10 @@ using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands
 {
-	internal class WebresourceSyncCommand : XrmSyncSyncCommandBase
+	internal class WebresourceSyncCommand : XrmSyncCommandBase
 	{
 		private readonly Option<string> webresourceRoot;
 		private readonly Option<string[]> fileExtensions;
-
-		// Root-level override options (advertised to XrmSyncRootCommand via GetProfileOverrides)
-		private readonly Option<string?> rootFolder = CliOptions.Webresource.CreateOption<string?>();
-		private readonly Option<string[]?> rootFileExtensions = CliOptions.FileExtensions.CreateOption<string[]?>();
 
 		public WebresourceSyncCommand() : base("webresources", "Synchronize webresources from a local folder with Dataverse")
 		{
@@ -28,28 +25,16 @@ namespace XrmSync.Commands
 			Add(fileExtensions);
 
 			AddSharedOptions();
-			AddSyncSharedOptions();
+			AddSyncOptions();
 
 			SetAction(ExecuteAsync);
 		}
 
-		/// <summary>
-		/// Advertises --folder and --file-extensions as root-level overrides.
-		/// The shared solution option is used in the merge callback but owned by the root command.
-		/// </summary>
-		public override ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => new(
-			options: [rootFolder, rootFileExtensions],
-			mergeSyncItem: (item, parseResult) =>
-			{
-				if (item is not WebresourceSyncItem webresource) return null;
-				var folderValue = parseResult.GetValue(rootFolder);
-				var extensions = parseResult.GetValue(rootFileExtensions);
-				return webresource with
-				{
-					FolderPath = !string.IsNullOrWhiteSpace(folderValue) ? folderValue : webresource.FolderPath,
-					FileExtensions = extensions is { Length: > 0 } ? extensions.ToList() : webresource.FileExtensions
-				};
-			});
+		public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ProfileExecutionContext ctx, CancellationToken ct)
+		{
+			if (syncItem is not WebresourceSyncItem webresource) return null;
+			return await RunCore(webresource.FolderPath, ctx.SolutionName, webresource.FileExtensions, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
+		}
 
 		private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 		{
@@ -91,16 +76,27 @@ namespace XrmSync.Commands
 				finalExtensions = extensionsValue is { Length: > 0 } ? extensionsValue.ToList() : webresourceSyncItem?.FileExtensions;
 			}
 
-			// Validate resolved values
-			var errors = XrmSyncConfigurationValidator.ValidateFolderPath(finalFolderPath)
-				.Concat(XrmSyncConfigurationValidator.ValidateSolutionName(finalSolutionName))
+			return await RunCore(finalFolderPath, finalSolutionName, finalExtensions, dryRun, ciMode, logLevel, sharedOptions.ProfileName, cancellationToken);
+		}
+
+		private async Task<int> RunCore(
+			string folderPath,
+			string solutionName,
+			List<string>? fileExtensionsList,
+			bool? dryRun,
+			bool? ciMode,
+			LogLevel? logLevel,
+			string? profileName,
+			CancellationToken ct)
+		{
+			var errors = XrmSyncConfigurationValidator.ValidateFolderPath(folderPath)
+				.Concat(XrmSyncConfigurationValidator.ValidateSolutionName(solutionName))
 				.ToList();
 			if (errors.Count > 0)
 				return ValidationError("webresources", errors);
 
-			// Build service provider with validated options
 			var serviceProvider = GetWebresourceSyncServices()
-				.AddXrmSyncConfiguration(sharedOptions)
+				.AddXrmSyncConfiguration(new SharedOptions(profileName))
 				.AddOptions(
 					options => options with
 					{
@@ -109,7 +105,7 @@ namespace XrmSync.Commands
 						DryRun = dryRun ?? options.DryRun
 					}
 				)
-				.AddSingleton(MSOptions.Create(new WebresourceSyncCommandOptions(finalFolderPath, finalSolutionName, finalExtensions)))
+				.AddSingleton(MSOptions.Create(new WebresourceSyncCommandOptions(folderPath, solutionName, fileExtensionsList)))
 				.AddSingleton(sp =>
 				{
 					var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
@@ -118,7 +114,7 @@ namespace XrmSync.Commands
 				.AddLogger()
 				.BuildServiceProvider();
 
-			return await RunAction(serviceProvider, ConfigurationScope.None, CommandAction, cancellationToken)
+			return await RunAction(serviceProvider, ConfigurationScope.None, SyncCommandAction, ct)
 				? E_OK
 				: E_ERROR;
 		}
@@ -126,9 +122,7 @@ namespace XrmSync.Commands
 		private static IServiceCollection GetWebresourceSyncServices(IServiceCollection? services = null)
 		{
 			services ??= new ServiceCollection();
-
 			services.AddWebresourceSyncAction();
-
 			return services;
 		}
 	}
