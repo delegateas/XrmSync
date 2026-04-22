@@ -1,4 +1,8 @@
-### v1.0.0-preview.17 - 20 March 2026
+### v1.0.0-preview.18 - 22 April 2026
+* Fix: Handling of passing boolean arguments through from CLI to final command
+* Refactor: Only print the header and Dataverse connection once during execution
+
+### v1.0.0-preview.17 - 20 April 2026
 * Add: Managed Identity Ensure and Remove support
 * Fix: Unify check for public parameterless constructors in analyzer
 * Fix: Do not attempt to sync empty plugin types
