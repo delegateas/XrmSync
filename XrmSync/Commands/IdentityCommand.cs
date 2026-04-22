@@ -102,9 +102,12 @@ internal class IdentityCommand : XrmSyncSyncCommandBase
 			}
 
 			// Sync item is optional — if absent, CLI must supply all identity-specific values.
-			// Match items where: no CLI operation was given (take any item), or the item has no operation set, or the item's operation matches the CLI value.
-			var syncItem = profile.Sync.OfType<IdentitySyncItem>()
-				.FirstOrDefault(i => operationValue == null || i.Operation == null || i.Operation == operationValue);
+			// Priority: exact operation match → null-operation item as fallback → any item when no operation is specified.
+			var identityItems = profile.Sync.OfType<IdentitySyncItem>().ToList();
+			var syncItem = operationValue.HasValue
+				? identityItems.FirstOrDefault(i => i.Operation == operationValue)
+					?? identityItems.FirstOrDefault(i => i.Operation == null)
+				: identityItems.FirstOrDefault();
 
 			finalOperation = operationValue ?? syncItem?.Operation;
 			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : (syncItem?.AssemblyPath ?? string.Empty);

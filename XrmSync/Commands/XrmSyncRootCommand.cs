@@ -127,12 +127,10 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			.AddSingleton(MSOptions.Create(mergedConfig))
 			.AddSingleton(MSOptions.Create(sharedOptions))
 			.AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
-			.AddSingleton<IDescription, Description>()
 			.AddLogger()
 			.BuildServiceProvider();
 
 		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncRootCommand>>();
-		var description = serviceProvider.GetRequiredService<IDescription>();
 
 		logger.LogInformation("Running with profile: {profileName}", mergedProfile.Name);
 
