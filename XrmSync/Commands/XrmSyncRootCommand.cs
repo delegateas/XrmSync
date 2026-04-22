@@ -24,8 +24,8 @@ internal record ArgumentOverrides(bool DryRun, bool CiMode, LogLevel? LogLevel);
 internal class XrmSyncRootCommand : XrmSyncCommandBase
 {
 	private readonly List<IXrmSyncCommand> subCommands;
-	private readonly Option<bool> dryRun;
-	private readonly Option<bool> ciMode;
+	private readonly Option<bool?> dryRun;
+	private readonly Option<bool?> ciMode;
 	private readonly Option<LogLevel?> logLevel;
 	private readonly Option<string?> assembly;
 	private readonly Option<string?> solution;
@@ -37,8 +37,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		this.subCommands = subCommands;
 
 		// Add override options
-		dryRun = CliOptions.Execution.DryRun.CreateOption<bool>();
-		ciMode = CliOptions.Logging.CiMode.CreateOption<bool>();
+		dryRun = CliOptions.Execution.DryRun.CreateOption<bool?>();
+		ciMode = CliOptions.Logging.CiMode.CreateOption<bool?>();
 		logLevel = CliOptions.Logging.LogLevel.CreateOption<LogLevel?>();
 
 		// Shared options owned by root command, passed into command override providers
@@ -114,8 +114,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		// Build merged config: profile with CLI-overridden sync items + execution mode overrides
 		var mergedConfig = rawConfig with
 		{
-			DryRun = dryRunOverride || rawConfig.DryRun,
-			CiMode = ciModeOverride || rawConfig.CiMode,
+			DryRun = dryRunOverride ?? rawConfig.DryRun,
+			CiMode = ciModeOverride ?? rawConfig.CiMode,
 			LogLevel = logLevelOverride ?? rawConfig.LogLevel,
 			Profiles = rawConfig.Profiles
 				.Select(p => p.Name == mergedProfile.Name ? mergedProfile : p)
