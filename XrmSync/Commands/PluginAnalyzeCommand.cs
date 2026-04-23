@@ -74,8 +74,8 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 			// Sync item is optional — if absent, CLI must supply all analysis-specific values
 			var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
 
-			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : (pluginAnalysisItem?.AssemblyPath ?? string.Empty);
-			finalPublisherPrefix = !string.IsNullOrWhiteSpace(publisherPrefix) ? publisherPrefix : (pluginAnalysisItem?.PublisherPrefix ?? string.Empty);
+			finalAssemblyPath = assemblyPath.GetValueOrDefault(pluginAnalysisItem?.AssemblyPath ?? string.Empty);
+			finalPublisherPrefix = publisherPrefix.GetValueOrDefault(pluginAnalysisItem?.PublisherPrefix ?? string.Empty);
 			finalPrettyPrint = prettyPrintValue || (pluginAnalysisItem?.PrettyPrint ?? false);
 		}
 

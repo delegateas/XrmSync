@@ -579,7 +579,7 @@ public class OptionsValidationTests
 				{
 					new("default", "TestSolution", new List<SyncItem>
 					{
-						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, null, "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d")
+						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, string.Empty, "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d")
 					})
 				}
 			);
@@ -618,7 +618,7 @@ public class OptionsValidationTests
 				{
 					new("default", "TestSolution", new List<SyncItem>
 					{
-						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d", null)
+						new IdentitySyncItem(IdentityOperation.Ensure, dllPath, "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d", string.Empty)
 					})
 				}
 			);
@@ -696,7 +696,7 @@ public class OptionsValidationTests
 				{
 					new("default", "TestSolution", new List<SyncItem>
 					{
-						new IdentitySyncItem(IdentityOperation.Remove, dllPath, null, null)
+						new IdentitySyncItem(IdentityOperation.Remove, dllPath, string.Empty, string.Empty)
 					})
 				}
 			);

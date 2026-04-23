@@ -119,7 +119,7 @@ public enum IdentityOperation
 	Ensure
 }
 
-public record IdentitySyncItem(IdentityOperation? Operation = null, string AssemblyPath = "", string? ClientId = null, string? TenantId = null) : SyncItem
+public record IdentitySyncItem(IdentityOperation? Operation = null, string AssemblyPath = "", string ClientId = "", string TenantId = "") : SyncItem
 {
 	public const string TypeName = "Identity";
 	public static IdentitySyncItem Empty => new(AssemblyPath: string.Empty);
@@ -128,9 +128,9 @@ public record IdentitySyncItem(IdentityOperation? Operation = null, string Assem
 	public override string SyncType => Operation.HasValue ? $"{TypeName} ({Operation})" : TypeName;
 }
 
-public record IdentityCommandOptions(IdentityOperation Operation, string AssemblyPath, string SolutionName, string? ClientId = null, string? TenantId = null)
+public record IdentityCommandOptions(IdentityOperation Operation, string AssemblyPath, string SolutionName, string ClientId, string TenantId)
 {
-	public static IdentityCommandOptions Empty => new(IdentityOperation.Remove, string.Empty, string.Empty);
+	public static IdentityCommandOptions Empty => new(IdentityOperation.Remove, string.Empty, string.Empty, string.Empty, string.Empty);
 }
 
 public record ExecutionModeOptions(bool DryRun)

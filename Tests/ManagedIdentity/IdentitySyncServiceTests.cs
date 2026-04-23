@@ -6,18 +6,17 @@ using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.SyncService;
-using XrmSync.SyncService.Difference;
 
 namespace Tests.ManagedIdentity;
 
 public class IdentitySyncServiceTests
 {
-	private readonly ISolutionReader _solutionReader = Substitute.For<ISolutionReader>();
-	private readonly IManagedIdentityReader _managedIdentityReader = Substitute.For<IManagedIdentityReader>();
-	private readonly IManagedIdentityWriter _managedIdentityWriter = Substitute.For<IManagedIdentityWriter>();
-	private readonly ILogger<IdentitySyncService> _logger = Substitute.For<ILogger<IdentitySyncService>>();
+	private readonly ISolutionReader solutionReader = Substitute.For<ISolutionReader>();
+	private readonly IManagedIdentityReader managedIdentityReader = Substitute.For<IManagedIdentityReader>();
+	private readonly IManagedIdentityWriter managedIdentityWriter = Substitute.For<IManagedIdentityWriter>();
+	private readonly ILogger<IdentitySyncService> logger = Substitute.For<ILogger<IdentitySyncService>>();
 
-	private readonly Guid _solutionId = Guid.NewGuid();
+	private readonly Guid solutionId = Guid.NewGuid();
 	private const string SolutionName = "TestSolution";
 	private const string AssemblyPath = "path/to/MyPlugin.dll";
 
@@ -30,15 +29,15 @@ public class IdentitySyncServiceTests
 			operation,
 			assemblyPath ?? AssemblyPath,
 			solutionName ?? SolutionName,
-			clientId,
-			tenantId);
+			clientId ?? string.Empty,
+			tenantId ?? string.Empty);
 
 		return new IdentitySyncService(
-			_solutionReader,
-			_managedIdentityReader,
-			_managedIdentityWriter,
+			solutionReader,
+			managedIdentityReader,
+			managedIdentityWriter,
 			Options.Create(options),
-			_logger);
+			logger);
 	}
 
 	// --- Remove operation tests ---
@@ -51,8 +50,8 @@ public class IdentitySyncServiceTests
 		var miId = Guid.NewGuid();
 		var miRef = new EntityReference("managedidentity", miId);
 
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "MyPlugin")
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "MyPlugin")
 			.Returns((assemblyId, miRef));
 
 		var service = CreateService(IdentityOperation.Remove);
@@ -61,7 +60,7 @@ public class IdentitySyncServiceTests
 		await service.Sync(CancellationToken.None);
 
 		// Assert
-		_managedIdentityWriter.Received(1).Remove(miId);
+		managedIdentityWriter.Received(1).Remove(miId);
 	}
 
 	[Fact]
@@ -70,8 +69,8 @@ public class IdentitySyncServiceTests
 		// Arrange
 		var assemblyId = Guid.NewGuid();
 
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "MyPlugin")
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "MyPlugin")
 			.Returns((assemblyId, (EntityReference?)null));
 
 		var service = CreateService(IdentityOperation.Remove);
@@ -80,15 +79,15 @@ public class IdentitySyncServiceTests
 		await service.Sync(CancellationToken.None);
 
 		// Assert
-		_managedIdentityWriter.DidNotReceive().Remove(Arg.Any<Guid>());
+		managedIdentityWriter.DidNotReceive().Remove(Arg.Any<Guid>());
 	}
 
 	[Fact]
 	public async Task RemoveThrowsWhenAssemblyNotFound()
 	{
 		// Arrange
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "MyPlugin")
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "MyPlugin")
 			.Returns(((Guid, EntityReference?)?)null);
 
 		var service = CreateService(IdentityOperation.Remove);
@@ -106,8 +105,8 @@ public class IdentitySyncServiceTests
 		// Arrange
 		var assemblyId = Guid.NewGuid();
 
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "Custom.Plugin.Assembly")
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "Custom.Plugin.Assembly")
 			.Returns((assemblyId, (EntityReference?)null));
 
 		var service = CreateService(IdentityOperation.Remove, assemblyPath: "some/nested/path/Custom.Plugin.Assembly.dll");
@@ -116,7 +115,7 @@ public class IdentitySyncServiceTests
 		await service.Sync(CancellationToken.None);
 
 		// Assert
-		_managedIdentityReader.Received(1).GetPluginAssemblyManagedIdentity(_solutionId, "Custom.Plugin.Assembly");
+		managedIdentityReader.Received(1).GetPluginAssemblyManagedIdentity(solutionId, "Custom.Plugin.Assembly");
 	}
 
 	// --- Ensure operation tests ---
@@ -130,10 +129,10 @@ public class IdentitySyncServiceTests
 		var clientId = Guid.NewGuid();
 		var tenantId = Guid.NewGuid();
 
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "MyPlugin")
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "MyPlugin")
 			.Returns((assemblyId, (EntityReference?)null));
-		_managedIdentityWriter.Create(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>())
+		managedIdentityWriter.Create(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>())
 			.Returns(createdMiId);
 
 		var service = CreateService(IdentityOperation.Ensure, clientId: clientId.ToString(), tenantId: tenantId.ToString());
@@ -142,10 +141,10 @@ public class IdentitySyncServiceTests
 		await service.Sync(CancellationToken.None);
 
 		// Assert - MI was created with correct values
-		_managedIdentityWriter.Received(1).Create("TestSolution Managed Identity", clientId, tenantId);
+		managedIdentityWriter.Received(1).Create("TestSolution Managed Identity", clientId, tenantId);
 
 		// Assert - Assembly was linked to the new MI
-		_managedIdentityWriter.Received(1).LinkToAssembly(assemblyId, createdMiId);
+		managedIdentityWriter.Received(1).LinkToAssembly(assemblyId, createdMiId);
 	}
 
 	[Fact]
@@ -155,8 +154,8 @@ public class IdentitySyncServiceTests
 		var assemblyId = Guid.NewGuid();
 		var existingMiRef = new EntityReference("managedidentity", Guid.NewGuid());
 
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "MyPlugin")
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "MyPlugin")
 			.Returns((assemblyId, existingMiRef));
 
 		var service = CreateService(IdentityOperation.Ensure,
@@ -166,15 +165,15 @@ public class IdentitySyncServiceTests
 		await service.Sync(CancellationToken.None);
 
 		// Assert
-		_managedIdentityWriter.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>());
-		_managedIdentityWriter.DidNotReceive().LinkToAssembly(Arg.Any<Guid>(), Arg.Any<Guid>());
+		managedIdentityWriter.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>());
+		managedIdentityWriter.DidNotReceive().LinkToAssembly(Arg.Any<Guid>(), Arg.Any<Guid>());
 	}
 
 	[Fact]
 	public async Task EnsureThrowsWhenClientIdIsNull()
 	{
 		// Arrange
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
 		var service = CreateService(IdentityOperation.Ensure, clientId: null, tenantId: Guid.NewGuid().ToString());
 
 		// Act & Assert
@@ -186,7 +185,7 @@ public class IdentitySyncServiceTests
 	public async Task EnsureThrowsWhenClientIdIsNotAValidGuid()
 	{
 		// Arrange
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
 		var service = CreateService(IdentityOperation.Ensure, clientId: "not-a-guid", tenantId: Guid.NewGuid().ToString());
 
 		// Act & Assert
@@ -198,7 +197,7 @@ public class IdentitySyncServiceTests
 	public async Task EnsureThrowsWhenTenantIdIsNull()
 	{
 		// Arrange
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
 		var service = CreateService(IdentityOperation.Ensure, clientId: Guid.NewGuid().ToString(), tenantId: null);
 
 		// Act & Assert
@@ -210,7 +209,7 @@ public class IdentitySyncServiceTests
 	public async Task EnsureThrowsWhenTenantIdIsNotAValidGuid()
 	{
 		// Arrange
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
 		var service = CreateService(IdentityOperation.Ensure, clientId: Guid.NewGuid().ToString(), tenantId: "not-a-guid");
 
 		// Act & Assert
@@ -222,8 +221,8 @@ public class IdentitySyncServiceTests
 	public async Task EnsureThrowsWhenAssemblyNotFound()
 	{
 		// Arrange
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "MyPlugin")
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "MyPlugin")
 			.Returns(((Guid, EntityReference?)?)null);
 
 		var service = CreateService(IdentityOperation.Ensure,
@@ -242,10 +241,10 @@ public class IdentitySyncServiceTests
 		// Arrange
 		var assemblyId = Guid.NewGuid();
 
-		_solutionReader.RetrieveSolution("CustomSolution").Returns((_solutionId, "custom"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "MyPlugin")
+		solutionReader.RetrieveSolution("CustomSolution").Returns((solutionId, "custom"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "MyPlugin")
 			.Returns((assemblyId, (EntityReference?)null));
-		_managedIdentityWriter.Create(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>())
+		managedIdentityWriter.Create(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>())
 			.Returns(Guid.NewGuid());
 
 		var service = CreateService(IdentityOperation.Ensure, solutionName: "CustomSolution",
@@ -255,7 +254,7 @@ public class IdentitySyncServiceTests
 		await service.Sync(CancellationToken.None);
 
 		// Assert
-		_managedIdentityWriter.Received(1).Create(
+		managedIdentityWriter.Received(1).Create(
 			"CustomSolution Managed Identity", Arg.Any<Guid>(), Arg.Any<Guid>());
 	}
 
@@ -265,10 +264,10 @@ public class IdentitySyncServiceTests
 		// Arrange
 		var assemblyId = Guid.NewGuid();
 
-		_solutionReader.RetrieveSolution(SolutionName).Returns((_solutionId, "test"));
-		_managedIdentityReader.GetPluginAssemblyManagedIdentity(_solutionId, "Custom.Plugin.Assembly")
+		solutionReader.RetrieveSolution(SolutionName).Returns((solutionId, "test"));
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, "Custom.Plugin.Assembly")
 			.Returns((assemblyId, (EntityReference?)null));
-		_managedIdentityWriter.Create(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>())
+		managedIdentityWriter.Create(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>())
 			.Returns(Guid.NewGuid());
 
 		var service = CreateService(IdentityOperation.Ensure, assemblyPath: "some/nested/path/Custom.Plugin.Assembly.dll",
@@ -278,6 +277,6 @@ public class IdentitySyncServiceTests
 		await service.Sync(CancellationToken.None);
 
 		// Assert
-		_managedIdentityReader.Received(1).GetPluginAssemblyManagedIdentity(_solutionId, "Custom.Plugin.Assembly");
+		managedIdentityReader.Received(1).GetPluginAssemblyManagedIdentity(solutionId, "Custom.Plugin.Assembly");
 	}
 }

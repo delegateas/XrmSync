@@ -65,8 +65,8 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 			// Sync item is optional — if absent, CLI must supply all plugin-specific values
 			var pluginSyncItem = profile.Sync.OfType<PluginSyncItem>().FirstOrDefault();
 
-			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : (pluginSyncItem?.AssemblyPath ?? string.Empty);
-			finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
+			finalAssemblyPath = assemblyPath.GetValueOrDefault(pluginSyncItem?.AssemblyPath ?? string.Empty);
+			finalSolutionName = solutionName.GetValueOrDefault(profile.SolutionName);
 		}
 
 		return await RunCore(finalAssemblyPath, finalSolutionName, dryRun, ciMode, logLevel, sharedOptions.ProfileName, cancellationToken);

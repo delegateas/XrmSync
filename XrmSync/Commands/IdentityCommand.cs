@@ -73,8 +73,8 @@ internal class IdentityCommand : XrmSyncCommandBase
 		IdentityOperation? finalOperation;
 		string finalAssemblyPath;
 		string finalSolutionName;
-		string? finalClientId;
-		string? finalTenantId;
+		string finalClientId;
+		string finalTenantId;
 
 		if (sharedOptions.ProfileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName))
 		{
@@ -82,8 +82,8 @@ internal class IdentityCommand : XrmSyncCommandBase
 			finalOperation = operationValue;
 			finalAssemblyPath = assemblyPath;
 			finalSolutionName = solutionName;
-			finalClientId = clientIdValue;
-			finalTenantId = tenantIdValue;
+			finalClientId = clientIdValue ?? string.Empty;
+			finalTenantId = tenantIdValue ?? string.Empty;
 		}
 		else
 		{
@@ -107,10 +107,10 @@ internal class IdentityCommand : XrmSyncCommandBase
 				: identityItems.FirstOrDefault();
 
 			finalOperation = operationValue ?? syncItem?.Operation;
-			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : (syncItem?.AssemblyPath ?? string.Empty);
-			finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
-			finalClientId = !string.IsNullOrWhiteSpace(clientIdValue) ? clientIdValue : syncItem?.ClientId;
-			finalTenantId = !string.IsNullOrWhiteSpace(tenantIdValue) ? tenantIdValue : syncItem?.TenantId;
+			finalAssemblyPath = assemblyPath.GetValueOrDefault(syncItem?.AssemblyPath ?? string.Empty);
+			finalSolutionName = solutionName.GetValueOrDefault(profile.SolutionName);
+			finalClientId = clientIdValue.GetValueOrDefault(syncItem?.ClientId ?? string.Empty);
+			finalTenantId = tenantIdValue.GetValueOrDefault(syncItem?.TenantId ?? string.Empty);
 		}
 
 		// Validate resolved values
@@ -124,8 +124,8 @@ internal class IdentityCommand : XrmSyncCommandBase
 
 		if (finalOperation == IdentityOperation.Ensure)
 		{
-			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(finalClientId ?? string.Empty, "Client ID"));
-			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(finalTenantId ?? string.Empty, "Tenant ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(finalClientId, "Client ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(finalTenantId, "Tenant ID"));
 		}
 
 		if (errors.Count > 0)
@@ -138,8 +138,8 @@ internal class IdentityCommand : XrmSyncCommandBase
 		IdentityOperation operation,
 		string assemblyPath,
 		string solutionName,
-		string? clientId,
-		string? tenantId,
+		string clientId,
+		string tenantId,
 		bool? dryRun,
 		bool? ciMode,
 		LogLevel? logLevel,
@@ -153,8 +153,8 @@ internal class IdentityCommand : XrmSyncCommandBase
 
 		if (operation == IdentityOperation.Ensure)
 		{
-			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(clientId ?? string.Empty, "Client ID"));
-			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(tenantId ?? string.Empty, "Tenant ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(clientId, "Client ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(tenantId, "Tenant ID"));
 		}
 
 		if (errors.Count > 0)

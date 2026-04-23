@@ -366,8 +366,8 @@ public class NamedConfigurationTests
 			var identitySync = Assert.IsType<IdentitySyncItem>(profile.Sync[0]);
 			Assert.Equal(IdentityOperation.Remove, identitySync.Operation);
 			Assert.Equal("plugins.dll", identitySync.AssemblyPath);
-			Assert.Null(identitySync.ClientId);
-			Assert.Null(identitySync.TenantId);
+			Assert.Empty(identitySync.ClientId);
+			Assert.Empty(identitySync.TenantId);
 		}
 		finally
 		{

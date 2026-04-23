@@ -95,33 +95,33 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		}
 
 		// Merge CLI overrides into each sync item
-		var mergedSync = rawProfile.Sync.Select<SyncItem, SyncItem>(item => item switch
+		var mergedSync = rawProfile.Sync.ConvertAll(item => item switch
 		{
 			PluginSyncItem plugin => plugin with
 			{
-				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyOverride) ? assemblyOverride : plugin.AssemblyPath
+				AssemblyPath = assemblyOverride.GetValueOrDefault(plugin.AssemblyPath)
 			},
 			PluginAnalysisSyncItem analysis => analysis with
 			{
-				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyOverride) ? assemblyOverride : analysis.AssemblyPath,
-				PublisherPrefix = !string.IsNullOrWhiteSpace(prefixOverride) ? prefixOverride : analysis.PublisherPrefix
+				AssemblyPath = assemblyOverride.GetValueOrDefault(analysis.AssemblyPath),
+				PublisherPrefix = prefixOverride.GetValueOrDefault(analysis.PublisherPrefix)
 			},
 			WebresourceSyncItem webresource => webresource with
 			{
-				FolderPath = !string.IsNullOrWhiteSpace(folderOverride) ? folderOverride : webresource.FolderPath,
+				FolderPath = folderOverride.GetValueOrDefault(webresource.FolderPath),
 				FileExtensions = fileExtensionsOverride is { Length: > 0 } ? fileExtensionsOverride.ToList() : webresource.FileExtensions
 			},
 			IdentitySyncItem identity => identity with
 			{
 				Operation = operationOverride ?? identity.Operation,
-				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyOverride) ? assemblyOverride : identity.AssemblyPath,
-				ClientId = !string.IsNullOrWhiteSpace(clientIdOverride) ? clientIdOverride : identity.ClientId,
-				TenantId = !string.IsNullOrWhiteSpace(tenantIdOverride) ? tenantIdOverride : identity.TenantId
+				AssemblyPath = assemblyOverride.GetValueOrDefault(identity.AssemblyPath),
+				ClientId = clientIdOverride.GetValueOrDefault(identity.ClientId),
+				TenantId = tenantIdOverride.GetValueOrDefault(identity.TenantId)
 			},
 			_ => item
-		}).ToList();
+		});
 
-		var mergedSolutionName = !string.IsNullOrWhiteSpace(solutionOverride) ? solutionOverride : rawProfile.SolutionName;
+		var mergedSolutionName = solutionOverride.GetValueOrDefault(rawProfile.SolutionName);
 		var mergedProfile = rawProfile with { SolutionName = mergedSolutionName, Sync = mergedSync };
 
 		var mergedConfig = rawConfig with

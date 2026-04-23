@@ -71,9 +71,9 @@ namespace XrmSync.Commands
 				// Sync item is optional — if absent, CLI must supply all webresource-specific values
 				var webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault();
 
-				finalFolderPath = !string.IsNullOrWhiteSpace(folderPath) ? folderPath : (webresourceSyncItem?.FolderPath ?? string.Empty);
-				finalSolutionName = !string.IsNullOrWhiteSpace(solutionName) ? solutionName : profile.SolutionName;
-				finalExtensions = extensionsValue is { Length: > 0 } ? extensionsValue.ToList() : webresourceSyncItem?.FileExtensions;
+				finalFolderPath = folderPath.GetValueOrDefault(webresourceSyncItem?.FolderPath ?? string.Empty);
+				finalSolutionName = solutionName.GetValueOrDefault(profile.SolutionName);
+				finalExtensions = extensionsValue is { Length: > 0 } ? [.. extensionsValue] : webresourceSyncItem?.FileExtensions;
 			}
 
 			return await RunCore(finalFolderPath, finalSolutionName, finalExtensions, dryRun, ciMode, logLevel, sharedOptions.ProfileName, cancellationToken);

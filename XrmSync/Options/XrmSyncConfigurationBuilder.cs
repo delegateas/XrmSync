@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using XrmSync.Model;
-using XrmSync.Model.Exceptions;
 
 namespace XrmSync.Options;
 
@@ -115,8 +114,8 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 		return new IdentitySyncItem(
 			operation,
 			itemSection.GetValue<string>(nameof(IdentitySyncItem.AssemblyPath)) ?? string.Empty,
-			itemSection.GetValue<string>(nameof(IdentitySyncItem.ClientId)),
-			itemSection.GetValue<string>(nameof(IdentitySyncItem.TenantId))
+			itemSection.GetValue<string>(nameof(IdentitySyncItem.ClientId)) ?? string.Empty,
+			itemSection.GetValue<string>(nameof(IdentitySyncItem.TenantId)) ?? string.Empty
 		);
 	}
 
