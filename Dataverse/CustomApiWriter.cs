@@ -5,6 +5,7 @@ using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;
+using XrmSync.Model.Plugin;
 
 namespace XrmSync.Dataverse;
 

@@ -5,6 +5,7 @@ using NSubstitute;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
+using XrmSync.Model.Identity;
 using XrmSync.SyncService;
 
 namespace Tests.ManagedIdentity;

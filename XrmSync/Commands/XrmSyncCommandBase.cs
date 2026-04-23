@@ -1,7 +1,6 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using XrmSync.Constants;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
@@ -18,90 +17,29 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	protected const int E_OK = 0;
 	protected const int E_ERROR = 1;
 
-	// Shared options available to all commands
-	protected Option<string?> ProfileNameOption { get; private set; } = null!;
-
-	// Sync-specific shared options (populated by AddSyncOptions)
-	protected Option<string> SolutionName { get; private set; } = null!;
-	protected Option<bool?> DryRun { get; private set; } = null!;
-	protected Option<LogLevel?> LogLevel { get; private set; } = null!;
-	protected Option<bool?> CiMode { get; private set; } = null!;
-
 	public Command GetCommand() => this;
 
 	/// <summary>
 	/// Default implementation: this command does not handle profile sync items.
 	/// Override in sync sub-commands to handle a specific SyncItem subtype.
 	/// </summary>
-	public virtual Task<int?> ExecuteFromProfile(SyncItem syncItem, ProfileExecutionContext ctx, CancellationToken ct)
+	public virtual Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 		=> Task.FromResult<int?>(null);
 
 	/// <summary>
-	/// Adds the profile option to the command
+	/// Adds the --profile option to the command
 	/// </summary>
-	protected void AddSharedOptions()
-	{
-		ProfileNameOption = CliOptions.Config.Profile.CreateOption<string?>();
-		Add(ProfileNameOption);
-	}
+	protected void AddSharedOptions() => Add(CommandOptions.Profile);
 
 	/// <summary>
 	/// Adds sync-specific shared options: --solution, --dry-run, --log-level, --ci-mode
 	/// </summary>
 	protected void AddSyncOptions()
 	{
-		SolutionName = CliOptions.Solution.CreateOption<string>();
-		DryRun = CliOptions.Execution.DryRun.CreateOption<bool?>();
-		LogLevel = CliOptions.Logging.LogLevel.CreateOption<LogLevel?>();
-		CiMode = CliOptions.Logging.CiMode.CreateOption<bool?>();
-
-		Add(SolutionName);
-		Add(DryRun);
-		Add(LogLevel);
-		Add(CiMode);
-	}
-
-	/// <summary>
-	/// Gets the shared option values from a parse result
-	/// </summary>
-	protected SharedOptions GetSharedOptionValues(ParseResult parseResult)
-	{
-		var profileName = parseResult.GetValue(ProfileNameOption);
-		return new(profileName);
-	}
-
-	/// <summary>
-	/// Gets the sync-specific shared option values from a parse result
-	/// </summary>
-	protected (string? SolutionName, bool? DryRun, LogLevel? LogLevel, bool? CIMode) GetSyncSharedOptionValues(ParseResult parseResult)
-	{
-		var solutionName = parseResult.GetValue(SolutionName);
-		var dryRun = parseResult.GetValue(DryRun);
-		var logLevel = parseResult.GetValue(LogLevel);
-		var ciMode = parseResult.GetValue(CiMode);
-		return (solutionName, dryRun, logLevel, ciMode);
-	}
-
-	/// <summary>
-	/// Resolves the profile by name, throwing a consistent error if not found
-	/// </summary>
-	protected static ProfileConfiguration GetRequiredProfile(IServiceProvider sp, string? profileName, string optionsHint)
-	{
-		return sp.GetRequiredService<IConfigurationBuilder>().GetProfile(profileName)
-			?? throw new InvalidOperationException(
-				$"Profile '{profileName}' not found. " +
-				$"Either specify {optionsHint}, or use --profile with a valid profile name.");
-	}
-
-	/// <summary>
-	/// Loads configuration directly and resolves a profile.
-	/// Returns null when no profiles are configured.
-	/// Throws XrmSyncException when an explicitly requested profile is not found.
-	/// </summary>
-	protected static ProfileConfiguration? LoadProfile(string? profileName)
-	{
-		var configuration = new ConfigReader().GetConfiguration();
-		return new XrmSyncConfigurationBuilder(configuration).GetProfile(profileName);
+		Add(CommandOptions.Solution);
+		Add(CommandOptions.DryRun);
+		Add(CommandOptions.LogLevel);
+		Add(CommandOptions.CiMode);
 	}
 
 	/// <summary>

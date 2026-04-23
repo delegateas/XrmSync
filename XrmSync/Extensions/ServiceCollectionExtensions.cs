@@ -11,12 +11,21 @@ namespace XrmSync.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-	public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, SharedOptions sharedOptions)
+	public static IServiceCollection AddXrmSyncConfiguration(this IServiceCollection services, ExecutionContext executionContext)
 	{
 		services
 			.AddSingleton<IConfigReader, ConfigReader>()
 			.AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
-			.AddSingleton(MSOptions.Create(sharedOptions))
+			.AddSingleton(sp =>
+			{
+				var config = sp.GetRequiredService<IOptions<XrmSyncConfiguration>>().Value;
+				return MSOptions.Create(executionContext with
+				{
+					DryRun = config.DryRun,
+					CiMode = config.CiMode,
+					LogLevel = config.LogLevel,
+				});
+			})
 			.AddSingleton(sp => sp.GetRequiredService<IConfigReader>().GetConfiguration())
 			.AddSingleton<IConfigurationBuilder, XrmSyncConfigurationBuilder>();
 

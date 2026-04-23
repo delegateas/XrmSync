@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
-using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Options;
@@ -15,46 +14,23 @@ namespace XrmSync.Commands;
 internal class XrmSyncRootCommand : XrmSyncCommandBase
 {
 	private readonly List<IXrmSyncCommand> subCommands;
-	private readonly Option<bool?> dryRun;
-	private readonly Option<bool?> ciMode;
-	private readonly Option<LogLevel?> logLevel;
-	private readonly Option<string?> assembly;
-	private readonly Option<string?> solution;
-	private readonly Option<string?> folder;
-	private readonly Option<string[]?> fileExtensions;
-	private readonly Option<string?> prefix;
-	private readonly Option<IdentityOperation?> operation;
-	private readonly Option<string?> clientId;
-	private readonly Option<string?> tenantId;
 
 	public XrmSyncRootCommand(List<IXrmSyncCommand> subCommands)
 		: base("xrmsync", "XrmSync - Synchronize your Dataverse plugins and webresources")
 	{
 		this.subCommands = subCommands;
 
-		dryRun = CliOptions.Execution.DryRun.CreateOption<bool?>();
-		ciMode = CliOptions.Logging.CiMode.CreateOption<bool?>();
-		logLevel = CliOptions.Logging.LogLevel.CreateOption<LogLevel?>();
-		assembly = CliOptions.Assembly.CreateOption<string?>();
-		solution = CliOptions.Solution.CreateOption<string?>();
-		folder = CliOptions.Webresource.CreateOption<string?>();
-		fileExtensions = CliOptions.FileExtensions.CreateOption<string[]?>();
-		prefix = CliOptions.Analysis.Prefix.CreateOption<string?>();
-		operation = CliOptions.ManagedIdentity.Operation.CreateOption<IdentityOperation?>();
-		clientId = CliOptions.ManagedIdentity.ClientId.CreateOption<string?>();
-		tenantId = CliOptions.ManagedIdentity.TenantId.CreateOption<string?>();
-
-		Add(dryRun);
-		Add(ciMode);
-		Add(logLevel);
-		Add(assembly);
-		Add(solution);
-		Add(folder);
-		Add(fileExtensions);
-		Add(prefix);
-		Add(operation);
-		Add(clientId);
-		Add(tenantId);
+		Add(CommandOptions.DryRun);
+		Add(CommandOptions.CiMode);
+		Add(CommandOptions.LogLevel);
+		Add(CommandOptions.Assembly);
+		Add(CommandOptions.Solution);
+		Add(CommandOptions.Folder);
+		Add(CommandOptions.FileExtensions);
+		Add(CommandOptions.Prefix);
+		Add(CommandOptions.Operation);
+		Add(CommandOptions.ClientId);
+		Add(CommandOptions.TenantId);
 
 		AddSharedOptions();
 		SetAction(ExecuteAsync);
@@ -62,25 +38,24 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
-		var sharedOptions = GetSharedOptionValues(parseResult);
-
-		var dryRunOverride = parseResult.GetValue(dryRun);
-		var ciModeOverride = parseResult.GetValue(ciMode);
-		var logLevelOverride = parseResult.GetValue(logLevel);
-		var assemblyOverride = parseResult.GetValue(assembly);
-		var solutionOverride = parseResult.GetValue(solution);
-		var folderOverride = parseResult.GetValue(folder);
-		var fileExtensionsOverride = parseResult.GetValue(fileExtensions);
-		var prefixOverride = parseResult.GetValue(prefix);
-		var operationOverride = parseResult.GetValue(operation);
-		var clientIdOverride = parseResult.GetValue(clientId);
-		var tenantIdOverride = parseResult.GetValue(tenantId);
+		var profileName = parseResult.GetValue(CommandOptions.Profile);
+		var dryRunOverride = parseResult.GetValue(CommandOptions.DryRun);
+		var ciModeOverride = parseResult.GetValue(CommandOptions.CiMode);
+		var logLevelOverride = parseResult.GetValue(CommandOptions.LogLevel);
+		var assemblyOverride = parseResult.GetValue(CommandOptions.Assembly);
+		var solutionOverride = parseResult.GetValue(CommandOptions.Solution);
+		var folderOverride = parseResult.GetValue(CommandOptions.Folder);
+		var fileExtensionsOverride = parseResult.GetValue(CommandOptions.FileExtensions);
+		var prefixOverride = parseResult.GetValue(CommandOptions.Prefix);
+		var operationOverride = parseResult.GetValue(CommandOptions.Operation);
+		var clientIdOverride = parseResult.GetValue(CommandOptions.ClientId);
+		var tenantIdOverride = parseResult.GetValue(CommandOptions.TenantId);
 
 		ProfileConfiguration? rawProfile;
 		XrmSyncConfiguration rawConfig;
 		try
 		{
-			(rawProfile, rawConfig) = LoadProfileAndConfig(sharedOptions.ProfileName);
+			(rawProfile, rawConfig) = LoadProfileAndConfig(profileName);
 		}
 		catch (Model.Exceptions.XrmSyncException ex)
 		{
@@ -136,7 +111,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
 		var serviceProvider = new ServiceCollection()
 			.AddSingleton(MSOptions.Create(mergedConfig))
-			.AddSingleton(MSOptions.Create(sharedOptions))
+			.AddSingleton(MSOptions.Create(new ExecutionContext(null, mergedConfig.DryRun, mergedConfig.CiMode, mergedConfig.LogLevel, profileName)))
 			.AddSingleton<IConfigurationValidator, XrmSyncConfigurationValidator>()
 			.AddLogger()
 			.BuildServiceProvider();
@@ -168,12 +143,12 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			return E_ERROR;
 		}
 
-		var ctx = new ProfileExecutionContext(
+		var ctx = new ExecutionContext(
 			SolutionName: mergedProfile.SolutionName,
 			DryRun: mergedConfig.DryRun,
 			CiMode: mergedConfig.CiMode,
 			LogLevel: mergedConfig.LogLevel,
-			ProfileName: sharedOptions.ProfileName);
+			ProfileName: profileName);
 
 		var success = true;
 

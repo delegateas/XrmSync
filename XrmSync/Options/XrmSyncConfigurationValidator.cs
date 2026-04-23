@@ -4,7 +4,7 @@ using XrmSync.Model;
 
 namespace XrmSync.Options;
 
-internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfiguration> configuration, IOptions<SharedOptions> sharedOptions) : IConfigurationValidator
+internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfiguration> configuration, IOptions<ExecutionContext> sharedOptions) : IConfigurationValidator
 {
 	public void Validate(ConfigurationScope scope)
 	{

@@ -18,5 +18,5 @@ internal interface IXrmSyncCommand
 	/// and root-level execution context. Returns null when this command does not
 	/// handle the given sync item type; returns an exit code otherwise.
 	/// </summary>
-	Task<int?> ExecuteFromProfile(SyncItem syncItem, ProfileExecutionContext ctx, CancellationToken ct);
+	Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct);
 }

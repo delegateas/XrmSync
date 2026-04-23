@@ -14,9 +14,9 @@ internal sealed class DataverseWriter : IDataverseWriter
 	private readonly IOrganizationService service;
 	private readonly ILogger<DataverseWriter> logger;
 
-	public DataverseWriter(IOrganizationServiceProvider serviceProvider, ILogger<DataverseWriter> logger, IOptions<ExecutionModeOptions> configuration)
+	public DataverseWriter(IOrganizationServiceProvider serviceProvider, ILogger<DataverseWriter> logger, IOptions<ExecutionContext> configuration)
 	{
-		if (configuration.Value.DryRun)
+		if (configuration.Value.DryRun == true)
 		{
 			throw new XrmSyncException("Cannot perform write operations in dry run mode. Please disable dry run to proceed with writing to Dataverse.");
 		}

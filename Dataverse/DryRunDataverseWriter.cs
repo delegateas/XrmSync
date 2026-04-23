@@ -14,9 +14,9 @@ internal class DryRunDataverseWriter : IDataverseWriter
 {
 	private readonly ILogger<DryRunDataverseWriter> logger;
 
-	public DryRunDataverseWriter(IOptions<ExecutionModeOptions> configuration, ILogger<DryRunDataverseWriter> logger)
+	public DryRunDataverseWriter(IOptions<ExecutionContext> configuration, ILogger<DryRunDataverseWriter> logger)
 	{
-		if (!configuration.Value.DryRun)
+		if (configuration.Value.DryRun != true)
 		{
 			throw new XrmSyncException("This writer is intended for dry runs only.");
 		}

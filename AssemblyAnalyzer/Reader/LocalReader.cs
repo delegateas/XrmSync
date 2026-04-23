@@ -7,7 +7,7 @@ using XrmSync.Model.Webresource;
 
 namespace XrmSync.Analyzer.Reader;
 
-internal class LocalReader(ILogger<LocalReader> logger, IOptions<SharedOptions> sharedOptions) : ILocalReader
+internal class LocalReader(ILogger<LocalReader> logger, IOptions<ExecutionContext> sharedOptions) : ILocalReader
 {
 	private readonly Dictionary<string, AssemblyInfo> assemblyCache = [];
 

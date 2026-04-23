@@ -7,8 +7,8 @@ namespace Tests.Config;
 
 public class OptionsValidationTests
 {
-	private static SharedOptions CreateSharedOptions(string profileName = "default") =>
-		new SharedOptions(profileName);
+	private static ExecutionContext CreateSharedOptions(string profileName = "default") =>
+		new ExecutionContext(null, null, null, null, profileName);
 
 	[Fact]
 	public void PluginSyncValidatorValidOptionsPassesValidation()
@@ -767,7 +767,7 @@ public class OptionsValidationTests
 		// Act & Assert - Should not throw (CLI mode, no profile validation needed)
 		var validator = new XrmSyncConfigurationValidator(
 			Options.Create(config),
-			Options.Create(new SharedOptions(null)));
+			Options.Create(new ExecutionContext(null, null, null, null, null)));
 		validator.Validate(ConfigurationScope.PluginSync);
 	}
 

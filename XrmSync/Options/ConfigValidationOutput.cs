@@ -8,7 +8,7 @@ namespace XrmSync.Options;
 internal class ConfigValidationOutput(
 	IConfiguration configuration,
 	IOptions<XrmSyncConfiguration>? configOptions = null,
-	IOptions<SharedOptions>? sharedOptions = null) : IConfigValidationOutput
+	IOptions<ExecutionContext>? sharedOptions = null) : IConfigValidationOutput
 {
 	public Task OutputValidationResult(CancellationToken cancellationToken = default)
 	{

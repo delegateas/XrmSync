@@ -70,7 +70,7 @@ public class ConfigValidateCommandTests
 		{
 			var configReader = new TestConfigReader(tempFile);
 			var configuration = configReader.GetConfiguration();
-			var sharedOptions = Options.Create(SharedOptions.Empty);
+			var sharedOptions = Options.Create(ExecutionContext.Empty);
 			var builder = new XrmSyncConfigurationBuilder(configuration);
 			var config = builder.Build();
 			var configOptions = Options.Create(config);
@@ -129,7 +129,7 @@ public class ConfigValidateCommandTests
 		{
 			var configReader = new TestConfigReader(tempFile);
 			var configuration = configReader.GetConfiguration();
-			var sharedOptions = Options.Create(SharedOptions.Empty);
+			var sharedOptions = Options.Create(ExecutionContext.Empty);
 			var builder = new XrmSyncConfigurationBuilder(configuration);
 			var config = builder.Build();
 			var configOptions = Options.Create(config);
@@ -162,7 +162,7 @@ public class ConfigValidateCommandTests
 		{
 			var configReader = new TestConfigReader(tempFile);
 			var configuration = configReader.GetConfiguration();
-			var sharedOptions = Options.Create(SharedOptions.Empty);
+			var sharedOptions = Options.Create(ExecutionContext.Empty);
 			var builder = new XrmSyncConfigurationBuilder(configuration);
 			var config = builder.Build();
 			var configOptions = Options.Create(config);
@@ -186,7 +186,7 @@ public class ConfigValidateCommandTests
 		var configuration = new ConfigurationBuilder().Build();
 		var config = XrmSyncConfiguration.Empty;
 		var configOptions = Options.Create(config);
-		var sharedOptions = Options.Create(SharedOptions.Empty);
+		var sharedOptions = Options.Create(ExecutionContext.Empty);
 
 		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
@@ -210,7 +210,7 @@ public class ConfigValidateCommandTests
 			]
 		);
 		var configOptions = Options.Create(config);
-		var sharedOptions = Options.Create(SharedOptions.Empty);
+		var sharedOptions = Options.Create(ExecutionContext.Empty);
 
 		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
@@ -235,7 +235,7 @@ public class ConfigValidateCommandTests
 			]
 		);
 		var configOptions = Options.Create(config);
-		var sharedOptions = Options.Create(SharedOptions.Empty);
+		var sharedOptions = Options.Create(ExecutionContext.Empty);
 
 		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 
@@ -260,7 +260,7 @@ public class ConfigValidateCommandTests
 			]
 		);
 		var configOptions = Options.Create(config);
-		var sharedOptions = Options.Create(SharedOptions.Empty);
+		var sharedOptions = Options.Create(ExecutionContext.Empty);
 
 		var output = new ConfigValidationOutput(configuration, configOptions, sharedOptions);
 

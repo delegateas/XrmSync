@@ -2,7 +2,6 @@ using DataverseConnection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model;
 
 namespace XrmSync.Dataverse.Extensions;
 
@@ -17,9 +16,9 @@ public static class ServiceCollectionExtensions
 		services.AddSingleton<IDataverseReader, DataverseReader>();
 		services.AddSingleton<IDataverseWriter>((sp) =>
 		{
-			var options = sp.GetRequiredService<IOptions<ExecutionModeOptions>>();
+			var options = sp.GetRequiredService<IOptions<ExecutionContext>>();
 
-			return options.Value.DryRun
+			return options.Value.DryRun == true
 				? ActivatorUtilities.CreateInstance<DryRunDataverseWriter>(sp)
 				: ActivatorUtilities.CreateInstance<DataverseWriter>(sp);
 		});

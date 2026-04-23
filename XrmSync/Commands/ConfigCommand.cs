@@ -17,6 +17,6 @@ internal class ConfigCommand : Command, IXrmSyncCommand
 	/// <summary>
 	/// Config command does not handle profile sync items.
 	/// </summary>
-	public Task<int?> ExecuteFromProfile(SyncItem syncItem, ProfileExecutionContext ctx, CancellationToken ct)
+	public Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 		=> Task.FromResult<int?>(null);
 }

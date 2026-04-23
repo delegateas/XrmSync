@@ -20,12 +20,11 @@ internal class ConfigValidateCommand : XrmSyncCommandBase
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
-		var sharedOptions = GetSharedOptionValues(parseResult);
 		var all = parseResult.GetValue(AllOption);
 
 		// Build service provider - no overrides, just validate what's in the config
 		var serviceProvider = GetConfigValidateServices()
-			.AddXrmSyncConfiguration(sharedOptions)
+			.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, parseResult.GetValue(CommandOptions.Profile)))
 			.AddOptions(baseOptions => baseOptions) // No overrides
 			.BuildServiceProvider();
 

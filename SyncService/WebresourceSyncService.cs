@@ -2,10 +2,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using XrmSync.Analyzer.Reader;
 using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Model.Webresource;
-using XrmSync.SyncService.Difference;
 using XrmSync.SyncService.Exceptions;
 using XrmSync.SyncService.Validation;
 

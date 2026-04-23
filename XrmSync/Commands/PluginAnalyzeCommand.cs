@@ -7,6 +7,7 @@ using XrmSync.Analyzer.Extensions;
 using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
+using XrmSync.Model.Plugin;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 using MSOptions = Microsoft.Extensions.Options.Options;
@@ -15,25 +16,19 @@ namespace XrmSync.Commands;
 
 internal class PluginAnalyzeCommand : XrmSyncCommandBase
 {
-	private readonly Option<string> assemblyFile;
-	private readonly Option<string> prefix;
-	private readonly Option<bool> prettyPrint;
+	private static readonly Option<bool> PrettyPrint = CliOptions.Analysis.PrettyPrint.CreateOption<bool>();
 
 	public PluginAnalyzeCommand() : base("analyze", "Analyze a plugin assembly and output info as JSON")
 	{
-		assemblyFile = CliOptions.Assembly.CreateOption<string>();
-		prefix = CliOptions.Analysis.Prefix.CreateOption<string>();
-		prettyPrint = CliOptions.Analysis.PrettyPrint.CreateOption<bool>();
-
-		Add(assemblyFile);
-		Add(prefix);
-		Add(prettyPrint);
+		Add(CommandOptions.Assembly);
+		Add(CommandOptions.Prefix);
+		Add(PrettyPrint);
 		AddSharedOptions();
 
 		SetAction(ExecuteAsync);
 	}
 
-	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ProfileExecutionContext ctx, CancellationToken ct)
+	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 	{
 		if (syncItem is not PluginAnalysisSyncItem analysis) return null;
 		return await RunCore(analysis.AssemblyPath, analysis.PublisherPrefix, analysis.PrettyPrint, ctx.ProfileName, ct);
@@ -41,17 +36,17 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
-		var assemblyPath = parseResult.GetValue(assemblyFile);
-		var publisherPrefix = parseResult.GetValue(prefix);
-		var prettyPrintValue = parseResult.GetValue(this.prettyPrint);
-		var sharedOptions = GetSharedOptionValues(parseResult);
+		var assemblyPath = parseResult.GetValue(CommandOptions.Assembly);
+		var publisherPrefix = parseResult.GetValue(CommandOptions.Prefix);
+		var prettyPrintValue = parseResult.GetValue(PrettyPrint);
+		var profileName = parseResult.GetValue(CommandOptions.Profile);
 
 		// Resolve final options eagerly (CLI + profile merge)
 		string finalAssemblyPath;
 		string finalPublisherPrefix;
 		bool finalPrettyPrint;
 
-		if (sharedOptions.ProfileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix))
+		if (profileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix))
 		{
 			// Standalone mode: all required values supplied via CLI
 			finalAssemblyPath = assemblyPath;
@@ -62,7 +57,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 		{
 			// Profile mode: merge profile values with CLI overrides
 			ProfileConfiguration? profile;
-			try { profile = LoadProfile(sharedOptions.ProfileName); }
+			try { profile = LoadProfileAndConfig(profileName).Profile; }
 			catch (XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
 
 			if (profile == null)
@@ -79,7 +74,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 			finalPrettyPrint = prettyPrintValue || (pluginAnalysisItem?.PrettyPrint ?? false);
 		}
 
-		return await RunCore(finalAssemblyPath, finalPublisherPrefix, finalPrettyPrint, sharedOptions.ProfileName, cancellationToken);
+		return await RunCore(finalAssemblyPath, finalPublisherPrefix, finalPrettyPrint, profileName, cancellationToken);
 	}
 
 	private async Task<int> RunCore(
@@ -96,7 +91,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 			return ValidationError("analyze", errors);
 
 		var serviceProvider = GetAnalyzerServices()
-			.AddXrmSyncConfiguration(new SharedOptions(profileName))
+			.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, profileName))
 			.AddOptions(baseOptions => baseOptions)
 			.AddSingleton(MSOptions.Create(new PluginAnalysisCommandOptions(assemblyPath, publisherPrefix, prettyPrintValue)))
 			.AddLogger()
