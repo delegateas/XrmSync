@@ -14,7 +14,7 @@ internal class ConfigValidationOutput(
 	{
 		if (configOptions == null || sharedOptions == null)
 		{
-			throw new InvalidOperationException("ConfigValidationOutput requires XrmSyncConfiguration and SharedOptions to validate configuration. Use OutputConfigList for listing profiles.");
+			throw new InvalidOperationException("ConfigValidationOutput requires XrmSyncConfiguration and ExecutionContext to validate configuration. Use OutputConfigList for listing profiles.");
 		}
 
 		var profileName = sharedOptions.Value.ProfileName;
