@@ -164,7 +164,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		}
 		catch (Exception ex)
 		{
-			logger.LogCritical("Configuration validation failed — aborting:{nl}{message}", Environment.NewLine, ex.Message);
+			logger.LogCritical(ex, "Configuration validation failed — aborting:{nl}{message}", Environment.NewLine, ex.Message);
 			return E_ERROR;
 		}
 
