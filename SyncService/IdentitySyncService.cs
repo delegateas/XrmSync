@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
-using XrmSync.SyncService.Difference;
+using XrmSync.Model.Identity;
 
 namespace XrmSync.SyncService;
 

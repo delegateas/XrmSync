@@ -92,34 +92,13 @@ public record WebresourceSyncItem(string FolderPath, List<string>? FileExtension
 	public override string SyncType => TypeName;
 }
 
-public record SharedOptions(string? ProfileName)
-{
-	public static SharedOptions Empty => new((string?)null);
-}
-
-// Command-specific options that can be populated from CLI or profile
-public record PluginSyncCommandOptions(string AssemblyPath, string SolutionName)
-{
-	public static PluginSyncCommandOptions Empty => new(string.Empty, string.Empty);
-}
-
-public record PluginAnalysisCommandOptions(string AssemblyPath, string PublisherPrefix, bool PrettyPrint)
-{
-	public static PluginAnalysisCommandOptions Empty => new(string.Empty, "new", false);
-}
-
-public record WebresourceSyncCommandOptions(string FolderPath, string SolutionName, List<string>? FileExtensions = null)
-{
-	public static WebresourceSyncCommandOptions Empty => new(string.Empty, string.Empty);
-}
-
 public enum IdentityOperation
 {
 	Remove,
 	Ensure
 }
 
-public record IdentitySyncItem(IdentityOperation? Operation = null, string AssemblyPath = "", string? ClientId = null, string? TenantId = null) : SyncItem
+public record IdentitySyncItem(IdentityOperation? Operation = null, string AssemblyPath = "", string ClientId = "", string TenantId = "") : SyncItem
 {
 	public const string TypeName = "Identity";
 	public static IdentitySyncItem Empty => new(AssemblyPath: string.Empty);
@@ -128,12 +107,3 @@ public record IdentitySyncItem(IdentityOperation? Operation = null, string Assem
 	public override string SyncType => Operation.HasValue ? $"{TypeName} ({Operation})" : TypeName;
 }
 
-public record IdentityCommandOptions(IdentityOperation Operation, string AssemblyPath, string SolutionName, string? ClientId = null, string? TenantId = null)
-{
-	public static IdentityCommandOptions Empty => new(IdentityOperation.Remove, string.Empty, string.Empty);
-}
-
-public record ExecutionModeOptions(bool DryRun)
-{
-	public static ExecutionModeOptions Empty => new(false);
-}

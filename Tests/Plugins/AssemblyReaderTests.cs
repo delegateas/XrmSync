@@ -16,7 +16,7 @@ public class AssemblyReaderTests
 
 	public AssemblyReaderTests()
 	{
-		assemblyReader = new LocalReader(logger, Options.Create(SharedOptions.Empty));
+		assemblyReader = new LocalReader(logger, Options.Create(ExecutionContext.Empty));
 	}
 
 	[Fact]

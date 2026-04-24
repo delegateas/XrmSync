@@ -21,7 +21,7 @@ public class DifferenceUtilityTests
 	{
 		var logger = new LoggerFactory().CreateLogger<PrintService>();
 		var description = new Description();
-		var options = new ExecutionModeOptions(true);
+		var options = new ExecutionContext(null, true, null, null, null);
 		differenceUtility = new DifferenceCalculator(
 			new PluginDefinitionComparer(),
 			new PluginStepComparer(),

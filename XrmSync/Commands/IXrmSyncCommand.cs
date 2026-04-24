@@ -1,4 +1,5 @@
 using System.CommandLine;
+using XrmSync.Model;
 
 namespace XrmSync.Commands;
 
@@ -13,12 +14,9 @@ internal interface IXrmSyncCommand
 	Command GetCommand();
 
 	/// <summary>
-	/// Returns a <see cref="ProfileOverrideProvider"/> that advertises this command's unique
-	/// root-level override options and provides merge logic for applying CLI values into
-	/// profile sync items. The <paramref name="assembly"/> and <paramref name="solution"/>
-	/// options are shared, owned by the root command — use them in merge callbacks but do
-	/// not call Add() on them.
-	/// Returns null when the command has no profile overrides to advertise.
+	/// Executes this command using values already resolved from a profile sync item
+	/// and root-level execution context. Returns null when this command does not
+	/// handle the given sync item type; returns an exit code otherwise.
 	/// </summary>
-	ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution);
+	Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct);
 }

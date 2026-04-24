@@ -8,13 +8,13 @@ namespace XrmSync.Options;
 internal class ConfigValidationOutput(
 	IConfiguration configuration,
 	IOptions<XrmSyncConfiguration>? configOptions = null,
-	IOptions<SharedOptions>? sharedOptions = null) : IConfigValidationOutput
+	IOptions<ExecutionContext>? sharedOptions = null) : IConfigValidationOutput
 {
 	public Task OutputValidationResult(CancellationToken cancellationToken = default)
 	{
 		if (configOptions == null || sharedOptions == null)
 		{
-			throw new InvalidOperationException("ConfigValidationOutput requires XrmSyncConfiguration and SharedOptions to validate configuration. Use OutputConfigList for listing profiles.");
+			throw new InvalidOperationException("ConfigValidationOutput requires XrmSyncConfiguration and ExecutionContext to validate configuration. Use OutputConfigList for listing profiles.");
 		}
 
 		var profileName = sharedOptions.Value.ProfileName;

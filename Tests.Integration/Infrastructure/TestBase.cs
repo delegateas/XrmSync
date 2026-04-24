@@ -6,7 +6,8 @@ using Microsoft.Xrm.Sdk;
 using NSubstitute;
 using XrmSync.Dataverse.Extensions;
 using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model;
+using XrmSync.Model.Plugin;
+using XrmSync.Model.Webresource;
 
 namespace Tests.Integration.Infrastructure;
 
@@ -70,7 +71,7 @@ public abstract class TestBase
 		services.AddSingleton(ServiceProvider);
 
 		// Configure execution options (not dry run for tests)
-		services.AddSingleton(Options.Create(new ExecutionModeOptions(DryRun: false)));
+		services.AddSingleton(Options.Create(new ExecutionContext(null, false, null, null, null)));
 
 		// Reuse all reader/writer registrations from production code
 		services.AddDataverseServices();

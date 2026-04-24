@@ -7,6 +7,7 @@ using XrmSync.Analyzer.Extensions;
 using XrmSync.Constants;
 using XrmSync.Extensions;
 using XrmSync.Model;
+using XrmSync.Model.Plugin;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
 using MSOptions = Microsoft.Extensions.Options.Options;
@@ -15,70 +16,48 @@ namespace XrmSync.Commands;
 
 internal class PluginAnalyzeCommand : XrmSyncCommandBase
 {
-
-	private readonly Option<string> assemblyFile;
-	private readonly Option<string> prefix;
-	private readonly Option<bool> prettyPrint;
-
-	// Root-level override options (advertised to XrmSyncRootCommand via GetProfileOverrides)
-	private readonly Option<string?> rootPrefix = CliOptions.Analysis.Prefix.CreateOption<string?>();
+	private static readonly Option<bool> PrettyPrint = CliOptions.Analysis.PrettyPrint.CreateOption<bool>();
 
 	public PluginAnalyzeCommand() : base("analyze", "Analyze a plugin assembly and output info as JSON")
 	{
-		assemblyFile = CliOptions.Assembly.CreateOption<string>();
-		prefix = CliOptions.Analysis.Prefix.CreateOption<string>();
-		prettyPrint = CliOptions.Analysis.PrettyPrint.CreateOption<bool>();
-
-		Add(assemblyFile);
-		Add(prefix);
-		Add(prettyPrint);
+		Add(CommandOptions.Assembly);
+		Add(CommandOptions.Prefix);
+		Add(PrettyPrint);
 		AddSharedOptions();
 
 		SetAction(ExecuteAsync);
 	}
 
-	/// <summary>
-	/// Advertises --prefix as a root-level override.
-	/// The shared assembly option is used in the merge callback but owned by the root command.
-	/// </summary>
-	public override ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => new(
-		options: [rootPrefix],
-		mergeSyncItem: (item, parseResult) =>
-		{
-			if (item is not PluginAnalysisSyncItem analysis) return null;
-			var assemblyValue = parseResult.GetValue(assembly);
-			var prefixValue = parseResult.GetValue(rootPrefix);
-			return analysis with
-			{
-				AssemblyPath = !string.IsNullOrWhiteSpace(assemblyValue) ? assemblyValue : analysis.AssemblyPath,
-				PublisherPrefix = !string.IsNullOrWhiteSpace(prefixValue) ? prefixValue : analysis.PublisherPrefix
-			};
-		});
+	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
+	{
+		if (syncItem is not PluginAnalysisSyncItem analysis) return null;
+		return await RunCore(analysis.AssemblyPath, analysis.PublisherPrefix, analysis.PrettyPrint, ctx.ProfileName, ct);
+	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
-		var assemblyPath = parseResult.GetValue(assemblyFile);
-		var publisherPrefix = parseResult.GetValue(prefix);
-		var prettyPrint = parseResult.GetValue(this.prettyPrint);
-		var sharedOptions = GetSharedOptionValues(parseResult);
+		var assemblyPath = parseResult.GetValue(CommandOptions.Assembly);
+		var publisherPrefix = parseResult.GetValue(CommandOptions.Prefix);
+		var prettyPrintValue = parseResult.GetValue(PrettyPrint);
+		var profileName = parseResult.GetValue(CommandOptions.Profile);
 
 		// Resolve final options eagerly (CLI + profile merge)
 		string finalAssemblyPath;
 		string finalPublisherPrefix;
 		bool finalPrettyPrint;
 
-		if (sharedOptions.ProfileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix))
+		if (profileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix))
 		{
 			// Standalone mode: all required values supplied via CLI
 			finalAssemblyPath = assemblyPath;
 			finalPublisherPrefix = publisherPrefix;
-			finalPrettyPrint = prettyPrint;
+			finalPrettyPrint = prettyPrintValue;
 		}
 		else
 		{
 			// Profile mode: merge profile values with CLI overrides
 			ProfileConfiguration? profile;
-			try { profile = LoadProfile(sharedOptions.ProfileName); }
+			try { profile = LoadProfileAndConfig(profileName).Profile; }
 			catch (XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
 
 			if (profile == null)
@@ -90,32 +69,40 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 			// Sync item is optional — if absent, CLI must supply all analysis-specific values
 			var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
 
-			finalAssemblyPath = !string.IsNullOrWhiteSpace(assemblyPath) ? assemblyPath : (pluginAnalysisItem?.AssemblyPath ?? string.Empty);
-			finalPublisherPrefix = !string.IsNullOrWhiteSpace(publisherPrefix) ? publisherPrefix : (pluginAnalysisItem?.PublisherPrefix ?? string.Empty);
-			finalPrettyPrint = prettyPrint || (pluginAnalysisItem?.PrettyPrint ?? false);
+			finalAssemblyPath = assemblyPath.GetValueOrDefault(pluginAnalysisItem?.AssemblyPath ?? string.Empty);
+			finalPublisherPrefix = publisherPrefix.GetValueOrDefault(pluginAnalysisItem?.PublisherPrefix ?? string.Empty);
+			finalPrettyPrint = prettyPrintValue || (pluginAnalysisItem?.PrettyPrint ?? false);
 		}
 
-		// Validate resolved values
-		var errors = XrmSyncConfigurationValidator.ValidateAssemblyPath(finalAssemblyPath)
-			.Concat(XrmSyncConfigurationValidator.ValidatePublisherPrefix(finalPublisherPrefix))
+		return await RunCore(finalAssemblyPath, finalPublisherPrefix, finalPrettyPrint, profileName, cancellationToken);
+	}
+
+	private async Task<int> RunCore(
+		string assemblyPath,
+		string publisherPrefix,
+		bool prettyPrintValue,
+		string? profileName,
+		CancellationToken ct)
+	{
+		var errors = XrmSyncConfigurationValidator.ValidateAssemblyPath(assemblyPath)
+			.Concat(XrmSyncConfigurationValidator.ValidatePublisherPrefix(publisherPrefix))
 			.ToList();
 		if (errors.Count > 0)
 			return ValidationError("analyze", errors);
 
-		// Build service provider with validated options
 		var serviceProvider = GetAnalyzerServices()
-			.AddXrmSyncConfiguration(sharedOptions)
+			.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, profileName))
 			.AddOptions(baseOptions => baseOptions)
-			.AddSingleton(MSOptions.Create(new PluginAnalysisCommandOptions(finalAssemblyPath, finalPublisherPrefix, finalPrettyPrint)))
+			.AddSingleton(MSOptions.Create(new PluginAnalysisCommandOptions(assemblyPath, publisherPrefix, prettyPrintValue)))
 			.AddLogger()
 			.BuildServiceProvider();
 
-		return await RunAction(serviceProvider, ConfigurationScope.None, CommandAction, cancellationToken)
+		return await RunAction(serviceProvider, ConfigurationScope.None, AnalyzeCommandAction, ct)
 			? E_OK
 			: E_ERROR;
 	}
 
-	private static async Task<bool> CommandAction(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+	private static async Task<bool> AnalyzeCommandAction(IServiceProvider serviceProvider, CancellationToken cancellationToken)
 	{
 		return await Task.Run(() =>
 		{
@@ -145,9 +132,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 	private static IServiceCollection GetAnalyzerServices(IServiceCollection? services = null)
 	{
 		services ??= new ServiceCollection();
-
 		services.AddAssemblyAnalyzer();
-
 		return services;
 	}
 }

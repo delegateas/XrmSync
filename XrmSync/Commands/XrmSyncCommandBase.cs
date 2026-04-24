@@ -1,12 +1,11 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using XrmSync.Constants;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
 using XrmSync.Options;
-using MSOptions = Microsoft.Extensions.Options.Options;
+using XrmSync.SyncService;
 
 namespace XrmSync.Commands;
 
@@ -18,57 +17,29 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	protected const int E_OK = 0;
 	protected const int E_ERROR = 1;
 
-	// Shared options available to all commands
-	protected Option<string?> ProfileNameOption { get; private set; } = null!;
-
 	public Command GetCommand() => this;
 
 	/// <summary>
-	/// Default implementation: this command advertises no profile overrides.
-	/// Override in subclasses to expose sync-item-specific CLI options on the root command.
+	/// Default implementation: this command does not handle profile sync items.
+	/// Override in sync sub-commands to handle a specific SyncItem subtype.
 	/// </summary>
-	public virtual ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => null;
+	public virtual Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
+		=> Task.FromResult<int?>(null);
 
 	/// <summary>
-	/// Adds shared options to the command (profile)
+	/// Adds the --profile option to the command
 	/// </summary>
-	protected void AddSharedOptions()
-	{
-		ProfileNameOption = CliOptions.Config.Profile.CreateOption<string?>();
-
-		Add(ProfileNameOption);
-	}
+	protected void AddSharedOptions() => Add(CommandOptions.Profile);
 
 	/// <summary>
-	/// Gets the shared option values from a parse result
+	/// Adds sync-specific shared options: --solution, --dry-run, --log-level, --ci-mode
 	/// </summary>
-	protected SharedOptions GetSharedOptionValues(ParseResult parseResult)
+	protected void AddSyncOptions()
 	{
-		var profileName = parseResult.GetValue(ProfileNameOption);
-
-		return new(profileName);
-	}
-
-	/// <summary>
-	/// Resolves the profile by name, throwing a consistent error if not found
-	/// </summary>
-	protected static ProfileConfiguration GetRequiredProfile(IServiceProvider sp, string? profileName, string optionsHint)
-	{
-		return sp.GetRequiredService<IConfigurationBuilder>().GetProfile(profileName)
-			?? throw new InvalidOperationException(
-				$"Profile '{profileName}' not found. " +
-				$"Either specify {optionsHint}, or use --profile with a valid profile name.");
-	}
-
-	/// <summary>
-	/// Loads configuration directly and resolves a profile.
-	/// Returns null when no profiles are configured.
-	/// Throws XrmSyncException when an explicitly requested profile is not found.
-	/// </summary>
-	protected static ProfileConfiguration? LoadProfile(string? profileName)
-	{
-		var configuration = new ConfigReader().GetConfiguration();
-		return new XrmSyncConfigurationBuilder(configuration).GetProfile(profileName);
+		Add(CommandOptions.Solution);
+		Add(CommandOptions.DryRun);
+		Add(CommandOptions.LogLevel);
+		Add(CommandOptions.CiMode);
 	}
 
 	/// <summary>
@@ -123,5 +94,34 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 		}
 
 		return await action(serviceProvider, cancellationToken);
+	}
+
+	/// <summary>
+	/// Standard action for sync commands: runs ISyncService.Sync and handles common exceptions.
+	/// </summary>
+	protected static async Task<bool> SyncCommandAction(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+	{
+		var logger = serviceProvider.GetRequiredService<ILogger<XrmSyncCommandBase>>();
+		try
+		{
+			var syncService = serviceProvider.GetRequiredService<ISyncService>();
+			await syncService.Sync(cancellationToken);
+			return true;
+		}
+		catch (OptionsValidationException ex)
+		{
+			logger.LogCritical("Configuration validation failed:{nl}{message}", Environment.NewLine, ex.Message);
+			return false;
+		}
+		catch (XrmSyncException ex)
+		{
+			logger.LogError("Error during synchronization: {message}", ex.Message);
+			return false;
+		}
+		catch (Exception ex)
+		{
+			logger.LogCritical(ex, "An unexpected error occurred during synchronization: {message}", ex.Message);
+			return false;
+		}
 	}
 }

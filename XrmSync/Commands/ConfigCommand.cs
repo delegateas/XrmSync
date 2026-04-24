@@ -1,4 +1,5 @@
 using System.CommandLine;
+using XrmSync.Model;
 
 namespace XrmSync.Commands;
 
@@ -14,7 +15,8 @@ internal class ConfigCommand : Command, IXrmSyncCommand
 	public Command GetCommand() => this;
 
 	/// <summary>
-	/// Config command has no profile sync items to override.
+	/// Config command does not handle profile sync items.
 	/// </summary>
-	public ProfileOverrideProvider? GetProfileOverrides(Option<string?> assembly, Option<string?> solution) => null;
+	public Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
+		=> Task.FromResult<int?>(null);
 }

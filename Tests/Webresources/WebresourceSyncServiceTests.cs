@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using XrmSync.Analyzer.Reader;
 using XrmSync.Dataverse.Interfaces;
-using XrmSync.Model;
 using XrmSync.Model.Webresource;
 using XrmSync.SyncService;
 using XrmSync.SyncService.Difference;
