@@ -1,3 +1,6 @@
+### v1.0.0-preview.19 - 24 April 2026
+* Refactor / Fix: Complete rewrite of the option passing logic
+
 ### v1.0.0-preview.18 - 22 April 2026
 * Fix: Handling of passing boolean arguments through from CLI to final command
 * Refactor: Only print the header and Dataverse connection once during execution
