@@ -18,7 +18,7 @@ XrmSync is a powerful tool that helps you manage and synchronize your Microsoft 
 - **Intelligent Synchronization**: Compares local definitions with Dataverse and performs only necessary changes
 - **Custom API Support**: Handles custom API definitions, request parameters, and response properties
 - **Webresource Sync**: Synchronizes HTML, CSS, JavaScript, images, and other webresources from local folders
-- **Managed Identity Management**: Link or remove Azure AD managed identities for plugin assemblies
+- **Managed Identity Management**: Link, update, or remove Azure AD managed identities for plugin assemblies — either inline as part of plugin sync or via the standalone `identity` command
 - **Dry Run Mode**: Preview changes without actually modifying your Dataverse environment
 - **Solution-aware**: Deploys plugins and webresources to specific Dataverse solutions
 - **Flexible Connection**: Supports connection string and URL-based Dataverse connections
@@ -122,8 +122,8 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--folder` | Webresource sync |
 | `--file-extensions` | Webresource sync |
 | `--prefix` | Plugin analysis |
-| `--client-id` | Identity (Ensure) |
-| `--tenant-id` | Identity (Ensure) |
+| `--client-id` | Plugin sync, Identity (Ensure) |
+| `--tenant-id` | Plugin sync, Identity (Ensure) |
 
 ### Command Line Options
 
@@ -133,12 +133,15 @@ The root command accepts the following override options in addition to `--dry-ru
 |--------|-------|-------------|----------|
 | `--assembly` | `-a` | Path to the plugin assembly (*.dll) | Yes* |
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
+| `--client-id` | `--cid` | Azure AD application (client) ID for the managed identity to ensure on the assembly | No** |
+| `--tenant-id` | `--tid` | Azure AD tenant ID for the managed identity to ensure on the assembly | No** |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
 | `--profile` | `-p`, `--profile-name` | Name of the profile to load from appsettings.json | No |
 
 *Required when not present in appsettings.json
+**Optional; when either is supplied the managed identity is ensured as part of the sync, and both are required together. See [Managed Identity Management](#managed-identity-management).
 
 #### Webresources Command
 
@@ -193,9 +196,21 @@ The webresource name in Dataverse is determined by the file path relative to the
 
 ### Managed Identity Management
 
-Link or remove a managed identity for a plugin assembly already deployed in Dataverse.
+A managed identity can be bound to a plugin assembly either **as part of plugin sync** or via the standalone **`identity`** command. The identity is created with the name `"{SolutionName} Managed Identity"` and linked through the assembly's managed identity lookup.
 
-**Ensure** — creates a managed identity and links it to the assembly if one is not already linked:
+#### As part of plugin sync (recommended)
+
+Supply `--client-id` and `--tenant-id` to the `plugins` command (or set `ManagedIdentityClientId`/`ManagedIdentityTenantId` on the Plugin sync item in `appsettings.json`). The managed identity is ensured right after the assembly is upserted — and runs regardless of whether the assembly binary changed, so a credential change applies even when the assembly itself is unchanged:
+
+```bash
+xrmsync plugins --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName" --client-id "<azure-app-client-id>" --tenant-id "<azure-tenant-id>"
+```
+
+#### Standalone command
+
+Manage the identity for an assembly already deployed in Dataverse.
+
+**Ensure** — creates and links a managed identity when none is linked, or **updates the existing one in place** when its application id, tenant id, or name has drifted:
 ```bash
 xrmsync identity --operation Ensure --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName" --client-id "<azure-app-client-id>" --tenant-id "<azure-tenant-id>"
 ```
@@ -221,7 +236,7 @@ xrmsync identity --operation Remove --assembly "path/to/your/plugin.dll" --solut
 
 *Required when not present in appsettings.json
 
-> **Note**: The `--assembly` option is used to locate the plugin assembly that is already registered in Dataverse. The `Ensure` operation is idempotent — if a managed identity is already linked, no action is taken.
+> **Note**: The `--assembly` option is used to locate the plugin assembly that is already registered in Dataverse. `Ensure` is idempotent — if a managed identity is already linked and matches the supplied client/tenant, no change is made; if it has drifted, the existing record is updated in place (it is never deleted by `Ensure`). `Remove` does not fail when the assembly cannot be found — it logs a warning and exits successfully, so it's safe to run in teardown pipelines.
 
 ### Assembly Analysis
 
@@ -429,6 +444,8 @@ Each sync item must have a `Type` property indicating the sync type:
 |----------|------|-------------|---------|
 | `Type` | string | Must be "Plugin" | Required |
 | `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `ManagedIdentityClientId` | string | Azure AD application (client) ID (GUID). When set, a managed identity is ensured on the assembly as part of the sync | null |
+| `ManagedIdentityTenantId` | string | Azure AD tenant ID (GUID). Required together with `ManagedIdentityClientId` | null |
 
 **Webresource Sync Item (Type: "Webresource")**
 
@@ -513,6 +530,31 @@ Each sync item must have a `Type` property indicating the sync type:
             "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
             "ClientId": "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d",
             "TenantId": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Plugin sync with an inline managed identity:**
+
+Instead of a separate `Identity` sync item, the managed identity can be ensured directly as part of the plugin sync. The credentials can be kept out of source control and supplied at runtime via `--client-id`/`--tenant-id`.
+
+```json
+{
+  "XrmSync": {
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MyCustomSolution",
+        "Sync": [
+          {
+            "Type": "Plugin",
+            "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+            "ManagedIdentityClientId": "d3b5e6a1-2c4f-4a8b-9e1d-7f3c6b8a2e4d",
+            "ManagedIdentityTenantId": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
           }
         ]
       }

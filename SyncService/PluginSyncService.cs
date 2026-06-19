@@ -27,11 +27,13 @@ internal class PluginSyncService(
 	ICustomApiWriter customApiWriter,
 	ILocalReader assemblyReader,
 	ISolutionReader solutionReader,
+	IManagedIdentityReader managedIdentityReader,
+	IManagedIdentityReconciler managedIdentityService,
 	IDifferenceCalculator differenceUtility,
 	IDescription description,
 	IOptions<PluginSyncCommandOptions> configuration, ILogger<PluginSyncService> log) : ISyncService
 {
-	private record SyncData(AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly);
+	private record SyncData(Guid SolutionId, AssemblyInfo LocalAssembly, AssemblyInfo? CrmAssembly);
 
 	private readonly PluginSyncCommandOptions options = configuration.Value;
 
@@ -40,7 +42,7 @@ internal class PluginSyncService(
 		log.LogInformation("Comparing plugins registered in Dataverse versus those found in your local code");
 
 		// Read the data from the local assembly and from Dataverse
-		var (localAssembly, crmAssembly) = await ReadData(cancellationToken);
+		var (solutionId, localAssembly, crmAssembly) = await ReadData(cancellationToken);
 
 		// Ensure custom API backing types are in the Plugins pipeline so they get aligned and created
 		IncludeCustomApiPluginTypes(localAssembly);
@@ -57,6 +59,10 @@ internal class PluginSyncService(
 
 		// Update the actual assembly file in Dataverse
 		crmAssembly = UpsertAssembly(localAssembly, crmAssembly);
+
+		// Ensure the managed identity, if configured. Runs regardless of whether the assembly
+		// binary changed, since the identity configuration can drift independently.
+		EnsureManagedIdentity(solutionId, crmAssembly);
 
 		// Update
 		DoUpdates(differences);
@@ -165,7 +171,7 @@ internal class PluginSyncService(
 
 		var crmAssembly = ReadDataverseAssembly(solutionId, localAssembly);
 
-		return new SyncData(localAssembly, crmAssembly);
+		return new SyncData(solutionId, localAssembly, crmAssembly);
 	}
 
 	private async Task<AssemblyInfo> ReadLocalAssembly(string solutionPrefix, CancellationToken cancellationToken)
@@ -301,6 +307,31 @@ internal class PluginSyncService(
 		}
 
 		return remoteAssembly;
+	}
+
+	internal void EnsureManagedIdentity(Guid solutionId, AssemblyInfo crmAssembly)
+	{
+		if (!options.HasManagedIdentity)
+			return;
+
+		if (!Guid.TryParse(options.ManagedIdentityClientId, out var clientId))
+			throw new XrmSyncException(string.IsNullOrWhiteSpace(options.ManagedIdentityClientId)
+				? "Managed identity client ID is required when a tenant ID is supplied."
+				: "Managed identity client ID must be a valid GUID.");
+
+		if (!Guid.TryParse(options.ManagedIdentityTenantId, out var tenantId))
+			throw new XrmSyncException(string.IsNullOrWhiteSpace(options.ManagedIdentityTenantId)
+				? "Managed identity tenant ID is required when a client ID is supplied."
+				: "Managed identity tenant ID must be a valid GUID.");
+
+		log.LogInformation("Ensuring managed identity for assembly {assemblyName}", crmAssembly.Name);
+
+		// Resolve the currently linked identity. On a dry-run first sync the assembly does not yet
+		// exist in CRM, so the lookup returns null and we treat it as "no identity linked".
+		var lookup = managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, crmAssembly.Name);
+		var currentIdentity = lookup?.ManagedIdentityRef;
+
+		managedIdentityService.Ensure(crmAssembly.Id, currentIdentity, options.SolutionName, clientId, tenantId);
 	}
 
 	internal AssemblyInfo CreatePluginAssembly(AssemblyInfo localAssembly)

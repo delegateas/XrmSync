@@ -15,6 +15,8 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 	public PluginSyncCommand() : base("plugins", "Synchronize plugins in a plugin assembly with Dataverse")
 	{
 		Add(CommandOptions.Assembly);
+		Add(CommandOptions.ClientId);
+		Add(CommandOptions.TenantId);
 
 		AddSharedOptions();
 		AddSyncOptions();
@@ -25,13 +27,15 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 	{
 		if (syncItem is not PluginSyncItem plugin) return null;
-		return await RunCore(plugin.AssemblyPath, ctx.SolutionName ?? string.Empty, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
+		return await RunCore(plugin.AssemblyPath, ctx.SolutionName ?? string.Empty, plugin.ManagedIdentityClientId, plugin.ManagedIdentityTenantId, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
 	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
 		var assemblyPath = parseResult.GetValue(CommandOptions.Assembly);
 		var solutionName = parseResult.GetValue(CommandOptions.Solution);
+		var clientId = parseResult.GetValue(CommandOptions.ClientId);
+		var tenantId = parseResult.GetValue(CommandOptions.TenantId);
 		var dryRun = parseResult.GetValue(CommandOptions.DryRun);
 		var logLevel = parseResult.GetValue(CommandOptions.LogLevel);
 		var ciMode = parseResult.GetValue(CommandOptions.CiMode);
@@ -40,12 +44,16 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		// Resolve final options eagerly (CLI + profile merge)
 		string finalAssemblyPath;
 		string finalSolutionName;
+		string? finalClientId;
+		string? finalTenantId;
 
 		if (profileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName))
 		{
 			// Standalone mode: all required values supplied via CLI
 			finalAssemblyPath = assemblyPath;
 			finalSolutionName = solutionName;
+			finalClientId = clientId;
+			finalTenantId = tenantId;
 		}
 		else
 		{
@@ -65,14 +73,18 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 
 			finalAssemblyPath = assemblyPath.GetValueOrDefault(pluginSyncItem?.AssemblyPath ?? string.Empty);
 			finalSolutionName = solutionName.GetValueOrDefault(profile.SolutionName);
+			finalClientId = clientId.GetValueOrDefault(pluginSyncItem?.ManagedIdentityClientId ?? string.Empty);
+			finalTenantId = tenantId.GetValueOrDefault(pluginSyncItem?.ManagedIdentityTenantId ?? string.Empty);
 		}
 
-		return await RunCore(finalAssemblyPath, finalSolutionName, dryRun, ciMode, logLevel, profileName, cancellationToken);
+		return await RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, dryRun, ciMode, logLevel, profileName, cancellationToken);
 	}
 
 	private async Task<int> RunCore(
 		string assemblyPath,
 		string solutionName,
+		string? managedIdentityClientId,
+		string? managedIdentityTenantId,
 		bool? dryRun,
 		bool? ciMode,
 		LogLevel? logLevel,
@@ -82,6 +94,16 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		var errors = XrmSyncConfigurationValidator.ValidateAssemblyPath(assemblyPath)
 			.Concat(XrmSyncConfigurationValidator.ValidateSolutionName(solutionName))
 			.ToList();
+
+		// Both managed identity values must be present together when either is supplied
+		var hasClientId = !string.IsNullOrWhiteSpace(managedIdentityClientId);
+		var hasTenantId = !string.IsNullOrWhiteSpace(managedIdentityTenantId);
+		if (hasClientId || hasTenantId)
+		{
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(managedIdentityClientId ?? string.Empty, "Managed identity client ID"));
+			errors.AddRange(XrmSyncConfigurationValidator.ValidateGuid(managedIdentityTenantId ?? string.Empty, "Managed identity tenant ID"));
+		}
+
 		if (errors.Count > 0)
 			return ValidationError("plugins", errors);
 
@@ -94,7 +116,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 					CiMode = ciMode ?? baseOptions.CiMode,
 					DryRun = dryRun ?? baseOptions.DryRun
 				})
-			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(assemblyPath, solutionName)))
+			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(assemblyPath, solutionName, managedIdentityClientId, managedIdentityTenantId)))
 			.AddLogger()
 			.BuildServiceProvider();
 

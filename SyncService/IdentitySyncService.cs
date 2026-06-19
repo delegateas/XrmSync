@@ -10,7 +10,7 @@ namespace XrmSync.SyncService;
 internal class IdentitySyncService(
 	ISolutionReader solutionReader,
 	IManagedIdentityReader managedIdentityReader,
-	IManagedIdentityWriter managedIdentityWriter,
+	IManagedIdentityReconciler managedIdentityService,
 	IOptions<IdentityCommandOptions> configuration,
 	ILogger<IdentitySyncService> log) : ISyncService
 {
@@ -23,13 +23,13 @@ internal class IdentitySyncService(
 
 		return options.Operation switch
 		{
-			IdentityOperation.Remove => Remove(cancellation),
-			IdentityOperation.Ensure => Ensure(cancellation),
+			IdentityOperation.Remove => Remove(),
+			IdentityOperation.Ensure => Ensure(),
 			_ => throw new XrmSyncException($"Unknown identity operation: {options.Operation}")
 		};
 	}
 
-	private Task Remove(CancellationToken cancellation)
+	private Task Remove()
 	{
 		var assemblyName = Path.GetFileNameWithoutExtension(options.AssemblyPath);
 		log.LogInformation("Removing managed identity for assembly '{assemblyName}' in solution '{solutionName}'",
@@ -39,26 +39,18 @@ internal class IdentitySyncService(
 		var result = managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, assemblyName);
 
 		if (result == null)
-			throw new XrmSyncException($"Plugin assembly '{assemblyName}' not found in solution '{options.SolutionName}'.");
-
-		var (_, managedIdentityRef) = result.Value;
-
-		if (managedIdentityRef == null)
 		{
-			log.LogWarning("No managed identity linked to assembly '{assemblyName}'. Nothing to remove.", assemblyName);
+			// A missing assembly must not block removal — there is nothing to clean up.
+			log.LogWarning("Plugin assembly '{assemblyName}' not found in solution '{solutionName}'. Nothing to remove.",
+				assemblyName, options.SolutionName);
 			return Task.CompletedTask;
 		}
 
-		log.LogInformation("Deleting managed identity '{managedIdentityName}' linked to assembly '{assemblyName}'",
-			managedIdentityRef.Name, assemblyName);
-
-		managedIdentityWriter.Remove(managedIdentityRef.Id);
-
-		log.LogInformation("Successfully removed managed identity from assembly '{assemblyName}'", assemblyName);
+		managedIdentityService.Remove(result.Value.ManagedIdentityRef, assemblyName);
 		return Task.CompletedTask;
 	}
 
-	private Task Ensure(CancellationToken cancellation)
+	private Task Ensure()
 	{
 		var assemblyName = Path.GetFileNameWithoutExtension(options.AssemblyPath);
 		log.LogInformation("Ensuring managed identity for assembly '{assemblyName}' in solution '{solutionName}'",
@@ -82,21 +74,7 @@ internal class IdentitySyncService(
 
 		var (assemblyId, managedIdentityRef) = result.Value;
 
-		if (managedIdentityRef != null)
-		{
-			log.LogInformation("Managed identity already linked to assembly '{assemblyName}'. No action needed.", assemblyName);
-			return Task.CompletedTask;
-		}
-
-		var miName = $"{options.SolutionName} Managed Identity";
-		log.LogInformation("Creating managed identity '{miName}' for assembly '{assemblyName}'", miName, assemblyName);
-
-		var managedIdentityId = managedIdentityWriter.Create(miName, clientId, tenantId);
-
-		log.LogInformation("Linking managed identity '{managedIdentityId}' to assembly '{assemblyName}'",
-			managedIdentityId, assemblyName);
-
-		managedIdentityWriter.LinkToAssembly(assemblyId, managedIdentityId);
+		managedIdentityService.Ensure(assemblyId, managedIdentityRef, options.SolutionName, clientId, tenantId);
 
 		log.LogInformation("Successfully ensured managed identity for assembly '{assemblyName}'", assemblyName);
 		return Task.CompletedTask;

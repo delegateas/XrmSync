@@ -1,5 +1,6 @@
 using Microsoft.Xrm.Sdk;
 using XrmSync.Dataverse.Interfaces;
+using XrmSync.Model.Identity;
 
 namespace XrmSync.Dataverse;
 
@@ -17,5 +18,13 @@ internal class ManagedIdentityReader(IDataverseReader reader) : IManagedIdentity
 				}).FirstOrDefault() is { } result
 			? (result.Id, result.ManagedIdentityId)
 			: null;
+	}
+
+	public ManagedIdentityInfo? GetManagedIdentity(Guid managedIdentityId)
+	{
+		return (from mi in reader.ManagedIdentities
+				where mi.Id == managedIdentityId
+				select new ManagedIdentityInfo(mi.Id, mi.Name, mi.ApplicationId, mi.TenantId))
+			.FirstOrDefault();
 	}
 }

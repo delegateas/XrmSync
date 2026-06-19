@@ -23,6 +23,8 @@ internal sealed class DataverseReader(IOrganizationServiceProvider serviceProvid
 
 	public IQueryable<PluginAssembly> PluginAssemblies => DataverseContext.PluginAssemblySet;
 
+	public IQueryable<ManagedIdentity> ManagedIdentities => DataverseContext.ManagedIdentitySet;
+
 	public IQueryable<CustomAPI> CustomApis => DataverseContext.CustomAPISet;
 
 	public IQueryable<CustomAPIRequestParameter> CustomApiRequestParameters => DataverseContext.CustomAPIRequestParameterSet;

@@ -74,7 +74,9 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		{
 			PluginSyncItem plugin => plugin with
 			{
-				AssemblyPath = assemblyOverride.GetValueOrDefault(plugin.AssemblyPath)
+				AssemblyPath = assemblyOverride.GetValueOrDefault(plugin.AssemblyPath),
+				ManagedIdentityClientId = clientIdOverride.GetValueOrDefault(plugin.ManagedIdentityClientId ?? string.Empty),
+				ManagedIdentityTenantId = tenantIdOverride.GetValueOrDefault(plugin.ManagedIdentityTenantId ?? string.Empty)
 			},
 			PluginAnalysisSyncItem analysis => analysis with
 			{
