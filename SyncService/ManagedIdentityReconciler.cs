@@ -72,8 +72,11 @@ internal class ManagedIdentityReconciler(
 			return;
 		}
 
+		// EntityReference.Name is usually populated for lookup columns, but can be blank if the
+		// related record has no primary name — fall back to the id so the log stays actionable.
+		var identityLabel = string.IsNullOrWhiteSpace(current.Name) ? current.Id.ToString() : current.Name;
 		log.LogInformation("Deleting managed identity '{managedIdentityName}' linked to assembly '{assemblyName}'",
-			current.Name, assemblyName);
+			identityLabel, assemblyName);
 		writer.Remove(current.Id);
 
 		log.LogInformation("Successfully removed managed identity from assembly '{assemblyName}'", assemblyName);
