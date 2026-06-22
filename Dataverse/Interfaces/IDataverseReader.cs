@@ -12,6 +12,7 @@ public interface IDataverseReader
 	IQueryable<SolutionComponent> SolutionComponents { get; }
 	IQueryable<Publisher> Publishers { get; }
 	IQueryable<PluginAssembly> PluginAssemblies { get; }
+	IQueryable<ManagedIdentity> ManagedIdentities { get; }
 	IQueryable<CustomAPI> CustomApis { get; }
 	IQueryable<CustomAPIRequestParameter> CustomApiRequestParameters { get; }
 	IQueryable<CustomAPIResponseProperty> CustomApiResponseProperties { get; }

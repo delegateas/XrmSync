@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Xrm.Sdk;
 using NSubstitute;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.SyncService;
@@ -26,6 +27,8 @@ public class PluginServiceTests
 	private readonly ICustomApiWriter customApiWriter = Substitute.For<ICustomApiWriter>();
 	private readonly ILocalReader assemblyReader = Substitute.For<ILocalReader>();
 	private readonly ISolutionReader solutionReader = Substitute.For<ISolutionReader>();
+	private readonly IManagedIdentityReader managedIdentityReader = Substitute.For<IManagedIdentityReader>();
+	private readonly IManagedIdentityReconciler managedIdentityService = Substitute.For<IManagedIdentityReconciler>();
 	private readonly IDifferenceCalculator differenceUtility = Substitute.For<IDifferenceCalculator>();
 	private readonly IDescription description = new Description();
 	private readonly PluginSyncCommandOptions options = new(string.Empty, "solution");
@@ -45,6 +48,8 @@ public class PluginServiceTests
 			customApiWriter,
 			assemblyReader,
 			solutionReader,
+			managedIdentityReader,
+			managedIdentityService,
 			differenceUtility,
 			description,
 			Options.Create(options), logger);
@@ -602,5 +607,98 @@ public class PluginServiceTests
 		customApiWriter.Received(1).UpdateCustomApis(data.CustomApis.Updates.ConvertAll(upd => upd.Local).ArgMatches(), description.SyncDescription);
 		customApiWriter.Received(1).UpdateRequestParameters(data.RequestParameters.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches());
 		customApiWriter.Received(1).UpdateResponseProperties(data.ResponseProperties.Updates.ConvertAll(upd => upd.Local.Entity).ArgMatches());
+	}
+
+	// --- Managed identity integration ---
+
+	private PluginSyncService CreatePluginWithOptions(PluginSyncCommandOptions opts) =>
+		new(
+			pluginAssemblyReader,
+			pluginAssemblyWriter,
+			pluginReader,
+			pluginWriter,
+			pluginValidator,
+			customApiValidator,
+			customApiReader,
+			customApiWriter,
+			assemblyReader,
+			solutionReader,
+			managedIdentityReader,
+			managedIdentityService,
+			differenceUtility,
+			description,
+			Options.Create(opts), logger);
+
+	private static AssemblyInfo CrmAssembly(Guid id, string name = "TestAssembly") =>
+		new(name) { Id = id, DllPath = "path", Hash = "hash", Version = "1.0.0.0", Plugins = [] };
+
+	[Fact]
+	public void EnsureManagedIdentityDoesNothingWhenNotConfigured()
+	{
+		// Arrange — no managed identity values in options
+		var service = CreatePluginWithOptions(new(string.Empty, "solution"));
+
+		// Act
+		service.EnsureManagedIdentity(Guid.NewGuid(), CrmAssembly(Guid.NewGuid()));
+
+		// Assert
+		managedIdentityReader.DidNotReceive().GetPluginAssemblyManagedIdentity(Arg.Any<Guid>(), Arg.Any<string>());
+		managedIdentityService.DidNotReceive().Ensure(Arg.Any<Guid>(), Arg.Any<EntityReference?>(), Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<Guid>());
+	}
+
+	[Fact]
+	public void EnsureManagedIdentityDelegatesWhenConfiguredAndNoCurrentIdentity()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var assemblyId = Guid.NewGuid();
+		var clientId = Guid.NewGuid();
+		var tenantId = Guid.NewGuid();
+		var crmAssembly = CrmAssembly(assemblyId);
+
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, crmAssembly.Name)
+			.Returns(((Guid, EntityReference?)?)null);
+
+		var service = CreatePluginWithOptions(new("path", "TestSolution", clientId.ToString(), tenantId.ToString()));
+
+		// Act
+		service.EnsureManagedIdentity(solutionId, crmAssembly);
+
+		// Assert
+		managedIdentityService.Received(1).Ensure(assemblyId, null, "TestSolution", clientId, tenantId);
+	}
+
+	[Fact]
+	public void EnsureManagedIdentityPassesCurrentIdentityWhenLinked()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var assemblyId = Guid.NewGuid();
+		var clientId = Guid.NewGuid();
+		var tenantId = Guid.NewGuid();
+		var miRef = new EntityReference("managedidentity", Guid.NewGuid());
+		var crmAssembly = CrmAssembly(assemblyId);
+
+		managedIdentityReader.GetPluginAssemblyManagedIdentity(solutionId, crmAssembly.Name)
+			.Returns((assemblyId, miRef));
+
+		var service = CreatePluginWithOptions(new("path", "TestSolution", clientId.ToString(), tenantId.ToString()));
+
+		// Act
+		service.EnsureManagedIdentity(solutionId, crmAssembly);
+
+		// Assert
+		managedIdentityService.Received(1).Ensure(assemblyId, miRef, "TestSolution", clientId, tenantId);
+	}
+
+	[Fact]
+	public void EnsureManagedIdentityThrowsOnInvalidClientId()
+	{
+		// Arrange
+		var service = CreatePluginWithOptions(new("path", "TestSolution", "not-a-guid", Guid.NewGuid().ToString()));
+
+		// Act & Assert
+		Assert.Throws<XrmSync.Model.Exceptions.XrmSyncException>(
+			() => service.EnsureManagedIdentity(Guid.NewGuid(), CrmAssembly(Guid.NewGuid())));
 	}
 }

@@ -24,6 +24,16 @@ internal class ManagedIdentityWriter(IDataverseWriter writer) : IManagedIdentity
 		}, null);
 	}
 
+	public void Update(Guid managedIdentityId, string name, Guid applicationId, Guid tenantId)
+	{
+		writer.Update(new ManagedIdentity(managedIdentityId)
+		{
+			Name = name,
+			ApplicationId = applicationId,
+			TenantId = tenantId
+		});
+	}
+
 	public void LinkToAssembly(Guid assemblyId, Guid managedIdentityId)
 	{
 		writer.Update(new PluginAssembly(assemblyId)

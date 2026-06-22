@@ -21,6 +21,7 @@ public static class ServiceCollectionExtensions
 		return services
 			.AddShared()
 			.AddSingleton<ISyncService, PluginSyncService>()
+			.AddSingleton<IManagedIdentityReconciler, ManagedIdentityReconciler>()
 			.AddSingleton<IDifferenceCalculator, DifferenceCalculator>()
 			.AddSingleton<IValidator<PluginDefinition>, PluginValidator>()
 			.AddSingleton<IValidator<CustomApiDefinition>, CustomApiValidator>()
@@ -47,6 +48,7 @@ public static class ServiceCollectionExtensions
 		return services
 			.AddDataverseConnection()
 			.AddSingleton<IPrintService, PrintService>()
+			.AddSingleton<IManagedIdentityReconciler, ManagedIdentityReconciler>()
 			.AddSingleton<ISyncService, IdentitySyncService>();
 	}
 

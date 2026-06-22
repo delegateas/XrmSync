@@ -65,7 +65,7 @@ public abstract record SyncItem
 	public abstract string SyncType { get; }
 }
 
-public record PluginSyncItem(string AssemblyPath) : SyncItem
+public record PluginSyncItem(string AssemblyPath, string? ManagedIdentityClientId = null, string? ManagedIdentityTenantId = null) : SyncItem
 {
 	public const string TypeName = "Plugin";
 	public static PluginSyncItem Empty => new(string.Empty);

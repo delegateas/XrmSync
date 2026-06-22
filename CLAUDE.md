@@ -40,6 +40,9 @@ dotnet tool install --global --add-source ./XrmSync/nupkg XrmSync
 # Plugin sync
 dotnet run --project XrmSync -- plugins --assembly "path/to/plugin.dll" --solution-name "MySolution"
 
+# Plugin sync, also ensuring a managed identity is bound to the assembly
+dotnet run --project XrmSync -- plugins --assembly "path/to/plugin.dll" --solution-name "MySolution" --client-id "<app-id>" --tenant-id "<tenant-id>"
+
 # Webresource sync
 dotnet run --project XrmSync -- webresources --folder "path/to/webresources" --solution-name "MySolution"
 
@@ -78,6 +81,15 @@ The solution is organized into distinct layers with clear separation of concerns
 4. Calculate operations (create/update/delete) based on presence and content differences
 5. Execute operations via `IWebresourceWriter`
 
+**Managed Identity Handling**:
+- A managed identity can be bound to a plugin assembly either as part of plugin sync or via the standalone `identity` command
+- Plugin sync ensures the identity when `ManagedIdentityClientId`/`ManagedIdentityTenantId` are set on the `PluginSyncItem` (or `--client-id`/`--tenant-id` on the `plugins` command). The reconcile runs after the assembly upsert and regardless of whether the assembly binary changed, since the identity configuration can drift independently
+- Reconcile semantics (shared `IManagedIdentityReconciler`):
+  - **Ensure**: creates and links a new identity when none is bound, or **updates the existing record in place** (application id, tenant id, name) when it has drifted — it does not delete identities
+  - **Remove** (standalone `identity --operation Remove`): deletes the linked identity; a missing assembly logs a warning instead of failing
+- The standalone `identity` command remains available for explicit Ensure/Remove operations
+- The identity is named `"{SolutionName} Managed Identity"` and is linked via the `PluginAssembly.ManagedIdentityId` lookup
+
 **Configuration System**:
 - Profile-based configuration under `XrmSync` section in `appsettings.json`
 - Global settings (DryRun, LogLevel, CiMode) apply to all profiles
@@ -100,7 +112,9 @@ The solution is organized into distinct layers with clear separation of concerns
         "Sync": [
           {
             "Type": "Plugin",
-            "AssemblyPath": "../path/to/plugin.dll"
+            "AssemblyPath": "../path/to/plugin.dll",
+            "ManagedIdentityClientId": "00000000-0000-0000-0000-000000000000",
+            "ManagedIdentityTenantId": "00000000-0000-0000-0000-000000000000"
           },
           {
             "Type": "Webresource",
