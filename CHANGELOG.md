@@ -1,3 +1,6 @@
+### v1.0.0-preview.20 - 22 June 2026
+* Integrate managed identity handling in Plugin sync and make it more resilient
+
 ### v1.0.0-preview.19 - 24 April 2026
 * Refactor / Fix: Complete rewrite of the option passing logic
 
