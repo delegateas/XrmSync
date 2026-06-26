@@ -1,4 +1,4 @@
-### v1.0.0-preview.20 - 22 June 2026
+### v1.0.0-preview.20 - 26 June 2026
 * Integrate managed identity handling in Plugin sync and make it more resilient
 
 ### v1.0.0-preview.19 - 24 April 2026
