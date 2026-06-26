@@ -1,3 +1,6 @@
+### v1.0.0-preview.21 - 26 June 2026
+* Add: `--allow-empty-types` option for plugin sync, keeping plugin types registered when they no longer have steps instead of deleting them (avoids forcing a full upgrade of managed solutions)
+
 ### v1.0.0-preview.20 - 26 June 2026
 * Integrate managed identity handling in Plugin sync and make it more resilient
 

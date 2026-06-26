@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using System.Linq.Expressions;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;
@@ -14,8 +15,11 @@ internal class DifferenceCalculator(
 	IEntityComparer<CustomApiDefinition> customApiComparer,
 	IEntityComparer<RequestParameter> requestComparer,
 	IEntityComparer<ResponseProperty> responseComparer,
-	IPrintService printer) : IDifferenceCalculator
+	IPrintService printer,
+	IOptions<PluginSyncCommandOptions> options) : IDifferenceCalculator
 {
+	private readonly bool allowEmptyTypes = options.Value.AllowEmptyTypes;
+
 	public Differences CalculateDifferences(AssemblyInfo localData, AssemblyInfo? remoteData)
 	{
 		var pluginTypes = ComputePluginTypeDiffs(localData, remoteData);
@@ -36,6 +40,16 @@ internal class DifferenceCalculator(
 	private Difference<PluginDefinition> ComputePluginTypeDiffs(AssemblyInfo localData, AssemblyInfo? remoteData)
 	{
 		var result = CompareFlatEntities(localData.Plugins, remoteData?.Plugins ?? [], pluginDefinitionComparer);
+
+		if (allowEmptyTypes && result.Deletes.Count > 0)
+		{
+			// When empty types are allowed, keep plugin types registered even when they no longer
+			// have any steps locally. Their steps are still removed (as orphaned step deletes),
+			// leaving an empty type behind. This avoids forcing a full upgrade of a managed solution,
+			// where deleting a component would otherwise require one.
+			result = result with { Deletes = [] };
+		}
+
 		printer.Print(result, "Types", x => x.Name);
 		return result;
 	}

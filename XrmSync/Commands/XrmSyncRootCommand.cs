@@ -31,6 +31,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		Add(CommandOptions.Operation);
 		Add(CommandOptions.ClientId);
 		Add(CommandOptions.TenantId);
+		Add(CommandOptions.AllowEmptyTypes);
 
 		AddSharedOptions();
 		SetAction(ExecuteAsync);
@@ -50,6 +51,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		var operationOverride = parseResult.GetValue(CommandOptions.Operation);
 		var clientIdOverride = parseResult.GetValue(CommandOptions.ClientId);
 		var tenantIdOverride = parseResult.GetValue(CommandOptions.TenantId);
+		var allowEmptyTypesOverride = parseResult.GetValue(CommandOptions.AllowEmptyTypes);
 
 		ProfileConfiguration? rawProfile;
 		XrmSyncConfiguration rawConfig;
@@ -76,7 +78,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			{
 				AssemblyPath = assemblyOverride.GetValueOrDefault(plugin.AssemblyPath),
 				ManagedIdentityClientId = clientIdOverride.GetValueOrDefault(plugin.ManagedIdentityClientId ?? string.Empty),
-				ManagedIdentityTenantId = tenantIdOverride.GetValueOrDefault(plugin.ManagedIdentityTenantId ?? string.Empty)
+				ManagedIdentityTenantId = tenantIdOverride.GetValueOrDefault(plugin.ManagedIdentityTenantId ?? string.Empty),
+				AllowEmptyTypes = allowEmptyTypesOverride ?? plugin.AllowEmptyTypes
 			},
 			PluginAnalysisSyncItem analysis => analysis with
 			{
