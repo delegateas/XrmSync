@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using System.CommandLine;
 using XrmSync.Extensions;
 using XrmSync.Model;
-using XrmSync.Model.Exceptions;
 using XrmSync.Model.Identity;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;
@@ -56,54 +55,26 @@ internal class IdentityCommand : XrmSyncCommandBase
 		var clientIdValue = parseResult.GetValue(CommandOptions.ClientId);
 		var tenantIdValue = parseResult.GetValue(CommandOptions.TenantId);
 		var solutionName = parseResult.GetValue(CommandOptions.Solution);
-		var dryRun = parseResult.GetValue(CommandOptions.DryRun);
-		var logLevel = parseResult.GetValue(CommandOptions.LogLevel);
-		var ciMode = parseResult.GetValue(CommandOptions.CiMode);
-		var profileName = parseResult.GetValue(CommandOptions.Profile);
+		var (dryRun, ciMode, logLevel, profileName) = ReadExecutionOverrides(parseResult);
 
-		// Resolve final options eagerly (CLI + profile merge)
-		IdentityOperation? finalOperation;
-		string finalAssemblyPath;
-		string finalSolutionName;
-		string finalClientId;
-		string finalTenantId;
+		var (profile, exitCode) = ResolveCommandProfile(profileName,
+			!string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName),
+			"Specify --assembly and --solution, or add a profile to appsettings.json.");
+		if (exitCode.HasValue) return exitCode.Value;
 
-		if (profileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName))
-		{
-			// Standalone mode: all required values supplied via CLI
-			finalOperation = operationValue;
-			finalAssemblyPath = assemblyPath;
-			finalSolutionName = solutionName;
-			finalClientId = clientIdValue ?? string.Empty;
-			finalTenantId = tenantIdValue ?? string.Empty;
-		}
-		else
-		{
-			// Profile mode: merge profile values with CLI overrides
-			ProfileConfiguration? profile;
-			try { profile = LoadProfileAndConfig(profileName).Profile; }
-			catch (XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
+		// Sync item is optional — its assembly path and solution name fall back to the profile-level shared values.
+		// Priority: exact operation match → null-operation item as fallback → any item when no operation is specified.
+		var identityItems = profile?.Sync.OfType<IdentitySyncItem>().ToList() ?? [];
+		var item = operationValue.HasValue
+			? identityItems.FirstOrDefault(i => i.Operation == operationValue)
+				?? identityItems.FirstOrDefault(i => i.Operation == null)
+			: identityItems.FirstOrDefault();
 
-			if (profile == null)
-			{
-				Console.Error.WriteLine("No profiles configured. Specify --assembly and --solution, or add a profile to appsettings.json.");
-				return E_ERROR;
-			}
-
-			// Sync item is optional — if absent, CLI must supply all identity-specific values.
-			// Priority: exact operation match → null-operation item as fallback → any item when no operation is specified.
-			var identityItems = profile.Sync.OfType<IdentitySyncItem>().ToList();
-			var syncItem = operationValue.HasValue
-				? identityItems.FirstOrDefault(i => i.Operation == operationValue)
-					?? identityItems.FirstOrDefault(i => i.Operation == null)
-				: identityItems.FirstOrDefault();
-
-			finalOperation = operationValue ?? syncItem?.Operation;
-			finalAssemblyPath = assemblyPath.GetValueOrDefault(profile.ResolveAssemblyPath(syncItem?.AssemblyPath) ?? string.Empty);
-			finalSolutionName = solutionName.GetValueOrDefault(profile.ResolveSolutionName(syncItem));
-			finalClientId = clientIdValue.GetValueOrDefault(syncItem?.ClientId ?? string.Empty);
-			finalTenantId = tenantIdValue.GetValueOrDefault(syncItem?.TenantId ?? string.Empty);
-		}
+		var finalOperation = operationValue ?? item?.Operation;
+		var finalAssemblyPath = assemblyPath.GetValueOrDefault(profile?.ResolveAssemblyPath(item?.AssemblyPath) ?? string.Empty);
+		var finalSolutionName = solutionName.GetValueOrDefault(profile?.ResolveSolutionName(item) ?? string.Empty);
+		var finalClientId = clientIdValue.GetValueOrDefault(item?.ClientId ?? string.Empty);
+		var finalTenantId = tenantIdValue.GetValueOrDefault(item?.TenantId ?? string.Empty);
 
 		// Validate resolved values
 		var errors = new List<string>();
@@ -155,13 +126,7 @@ internal class IdentityCommand : XrmSyncCommandBase
 		var serviceProvider = new ServiceCollection()
 			.AddIdentityService()
 			.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, profileName))
-			.AddOptions(
-				baseOptions => baseOptions with
-				{
-					LogLevel = logLevel ?? baseOptions.LogLevel,
-					CiMode = ciMode ?? baseOptions.CiMode,
-					DryRun = dryRun ?? baseOptions.DryRun
-				})
+			.AddOptions(dryRun, ciMode, logLevel)
 			.AddSingleton(MSOptions.Create(new IdentityCommandOptions(operation, assemblyPath, solutionName, clientId, tenantId)))
 			.AddLogger()
 			.BuildServiceProvider();

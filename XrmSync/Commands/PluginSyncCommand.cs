@@ -38,50 +38,21 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		var clientId = parseResult.GetValue(CommandOptions.ClientId);
 		var tenantId = parseResult.GetValue(CommandOptions.TenantId);
 		var allowEmptyTypes = parseResult.GetValue(CommandOptions.AllowEmptyTypes);
-		var dryRun = parseResult.GetValue(CommandOptions.DryRun);
-		var logLevel = parseResult.GetValue(CommandOptions.LogLevel);
-		var ciMode = parseResult.GetValue(CommandOptions.CiMode);
-		var profileName = parseResult.GetValue(CommandOptions.Profile);
+		var (dryRun, ciMode, logLevel, profileName) = ReadExecutionOverrides(parseResult);
 
-		// Resolve final options eagerly (CLI + profile merge)
-		string finalAssemblyPath;
-		string finalSolutionName;
-		string? finalClientId;
-		string? finalTenantId;
-		bool finalAllowEmptyTypes;
+		var (profile, exitCode) = ResolveCommandProfile(profileName,
+			!string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName),
+			"Specify --assembly and --solution, or add a profile to appsettings.json.");
+		if (exitCode.HasValue) return exitCode.Value;
 
-		if (profileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName))
-		{
-			// Standalone mode: all required values supplied via CLI
-			finalAssemblyPath = assemblyPath;
-			finalSolutionName = solutionName;
-			finalClientId = clientId;
-			finalTenantId = tenantId;
-			finalAllowEmptyTypes = allowEmptyTypes ?? false;
-		}
-		else
-		{
-			// Profile mode: merge profile values with CLI overrides
-			ProfileConfiguration? profile;
-			try { profile = LoadProfileAndConfig(profileName).Profile; }
-			catch (Model.Exceptions.XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
+		// Sync item is optional — its assembly path and solution name fall back to the profile-level shared values
+		var item = profile?.Sync.OfType<PluginSyncItem>().FirstOrDefault();
 
-			if (profile == null)
-			{
-				Console.Error.WriteLine("No profiles configured. Specify --assembly and --solution, or add a profile to appsettings.json.");
-				return E_ERROR;
-			}
-
-			// Sync item is optional — if absent, CLI must supply all plugin-specific values.
-			// Assembly path and solution name fall back to the profile-level shared values.
-			var pluginSyncItem = profile.Sync.OfType<PluginSyncItem>().FirstOrDefault();
-
-			finalAssemblyPath = assemblyPath.GetValueOrDefault(profile.ResolveAssemblyPath(pluginSyncItem?.AssemblyPath) ?? string.Empty);
-			finalSolutionName = solutionName.GetValueOrDefault(profile.ResolveSolutionName(pluginSyncItem));
-			finalClientId = clientId.GetValueOrDefault(pluginSyncItem?.ManagedIdentityClientId ?? string.Empty);
-			finalTenantId = tenantId.GetValueOrDefault(pluginSyncItem?.ManagedIdentityTenantId ?? string.Empty);
-			finalAllowEmptyTypes = allowEmptyTypes ?? pluginSyncItem?.AllowEmptyTypes ?? false;
-		}
+		var finalAssemblyPath = assemblyPath.GetValueOrDefault(profile?.ResolveAssemblyPath(item?.AssemblyPath) ?? string.Empty);
+		var finalSolutionName = solutionName.GetValueOrDefault(profile?.ResolveSolutionName(item) ?? string.Empty);
+		var finalClientId = clientId.GetValueOrDefault(item?.ManagedIdentityClientId ?? string.Empty);
+		var finalTenantId = tenantId.GetValueOrDefault(item?.ManagedIdentityTenantId ?? string.Empty);
+		var finalAllowEmptyTypes = allowEmptyTypes ?? item?.AllowEmptyTypes ?? false;
 
 		return await RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, dryRun, ciMode, logLevel, profileName, cancellationToken);
 	}
@@ -116,13 +87,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 
 		var serviceProvider = GetPluginSyncServices()
 			.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, profileName))
-			.AddOptions(
-				baseOptions => baseOptions with
-				{
-					LogLevel = logLevel ?? baseOptions.LogLevel,
-					CiMode = ciMode ?? baseOptions.CiMode,
-					DryRun = dryRun ?? baseOptions.DryRun
-				})
+			.AddOptions(dryRun, ciMode, logLevel)
 			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(assemblyPath, solutionName, managedIdentityClientId, managedIdentityTenantId, allowEmptyTypes)))
 			.AddLogger()
 			.BuildServiceProvider();

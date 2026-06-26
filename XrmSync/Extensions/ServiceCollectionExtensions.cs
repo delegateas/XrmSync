@@ -48,6 +48,22 @@ internal static class ServiceCollectionExtensions
 		return services;
 	}
 
+	/// <summary>
+	/// Registers the configuration with the standard execution-level CLI overrides applied
+	/// (each falls back to the configured value when the CLI did not supply it).
+	/// </summary>
+	public static IServiceCollection AddOptions(
+		this IServiceCollection services,
+		bool? dryRun,
+		bool? ciMode,
+		LogLevel? logLevel)
+		=> services.AddOptions(baseOptions => baseOptions with
+		{
+			DryRun = dryRun ?? baseOptions.DryRun,
+			CiMode = ciMode ?? baseOptions.CiMode,
+			LogLevel = logLevel ?? baseOptions.LogLevel,
+		});
+
 	public static IServiceCollection AddCommandOptions<TSection>(
 		this IServiceCollection services,
 		Func<XrmSyncConfiguration, TSection> sectionSelector) where TSection : class

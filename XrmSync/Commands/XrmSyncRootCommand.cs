@@ -39,10 +39,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
 	{
-		var profileName = parseResult.GetValue(CommandOptions.Profile);
-		var dryRunOverride = parseResult.GetValue(CommandOptions.DryRun);
-		var ciModeOverride = parseResult.GetValue(CommandOptions.CiMode);
-		var logLevelOverride = parseResult.GetValue(CommandOptions.LogLevel);
+		var (dryRunOverride, ciModeOverride, logLevelOverride, profileName) = ReadExecutionOverrides(parseResult);
 		var assemblyOverride = parseResult.GetValue(CommandOptions.Assembly);
 		var solutionOverride = parseResult.GetValue(CommandOptions.Solution);
 		var folderOverride = parseResult.GetValue(CommandOptions.Folder);

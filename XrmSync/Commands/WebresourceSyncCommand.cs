@@ -34,43 +34,19 @@ namespace XrmSync.Commands
 			var folderPath = parseResult.GetValue(CommandOptions.Folder);
 			var extensionsValue = parseResult.GetValue(CommandOptions.FileExtensions);
 			var solutionName = parseResult.GetValue(CommandOptions.Solution);
-			var dryRun = parseResult.GetValue(CommandOptions.DryRun);
-			var logLevel = parseResult.GetValue(CommandOptions.LogLevel);
-			var ciMode = parseResult.GetValue(CommandOptions.CiMode);
-			var profileName = parseResult.GetValue(CommandOptions.Profile);
+			var (dryRun, ciMode, logLevel, profileName) = ReadExecutionOverrides(parseResult);
 
-			// Resolve final options eagerly (CLI + profile merge)
-			string finalFolderPath;
-			string finalSolutionName;
-			List<string>? finalExtensions;
+			var (profile, exitCode) = ResolveCommandProfile(profileName,
+				!string.IsNullOrWhiteSpace(folderPath) && !string.IsNullOrWhiteSpace(solutionName),
+				"Specify --folder and --solution, or add a profile to appsettings.json.");
+			if (exitCode.HasValue) return exitCode.Value;
 
-			if (profileName == null && !string.IsNullOrWhiteSpace(folderPath) && !string.IsNullOrWhiteSpace(solutionName))
-			{
-				// Standalone mode: all required values supplied via CLI
-				finalFolderPath = folderPath;
-				finalSolutionName = solutionName;
-				finalExtensions = extensionsValue is { Length: > 0 } ? extensionsValue.ToList() : null;
-			}
-			else
-			{
-				// Profile mode: merge profile values with CLI overrides
-				ProfileConfiguration? profile;
-				try { profile = LoadProfileAndConfig(profileName).Profile; }
-				catch (Model.Exceptions.XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
+			// Sync item is optional — its solution name falls back to the profile-level shared value
+			var item = profile?.Sync.OfType<WebresourceSyncItem>().FirstOrDefault();
 
-				if (profile == null)
-				{
-					Console.Error.WriteLine("No profiles configured. Specify --folder and --solution, or add a profile to appsettings.json.");
-					return E_ERROR;
-				}
-
-				// Sync item is optional — if absent, CLI must supply all webresource-specific values
-				var webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault();
-
-				finalFolderPath = folderPath.GetValueOrDefault(webresourceSyncItem?.FolderPath ?? string.Empty);
-				finalSolutionName = solutionName.GetValueOrDefault(profile.ResolveSolutionName(webresourceSyncItem));
-				finalExtensions = extensionsValue is { Length: > 0 } ? [.. extensionsValue] : webresourceSyncItem?.FileExtensions;
-			}
+			var finalFolderPath = folderPath.GetValueOrDefault(item?.FolderPath ?? string.Empty);
+			var finalSolutionName = solutionName.GetValueOrDefault(profile?.ResolveSolutionName(item) ?? string.Empty);
+			var finalExtensions = extensionsValue is { Length: > 0 } ? [.. extensionsValue] : item?.FileExtensions;
 
 			return await RunCore(finalFolderPath, finalSolutionName, finalExtensions, dryRun, ciMode, logLevel, profileName, cancellationToken);
 		}
@@ -93,14 +69,7 @@ namespace XrmSync.Commands
 
 			var serviceProvider = GetWebresourceSyncServices()
 				.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, profileName))
-				.AddOptions(
-					options => options with
-					{
-						LogLevel = logLevel ?? options.LogLevel,
-						CiMode = ciMode ?? options.CiMode,
-						DryRun = dryRun ?? options.DryRun
-					}
-				)
+				.AddOptions(dryRun, ciMode, logLevel)
 				.AddSingleton(MSOptions.Create(new WebresourceSyncCommandOptions(folderPath, solutionName, fileExtensionsList)))
 				.AddLogger()
 				.BuildServiceProvider();
