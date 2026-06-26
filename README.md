@@ -124,6 +124,7 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--prefix` | Plugin analysis |
 | `--client-id` | Plugin sync, Identity (Ensure) |
 | `--tenant-id` | Plugin sync, Identity (Ensure) |
+| `--allow-empty-types` | Plugin sync |
 
 ### Command Line Options
 
@@ -135,6 +136,7 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
 | `--client-id` | `--cid` | Azure AD application (client) ID for the managed identity to ensure on the assembly | No** |
 | `--tenant-id` | `--tid` | Azure AD tenant ID for the managed identity to ensure on the assembly | No** |
+| `--allow-empty-types` | `--allow-empty`, `--aet` | Keep plugin types registered when they no longer have steps instead of deleting them (avoids forcing a full upgrade of managed solutions) | No |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |

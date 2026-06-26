@@ -14,6 +14,14 @@ internal static class CliOptions
 		Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 	/// <summary>
+	/// Allow empty plugin types (keep types that no longer have steps instead of deleting them)
+	/// </summary>
+	public static readonly CliOptionDescriptor AllowEmptyTypes = new(
+		"--allow-empty-types", ["--allow-empty", "--aet"],
+		"Keep plugin types registered even when they no longer have any steps, instead of deleting them. Useful for managed solutions where deleting a component would require a full upgrade.",
+		Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
+
+	/// <summary>
 	/// Webresource folder options
 	/// </summary>
 	public static readonly CliOptionDescriptor Webresource = new(

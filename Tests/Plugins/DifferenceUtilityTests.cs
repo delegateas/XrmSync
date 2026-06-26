@@ -19,17 +19,23 @@ public class DifferenceUtilityTests
 
 	public DifferenceUtilityTests()
 	{
+		differenceUtility = CreateCalculator();
+	}
+
+	private static DifferenceCalculator CreateCalculator(bool allowEmptyTypes = false)
+	{
 		var logger = new LoggerFactory().CreateLogger<PrintService>();
 		var description = new Description();
 		var options = new ExecutionContext(null, true, null, null, null);
-		differenceUtility = new DifferenceCalculator(
+		return new DifferenceCalculator(
 			new PluginDefinitionComparer(),
 			new PluginStepComparer(),
 			new PluginImageComparer(),
 			new CustomApiComparer(description),
 			new RequestParameterComparer(),
 			new ResponsePropertyComparer(),
-			new PrintService(logger, Options.Create(options))
+			new PrintService(logger, Options.Create(options)),
+			Options.Create(PluginSyncCommandOptions.Empty with { AllowEmptyTypes = allowEmptyTypes })
 		);
 	}
 
@@ -330,6 +336,37 @@ public class DifferenceUtilityTests
 		// Assert — the orphaned step-less type should be marked for deletion
 		Assert.Single(differences.Types.Deletes);
 		Assert.Equal("Namespace.OrphanedType", differences.Types.Deletes[0].Name);
+		Assert.Empty(differences.Types.Creates);
+	}
+
+	[Fact]
+	public void CalculateDifferencesKeepsRemoteTypeNotInLocalWhenAllowEmptyTypes()
+	{
+		// Arrange — remote has a type that no longer exists locally. With AllowEmptyTypes
+		// enabled the type must NOT be deleted (it is kept as an empty type), so a managed
+		// solution is not forced into a full upgrade.
+		var remoteOrphanedType = new PluginDefinition("Namespace.OrphanedType") { Id = Guid.NewGuid(), PluginSteps = [] };
+		var sharedType = new PluginDefinition("Namespace.SharedPlugin") { Id = Guid.NewGuid(), PluginSteps = [] };
+
+		var localData = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [sharedType],
+			CustomApis = []
+		};
+
+		var remoteData = localData with
+		{
+			Plugins = [sharedType, remoteOrphanedType]
+		};
+
+		// Act
+		var differences = CreateCalculator(allowEmptyTypes: true).CalculateDifferences(localData, remoteData);
+
+		// Assert — the orphaned type is preserved, not deleted
+		Assert.Empty(differences.Types.Deletes);
 		Assert.Empty(differences.Types.Creates);
 	}
 

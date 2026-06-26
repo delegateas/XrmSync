@@ -14,6 +14,7 @@ namespace XrmSync.Commands;
 internal static class CommandOptions
 {
 	public static readonly Option<string?> Assembly = CliOptions.Assembly.CreateOption<string?>();
+	public static readonly Option<bool?> AllowEmptyTypes = CliOptions.AllowEmptyTypes.CreateOption<bool?>();
 	public static readonly Option<string?> Solution = CliOptions.Solution.CreateOption<string?>();
 	public static readonly Option<string?> Folder = CliOptions.Webresource.CreateOption<string?>();
 	public static readonly Option<string[]?> FileExtensions = CliOptions.FileExtensions.CreateOption<string[]?>();

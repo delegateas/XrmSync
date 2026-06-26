@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using XrmSync.Model;
 using XrmSync.Model.CustomApi;
+using XrmSync.Model.Plugin;
 using XrmSync.SyncService;
 using XrmSync.SyncService.Comparers;
 using XrmSync.SyncService.Difference;
@@ -28,7 +29,8 @@ public class DifferenceCalculatorCustomApiTests
 			new CustomApiComparer(description),
 			new RequestParameterComparer(),
 			new ResponsePropertyComparer(),
-			new PrintService(logger, Options.Create(options))
+			new PrintService(logger, Options.Create(options)),
+			Options.Create(PluginSyncCommandOptions.Empty)
 		);
 	}
 
