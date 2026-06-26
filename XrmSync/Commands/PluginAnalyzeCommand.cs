@@ -31,7 +31,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 	{
 		if (syncItem is not PluginAnalysisSyncItem analysis) return null;
-		return await RunCore(analysis.AssemblyPath, analysis.PublisherPrefix, analysis.PrettyPrint, ctx.ProfileName, ct);
+		return await RunCore(analysis.AssemblyPath ?? string.Empty, analysis.PublisherPrefix, analysis.PrettyPrint, ctx.ProfileName, ct);
 	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
@@ -66,10 +66,11 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 				return E_ERROR;
 			}
 
-			// Sync item is optional — if absent, CLI must supply all analysis-specific values
+			// Sync item is optional — if absent, CLI must supply all analysis-specific values.
+			// Assembly path falls back to the profile-level shared value.
 			var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
 
-			finalAssemblyPath = assemblyPath.GetValueOrDefault(pluginAnalysisItem?.AssemblyPath ?? string.Empty);
+			finalAssemblyPath = assemblyPath.GetValueOrDefault(profile.ResolveAssemblyPath(pluginAnalysisItem?.AssemblyPath) ?? string.Empty);
 			finalPublisherPrefix = publisherPrefix.GetValueOrDefault(pluginAnalysisItem?.PublisherPrefix ?? string.Empty);
 			finalPrettyPrint = prettyPrintValue || (pluginAnalysisItem?.PrettyPrint ?? false);
 		}

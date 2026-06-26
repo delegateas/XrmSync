@@ -33,14 +33,8 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 			yield break;
 		}
 
-		// Validate solution name at profile level
-		var profileErrors = ValidateSolutionName(profile.SolutionName).ToList();
-		if (profileErrors.Count != 0)
-		{
-			yield return new Model.Exceptions.OptionsValidationException($"Profile '{profile.Name}'", profileErrors);
-		}
-
-		// Validate each sync item in the profile based on scope
+		// Validate each sync item in the profile based on scope. Solution name and assembly path
+		// are validated using their effective values (per-item override falling back to profile-level).
 		foreach (var syncItem in profile.Sync)
 		{
 			List<string> errors = new();
@@ -48,7 +42,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 			switch (syncItem)
 			{
 				case PluginSyncItem pluginSync when scope.HasFlag(ConfigurationScope.PluginSync):
-					errors = Validate(pluginSync).ToList();
+					errors = Validate(pluginSync, profile).ToList();
 					if (errors.Count != 0)
 					{
 						yield return new Model.Exceptions.OptionsValidationException($"Plugin sync in profile '{profile.Name}'", errors);
@@ -56,7 +50,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 					break;
 
 				case PluginAnalysisSyncItem pluginAnalysis when scope.HasFlag(ConfigurationScope.PluginAnalysis):
-					errors = Validate(pluginAnalysis).ToList();
+					errors = Validate(pluginAnalysis, profile).ToList();
 					if (errors.Count != 0)
 					{
 						yield return new Model.Exceptions.OptionsValidationException($"Plugin analysis in profile '{profile.Name}'", errors);
@@ -64,7 +58,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 					break;
 
 				case WebresourceSyncItem webresource when scope.HasFlag(ConfigurationScope.WebresourceSync):
-					errors = Validate(webresource).ToList();
+					errors = Validate(webresource, profile).ToList();
 					if (errors.Count != 0)
 					{
 						yield return new Model.Exceptions.OptionsValidationException($"Webresource sync in profile '{profile.Name}'", errors);
@@ -72,7 +66,7 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 					break;
 
 				case IdentitySyncItem identity when scope.HasFlag(ConfigurationScope.Identity):
-					errors = Validate(identity).ToList();
+					errors = Validate(identity, profile).ToList();
 					if (errors.Count != 0)
 					{
 						yield return new Model.Exceptions.OptionsValidationException($"Identity ({identity.Operation?.ToString() ?? "unknown"}) in profile '{profile.Name}'", errors);
@@ -82,10 +76,11 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 		}
 	}
 
-	private static IEnumerable<string> Validate(IdentitySyncItem syncItem)
+	private static IEnumerable<string> Validate(IdentitySyncItem syncItem, ProfileConfiguration profile)
 	{
 		var errors = new List<string>();
-		errors.AddRange(ValidateAssemblyPath(syncItem.AssemblyPath));
+		errors.AddRange(ValidateAssemblyPath(profile.ResolveAssemblyPath(syncItem.AssemblyPath) ?? string.Empty));
+		errors.AddRange(ValidateSolutionName(profile.ResolveSolutionName(syncItem)));
 
 		if (syncItem.Operation == null)
 		{
@@ -102,25 +97,28 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 		return errors;
 	}
 
-	private static IEnumerable<string> Validate(PluginSyncItem syncItem)
+	private static IEnumerable<string> Validate(PluginSyncItem syncItem, ProfileConfiguration profile)
 	{
 		return [
-			..ValidateAssemblyPath(syncItem.AssemblyPath)
+			..ValidateAssemblyPath(profile.ResolveAssemblyPath(syncItem.AssemblyPath) ?? string.Empty),
+			..ValidateSolutionName(profile.ResolveSolutionName(syncItem))
 		];
 	}
 
-	private static IEnumerable<string> Validate(PluginAnalysisSyncItem syncItem)
+	private static IEnumerable<string> Validate(PluginAnalysisSyncItem syncItem, ProfileConfiguration profile)
 	{
+		// Plugin analysis does not target a Dataverse solution, so only the assembly and prefix are validated.
 		return [
-			..ValidateAssemblyPath(syncItem.AssemblyPath),
+			..ValidateAssemblyPath(profile.ResolveAssemblyPath(syncItem.AssemblyPath) ?? string.Empty),
 			..ValidatePublisherPrefix(syncItem.PublisherPrefix)
 		];
 	}
 
-	private static IEnumerable<string> Validate(WebresourceSyncItem syncItem)
+	private static IEnumerable<string> Validate(WebresourceSyncItem syncItem, ProfileConfiguration profile)
 	{
 		return [
-			..ValidateFolderPath(syncItem.FolderPath)
+			..ValidateFolderPath(syncItem.FolderPath),
+			..ValidateSolutionName(profile.ResolveSolutionName(syncItem))
 		];
 	}
 

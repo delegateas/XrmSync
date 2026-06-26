@@ -51,9 +51,10 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 		{
 			var name = profileSection.GetValue<string>(nameof(ProfileConfiguration.Name)) ?? string.Empty;
 			var solutionName = profileSection.GetValue<string>(nameof(ProfileConfiguration.SolutionName)) ?? string.Empty;
+			var assemblyPath = profileSection.GetValue<string>(nameof(ProfileConfiguration.AssemblyPath));
 			var syncItems = BuildSyncItems(profileSection.GetSection(nameof(ProfileConfiguration.Sync)));
 
-			profiles.Add(new ProfileConfiguration(name, solutionName, syncItems));
+			profiles.Add(new ProfileConfiguration(name, solutionName, syncItems, assemblyPath));
 		}
 
 		return profiles;
@@ -75,10 +76,12 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 			SyncItem? syncItem = type switch
 			{
 				PluginSyncItem.TypeName => new PluginSyncItem(
-					itemSection.GetValue<string>(nameof(PluginSyncItem.AssemblyPath)) ?? string.Empty
+					itemSection.GetValue<string>(nameof(PluginSyncItem.AssemblyPath)),
+					itemSection.GetValue<string>(nameof(PluginSyncItem.ManagedIdentityClientId)),
+					itemSection.GetValue<string>(nameof(PluginSyncItem.ManagedIdentityTenantId))
 				),
 				PluginAnalysisSyncItem.TypeName => new PluginAnalysisSyncItem(
-					itemSection.GetValue<string>(nameof(PluginAnalysisSyncItem.AssemblyPath)) ?? string.Empty,
+					itemSection.GetValue<string>(nameof(PluginAnalysisSyncItem.AssemblyPath)),
 					itemSection.GetValue<string>(nameof(PluginAnalysisSyncItem.PublisherPrefix)) ?? "new",
 					itemSection.GetValue<bool>(nameof(PluginAnalysisSyncItem.PrettyPrint))
 				),
@@ -92,6 +95,13 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 
 			if (syncItem != null)
 			{
+				// Optional per-item solution name override (falls back to the profile-level value)
+				var itemSolutionName = itemSection.GetValue<string>(nameof(SyncItem.SolutionName));
+				if (!string.IsNullOrWhiteSpace(itemSolutionName))
+				{
+					syncItem = syncItem with { SolutionName = itemSolutionName };
+				}
+
 				syncItems.Add(syncItem);
 			}
 		}
@@ -113,7 +123,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 
 		return new IdentitySyncItem(
 			operation,
-			itemSection.GetValue<string>(nameof(IdentitySyncItem.AssemblyPath)) ?? string.Empty,
+			itemSection.GetValue<string>(nameof(IdentitySyncItem.AssemblyPath)),
 			itemSection.GetValue<string>(nameof(IdentitySyncItem.ClientId)) ?? string.Empty,
 			itemSection.GetValue<string>(nameof(IdentitySyncItem.TenantId)) ?? string.Empty
 		);

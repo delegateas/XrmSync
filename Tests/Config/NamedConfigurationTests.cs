@@ -566,6 +566,160 @@ public class NamedConfigurationTests
 		}
 	}
 
+	[Fact]
+	public void ProfileLevelAssemblyPathIsSharedAcrossSyncItems()
+	{
+		// Arrange — AssemblyPath defined once at the profile level, shared by plugin + analysis items
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "AssemblyPath": "shared/plugins.dll",
+                "Sync": [
+                  {
+                    "Type": "Plugin"
+                  },
+                  {
+                    "Type": "PluginAnalysis",
+                    "PublisherPrefix": "dg"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var builder = new XrmSyncConfigurationBuilder(new TestConfigReader(tempFile).GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			Assert.Equal("shared/plugins.dll", profile.AssemblyPath);
+
+			var plugin = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+			Assert.Null(plugin.AssemblyPath); // item does not specify its own
+			Assert.Equal("shared/plugins.dll", profile.ResolveAssemblyPath(plugin.AssemblyPath));
+
+			var analysis = Assert.IsType<PluginAnalysisSyncItem>(profile.Sync[1]);
+			Assert.Equal("shared/plugins.dll", profile.ResolveAssemblyPath(analysis.AssemblyPath));
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
+	[Fact]
+	public void SyncItemAssemblyPathOverridesProfileLevelAssemblyPath()
+	{
+		// Arrange
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "TestSolution",
+                "AssemblyPath": "shared/plugins.dll",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "special/other.dll"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var builder = new XrmSyncConfigurationBuilder(new TestConfigReader(tempFile).GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			var plugin = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+			Assert.Equal("special/other.dll", plugin.AssemblyPath);
+			Assert.Equal("special/other.dll", profile.ResolveAssemblyPath(plugin.AssemblyPath));
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
+	[Fact]
+	public void SyncItemSolutionNameOverridesProfileLevelSolutionName()
+	{
+		// Arrange — profile-level solution name, with one item overriding it
+		const string configJson = """
+        {
+          "XrmSync": {
+            "Profiles": [
+              {
+                "Name": "default",
+                "SolutionName": "ProfileSolution",
+                "Sync": [
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "a.dll"
+                  },
+                  {
+                    "Type": "Plugin",
+                    "AssemblyPath": "b.dll",
+                    "SolutionName": "ItemSolution"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """;
+
+		var tempFile = Path.GetTempFileName();
+		File.WriteAllText(tempFile, configJson);
+
+		try
+		{
+			var builder = new XrmSyncConfigurationBuilder(new TestConfigReader(tempFile).GetConfiguration());
+
+			// Act
+			var profile = builder.GetProfile("default");
+
+			// Assert
+			Assert.NotNull(profile);
+			var first = Assert.IsType<PluginSyncItem>(profile.Sync[0]);
+			Assert.Null(first.SolutionName);
+			Assert.Equal("ProfileSolution", profile.ResolveSolutionName(first));
+
+			var second = Assert.IsType<PluginSyncItem>(profile.Sync[1]);
+			Assert.Equal("ItemSolution", second.SolutionName);
+			Assert.Equal("ItemSolution", profile.ResolveSolutionName(second));
+		}
+		finally
+		{
+			File.Delete(tempFile);
+		}
+	}
+
 	private class TestConfigReader(string configFile) : IConfigReader
 	{
 		public IConfiguration GetConfiguration()

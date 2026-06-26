@@ -38,7 +38,7 @@ internal class IdentityCommand : XrmSyncCommandBase
 
 		return await RunCore(
 			identity.Operation.Value,
-			identity.AssemblyPath,
+			identity.AssemblyPath ?? string.Empty,
 			ctx.SolutionName ?? string.Empty,
 			identity.ClientId,
 			identity.TenantId,
@@ -99,8 +99,8 @@ internal class IdentityCommand : XrmSyncCommandBase
 				: identityItems.FirstOrDefault();
 
 			finalOperation = operationValue ?? syncItem?.Operation;
-			finalAssemblyPath = assemblyPath.GetValueOrDefault(syncItem?.AssemblyPath ?? string.Empty);
-			finalSolutionName = solutionName.GetValueOrDefault(profile.SolutionName);
+			finalAssemblyPath = assemblyPath.GetValueOrDefault(profile.ResolveAssemblyPath(syncItem?.AssemblyPath) ?? string.Empty);
+			finalSolutionName = solutionName.GetValueOrDefault(profile.ResolveSolutionName(syncItem));
 			finalClientId = clientIdValue.GetValueOrDefault(syncItem?.ClientId ?? string.Empty);
 			finalTenantId = tenantIdValue.GetValueOrDefault(syncItem?.TenantId ?? string.Empty);
 		}

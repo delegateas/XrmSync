@@ -49,9 +49,24 @@ public record XrmSyncConfiguration(bool DryRun, LogLevel LogLevel, bool CiMode, 
 	}
 }
 
-public record ProfileConfiguration(string Name, string SolutionName, List<SyncItem> Sync)
+public record ProfileConfiguration(string Name, string SolutionName, List<SyncItem> Sync, string? AssemblyPath = null)
 {
 	public static ProfileConfiguration Empty => new(string.Empty, string.Empty, []);
+
+	/// <summary>
+	/// Resolves the effective solution name for a sync item: a per-item override takes precedence,
+	/// falling back to the profile-level <see cref="SolutionName"/> when none is specified on the item.
+	/// </summary>
+	public string ResolveSolutionName(SyncItem? item) =>
+		string.IsNullOrWhiteSpace(item?.SolutionName) ? SolutionName : item.SolutionName;
+
+	/// <summary>
+	/// Resolves the effective assembly path: a per-item value takes precedence, falling back to the
+	/// shared profile-level <see cref="AssemblyPath"/> when the item does not specify its own.
+	/// Returns null when neither level provides a value.
+	/// </summary>
+	public string? ResolveAssemblyPath(string? itemAssemblyPath) =>
+		string.IsNullOrWhiteSpace(itemAssemblyPath) ? AssemblyPath : itemAssemblyPath;
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
@@ -63,21 +78,26 @@ public abstract record SyncItem
 {
 	[JsonIgnore]
 	public abstract string SyncType { get; }
+
+	/// <summary>
+	/// Optional per-item solution name override. When null, the profile-level SolutionName is used.
+	/// </summary>
+	public string? SolutionName { get; init; }
 }
 
-public record PluginSyncItem(string AssemblyPath, string? ManagedIdentityClientId = null, string? ManagedIdentityTenantId = null) : SyncItem
+public record PluginSyncItem(string? AssemblyPath = null, string? ManagedIdentityClientId = null, string? ManagedIdentityTenantId = null) : SyncItem
 {
 	public const string TypeName = "Plugin";
-	public static PluginSyncItem Empty => new(string.Empty);
+	public static PluginSyncItem Empty => new();
 
 	[JsonIgnore]
 	public override string SyncType => TypeName;
 }
 
-public record PluginAnalysisSyncItem(string AssemblyPath, string PublisherPrefix, bool PrettyPrint) : SyncItem
+public record PluginAnalysisSyncItem(string? AssemblyPath, string PublisherPrefix, bool PrettyPrint) : SyncItem
 {
 	public const string TypeName = "PluginAnalysis";
-	public static PluginAnalysisSyncItem Empty => new(string.Empty, "new", false);
+	public static PluginAnalysisSyncItem Empty => new(null, "new", false);
 
 	[JsonIgnore]
 	public override string SyncType => TypeName;
@@ -98,10 +118,10 @@ public enum IdentityOperation
 	Ensure
 }
 
-public record IdentitySyncItem(IdentityOperation? Operation = null, string AssemblyPath = "", string ClientId = "", string TenantId = "") : SyncItem
+public record IdentitySyncItem(IdentityOperation? Operation = null, string? AssemblyPath = null, string ClientId = "", string TenantId = "") : SyncItem
 {
 	public const string TypeName = "Identity";
-	public static IdentitySyncItem Empty => new(AssemblyPath: string.Empty);
+	public static IdentitySyncItem Empty => new();
 
 	[JsonIgnore]
 	public override string SyncType => Operation.HasValue ? $"{TypeName} ({Operation})" : TypeName;

@@ -754,6 +754,119 @@ public class OptionsValidationTests
 	}
 
 	[Fact]
+	public void PluginSyncValidatorUsesProfileLevelAssemblyPathWhenItemHasNone()
+	{
+		// Arrange - assembly path defined only at the profile level, item leaves it unset
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", "TestSolution", new List<SyncItem>
+					{
+						new PluginSyncItem()
+					}, AssemblyPath: dllPath)
+				}
+			);
+
+			// Act & Assert - should resolve to the profile-level assembly path and pass
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			validator.Validate(ConfigurationScope.PluginSync);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
+	public void PluginSyncValidatorUsesItemLevelSolutionNameWhenProfileHasNone()
+	{
+		// Arrange - profile-level solution name empty, supplied per item instead
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", string.Empty, new List<SyncItem>
+					{
+						new PluginSyncItem(dllPath) { SolutionName = "ItemSolution" }
+					})
+				}
+			);
+
+			// Act & Assert - item-level solution name satisfies validation
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			validator.Validate(ConfigurationScope.PluginSync);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
+	public void PluginSyncValidatorMissingSolutionNameAtBothLevelsThrowsValidationException()
+	{
+		// Arrange - neither profile nor item provides a solution name
+		var tempFile = Path.GetTempFileName();
+		File.Move(tempFile, Path.ChangeExtension(tempFile, ".dll"));
+		var dllPath = Path.ChangeExtension(tempFile, ".dll");
+		File.WriteAllText(dllPath, "test content");
+
+		try
+		{
+			var config = new XrmSyncConfiguration(
+				DryRun: false,
+				LogLevel: LogLevel.Information,
+				CiMode: false,
+				Profiles: new List<ProfileConfiguration>
+				{
+					new("default", string.Empty, new List<SyncItem>
+					{
+						new PluginSyncItem(dllPath)
+					})
+				}
+			);
+
+			// Act & Assert
+			var validator = new XrmSyncConfigurationValidator(
+				Options.Create(config),
+				Options.Create(CreateSharedOptions()));
+			var exception = Assert.Throws<XrmSync.Model.Exceptions.OptionsValidationException>(
+				() => validator.Validate(ConfigurationScope.PluginSync));
+			Assert.Contains("Solution name is required", exception.Message);
+		}
+		finally
+		{
+			if (File.Exists(dllPath))
+				File.Delete(dllPath);
+		}
+	}
+
+	[Fact]
 	public void ValidatorNoProfilesAndNoProfileNamePassesValidation()
 	{
 		// Arrange - No profiles configured, no profile name specified (CLI mode)

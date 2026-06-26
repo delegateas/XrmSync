@@ -27,7 +27,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 	{
 		if (syncItem is not PluginSyncItem plugin) return null;
-		return await RunCore(plugin.AssemblyPath, ctx.SolutionName ?? string.Empty, plugin.ManagedIdentityClientId, plugin.ManagedIdentityTenantId, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
+		return await RunCore(plugin.AssemblyPath ?? string.Empty, ctx.SolutionName ?? string.Empty, plugin.ManagedIdentityClientId, plugin.ManagedIdentityTenantId, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
 	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
@@ -68,11 +68,12 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 				return E_ERROR;
 			}
 
-			// Sync item is optional — if absent, CLI must supply all plugin-specific values
+			// Sync item is optional — if absent, CLI must supply all plugin-specific values.
+			// Assembly path and solution name fall back to the profile-level shared values.
 			var pluginSyncItem = profile.Sync.OfType<PluginSyncItem>().FirstOrDefault();
 
-			finalAssemblyPath = assemblyPath.GetValueOrDefault(pluginSyncItem?.AssemblyPath ?? string.Empty);
-			finalSolutionName = solutionName.GetValueOrDefault(profile.SolutionName);
+			finalAssemblyPath = assemblyPath.GetValueOrDefault(profile.ResolveAssemblyPath(pluginSyncItem?.AssemblyPath) ?? string.Empty);
+			finalSolutionName = solutionName.GetValueOrDefault(profile.ResolveSolutionName(pluginSyncItem));
 			finalClientId = clientId.GetValueOrDefault(pluginSyncItem?.ManagedIdentityClientId ?? string.Empty);
 			finalTenantId = tenantId.GetValueOrDefault(pluginSyncItem?.ManagedIdentityTenantId ?? string.Empty);
 		}

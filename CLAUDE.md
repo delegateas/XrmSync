@@ -94,6 +94,8 @@ The solution is organized into distinct layers with clear separation of concerns
 - Profile-based configuration under `XrmSync` section in `appsettings.json`
 - Global settings (DryRun, LogLevel, CiMode) apply to all profiles
 - Each profile contains a solution name and list of sync items (Plugin, PluginAnalysis, Webresource)
+- A profile can also declare a shared `AssemblyPath` reused by every assembly-based sync item (Plugin, PluginAnalysis, Identity)
+- Sync items may override the profile-level `AssemblyPath` and/or `SolutionName` individually. Effective-value resolution precedence is: CLI override → sync-item value → profile-level value, centralized in `ProfileConfiguration.ResolveAssemblyPath`/`ResolveSolutionName`
 - Profile support (e.g., "default", "dev", "prod") via `--profile` flag
 - CLI options override configuration file values for standalone execution
 - Root command can execute all sync items in a profile sequentially
@@ -109,21 +111,21 @@ The solution is organized into distinct layers with clear separation of concerns
       {
         "Name": "dev",
         "SolutionName": "MySolution",
+        "AssemblyPath": "../path/to/plugin.dll",
         "Sync": [
           {
             "Type": "Plugin",
-            "AssemblyPath": "../path/to/plugin.dll",
             "ManagedIdentityClientId": "00000000-0000-0000-0000-000000000000",
             "ManagedIdentityTenantId": "00000000-0000-0000-0000-000000000000"
           },
           {
             "Type": "Webresource",
             "FolderPath": "../path/to/webresources",
-            "FileExtensions": ["js", "css"]
+            "FileExtensions": ["js", "css"],
+            "SolutionName": "MyWebresourceSolution"
           },
           {
             "Type": "PluginAnalysis",
-            "AssemblyPath": "../path/to/plugin.dll",
             "PublisherPrefix": "new",
             "PrettyPrint": true
           }

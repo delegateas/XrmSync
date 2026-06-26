@@ -68,7 +68,7 @@ namespace XrmSync.Commands
 				var webresourceSyncItem = profile.Sync.OfType<WebresourceSyncItem>().FirstOrDefault();
 
 				finalFolderPath = folderPath.GetValueOrDefault(webresourceSyncItem?.FolderPath ?? string.Empty);
-				finalSolutionName = solutionName.GetValueOrDefault(profile.SolutionName);
+				finalSolutionName = solutionName.GetValueOrDefault(profile.ResolveSolutionName(webresourceSyncItem));
 				finalExtensions = extensionsValue is { Length: > 0 } ? [.. extensionsValue] : webresourceSyncItem?.FileExtensions;
 			}
 

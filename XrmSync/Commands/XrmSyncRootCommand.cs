@@ -69,31 +69,41 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			return E_ERROR;
 		}
 
-		// Merge CLI overrides into each sync item
+		// Resolve effective values for each sync item, with precedence:
+		//   CLI override → per-item value → profile-level value.
+		// The resolved solution name is baked onto each item's SolutionName so it travels with the item.
+		string ResolveAssembly(string? itemAssemblyPath) =>
+			assemblyOverride.GetValueOrDefault(rawProfile.ResolveAssemblyPath(itemAssemblyPath) ?? string.Empty);
+		string ResolveSolution(SyncItem item) =>
+			solutionOverride.GetValueOrDefault(rawProfile.ResolveSolutionName(item));
+
 		var mergedSync = rawProfile.Sync.ConvertAll(item => item switch
 		{
 			PluginSyncItem plugin => plugin with
 			{
-				AssemblyPath = assemblyOverride.GetValueOrDefault(plugin.AssemblyPath),
+				AssemblyPath = ResolveAssembly(plugin.AssemblyPath),
 				ManagedIdentityClientId = clientIdOverride.GetValueOrDefault(plugin.ManagedIdentityClientId ?? string.Empty),
-				ManagedIdentityTenantId = tenantIdOverride.GetValueOrDefault(plugin.ManagedIdentityTenantId ?? string.Empty)
+				ManagedIdentityTenantId = tenantIdOverride.GetValueOrDefault(plugin.ManagedIdentityTenantId ?? string.Empty),
+				SolutionName = ResolveSolution(plugin)
 			},
 			PluginAnalysisSyncItem analysis => analysis with
 			{
-				AssemblyPath = assemblyOverride.GetValueOrDefault(analysis.AssemblyPath),
+				AssemblyPath = ResolveAssembly(analysis.AssemblyPath),
 				PublisherPrefix = prefixOverride.GetValueOrDefault(analysis.PublisherPrefix)
 			},
 			WebresourceSyncItem webresource => webresource with
 			{
 				FolderPath = folderOverride.GetValueOrDefault(webresource.FolderPath),
-				FileExtensions = fileExtensionsOverride is { Length: > 0 } ? fileExtensionsOverride.ToList() : webresource.FileExtensions
+				FileExtensions = fileExtensionsOverride is { Length: > 0 } ? fileExtensionsOverride.ToList() : webresource.FileExtensions,
+				SolutionName = ResolveSolution(webresource)
 			},
 			IdentitySyncItem identity => identity with
 			{
 				Operation = operationOverride ?? identity.Operation,
-				AssemblyPath = assemblyOverride.GetValueOrDefault(identity.AssemblyPath),
+				AssemblyPath = ResolveAssembly(identity.AssemblyPath),
 				ClientId = clientIdOverride.GetValueOrDefault(identity.ClientId),
-				TenantId = tenantIdOverride.GetValueOrDefault(identity.TenantId)
+				TenantId = tenantIdOverride.GetValueOrDefault(identity.TenantId),
+				SolutionName = ResolveSolution(identity)
 			},
 			_ => item
 		});
@@ -158,10 +168,13 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		{
 			logger.LogInformation("Executing {syncType} sync item...", syncItem.SyncType);
 
+			// Each item carries its own effective solution name (per-item override or profile-level)
+			var itemCtx = ctx with { SolutionName = mergedProfile.ResolveSolutionName(syncItem) };
+
 			int? result = null;
 			foreach (var cmd in subCommands)
 			{
-				result = await cmd.ExecuteFromProfile(syncItem, ctx, cancellationToken);
+				result = await cmd.ExecuteFromProfile(syncItem, itemCtx, cancellationToken);
 				if (result.HasValue) break;
 			}
 
