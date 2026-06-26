@@ -17,6 +17,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		Add(CommandOptions.Assembly);
 		Add(CommandOptions.ClientId);
 		Add(CommandOptions.TenantId);
+		Add(CommandOptions.AllowEmptyTypes);
 
 		AddSharedOptions();
 		AddSyncOptions();
@@ -27,7 +28,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 	{
 		if (syncItem is not PluginSyncItem plugin) return null;
-		return await RunCore(plugin.AssemblyPath ?? string.Empty, ctx.SolutionName ?? string.Empty, plugin.ManagedIdentityClientId, plugin.ManagedIdentityTenantId, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
+		return await RunCore(plugin.AssemblyPath ?? string.Empty, ctx.SolutionName ?? string.Empty, plugin.ManagedIdentityClientId, plugin.ManagedIdentityTenantId, plugin.AllowEmptyTypes, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
 	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
@@ -36,6 +37,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		var solutionName = parseResult.GetValue(CommandOptions.Solution);
 		var clientId = parseResult.GetValue(CommandOptions.ClientId);
 		var tenantId = parseResult.GetValue(CommandOptions.TenantId);
+		var allowEmptyTypes = parseResult.GetValue(CommandOptions.AllowEmptyTypes);
 		var dryRun = parseResult.GetValue(CommandOptions.DryRun);
 		var logLevel = parseResult.GetValue(CommandOptions.LogLevel);
 		var ciMode = parseResult.GetValue(CommandOptions.CiMode);
@@ -46,6 +48,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		string finalSolutionName;
 		string? finalClientId;
 		string? finalTenantId;
+		bool finalAllowEmptyTypes;
 
 		if (profileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(solutionName))
 		{
@@ -54,6 +57,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 			finalSolutionName = solutionName;
 			finalClientId = clientId;
 			finalTenantId = tenantId;
+			finalAllowEmptyTypes = allowEmptyTypes ?? false;
 		}
 		else
 		{
@@ -76,9 +80,10 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 			finalSolutionName = solutionName.GetValueOrDefault(profile.ResolveSolutionName(pluginSyncItem));
 			finalClientId = clientId.GetValueOrDefault(pluginSyncItem?.ManagedIdentityClientId ?? string.Empty);
 			finalTenantId = tenantId.GetValueOrDefault(pluginSyncItem?.ManagedIdentityTenantId ?? string.Empty);
+			finalAllowEmptyTypes = allowEmptyTypes ?? pluginSyncItem?.AllowEmptyTypes ?? false;
 		}
 
-		return await RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, dryRun, ciMode, logLevel, profileName, cancellationToken);
+		return await RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, dryRun, ciMode, logLevel, profileName, cancellationToken);
 	}
 
 	private async Task<int> RunCore(
@@ -86,6 +91,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		string solutionName,
 		string? managedIdentityClientId,
 		string? managedIdentityTenantId,
+		bool allowEmptyTypes,
 		bool? dryRun,
 		bool? ciMode,
 		LogLevel? logLevel,
@@ -117,7 +123,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 					CiMode = ciMode ?? baseOptions.CiMode,
 					DryRun = dryRun ?? baseOptions.DryRun
 				})
-			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(assemblyPath, solutionName, managedIdentityClientId, managedIdentityTenantId)))
+			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(assemblyPath, solutionName, managedIdentityClientId, managedIdentityTenantId, allowEmptyTypes)))
 			.AddLogger()
 			.BuildServiceProvider();
 

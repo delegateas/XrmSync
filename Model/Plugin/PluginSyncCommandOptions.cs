@@ -5,7 +5,8 @@ public record PluginSyncCommandOptions(
 	string AssemblyPath,
 	string SolutionName,
 	string? ManagedIdentityClientId = null,
-	string? ManagedIdentityTenantId = null)
+	string? ManagedIdentityTenantId = null,
+	bool AllowEmptyTypes = false)
 {
 	public static PluginSyncCommandOptions Empty => new(string.Empty, string.Empty);
 

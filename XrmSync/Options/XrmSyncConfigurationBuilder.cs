@@ -78,7 +78,8 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 				PluginSyncItem.TypeName => new PluginSyncItem(
 					itemSection.GetValue<string>(nameof(PluginSyncItem.AssemblyPath)),
 					itemSection.GetValue<string>(nameof(PluginSyncItem.ManagedIdentityClientId)),
-					itemSection.GetValue<string>(nameof(PluginSyncItem.ManagedIdentityTenantId))
+					itemSection.GetValue<string>(nameof(PluginSyncItem.ManagedIdentityTenantId)),
+					itemSection.GetValue<bool>(nameof(PluginSyncItem.AllowEmptyTypes))
 				),
 				PluginAnalysisSyncItem.TypeName => new PluginAnalysisSyncItem(
 					itemSection.GetValue<string>(nameof(PluginAnalysisSyncItem.AssemblyPath)),
