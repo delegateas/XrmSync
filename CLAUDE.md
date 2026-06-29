@@ -93,7 +93,7 @@ The solution is organized into distinct layers with clear separation of concerns
 **Configuration System**:
 - Profile-based configuration under `XrmSync` section in `appsettings.json`
 - Global settings (DryRun, LogLevel, CiMode) apply to all profiles
-- Each profile contains a solution name and list of sync items (Plugin, PluginAnalysis, Webresource)
+- Each profile contains a list of sync items (Plugin, PluginAnalysis, Webresource) and an optional shared solution name. The profile-level `SolutionName` is only required when a solution-targeting item (Plugin, Webresource, Identity) needs it and doesn't set its own — analysis-only profiles can omit it
 - A profile can also declare a shared `AssemblyPath` reused by every assembly-based sync item (Plugin, PluginAnalysis, Identity)
 - Sync items may override the profile-level `AssemblyPath` and/or `SolutionName` individually. Effective-value resolution precedence is: CLI override → sync-item value → profile-level value, centralized in `ProfileConfiguration.ResolveAssemblyPath`/`ResolveSolutionName`
 - Profile support (e.g., "default", "dev", "prod") via `--profile` flag

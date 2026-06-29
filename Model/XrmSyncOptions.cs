@@ -66,7 +66,9 @@ public record ProfileConfiguration(string Name, string SolutionName, List<SyncIt
 	/// Returns null when neither level provides a value.
 	/// </summary>
 	public string? ResolveAssemblyPath(string? itemAssemblyPath) =>
-		string.IsNullOrWhiteSpace(itemAssemblyPath) ? AssemblyPath : itemAssemblyPath;
+		!string.IsNullOrWhiteSpace(itemAssemblyPath) ? itemAssemblyPath
+		: !string.IsNullOrWhiteSpace(AssemblyPath) ? AssemblyPath
+		: null;
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]

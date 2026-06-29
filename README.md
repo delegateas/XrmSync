@@ -319,7 +319,7 @@ Available configurations (from appsettings.json):
 
 XrmSync supports JSON configuration files that contain all the necessary settings for synchronization and analysis. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
 
-The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode) and an array of named profiles. Each profile contains a solution name and a list of sync items (Plugin, Webresource, PluginAnalysis).
+The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode) and an array of named profiles. Each profile contains a list of sync items (Plugin, Webresource, PluginAnalysis) and, optionally, a profile-level solution name shared by those items. The profile-level `SolutionName` is only required when a solution-targeting item (Plugin, Webresource, Identity) needs it and doesn't set its own; profiles consisting solely of analysis items can omit it entirely.
 
 A profile can also declare a shared `AssemblyPath` that is reused by every sync item that targets an assembly (Plugin, PluginAnalysis, Identity). Individual sync items may still set their own `AssemblyPath` and `SolutionName` to override the profile-level values. Resolution order is: CLI override → sync-item value → profile-level value.
 
@@ -434,7 +434,7 @@ XrmSync will only execute sub-commands that have their required properties confi
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
 | `Name` | string | Name of the profile | Required |
-| `SolutionName` | string | Name of the target Dataverse solution. Used by every sync item unless the item sets its own `SolutionName` | Required (unless every sync item sets its own) |
+| `SolutionName` | string | Name of the target Dataverse solution. Used by every sync item unless the item sets its own `SolutionName` | Required only when a solution-targeting item (Plugin, Webresource, Identity) needs it and doesn't override it; not needed for analysis-only profiles |
 | `AssemblyPath` | string | Shared path to the plugin assembly (*.dll), reused by every assembly-based sync item that does not set its own `AssemblyPath` | null |
 | `Sync` | array | List of sync items (see below) | Required |
 
