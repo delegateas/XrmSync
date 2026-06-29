@@ -31,7 +31,7 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 	{
 		if (syncItem is not PluginAnalysisSyncItem analysis) return null;
-		return await RunCore(analysis.AssemblyPath, analysis.PublisherPrefix, analysis.PrettyPrint, ctx.ProfileName, ct);
+		return await RunCore(analysis.AssemblyPath ?? string.Empty, analysis.PublisherPrefix, analysis.PrettyPrint, ctx.ProfileName, ct);
 	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
@@ -41,38 +41,17 @@ internal class PluginAnalyzeCommand : XrmSyncCommandBase
 		var prettyPrintValue = parseResult.GetValue(PrettyPrint);
 		var profileName = parseResult.GetValue(CommandOptions.Profile);
 
-		// Resolve final options eagerly (CLI + profile merge)
-		string finalAssemblyPath;
-		string finalPublisherPrefix;
-		bool finalPrettyPrint;
+		var (profile, exitCode) = ResolveCommandProfile(profileName,
+			!string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix),
+			"Specify --assembly and --prefix, or add a profile to appsettings.json.");
+		if (exitCode.HasValue) return exitCode.Value;
 
-		if (profileName == null && !string.IsNullOrWhiteSpace(assemblyPath) && !string.IsNullOrWhiteSpace(publisherPrefix))
-		{
-			// Standalone mode: all required values supplied via CLI
-			finalAssemblyPath = assemblyPath;
-			finalPublisherPrefix = publisherPrefix;
-			finalPrettyPrint = prettyPrintValue;
-		}
-		else
-		{
-			// Profile mode: merge profile values with CLI overrides
-			ProfileConfiguration? profile;
-			try { profile = LoadProfileAndConfig(profileName).Profile; }
-			catch (XrmSyncException ex) { Console.Error.WriteLine(ex.Message); return E_ERROR; }
+		// Sync item is optional — its assembly path falls back to the profile-level shared value
+		var item = profile?.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
 
-			if (profile == null)
-			{
-				Console.Error.WriteLine("No profiles configured. Specify --assembly and --prefix, or add a profile to appsettings.json.");
-				return E_ERROR;
-			}
-
-			// Sync item is optional — if absent, CLI must supply all analysis-specific values
-			var pluginAnalysisItem = profile.Sync.OfType<PluginAnalysisSyncItem>().FirstOrDefault();
-
-			finalAssemblyPath = assemblyPath.GetValueOrDefault(pluginAnalysisItem?.AssemblyPath ?? string.Empty);
-			finalPublisherPrefix = publisherPrefix.GetValueOrDefault(pluginAnalysisItem?.PublisherPrefix ?? string.Empty);
-			finalPrettyPrint = prettyPrintValue || (pluginAnalysisItem?.PrettyPrint ?? false);
-		}
+		var finalAssemblyPath = assemblyPath.GetValueOrDefault(profile?.ResolveAssemblyPath(item?.AssemblyPath) ?? string.Empty);
+		var finalPublisherPrefix = publisherPrefix.GetValueOrDefault(item?.PublisherPrefix ?? string.Empty);
+		var finalPrettyPrint = prettyPrintValue || (item?.PrettyPrint ?? false);
 
 		return await RunCore(finalAssemblyPath, finalPublisherPrefix, finalPrettyPrint, profileName, cancellationToken);
 	}

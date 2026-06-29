@@ -187,6 +187,8 @@ internal class ConfigValidationOutput(
 		// Display profile settings
 		Console.WriteLine($"✓ Profile '{profile.Name}'");
 		Console.WriteLine($"  Solution Name: {profile.SolutionName}");
+		if (!string.IsNullOrWhiteSpace(profile.AssemblyPath))
+			Console.WriteLine($"  Assembly Path: {profile.AssemblyPath}");
 		Console.WriteLine();
 
 		// Display and validate sync items
@@ -204,7 +206,7 @@ internal class ConfigValidationOutput(
 			for (int i = 0; i < profile.Sync.Count; i++)
 			{
 				var syncItem = profile.Sync[i];
-				allValid &= OutputSyncItemValidation(i + 1, syncItem, profile.Name);
+				allValid &= OutputSyncItemValidation(i + 1, syncItem, profile);
 			}
 		}
 
@@ -219,7 +221,7 @@ internal class ConfigValidationOutput(
 		return allValid;
 	}
 
-	private bool OutputSyncItemValidation(int index, SyncItem syncItem, string profileName)
+	private bool OutputSyncItemValidation(int index, SyncItem syncItem, ProfileConfiguration profile)
 	{
 		var itemLabel = $"  [{index}] {syncItem.SyncType}";
 
@@ -227,17 +229,17 @@ internal class ConfigValidationOutput(
 		{
 			var errors = syncItem switch
 			{
-				PluginSyncItem plugin => ValidatePluginSync(plugin),
-				PluginAnalysisSyncItem analysis => ValidatePluginAnalysis(analysis),
-				WebresourceSyncItem webresource => ValidateWebresource(webresource),
-				IdentitySyncItem identity => ValidateIdentity(identity),
+				PluginSyncItem plugin => ValidatePluginSync(plugin, profile),
+				PluginAnalysisSyncItem analysis => ValidatePluginAnalysis(analysis, profile),
+				WebresourceSyncItem webresource => ValidateWebresource(webresource, profile),
+				IdentitySyncItem identity => ValidateIdentity(identity, profile),
 				_ => new List<string> { "Unknown sync item type" }
 			};
 
 			if (errors.Count > 0)
 			{
 				Console.WriteLine($"    ✗ {itemLabel}");
-				DisplaySyncItemDetails(syncItem);
+				DisplaySyncItemDetails(syncItem, profile);
 				foreach (var error in errors)
 				{
 					Console.WriteLine($"      Error: {error}");
@@ -247,7 +249,7 @@ internal class ConfigValidationOutput(
 			}
 
 			Console.WriteLine($"    ✓ {itemLabel}");
-			DisplaySyncItemDetails(syncItem);
+			DisplaySyncItemDetails(syncItem, profile);
 			Console.WriteLine();
 			return true;
 		}
@@ -260,26 +262,29 @@ internal class ConfigValidationOutput(
 		}
 	}
 
-	private void DisplaySyncItemDetails(SyncItem syncItem)
+	private void DisplaySyncItemDetails(SyncItem syncItem, ProfileConfiguration profile)
 	{
 		switch (syncItem)
 		{
 			case PluginSyncItem plugin:
-				Console.WriteLine($"      Assembly Path: {plugin.AssemblyPath}");
+				Console.WriteLine($"      Assembly Path: {profile.ResolveAssemblyPath(plugin.AssemblyPath)}");
+				Console.WriteLine($"      Solution Name: {profile.ResolveSolutionName(plugin)}");
 				break;
 			case PluginAnalysisSyncItem analysis:
-				Console.WriteLine($"      Assembly Path: {analysis.AssemblyPath}");
+				Console.WriteLine($"      Assembly Path: {profile.ResolveAssemblyPath(analysis.AssemblyPath)}");
 				Console.WriteLine($"      Publisher Prefix: {analysis.PublisherPrefix}");
 				Console.WriteLine($"      Pretty Print: {analysis.PrettyPrint}");
 				break;
 			case WebresourceSyncItem webresource:
 				Console.WriteLine($"      Folder Path: {webresource.FolderPath}");
+				Console.WriteLine($"      Solution Name: {profile.ResolveSolutionName(webresource)}");
 				if (webresource.FileExtensions is { Count: > 0 })
 					Console.WriteLine($"      File Extensions: {string.Join(", ", webresource.FileExtensions)}");
 				break;
 			case IdentitySyncItem identity:
 				Console.WriteLine($"      Operation: {identity.Operation}");
-				Console.WriteLine($"      Assembly Path: {identity.AssemblyPath}");
+				Console.WriteLine($"      Assembly Path: {profile.ResolveAssemblyPath(identity.AssemblyPath)}");
+				Console.WriteLine($"      Solution Name: {profile.ResolveSolutionName(identity)}");
 				if (identity.Operation == IdentityOperation.Ensure)
 				{
 					Console.WriteLine($"      Client ID: {identity.ClientId}");
@@ -289,21 +294,28 @@ internal class ConfigValidationOutput(
 		}
 	}
 
-	private static List<string> ValidatePluginSync(PluginSyncItem plugin) =>
-		[.. XrmSyncConfigurationValidator.ValidateAssemblyPath(plugin.AssemblyPath)];
-
-	private static List<string> ValidatePluginAnalysis(PluginAnalysisSyncItem analysis) =>
+	private static List<string> ValidatePluginSync(PluginSyncItem plugin, ProfileConfiguration profile) =>
 	[
-		.. XrmSyncConfigurationValidator.ValidateAssemblyPath(analysis.AssemblyPath),
+		.. XrmSyncConfigurationValidator.ValidateAssemblyPath(profile.ResolveAssemblyPath(plugin.AssemblyPath) ?? string.Empty),
+		.. XrmSyncConfigurationValidator.ValidateSolutionName(profile.ResolveSolutionName(plugin))
+	];
+
+	private static List<string> ValidatePluginAnalysis(PluginAnalysisSyncItem analysis, ProfileConfiguration profile) =>
+	[
+		.. XrmSyncConfigurationValidator.ValidateAssemblyPath(profile.ResolveAssemblyPath(analysis.AssemblyPath) ?? string.Empty),
 		.. XrmSyncConfigurationValidator.ValidatePublisherPrefix(analysis.PublisherPrefix)
 	];
 
-	private static List<string> ValidateWebresource(WebresourceSyncItem webresource) =>
-		[.. XrmSyncConfigurationValidator.ValidateFolderPath(webresource.FolderPath)];
+	private static List<string> ValidateWebresource(WebresourceSyncItem webresource, ProfileConfiguration profile) =>
+	[
+		.. XrmSyncConfigurationValidator.ValidateFolderPath(webresource.FolderPath),
+		.. XrmSyncConfigurationValidator.ValidateSolutionName(profile.ResolveSolutionName(webresource))
+	];
 
-	private static List<string> ValidateIdentity(IdentitySyncItem identity)
+	private static List<string> ValidateIdentity(IdentitySyncItem identity, ProfileConfiguration profile)
 	{
-		var errors = new List<string>(XrmSyncConfigurationValidator.ValidateAssemblyPath(identity.AssemblyPath));
+		var errors = new List<string>(XrmSyncConfigurationValidator.ValidateAssemblyPath(profile.ResolveAssemblyPath(identity.AssemblyPath) ?? string.Empty));
+		errors.AddRange(XrmSyncConfigurationValidator.ValidateSolutionName(profile.ResolveSolutionName(identity)));
 
 		if (identity.Operation == IdentityOperation.Ensure)
 		{

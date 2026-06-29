@@ -319,7 +319,9 @@ Available configurations (from appsettings.json):
 
 XrmSync supports JSON configuration files that contain all the necessary settings for synchronization and analysis. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
 
-The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode) and an array of named profiles. Each profile contains a solution name and a list of sync items (Plugin, Webresource, PluginAnalysis).
+The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode) and an array of named profiles. Each profile contains a list of sync items (Plugin, Webresource, PluginAnalysis) and, optionally, a profile-level solution name shared by those items. The profile-level `SolutionName` is only required when a solution-targeting item (Plugin, Webresource, Identity) needs it and doesn't set its own; profiles consisting solely of analysis items can omit it entirely.
+
+A profile can also declare a shared `AssemblyPath` that is reused by every sync item that targets an assembly (Plugin, PluginAnalysis, Identity). Individual sync items may still set their own `AssemblyPath` and `SolutionName` to override the profile-level values. Resolution order is: CLI override → sync-item value → profile-level value.
 
 #### JSON Schema
 
@@ -333,10 +335,10 @@ The configuration uses a profile-based structure under the XrmSync section, with
       {
         "Name": "default",
         "SolutionName": "YourSolutionName",
+        "AssemblyPath": "path/to/your/plugin.dll",
         "Sync": [
           {
-            "Type": "Plugin",
-            "AssemblyPath": "path/to/your/plugin.dll"
+            "Type": "Plugin"
           },
           {
             "Type": "Webresource",
@@ -345,7 +347,6 @@ The configuration uses a profile-based structure under the XrmSync section, with
           },
           {
             "Type": "PluginAnalysis",
-            "AssemblyPath": "path/to/your/plugin.dll",
             "PublisherPrefix": "contoso",
             "PrettyPrint": true
           }
@@ -433,21 +434,24 @@ XrmSync will only execute sub-commands that have their required properties confi
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
 | `Name` | string | Name of the profile | Required |
-| `SolutionName` | string | Name of the target Dataverse solution | Required |
+| `SolutionName` | string | Name of the target Dataverse solution. Used by every sync item unless the item sets its own `SolutionName` | Required only when a solution-targeting item (Plugin, Webresource, Identity) needs it and doesn't override it; not needed for analysis-only profiles |
+| `AssemblyPath` | string | Shared path to the plugin assembly (*.dll), reused by every assembly-based sync item that does not set its own `AssemblyPath` | null |
 | `Sync` | array | List of sync items (see below) | Required |
 
 #### Sync Item Properties
 
-Each sync item must have a `Type` property indicating the sync type:
+Each sync item must have a `Type` property indicating the sync type. In addition, any sync item that targets a solution (Plugin, Webresource, Identity) may set a `SolutionName` to override the profile-level value, and any assembly-based sync item (Plugin, PluginAnalysis, Identity) may set an `AssemblyPath` to override the profile-level shared value.
 
 **Plugin Sync Item (Type: "Plugin")**
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
 | `Type` | string | Must be "Plugin" | Required |
-| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Profile-level `AssemblyPath` |
+| `SolutionName` | string | Target Dataverse solution for this item | Profile-level `SolutionName` |
 | `ManagedIdentityClientId` | string | Azure AD application (client) ID (GUID). When set, a managed identity is ensured on the assembly as part of the sync | null |
 | `ManagedIdentityTenantId` | string | Azure AD tenant ID (GUID). Required together with `ManagedIdentityClientId` | null |
+| `AllowEmptyTypes` | boolean | Keep plugin types registered when they no longer have steps instead of deleting them (avoids forcing a full upgrade of managed solutions) | false |
 
 **Webresource Sync Item (Type: "Webresource")**
 
@@ -455,6 +459,7 @@ Each sync item must have a `Type` property indicating the sync type:
 |----------|------|-------------|---------|
 | `Type` | string | Must be "Webresource" | Required |
 | `FolderPath` | string | Path to the root folder containing webresources | Required |
+| `SolutionName` | string | Target Dataverse solution for this item | Profile-level `SolutionName` |
 | `FileExtensions` | string[] | File extensions to include (e.g. `["js", "css"]`). When omitted, all supported types are synced. | null |
 
 **Plugin Analysis Item (Type: "PluginAnalysis")**
@@ -462,7 +467,7 @@ Each sync item must have a `Type` property indicating the sync type:
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
 | `Type` | string | Must be "PluginAnalysis" | Required |
-| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Profile-level `AssemblyPath` |
 | `PublisherPrefix` | string | Publisher prefix for unique names | "new" |
 | `PrettyPrint` | boolean | Pretty print the JSON output | false |
 
@@ -472,7 +477,8 @@ Each sync item must have a `Type` property indicating the sync type:
 |----------|------|-------------|---------|
 | `Type` | string | Must be "Identity" | Required |
 | `Operation` | string | Operation to perform: `Ensure` or `Remove` | Required |
-| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Required |
+| `AssemblyPath` | string | Path to the plugin assembly (*.dll) | Profile-level `AssemblyPath` |
+| `SolutionName` | string | Target Dataverse solution for this item | Profile-level `SolutionName` |
 | `ClientId` | string | Azure AD application (client) ID (GUID) | Required for Ensure |
 | `TenantId` | string | Azure AD tenant ID (GUID) | Required for Ensure |
 
@@ -490,6 +496,39 @@ Each sync item must have a `Type` property indicating the sync type:
           {
             "Type": "Plugin",
             "AssemblyPath": "MyPlugin.dll"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Shared assembly path with a per-item solution override:**
+
+`AssemblyPath` is declared once on the profile and reused by the plugin sync, analysis, and identity items. The webresource item targets a different solution than the rest of the profile by setting its own `SolutionName`:
+
+```json
+{
+  "XrmSync": {
+    "Profiles": [
+      {
+        "Name": "default",
+        "SolutionName": "MyCustomSolution",
+        "AssemblyPath": "bin/Release/net462/MyPlugin.dll",
+        "Sync": [
+          {
+            "Type": "Plugin"
+          },
+          {
+            "Type": "PluginAnalysis",
+            "PublisherPrefix": "contoso",
+            "PrettyPrint": true
+          },
+          {
+            "Type": "Webresource",
+            "FolderPath": "wwwroot",
+            "SolutionName": "MyWebresourceSolution"
           }
         ]
       }

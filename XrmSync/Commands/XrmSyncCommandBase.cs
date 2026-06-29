@@ -43,6 +43,22 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 	}
 
 	/// <summary>
+	/// The execution-level CLI overrides shared by every sync sub-command (analysis aside, which only reads
+	/// the profile name). Deconstructs in declaration order, e.g.
+	/// <c>var (dryRun, ciMode, logLevel, profileName) = ReadExecutionOverrides(parseResult);</c>
+	/// </summary>
+	protected readonly record struct ExecutionOverrides(bool? DryRun, bool? CiMode, LogLevel? LogLevel, string? ProfileName);
+
+	/// <summary>
+	/// Reads the shared --dry-run / --ci-mode / --log-level / --profile values from the parse result.
+	/// </summary>
+	protected static ExecutionOverrides ReadExecutionOverrides(ParseResult parseResult) => new(
+		parseResult.GetValue(CommandOptions.DryRun),
+		parseResult.GetValue(CommandOptions.CiMode),
+		parseResult.GetValue(CommandOptions.LogLevel),
+		parseResult.GetValue(CommandOptions.Profile));
+
+	/// <summary>
 	/// Loads configuration and resolves a profile, returning both.
 	/// Returns null profile when no profiles are configured.
 	/// Throws XrmSyncException when an explicitly requested profile is not found.
@@ -54,6 +70,50 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 		var config = builder.Build();
 		var profile = builder.GetProfile(profileName);
 		return (profile, config);
+	}
+
+	/// <summary>
+	/// Resolves the profile a sub-command should merge its CLI values against.
+	/// <para>
+	/// Returns a <c>null</c> profile and no exit code for "standalone" execution — when no profile was
+	/// requested and the caller already has every required value from the CLI; callers then merge against
+	/// empty fallbacks (CLI values win). Otherwise the requested/default profile is loaded, and an exit code
+	/// is returned when it cannot be resolved (unknown profile name, or none configured).
+	/// </para>
+	/// The merge itself stays in each command via <c>cliValue.GetValueOrDefault(profile?.…)</c>, so the same
+	/// expression covers both standalone (profile is null) and profile execution.
+	/// </summary>
+	/// <param name="standaloneInputsComplete">Whether the CLI already supplies every value required to run without a profile.</param>
+	/// <param name="missingProfileHint">Command-specific hint appended to the "No profiles configured" message.</param>
+	protected static (ProfileConfiguration? Profile, int? ExitCode) ResolveCommandProfile(
+		string? profileName,
+		bool standaloneInputsComplete,
+		string missingProfileHint)
+	{
+		if (profileName == null && standaloneInputsComplete)
+		{
+			// Standalone mode: all required values supplied via CLI, no profile needed
+			return (null, null);
+		}
+
+		ProfileConfiguration? profile;
+		try
+		{
+			profile = LoadProfileAndConfig(profileName).Profile;
+		}
+		catch (XrmSyncException ex)
+		{
+			Console.Error.WriteLine(ex.Message);
+			return (null, E_ERROR);
+		}
+
+		if (profile == null)
+		{
+			Console.Error.WriteLine($"No profiles configured. {missingProfileHint}");
+			return (null, E_ERROR);
+		}
+
+		return (profile, null);
 	}
 
 	/// <summary>
