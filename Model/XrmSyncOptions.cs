@@ -6,8 +6,13 @@ using System.Text.Json.Serialization;
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace XrmSync.Model;
 
-public record XrmSyncConfiguration(bool DryRun, LogLevel LogLevel, bool CiMode, List<ProfileConfiguration> Profiles)
+public record XrmSyncConfiguration(bool DryRun, LogLevel LogLevel, bool CiMode, List<ProfileConfiguration> Profiles, int WatchDebounceMs = XrmSyncConfiguration.DefaultWatchDebounceMs)
 {
+	/// <summary>
+	/// Quiet period, in milliseconds, that watch mode waits for after a file change before re-syncing.
+	/// </summary>
+	public const int DefaultWatchDebounceMs = 500;
+
 	public static XrmSyncConfiguration Empty => new(false, LogLevel.Information, false, []);
 
 	/// <summary>
@@ -85,6 +90,13 @@ public abstract record SyncItem
 	/// Optional per-item solution name override. When null, the profile-level SolutionName is used.
 	/// </summary>
 	public string? SolutionName { get; init; }
+
+	/// <summary>
+	/// When true, the item is watched and re-synced automatically whenever its input changes
+	/// (the plugin assembly, or any supported file under the webresource folder).
+	/// Only Plugin and Webresource items are watchable; the flag is ignored on other types.
+	/// </summary>
+	public bool Watch { get; init; }
 }
 
 public record PluginSyncItem(string? AssemblyPath = null, string? ManagedIdentityClientId = null, string? ManagedIdentityTenantId = null, bool AllowEmptyTypes = false) : SyncItem

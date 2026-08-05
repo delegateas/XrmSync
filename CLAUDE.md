@@ -51,6 +51,13 @@ dotnet run --project XrmSync -- webresources --folder "path/to/webresources" --s
 
 # Plugin analysis
 dotnet run --project XrmSync -- analyze --assembly "path/to/plugin.dll" --pretty-print
+
+# Watch mode — sync once, then re-sync on every change (Ctrl+C to stop)
+dotnet run --project XrmSync -- plugins --assembly "path/to/plugin.dll" --solution-name "MySolution" --watch
+dotnet run --project XrmSync -- webresources --folder "path/to/webresources" --solution-name "MySolution" --watch
+
+# Watch every watchable item in a profile (items with "Watch": true)
+dotnet run --project XrmSync -- --profile dev
 ```
 
 ## Architecture
@@ -90,12 +97,24 @@ The solution is organized into distinct layers with clear separation of concerns
 - The standalone `identity` command remains available for explicit Ensure/Remove operations
 - The identity is named `"{SolutionName} Managed Identity"` and is linked via the `PluginAssembly.ManagedIdentityId` lookup
 
+**Watch Mode**:
+- Lives entirely in the CLI layer (`XrmSync/Watch/`). `SyncService`, `Dataverse`, `AssemblyAnalyzer`, `ISyncService`, `IXrmSyncCommand.ExecuteFromProfile` and each command's private `RunCore` stay single-shot, so a watch-triggered run can never start a nested watch and always builds a fresh DI container (required because `LocalReader` caches `AssemblyInfo` per DLL path)
+- Enabled per sync item via `"Watch": true`, or for the whole run via `--watch` (which overrides the per-item flags). Only Plugin and Webresource items are watchable; other types run once in the initial pass and log a warning if they request watching
+- `WatchSettings.Resolve` is the single decision point: CLI flag → per-item flags → CI mode always wins (watch is suppressed with a warning so a pipeline cannot hang)
+- `WatchTargetResolver` turns a sync item into a `WatchTarget`: the assembly's own directory (non-recursive, file name filter) for plugins, the folder recursively for webresources. Each target's `Accept` predicate mirrors exactly what the sync reads — the assembly file name (not `.pdb`/sibling assemblies), and the same supported-extension/`FileExtensions` check as `LocalReader.ReadWebResourceFolder`
+- `WatchLoop` coalesces file system events: each accepted event sets a per-target dirty flag and pushes a token onto a bounded `Channel<int>` (`DropWrite`); a single consumer waits out `WatchDebounceMs`, drains the tokens, snapshots the flags, and runs the due syncs one at a time. Runs are therefore strictly sequential, an event storm is O(1), and a change arriving during a sync queues exactly one follow-up run
+- Before re-running a plugin sync, `IWatchFileSystem.WaitUntilReadableAsync` waits (10 s) for the build to release the DLL; on timeout it warns and syncs anyway
+- Watcher errors (internal buffer overflow, the folder disappearing) warn, mark the target dirty and re-subscribe with 1/2/4 s backoff; a target that cannot be restored is dropped, and if all are dropped the loop logs critical and returns
+- A failed run is logged and watching continues. The watch session's exit code is the initial pass's exit code
+- `IWatchFileSystem` and the injectable `delay` delegate on `WatchLoop` are the test seams — `Tests/Watch` drives the loop with no real files and no real time
+
 **Configuration System**:
 - Profile-based configuration under `XrmSync` section in `appsettings.json`
-- Global settings (DryRun, LogLevel, CiMode) apply to all profiles
+- Global settings (DryRun, LogLevel, CiMode, WatchDebounceMs) apply to all profiles
 - Each profile contains a list of sync items (Plugin, PluginAnalysis, Webresource) and an optional shared solution name. The profile-level `SolutionName` is only required when a solution-targeting item (Plugin, Webresource, Identity) needs it and doesn't set its own — analysis-only profiles can omit it
 - A profile can also declare a shared `AssemblyPath` reused by every assembly-based sync item (Plugin, PluginAnalysis, Identity)
 - Sync items may override the profile-level `AssemblyPath` and/or `SolutionName` individually. Effective-value resolution precedence is: CLI override → sync-item value → profile-level value, centralized in `ProfileConfiguration.ResolveAssemblyPath`/`ResolveSolutionName`
+- Sync items may opt into watch mode with `"Watch": true` (Plugin and Webresource only); the global `WatchDebounceMs` (default 500, valid 50–60000) tunes the quiet period
 - Profile support (e.g., "default", "dev", "prod") via `--profile` flag
 - CLI options override configuration file values for standalone execution
 - Root command can execute all sync items in a profile sequentially
@@ -107,6 +126,7 @@ The solution is organized into distinct layers with clear separation of concerns
     "DryRun": false,
     "LogLevel": "Information",
     "CiMode": false,
+    "WatchDebounceMs": 500,
     "Profiles": [
       {
         "Name": "dev",
@@ -116,13 +136,15 @@ The solution is organized into distinct layers with clear separation of concerns
           {
             "Type": "Plugin",
             "ManagedIdentityClientId": "00000000-0000-0000-0000-000000000000",
-            "ManagedIdentityTenantId": "00000000-0000-0000-0000-000000000000"
+            "ManagedIdentityTenantId": "00000000-0000-0000-0000-000000000000",
+            "Watch": true
           },
           {
             "Type": "Webresource",
             "FolderPath": "../path/to/webresources",
             "FileExtensions": ["js", "css"],
-            "SolutionName": "MyWebresourceSolution"
+            "SolutionName": "MyWebresourceSolution",
+            "Watch": true
           },
           {
             "Type": "PluginAnalysis",

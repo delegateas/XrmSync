@@ -4,8 +4,10 @@ using Microsoft.Extensions.Logging;
 using XrmSync.Dataverse.Interfaces;
 using XrmSync.Model;
 using XrmSync.Model.Exceptions;
+using XrmSync.Extensions;
 using XrmSync.Options;
 using XrmSync.SyncService;
+using XrmSync.Watch;
 
 namespace XrmSync.Commands;
 
@@ -114,6 +116,54 @@ internal abstract class XrmSyncCommandBase(string name, string description) : Co
 		}
 
 		return (profile, null);
+	}
+
+	/// <summary>
+	/// Loads only the global configuration settings, never throwing — used on the standalone command
+	/// paths where no profile is resolved but global settings (e.g. watch debounce) are still needed.
+	/// </summary>
+	protected static XrmSyncConfiguration LoadGlobalConfig()
+	{
+		try
+		{
+			return new XrmSyncConfigurationBuilder(new ConfigReader().GetConfiguration()).Build();
+		}
+		catch (Exception)
+		{
+			return XrmSyncConfiguration.Empty;
+		}
+	}
+
+	/// <summary>
+	/// Resolves watch behaviour for a sub-command: the --watch flag wins over the sync item's Watch
+	/// setting, and CI mode disables watching altogether. Warns on stderr when it is suppressed.
+	/// </summary>
+	protected static WatchSettings ResolveWatchSettings(bool? cliWatch, bool itemWatch, bool? ciModeOverride)
+	{
+		var config = LoadGlobalConfig();
+		var settings = WatchSettings.Resolve(cliWatch, itemWatch, ciModeOverride ?? config.CiMode, config);
+
+		if (settings.Suppressed)
+		{
+			Console.Error.WriteLine("Watch mode is not supported in CI mode — running once and exiting.");
+		}
+
+		return settings;
+	}
+
+	/// <summary>
+	/// Builds a watch loop that logs through the standard XrmSync logger configuration.
+	/// </summary>
+	protected static IWatchLoop CreateWatchLoop(WatchSettings settings, bool? dryRun, bool? ciMode, LogLevel? logLevel, string? profileName)
+	{
+		var logger = new ServiceCollection()
+			.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, profileName))
+			.AddOptions(dryRun, ciMode, logLevel)
+			.AddLogger()
+			.BuildServiceProvider()
+			.GetRequiredService<ILogger<WatchLoop>>();
+
+		return new WatchLoop(new WatchFileSystem(), logger, settings);
 	}
 
 	/// <summary>

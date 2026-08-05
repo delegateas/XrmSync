@@ -1,3 +1,6 @@
+### v1.0.0-preview.22 - 5 August 2026
+* Add: Watch mode — `--watch` on the `plugins` and `webresources` commands, or `"Watch": true` per sync item, keeps XrmSync running and re-syncs automatically when the plugin assembly is rebuilt or a webresource file changes. Tune the quiet period with the global `WatchDebounceMs` setting (default 500 ms)
+
 ### v1.0.0-preview.21 - 26 June 2026
 * Add: `--allow-empty-types` option for plugin sync, keeping plugin types registered when they no longer have steps instead of deleting them (avoids forcing a full upgrade of managed solutions)
 * Add: Profile-level `AssemblyPath` shared across sync items, and per-item `SolutionName`/`AssemblyPath` overrides (resolution order: CLI override → sync-item value → profile-level value)

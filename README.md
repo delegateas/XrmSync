@@ -19,6 +19,7 @@ XrmSync is a powerful tool that helps you manage and synchronize your Microsoft 
 - **Custom API Support**: Handles custom API definitions, request parameters, and response properties
 - **Webresource Sync**: Synchronizes HTML, CSS, JavaScript, images, and other webresources from local folders
 - **Managed Identity Management**: Link, update, or remove Azure AD managed identities for plugin assemblies — either inline as part of plugin sync or via the standalone `identity` command
+- **Watch Mode**: Stay running and re-sync automatically whenever the plugin assembly is rebuilt or a webresource file changes
 - **Dry Run Mode**: Preview changes without actually modifying your Dataverse environment
 - **Solution-aware**: Deploys plugins and webresources to specific Dataverse solutions
 - **Flexible Connection**: Supports connection string and URL-based Dataverse connections
@@ -78,6 +79,54 @@ xrmsync webresources --folder "path/to/webresources" --solution-name "YourSoluti
 xrmsync webresources --folder "path/to/webresources" --solution-name "YourSolutionName" --file-extensions js css
 ```
 
+### Watch Mode
+
+Watch mode performs the normal sync and then keeps running, re-syncing automatically whenever its input changes: the plugin assembly being rewritten by a build triggers a plugin sync, and creating, changing, renaming or deleting any supported file anywhere under the webresource folder triggers a webresource sync. Press `Ctrl+C` to stop.
+
+```bash
+# Re-deploy the plugin assembly every time you rebuild it
+xrmsync plugins --assembly "path/to/your/plugin.dll" --solution-name "YourSolutionName" --watch
+
+# Re-upload webresources as you edit them
+xrmsync webresources --folder "path/to/webresources" --solution-name "YourSolutionName" --watch
+```
+
+Watch can also be enabled per sync item in `appsettings.json`, which is the usual way to watch a plugin and a webresource folder at the same time:
+
+```json
+{
+  "XrmSync": {
+    "WatchDebounceMs": 500,
+    "Profiles": [
+      {
+        "Name": "dev",
+        "SolutionName": "MySolution",
+        "AssemblyPath": "bin/Debug/net462/MyPlugin.dll",
+        "Sync": [
+          { "Type": "Plugin", "Watch": true },
+          { "Type": "Webresource", "FolderPath": "src/webresources", "Watch": true }
+        ]
+      }
+    ]
+  }
+}
+```
+
+```bash
+# Runs both items once, then watches each of them independently
+xrmsync --profile dev
+```
+
+Notes:
+
+- Only `Plugin` and `Webresource` items are watchable. `PluginAnalysis` and `Identity` items run once in the initial pass and are then skipped (a warning is logged if they have `Watch: true`).
+- `--watch` overrides the per-item `Watch` flags for the whole run; `--watch false` turns watching off even when items request it.
+- Changes are debounced (`WatchDebounceMs`, default 500 ms, valid range 50–60000), so a build that rewrites the assembly several times results in a single sync. Syncs never overlap — a change arriving during a sync queues exactly one follow-up run.
+- Only files the sync itself would read trigger a run: the watched assembly (not its `.pdb` or sibling assemblies), and webresource files with a supported extension that also matches `FileExtensions` when it is set.
+- A failing sync does not stop watching — the error is logged and the next change is picked up.
+- Watch mode is ignored in CI mode (`--ci-mode`): a warning is logged and the tool exits after one pass, so a pipeline can never hang.
+- The exit code of a watch session is the exit code of the initial sync pass.
+
 ### Configuration File Usage
 
 For repeated operations or complex configurations, you can read the configuration from the appsettings.json file:
@@ -125,6 +174,7 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--client-id` | Plugin sync, Identity (Ensure) |
 | `--tenant-id` | Plugin sync, Identity (Ensure) |
 | `--allow-empty-types` | Plugin sync |
+| `--watch` | Plugin sync, Webresource sync |
 
 ### Command Line Options
 
@@ -137,6 +187,7 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--client-id` | `--cid` | Azure AD application (client) ID for the managed identity to ensure on the assembly | No** |
 | `--tenant-id` | `--tid` | Azure AD tenant ID for the managed identity to ensure on the assembly | No** |
 | `--allow-empty-types` | `--allow-empty`, `--aet` | Keep plugin types registered when they no longer have steps instead of deleting them (avoids forcing a full upgrade of managed solutions) | No |
+| `--watch` | `--watch-mode` | Keep running and re-sync whenever the assembly changes. Overrides the per-item `Watch` setting. Ignored in CI mode. | No |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
@@ -152,6 +203,7 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--folder` | `-w`, `--path` | Path to the root folder containing the webresources to sync | Yes* |
 | `--file-extensions` | `-e`, `--ext` | File extensions to include (e.g. js css). When omitted, all supported types are synced. | No |
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
+| `--watch` | `--watch-mode` | Keep running and re-sync whenever a webresource file changes. Overrides the per-item `Watch` setting. Ignored in CI mode. | No |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
 | `--ci-mode` | `--ci` | Enable CI mode which prefixes all warnings and errors | No |
@@ -319,7 +371,7 @@ Available configurations (from appsettings.json):
 
 XrmSync supports JSON configuration files that contain all the necessary settings for synchronization and analysis. This is particularly useful for CI/CD pipelines or when you have consistent settings across multiple runs.
 
-The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode) and an array of named profiles. Each profile contains a list of sync items (Plugin, Webresource, PluginAnalysis) and, optionally, a profile-level solution name shared by those items. The profile-level `SolutionName` is only required when a solution-targeting item (Plugin, Webresource, Identity) needs it and doesn't set its own; profiles consisting solely of analysis items can omit it entirely.
+The configuration uses a profile-based structure under the XrmSync section, with global settings (DryRun, LogLevel, CiMode, WatchDebounceMs) and an array of named profiles. Each profile contains a list of sync items (Plugin, Webresource, PluginAnalysis) and, optionally, a profile-level solution name shared by those items. The profile-level `SolutionName` is only required when a solution-targeting item (Plugin, Webresource, Identity) needs it and doesn't set its own; profiles consisting solely of analysis items can omit it entirely.
 
 A profile can also declare a shared `AssemblyPath` that is reused by every sync item that targets an assembly (Plugin, PluginAnalysis, Identity). Individual sync items may still set their own `AssemblyPath` and `SolutionName` to override the profile-level values. Resolution order is: CLI override → sync-item value → profile-level value.
 
@@ -331,6 +383,7 @@ A profile can also declare a shared `AssemblyPath` that is reused by every sync 
     "DryRun": false,
     "LogLevel": "Information",
     "CiMode": false,
+    "WatchDebounceMs": 500,
     "Profiles": [
       {
         "Name": "default",
@@ -338,12 +391,14 @@ A profile can also declare a shared `AssemblyPath` that is reused by every sync 
         "AssemblyPath": "path/to/your/plugin.dll",
         "Sync": [
           {
-            "Type": "Plugin"
+            "Type": "Plugin",
+            "Watch": false
           },
           {
             "Type": "Webresource",
             "FolderPath": "path/to/webresources",
-            "FileExtensions": ["js", "css"]
+            "FileExtensions": ["js", "css"],
+            "Watch": false
           },
           {
             "Type": "PluginAnalysis",
@@ -428,6 +483,7 @@ XrmSync will only execute sub-commands that have their required properties confi
 | `DryRun` | boolean | Perform a dry run without making changes | false |
 | `LogLevel` | string | Log level (Trace, Debug, Information, Warning, Error, Critical) | "Information" |
 | `CiMode` | boolean | Enable CI mode for easier parsing in CI systems | false |
+| `WatchDebounceMs` | number | Quiet period in milliseconds that [watch mode](#watch-mode) waits for after a file change before re-syncing (valid range 50–60000) | 500 |
 
 #### Profile Properties
 
@@ -452,6 +508,7 @@ Each sync item must have a `Type` property indicating the sync type. In addition
 | `ManagedIdentityClientId` | string | Azure AD application (client) ID (GUID). When set, a managed identity is ensured on the assembly as part of the sync | null |
 | `ManagedIdentityTenantId` | string | Azure AD tenant ID (GUID). Required together with `ManagedIdentityClientId` | null |
 | `AllowEmptyTypes` | boolean | Keep plugin types registered when they no longer have steps instead of deleting them (avoids forcing a full upgrade of managed solutions) | false |
+| `Watch` | boolean | Re-sync automatically whenever the assembly changes. See [Watch Mode](#watch-mode) | false |
 
 **Webresource Sync Item (Type: "Webresource")**
 
@@ -461,6 +518,7 @@ Each sync item must have a `Type` property indicating the sync type. In addition
 | `FolderPath` | string | Path to the root folder containing webresources | Required |
 | `SolutionName` | string | Target Dataverse solution for this item | Profile-level `SolutionName` |
 | `FileExtensions` | string[] | File extensions to include (e.g. `["js", "css"]`). When omitted, all supported types are synced. | null |
+| `Watch` | boolean | Re-sync automatically whenever a file under `FolderPath` changes. See [Watch Mode](#watch-mode) | false |
 
 **Plugin Analysis Item (Type: "PluginAnalysis")**
 

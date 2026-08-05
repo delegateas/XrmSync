@@ -42,14 +42,9 @@ internal class ConfigValidationOutput(
 		Console.WriteLine($"Profile: '{profile.Name}' (from {configSource})");
 		Console.WriteLine();
 
-		// Display global settings
-		Console.WriteLine("✓ Global Configuration");
-		Console.WriteLine($"  Dry Run: {config.DryRun}");
-		Console.WriteLine($"  Log Level: {config.LogLevel}");
-		Console.WriteLine($"  CI Mode: {config.CiMode}");
-		Console.WriteLine();
+		var globalValid = OutputGlobalConfiguration(config);
 
-		var allValid = OutputProfileValidation(profile);
+		var allValid = OutputProfileValidation(profile) && globalValid;
 
 		// Final validation status
 		if (allValid)
@@ -84,11 +79,7 @@ internal class ConfigValidationOutput(
 		Console.WriteLine();
 
 		// Display global settings once
-		Console.WriteLine("✓ Global Configuration");
-		Console.WriteLine($"  Dry Run: {config.DryRun}");
-		Console.WriteLine($"  Log Level: {config.LogLevel}");
-		Console.WriteLine($"  CI Mode: {config.CiMode}");
-		Console.WriteLine();
+		var globalValid = OutputGlobalConfiguration(config);
 
 		var profileResults = new List<(string Name, bool Valid)>();
 
@@ -98,7 +89,7 @@ internal class ConfigValidationOutput(
 			Console.WriteLine($"Profile: '{profile.Name}'");
 			Console.WriteLine();
 
-			var valid = OutputProfileValidation(profile);
+			var valid = OutputProfileValidation(profile) && globalValid;
 			profileResults.Add((profile.Name, valid));
 		}
 
@@ -180,6 +171,27 @@ internal class ConfigValidationOutput(
 		}
 
 		return Task.CompletedTask;
+	}
+
+	/// <summary>
+	/// Prints the global (non-profile) settings block and returns whether they are valid.
+	/// </summary>
+	private static bool OutputGlobalConfiguration(XrmSyncConfiguration config)
+	{
+		var errors = XrmSyncConfigurationValidator.ValidateWatchDebounce(config.WatchDebounceMs).ToList();
+
+		Console.WriteLine($"{(errors.Count == 0 ? "✓" : "✗")} Global Configuration");
+		Console.WriteLine($"  Dry Run: {config.DryRun}");
+		Console.WriteLine($"  Log Level: {config.LogLevel}");
+		Console.WriteLine($"  CI Mode: {config.CiMode}");
+		Console.WriteLine($"  Watch Debounce: {config.WatchDebounceMs} ms");
+		foreach (var error in errors)
+		{
+			Console.WriteLine($"  Error: {error}");
+		}
+		Console.WriteLine();
+
+		return errors.Count == 0;
 	}
 
 	private bool OutputProfileValidation(ProfileConfiguration profile)
@@ -269,6 +281,7 @@ internal class ConfigValidationOutput(
 			case PluginSyncItem plugin:
 				Console.WriteLine($"      Assembly Path: {profile.ResolveAssemblyPath(plugin.AssemblyPath)}");
 				Console.WriteLine($"      Solution Name: {profile.ResolveSolutionName(plugin)}");
+				Console.WriteLine($"      Watch: {plugin.Watch}");
 				break;
 			case PluginAnalysisSyncItem analysis:
 				Console.WriteLine($"      Assembly Path: {profile.ResolveAssemblyPath(analysis.AssemblyPath)}");
@@ -280,6 +293,7 @@ internal class ConfigValidationOutput(
 				Console.WriteLine($"      Solution Name: {profile.ResolveSolutionName(webresource)}");
 				if (webresource.FileExtensions is { Count: > 0 })
 					Console.WriteLine($"      File Extensions: {string.Join(", ", webresource.FileExtensions)}");
+				Console.WriteLine($"      Watch: {webresource.Watch}");
 				break;
 			case IdentitySyncItem identity:
 				Console.WriteLine($"      Operation: {identity.Operation}");

@@ -6,6 +6,7 @@ using XrmSync.Model;
 using XrmSync.Model.Plugin;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;
+using XrmSync.Watch;
 using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands;
@@ -18,6 +19,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		Add(CommandOptions.ClientId);
 		Add(CommandOptions.TenantId);
 		Add(CommandOptions.AllowEmptyTypes);
+		Add(CommandOptions.Watch);
 
 		AddSharedOptions();
 		AddSyncOptions();
@@ -38,6 +40,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		var clientId = parseResult.GetValue(CommandOptions.ClientId);
 		var tenantId = parseResult.GetValue(CommandOptions.TenantId);
 		var allowEmptyTypes = parseResult.GetValue(CommandOptions.AllowEmptyTypes);
+		var watch = parseResult.GetValue(CommandOptions.Watch);
 		var (dryRun, ciMode, logLevel, profileName) = ReadExecutionOverrides(parseResult);
 
 		var (profile, exitCode) = ResolveCommandProfile(profileName,
@@ -54,7 +57,21 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		var finalTenantId = tenantId.GetValueOrDefault(item?.ManagedIdentityTenantId ?? string.Empty);
 		var finalAllowEmptyTypes = allowEmptyTypes ?? item?.AllowEmptyTypes ?? false;
 
-		return await RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, dryRun, ciMode, logLevel, profileName, cancellationToken);
+		var watchSettings = ResolveWatchSettings(watch, item?.Watch ?? false, ciMode);
+
+		var initialResult = await RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, dryRun, ciMode, logLevel, profileName, cancellationToken);
+
+		if (!watchSettings.Enabled)
+			return initialResult;
+
+		var target = WatchTargetResolver.ForAssembly(finalAssemblyPath, item ?? PluginSyncItem.Empty);
+		if (target == null)
+			return initialResult;
+
+		await CreateWatchLoop(watchSettings, dryRun, ciMode, logLevel, profileName)
+			.RunAsync([target], (_, ct) => RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, dryRun, ciMode, logLevel, profileName, ct), cancellationToken);
+
+		return initialResult;
 	}
 
 	private async Task<int> RunCore(

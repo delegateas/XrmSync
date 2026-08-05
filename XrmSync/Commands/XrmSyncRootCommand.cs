@@ -4,6 +4,7 @@ using System.CommandLine;
 using XrmSync.Extensions;
 using XrmSync.Model;
 using XrmSync.Options;
+using XrmSync.Watch;
 using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands;
@@ -32,6 +33,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		Add(CommandOptions.ClientId);
 		Add(CommandOptions.TenantId);
 		Add(CommandOptions.AllowEmptyTypes);
+		Add(CommandOptions.Watch);
 
 		AddSharedOptions();
 		SetAction(ExecuteAsync);
@@ -49,6 +51,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		var clientIdOverride = parseResult.GetValue(CommandOptions.ClientId);
 		var tenantIdOverride = parseResult.GetValue(CommandOptions.TenantId);
 		var allowEmptyTypesOverride = parseResult.GetValue(CommandOptions.AllowEmptyTypes);
+		var watchOverride = parseResult.GetValue(CommandOptions.Watch);
 
 		ProfileConfiguration? rawProfile;
 		XrmSyncConfiguration rawConfig;
@@ -84,7 +87,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 				ManagedIdentityClientId = clientIdOverride.GetValueOrDefault(plugin.ManagedIdentityClientId ?? string.Empty),
 				ManagedIdentityTenantId = tenantIdOverride.GetValueOrDefault(plugin.ManagedIdentityTenantId ?? string.Empty),
 				AllowEmptyTypes = allowEmptyTypesOverride ?? plugin.AllowEmptyTypes,
-				SolutionName = ResolveSolution(plugin)
+				SolutionName = ResolveSolution(plugin),
+				Watch = watchOverride ?? plugin.Watch
 			},
 			PluginAnalysisSyncItem analysis => analysis with
 			{
@@ -95,7 +99,8 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			{
 				FolderPath = folderOverride.GetValueOrDefault(webresource.FolderPath),
 				FileExtensions = fileExtensionsOverride is { Length: > 0 } ? fileExtensionsOverride.ToList() : webresource.FileExtensions,
-				SolutionName = ResolveSolution(webresource)
+				SolutionName = ResolveSolution(webresource),
+				Watch = watchOverride ?? webresource.Watch
 			},
 			IdentitySyncItem identity => identity with
 			{
@@ -166,29 +171,77 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 
 		foreach (var syncItem in mergedProfile.Sync)
 		{
-			logger.LogInformation("Executing {syncType} sync item...", syncItem.SyncType);
+			var result = await RunSyncItem(syncItem, ctx, mergedProfile, logger, cancellationToken);
+			success = success && result == E_OK;
+		}
 
-			// Each item carries its own effective solution name (per-item override or profile-level)
-			var itemCtx = ctx with { SolutionName = mergedProfile.ResolveSolutionName(syncItem) };
+		var watchSettings = WatchSettings.Resolve(watchOverride, mergedProfile.Sync.Any(item => item.Watch), mergedConfig.CiMode, mergedConfig);
 
-			int? result = null;
-			foreach (var cmd in subCommands)
+		if (watchSettings.Suppressed)
+		{
+			logger.LogWarning("Watch mode is not supported in CI mode — running once and exiting.");
+		}
+
+		if (!watchSettings.Enabled)
+		{
+			return success ? E_OK : E_ERROR;
+		}
+
+		var targets = new List<WatchTarget>();
+		foreach (var syncItem in mergedProfile.Sync.Where(item => item.Watch))
+		{
+			var target = WatchTargetResolver.TryCreate(syncItem, mergedProfile);
+			if (target == null)
 			{
-				result = await cmd.ExecuteFromProfile(syncItem, itemCtx, cancellationToken);
-				if (result.HasValue) break;
-			}
-
-			if (!result.HasValue)
-			{
-				logger.LogError("Unknown sync item type: {syncType}", syncItem.SyncType);
-				success = false;
+				logger.LogWarning("{syncType} sync items cannot be watched — it ran once only.", syncItem.SyncType);
 			}
 			else
 			{
-				success = success && result.Value == E_OK;
+				targets.Add(target);
 			}
 		}
 
+		if (targets.Count == 0)
+		{
+			logger.LogWarning("No watchable sync items in profile '{profileName}'. Nothing to watch.", mergedProfile.Name);
+			return success ? E_OK : E_ERROR;
+		}
+
+		var watchLoop = new WatchLoop(new WatchFileSystem(), serviceProvider.GetRequiredService<ILogger<WatchLoop>>(), watchSettings);
+		await watchLoop.RunAsync(
+			targets,
+			(target, ct) => RunSyncItem(target.Item, ctx, mergedProfile, logger, ct),
+			cancellationToken);
+
+		// A watch session's exit code reflects the initial pass — later failures are surfaced in the log
 		return success ? E_OK : E_ERROR;
+	}
+
+	/// <summary>
+	/// Executes a single sync item by handing it to the sub-command that handles its type.
+	/// This is the single execution path shared by the initial pass and every watch-triggered re-run,
+	/// which is why a re-run can never start a nested watch.
+	/// </summary>
+	private async Task<int> RunSyncItem(SyncItem syncItem, ExecutionContext ctx, ProfileConfiguration profile, ILogger logger, CancellationToken cancellationToken)
+	{
+		logger.LogInformation("Executing {syncType} sync item...", syncItem.SyncType);
+
+		// Each item carries its own effective solution name (per-item override or profile-level)
+		var itemCtx = ctx with { SolutionName = profile.ResolveSolutionName(syncItem) };
+
+		int? result = null;
+		foreach (var cmd in subCommands)
+		{
+			result = await cmd.ExecuteFromProfile(syncItem, itemCtx, cancellationToken);
+			if (result.HasValue) break;
+		}
+
+		if (!result.HasValue)
+		{
+			logger.LogError("Unknown sync item type: {syncType}", syncItem.SyncType);
+			return E_ERROR;
+		}
+
+		return result.Value;
 	}
 }

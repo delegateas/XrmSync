@@ -23,6 +23,7 @@ internal static class CommandOptions
 	public static readonly Option<string?> ClientId = CliOptions.ManagedIdentity.ClientId.CreateOption<string?>();
 	public static readonly Option<string?> TenantId = CliOptions.ManagedIdentity.TenantId.CreateOption<string?>();
 	public static readonly Option<bool?> DryRun = CliOptions.Execution.DryRun.CreateOption<bool?>();
+	public static readonly Option<bool?> Watch = CliOptions.Execution.Watch.CreateOption<bool?>();
 	public static readonly Option<LogLevel?> LogLevel = CliOptions.Logging.LogLevel.CreateOption<LogLevel?>();
 	public static readonly Option<bool?> CiMode = CliOptions.Logging.CiMode.CreateOption<bool?>();
 	public static readonly Option<string?> Profile = CliOptions.Config.Profile.CreateOption<string?>();

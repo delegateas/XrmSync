@@ -24,6 +24,13 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 
 	private static IEnumerable<Model.Exceptions.OptionsValidationException> ValidateInternal(ConfigurationScope scope, XrmSyncConfiguration configuration, string? profileName)
 	{
+		// Global settings are not tied to a sync item scope
+		var globalErrors = ValidateWatchDebounce(configuration.WatchDebounceMs).ToList();
+		if (globalErrors.Count != 0)
+		{
+			yield return new Model.Exceptions.OptionsValidationException("Global configuration", globalErrors);
+		}
+
 		// Resolve profile using shared logic
 		var profile = configuration.ResolveProfile(profileName);
 
@@ -182,6 +189,14 @@ internal partial class XrmSyncConfigurationValidator(IOptions<XrmSyncConfigurati
 		else if (!ValidPublisherPrefix().IsMatch(publisherPrefix))
 		{
 			yield return "Publisher prefix must start with a lowercase letter and contain only lowercase letters and numbers.";
+		}
+	}
+
+	internal static IEnumerable<string> ValidateWatchDebounce(int milliseconds)
+	{
+		if (milliseconds is < 50 or > 60_000)
+		{
+			yield return "WatchDebounceMs must be between 50 and 60000.";
 		}
 	}
 

@@ -1,3 +1,4 @@
+using System.CommandLine;
 using System.Runtime.CompilerServices;
 using XrmSync;
 using XrmSync.Commands;
@@ -24,4 +25,9 @@ var parseResult = command.Parse(args);
 if (!args.Any(a => a is "--help" or "-h" or "-?" or "--version"))
 	Console.Error.WriteLine(new Description().ToolHeader);
 
-return await parseResult.InvokeAsync();
+// The default termination timeout (~2s) force-kills the process before a sync in flight can finish
+// when Ctrl+C is pressed — which matters most in watch mode, where Ctrl+C is the normal way to stop.
+return await parseResult.InvokeAsync(new InvocationConfiguration
+{
+	ProcessTerminationTimeout = TimeSpan.FromSeconds(30)
+});
