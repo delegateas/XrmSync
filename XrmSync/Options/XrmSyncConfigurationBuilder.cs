@@ -15,6 +15,7 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 		public const string DryRun = nameof(DryRun);
 		public const string LogLevel = nameof(LogLevel);
 		public const string CiMode = nameof(CiMode);
+		public const string WatchDebounceMs = nameof(WatchDebounceMs);
 	}
 
 	public XrmSyncConfiguration Build()
@@ -30,7 +31,8 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 			xrmSyncSection.GetValue<bool>(SectionName.DryRun),
 			xrmSyncSection.GetValue<LogLevel?>(SectionName.LogLevel) ?? LogLevel.Information,
 			xrmSyncSection.GetValue<bool>(SectionName.CiMode),
-			BuildProfiles(xrmSyncSection)
+			BuildProfiles(xrmSyncSection),
+			xrmSyncSection.GetValue<int?>(SectionName.WatchDebounceMs) ?? XrmSyncConfiguration.DefaultWatchDebounceMs
 		);
 
 		return cachedConfiguration;
@@ -102,6 +104,9 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 				{
 					syncItem = syncItem with { SolutionName = itemSolutionName };
 				}
+
+				// Per-item watch opt-in (only honoured for watchable item types)
+				syncItem = syncItem with { Watch = itemSection.GetValue<bool>(nameof(SyncItem.Watch)) };
 
 				syncItems.Add(syncItem);
 			}

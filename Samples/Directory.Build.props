@@ -7,4 +7,13 @@
 	<PropertyGroup>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 	</PropertyGroup>
+
+	<!-- The sample projects target net462. The SDK only adds this package implicitly when the machine
+	     has no .NET Framework targeting pack installed (true on Linux/macOS, false on the Windows CI
+	     runner), which makes the lock files platform dependent and breaks restore in locked mode.
+	     Referencing it explicitly keeps the package graph identical everywhere - the SDK skips its
+	     implicit reference when one is already present. -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+	</ItemGroup>
 </Project>

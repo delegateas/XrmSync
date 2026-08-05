@@ -6,6 +6,7 @@ using XrmSync.Model;
 using XrmSync.Model.Webresource;
 using XrmSync.Options;
 using XrmSync.SyncService.Extensions;
+using XrmSync.Watch;
 using MSOptions = Microsoft.Extensions.Options.Options;
 
 namespace XrmSync.Commands
@@ -16,6 +17,7 @@ namespace XrmSync.Commands
 		{
 			Add(CommandOptions.Folder);
 			Add(CommandOptions.FileExtensions);
+			Add(CommandOptions.Watch);
 
 			AddSharedOptions();
 			AddSyncOptions();
@@ -34,6 +36,7 @@ namespace XrmSync.Commands
 			var folderPath = parseResult.GetValue(CommandOptions.Folder);
 			var extensionsValue = parseResult.GetValue(CommandOptions.FileExtensions);
 			var solutionName = parseResult.GetValue(CommandOptions.Solution);
+			var watch = parseResult.GetValue(CommandOptions.Watch);
 			var (dryRun, ciMode, logLevel, profileName) = ReadExecutionOverrides(parseResult);
 
 			var (profile, exitCode) = ResolveCommandProfile(profileName,
@@ -48,7 +51,21 @@ namespace XrmSync.Commands
 			var finalSolutionName = solutionName.GetValueOrDefault(profile?.ResolveSolutionName(item) ?? string.Empty);
 			var finalExtensions = extensionsValue is { Length: > 0 } ? [.. extensionsValue] : item?.FileExtensions;
 
-			return await RunCore(finalFolderPath, finalSolutionName, finalExtensions, dryRun, ciMode, logLevel, profileName, cancellationToken);
+			var watchSettings = ResolveWatchSettings(watch, item?.Watch ?? false, ciMode);
+
+			var initialResult = await RunCore(finalFolderPath, finalSolutionName, finalExtensions, dryRun, ciMode, logLevel, profileName, cancellationToken);
+
+			if (!watchSettings.Enabled)
+				return initialResult;
+
+			var target = WatchTargetResolver.ForFolder(finalFolderPath, finalExtensions, item ?? WebresourceSyncItem.Empty);
+			if (target == null)
+				return initialResult;
+
+			await CreateWatchLoop(watchSettings, dryRun, ciMode, logLevel, profileName)
+				.RunAsync([target], (_, ct) => RunCore(finalFolderPath, finalSolutionName, finalExtensions, dryRun, ciMode, logLevel, profileName, ct), cancellationToken);
+
+			return initialResult;
 		}
 
 		private async Task<int> RunCore(

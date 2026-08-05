@@ -54,6 +54,11 @@ internal static class CliOptions
 			"--dry-run", ["--dryrun", "--dr"],
 			"Perform a dry run without making changes to Dataverse",
 			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
+
+		public static readonly CliOptionDescriptor Watch = new(
+			"--watch", ["--watch-mode"],
+			"Keep running and re-sync automatically when the plugin assembly or webresource files change. Overrides the per-item Watch setting. Ignored in CI mode.",
+			Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 	}
 
 	/// <summary>
