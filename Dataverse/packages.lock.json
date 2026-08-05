@@ -4,9 +4,9 @@
     "net10.0": {
       "DataverseConnection": {
         "type": "Direct",
-        "requested": "[1.1.1, )",
-        "resolved": "1.1.1",
-        "contentHash": "k/RY8/a1ieaB30Ttr3rlRcQ/EujZmOI1vpOqYhMIdOevLaMROUuQSSLtLuEoQ+lAztO9nXgvgPgjQRdNlYt3kQ==",
+        "requested": "[1.2.2, )",
+        "resolved": "1.2.2",
+        "contentHash": "BhsgF3NfOst6vbwQg/DRsNNKePwxJtPWkflbvbgnWM7XwwTdgC86LJnA3Md8TYlmUUKnLCxbicBYEHxt4IGLlg==",
         "dependencies": {
           "Azure.Identity": "1.13.2",
           "Microsoft.Extensions.Caching.Memory": "9.0.0",
