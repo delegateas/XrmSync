@@ -33,6 +33,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		Add(CommandOptions.ClientId);
 		Add(CommandOptions.TenantId);
 		Add(CommandOptions.AllowEmptyTypes);
+		Add(CommandOptions.NoDelete);
 		Add(CommandOptions.Watch);
 
 		AddSharedOptions();
@@ -51,6 +52,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		var clientIdOverride = parseResult.GetValue(CommandOptions.ClientId);
 		var tenantIdOverride = parseResult.GetValue(CommandOptions.TenantId);
 		var allowEmptyTypesOverride = parseResult.GetValue(CommandOptions.AllowEmptyTypes);
+		var noDeleteOverride = parseResult.GetValue(CommandOptions.NoDelete);
 		var watchOverride = parseResult.GetValue(CommandOptions.Watch);
 
 		ProfileConfiguration? rawProfile;
@@ -87,6 +89,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 				ManagedIdentityClientId = clientIdOverride.GetValueOrDefault(plugin.ManagedIdentityClientId ?? string.Empty),
 				ManagedIdentityTenantId = tenantIdOverride.GetValueOrDefault(plugin.ManagedIdentityTenantId ?? string.Empty),
 				AllowEmptyTypes = allowEmptyTypesOverride ?? plugin.AllowEmptyTypes,
+				NoDelete = noDeleteOverride ?? plugin.NoDelete,
 				SolutionName = ResolveSolution(plugin),
 				Watch = watchOverride ?? plugin.Watch
 			},
@@ -99,6 +102,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			{
 				FolderPath = folderOverride.GetValueOrDefault(webresource.FolderPath),
 				FileExtensions = fileExtensionsOverride is { Length: > 0 } ? fileExtensionsOverride.ToList() : webresource.FileExtensions,
+				NoDelete = noDeleteOverride ?? webresource.NoDelete,
 				SolutionName = ResolveSolution(webresource),
 				Watch = watchOverride ?? webresource.Watch
 			},

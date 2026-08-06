@@ -281,6 +281,8 @@ internal class ConfigValidationOutput(
 			case PluginSyncItem plugin:
 				Console.WriteLine($"      Assembly Path: {profile.ResolveAssemblyPath(plugin.AssemblyPath)}");
 				Console.WriteLine($"      Solution Name: {profile.ResolveSolutionName(plugin)}");
+				Console.WriteLine($"      Allow Empty Types: {plugin.AllowEmptyTypes}");
+				Console.WriteLine($"      No Delete: {plugin.NoDelete}");
 				Console.WriteLine($"      Watch: {plugin.Watch}");
 				break;
 			case PluginAnalysisSyncItem analysis:
@@ -293,6 +295,7 @@ internal class ConfigValidationOutput(
 				Console.WriteLine($"      Solution Name: {profile.ResolveSolutionName(webresource)}");
 				if (webresource.FileExtensions is { Count: > 0 })
 					Console.WriteLine($"      File Extensions: {string.Join(", ", webresource.FileExtensions)}");
+				Console.WriteLine($"      No Delete: {webresource.NoDelete}");
 				Console.WriteLine($"      Watch: {webresource.Watch}");
 				break;
 			case IdentitySyncItem identity:

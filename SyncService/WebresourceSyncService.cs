@@ -115,6 +115,16 @@ internal class WebresourceSyncService(
 	{
 		var toDelete = remote.ExceptBy(local.Select(d => d.Id), d => d.Id).ToList();
 
+		if (options.NoDelete)
+		{
+			log.LogInformation("Keeping {count} webresources that no longer exist locally (no-delete mode)", toDelete.Count);
+			foreach (var item in toDelete)
+			{
+				log.LogDebug("  - {name}", item.Name);
+			}
+			return [];
+		}
+
 		log.LogInformation("Identified {count} webresources to delete from CRM", toDelete.Count);
 		foreach (var item in toDelete)
 		{

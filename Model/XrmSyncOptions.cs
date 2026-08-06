@@ -99,7 +99,7 @@ public abstract record SyncItem
 	public bool Watch { get; init; }
 }
 
-public record PluginSyncItem(string? AssemblyPath = null, string? ManagedIdentityClientId = null, string? ManagedIdentityTenantId = null, bool AllowEmptyTypes = false) : SyncItem
+public record PluginSyncItem(string? AssemblyPath = null, string? ManagedIdentityClientId = null, string? ManagedIdentityTenantId = null, bool AllowEmptyTypes = false, bool NoDelete = false) : SyncItem
 {
 	public const string TypeName = "Plugin";
 	public static PluginSyncItem Empty => new();
@@ -117,7 +117,7 @@ public record PluginAnalysisSyncItem(string? AssemblyPath, string PublisherPrefi
 	public override string SyncType => TypeName;
 }
 
-public record WebresourceSyncItem(string FolderPath, List<string>? FileExtensions = null) : SyncItem
+public record WebresourceSyncItem(string FolderPath, List<string>? FileExtensions = null, bool NoDelete = false) : SyncItem
 {
 	public const string TypeName = "Webresource";
 	public static WebresourceSyncItem Empty => new(string.Empty);

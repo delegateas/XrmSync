@@ -64,6 +64,15 @@ internal class PrintService(
 		differences.Deletes.ForEach(x => log.Log(LogLevel, "  - {name}", namePicker(x)));
 	}
 
+	public void PrintSuppressedDeletes<T>(string title, List<T> suppressed, Func<T, string> namePicker)
+	{
+		if (suppressed.Count == 0)
+			return;
+
+		log.LogInformation("{title} kept (no-delete mode): {count}", title, suppressed.Count);
+		suppressed.ForEach(x => log.Log(LogLevel, "  - {name}", namePicker(x)));
+	}
+
 	private static string GetPropNames<TEntity>(TEntity localEntity, TEntity? remoteEntity, IEnumerable<Expression<Func<TEntity, object?>>> differentProperties)
 	{
 		return string.Join(", ", differentProperties
