@@ -11,11 +11,6 @@ namespace XrmSync.Dataverse.Interfaces
 		void UpdateMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity;
 		void DeleteMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity;
 		void DeleteMultiple(IEnumerable<DeleteRequest> deleteRequests);
-
-		/// <summary>
-		/// Publishes customizations. <paramref name="parameterXml"/> is the PublishXml importexportxml payload.
-		/// Always a single request — the bulk path only handles Create/Update/Delete.
-		/// </summary>
 		void PublishXml(string parameterXml);
 	}
 }
