@@ -123,6 +123,7 @@ Notes:
 - `--watch` overrides the per-item `Watch` flags for the whole run; `--watch false` turns watching off even when items request it.
 - Changes are debounced (`WatchDebounceMs`, default 500 ms, valid range 50–60000), so a build that rewrites the assembly several times results in a single sync. Syncs never overlap — a change arriving during a sync queues exactly one follow-up run.
 - Only files the sync itself would read trigger a run: the watched assembly (not its `.pdb` or sibling assemblies), and webresource files with a supported extension that also matches `FileExtensions` when it is set.
+- Webresources synced during a watch session are published automatically, so a saved file is live without a manual publish in the maker portal. This applies to the whole session including the initial pass, covers created and updated webresources (deleted records cannot be published), and is skipped when nothing changed. One-shot syncs never publish — publishing stays a deliberate step outside watch mode.
 - A failing sync does not stop watching — the error is logged and the next change is picked up.
 - Watch mode is ignored in CI mode (`--ci-mode`): a warning is logged and the tool exits after one pass, so a pipeline can never hang.
 - The exit code of a watch session is the exit code of the initial sync pass.

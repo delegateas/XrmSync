@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using XrmSync.Dataverse.Extensions;
@@ -72,6 +73,17 @@ internal sealed class DataverseWriter : IDataverseWriter
 	public void DeleteMultiple(IEnumerable<DeleteRequest> deleteRequests)
 	{
 		PerformAsBulk([.. deleteRequests]);
+	}
+
+	public void PublishXml(string parameterXml)
+	{
+		if (string.IsNullOrWhiteSpace(parameterXml))
+		{
+			throw new XrmSyncException("The provided publish XML cannot be empty.");
+		}
+
+		logger.LogTrace("Publishing customizations");
+		service.Execute(new PublishXmlRequest { ParameterXml = parameterXml });
 	}
 
 	private void PerformAsBulk<T>(IEnumerable<T> updates) where T : OrganizationRequest
