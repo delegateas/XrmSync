@@ -9,4 +9,6 @@ public interface IWebresourceWriter
 	void Update(IEnumerable<WebresourceDefinition> webresources);
 
 	void Delete(IEnumerable<WebresourceDefinition> webresources);
+
+	void Publish(IEnumerable<WebresourceDefinition> webresources);
 }

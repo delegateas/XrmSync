@@ -17,7 +17,8 @@ internal class WebresourceWriter(IDataverseWriter writer, IOptions<WebresourceSy
 	{
 		foreach (var wr in webresources)
 		{
-			writer.Create(new WebResource
+			// The Id is written back so a follow-up publish can address the newly created records
+			wr.Id = writer.Create(new WebResource
 			{
 				Name = wr.Name,
 				Content = wr.Content,
@@ -40,5 +41,18 @@ internal class WebresourceWriter(IDataverseWriter writer, IOptions<WebresourceSy
 	public void Delete(IEnumerable<WebresourceDefinition> webresources)
 	{
 		writer.DeleteMultiple(webresources.ToDeleteRequests(WebResource.EntityLogicalName));
+	}
+
+	public void Publish(IEnumerable<WebresourceDefinition> webresources)
+	{
+		var ids = webresources.Select(wr => wr.Id).Where(id => id != Guid.Empty).Distinct().ToList();
+		if (ids.Count == 0)
+		{
+			// Never issue an empty PublishXmlRequest
+			return;
+		}
+
+		var elements = string.Concat(ids.Select(id => $"<webresource>{id:B}</webresource>"));
+		writer.PublishXml($"<importexportxml><webresources>{elements}</webresources></importexportxml>");
 	}
 }

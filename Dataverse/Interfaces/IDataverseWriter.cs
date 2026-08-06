@@ -11,5 +11,6 @@ namespace XrmSync.Dataverse.Interfaces
 		void UpdateMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity;
 		void DeleteMultiple<TEntity>(IEnumerable<TEntity> entities) where TEntity : Entity;
 		void DeleteMultiple(IEnumerable<DeleteRequest> deleteRequests);
+		void PublishXml(string parameterXml);
 	}
 }

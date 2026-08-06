@@ -39,9 +39,21 @@ internal class WebresourceSyncService(
 		ValidateWebresourcesOrThrow(toCreate);
 		ValidateWebresourcesOrThrow(toDelete);
 
-		webresourceWriter.Create(toCreate);
+		webresourceWriter.Create(toCreate); // Assigns Ids in place
 		webresourceWriter.Delete(toDelete);
 		webresourceWriter.Update(toUpdate);
+
+		// Deleted webresources are deliberately left out — their records no longer exist, so they cannot be
+		// addressed by a publish request
+		if (options.PublishAfterSync)
+		{
+			var toPublish = toCreate.Concat(toUpdate).ToList();
+			if (toPublish.Count > 0)
+			{
+				log.LogInformation("Publishing {count} webresources", toPublish.Count);
+				webresourceWriter.Publish(toPublish);
+			}
+		}
 
 		log.LogInformation("Webresource synchronization was completed successfully");
 

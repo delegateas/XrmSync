@@ -364,4 +364,139 @@ public class WebresourceSyncServiceTests
 			solutionId,
 			Arg.Is<IEnumerable<WebresourceType>?>(types => types == null));
 	}
+
+	/// <summary>
+	/// Builds a service with publishing enabled — only watch sessions set this.
+	/// </summary>
+	private WebresourceSyncService CreatePublishingService() => new(
+		Options.Create(_options with { PublishAfterSync = true }),
+		_logger,
+		_localReader,
+		_solutionReader,
+		_webresourceReader,
+		_webresourceWriter,
+		_webresourceValidator
+	);
+
+	[Fact]
+	public async Task SyncPublishesCreatedAndUpdatedButNotDeletedWhenPublishEnabled()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var solutionPrefix = "test";
+		var updatedId = Guid.NewGuid();
+		var deletedId = Guid.NewGuid();
+		var createdId = Guid.NewGuid();
+		_solutionReader.RetrieveSolution(_options.SolutionName).Returns((solutionId, solutionPrefix));
+
+		var localWebresources = new List<WebresourceDefinition>
+		{
+			new("test_TestSolution/new.js", "New Script", WebresourceType.JS, "bmV3"),
+			new("test_TestSolution/updated.js", "Updated Script", WebresourceType.JS, "bmV3Q29kZQ==")
+		};
+		_localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
+			.Returns(localWebresources);
+
+		var remoteWebresources = new List<WebresourceDefinition>
+		{
+			new("test_TestSolution/updated.js", "Updated Script", WebresourceType.JS, "b2xkQ29kZQ==") { Id = updatedId },
+			new("test_TestSolution/gone.js", "Gone Script", WebresourceType.JS, "Z29uZQ==") { Id = deletedId }
+		};
+		_webresourceReader.GetWebresources(solutionId).Returns(remoteWebresources);
+
+		// The real writer stamps the created records' ids so they can be published
+		_webresourceWriter
+			.When(w => w.Create(Arg.Any<IEnumerable<WebresourceDefinition>>()))
+			.Do(ci =>
+			{
+				foreach (var wr in ci.Arg<IEnumerable<WebresourceDefinition>>())
+				{
+					wr.Id = createdId;
+				}
+			});
+
+		// Act
+		await CreatePublishingService().Sync(CancellationToken.None);
+
+		// Assert
+		_webresourceWriter.Received(1).Publish(Arg.Is<IEnumerable<WebresourceDefinition>>(list =>
+			list.Count() == 2
+			&& list.Any(wr => wr.Name == "test_TestSolution/new.js" && wr.Id == createdId)
+			&& list.Any(wr => wr.Name == "test_TestSolution/updated.js" && wr.Id == updatedId)
+			&& !list.Any(wr => wr.Name == "test_TestSolution/gone.js")));
+	}
+
+	[Fact]
+	public async Task SyncDoesNotPublishWhenPublishDisabled()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var solutionPrefix = "test";
+		_solutionReader.RetrieveSolution(_options.SolutionName).Returns((solutionId, solutionPrefix));
+
+		var localWebresources = new List<WebresourceDefinition>
+		{
+			new("test_TestSolution/test.js", "Test Script", WebresourceType.JS, "dGVzdA==")
+		};
+		_localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
+			.Returns(localWebresources);
+
+		_webresourceReader.GetWebresources(solutionId).Returns(new List<WebresourceDefinition>());
+
+		// Act
+		await _service.Sync(CancellationToken.None);
+
+		// Assert
+		_webresourceWriter.DidNotReceive().Publish(Arg.Any<IEnumerable<WebresourceDefinition>>());
+	}
+
+	[Fact]
+	public async Task SyncDoesNotPublishWhenNothingChanged()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var solutionPrefix = "test";
+		var webresourceId = Guid.NewGuid();
+		_solutionReader.RetrieveSolution(_options.SolutionName).Returns((solutionId, solutionPrefix));
+
+		_localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
+			.Returns(new List<WebresourceDefinition>
+			{
+				new("test_TestSolution/test.js", "Test Script", WebresourceType.JS, "c2FtZUNvZGU=")
+			});
+
+		_webresourceReader.GetWebresources(solutionId).Returns(new List<WebresourceDefinition>
+		{
+			new("test_TestSolution/test.js", "Test Script", WebresourceType.JS, "c2FtZUNvZGU=") { Id = webresourceId }
+		});
+
+		// Act
+		await CreatePublishingService().Sync(CancellationToken.None);
+
+		// Assert
+		_webresourceWriter.DidNotReceive().Publish(Arg.Any<IEnumerable<WebresourceDefinition>>());
+	}
+
+	[Fact]
+	public async Task SyncDoesNotPublishWhenOnlyDeleting()
+	{
+		// Arrange
+		var solutionId = Guid.NewGuid();
+		var solutionPrefix = "test";
+		_solutionReader.RetrieveSolution(_options.SolutionName).Returns((solutionId, solutionPrefix));
+
+		_localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
+			.Returns(new List<WebresourceDefinition>());
+
+		_webresourceReader.GetWebresources(solutionId).Returns(new List<WebresourceDefinition>
+		{
+			new("test_TestSolution/old.js", "Old Script", WebresourceType.JS, "b2xkQ29kZQ==") { Id = Guid.NewGuid() }
+		});
+
+		// Act
+		await CreatePublishingService().Sync(CancellationToken.None);
+
+		// Assert
+		_webresourceWriter.DidNotReceive().Publish(Arg.Any<IEnumerable<WebresourceDefinition>>());
+	}
 }

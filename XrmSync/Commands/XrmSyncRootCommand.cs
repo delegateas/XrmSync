@@ -167,19 +167,22 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 			LogLevel: mergedConfig.LogLevel,
 			ProfileName: profileName);
 
-		var success = true;
-
-		foreach (var syncItem in mergedProfile.Sync)
-		{
-			var result = await RunSyncItem(syncItem, ctx, mergedProfile, logger, cancellationToken);
-			success = success && result == E_OK;
-		}
-
+		// Resolved before the initial pass so it can tell each item whether it belongs to a watch session
 		var watchSettings = WatchSettings.Resolve(watchOverride, mergedProfile.Sync.Any(item => item.Watch), mergedConfig.CiMode, mergedConfig);
 
 		if (watchSettings.Suppressed)
 		{
 			logger.LogWarning("Watch mode is not supported in CI mode — running once and exiting.");
+		}
+
+		var success = true;
+
+		foreach (var syncItem in mergedProfile.Sync)
+		{
+			// Mirrors how watch targets are selected below, so an item that only runs once is not a watch session
+			var itemWatchSession = watchSettings.Enabled && syncItem.Watch;
+			var result = await RunSyncItem(syncItem, ctx with { WatchSession = itemWatchSession }, mergedProfile, logger, cancellationToken);
+			success = success && result == E_OK;
 		}
 
 		if (!watchSettings.Enabled)
@@ -210,7 +213,7 @@ internal class XrmSyncRootCommand : XrmSyncCommandBase
 		var watchLoop = new WatchLoop(new WatchFileSystem(), serviceProvider.GetRequiredService<ILogger<WatchLoop>>(), watchSettings);
 		await watchLoop.RunAsync(
 			targets,
-			(target, ct) => RunSyncItem(target.Item, ctx, mergedProfile, logger, ct),
+			(target, ct) => RunSyncItem(target.Item, ctx with { WatchSession = true }, mergedProfile, logger, ct),
 			cancellationToken);
 
 		// A watch session's exit code reflects the initial pass — later failures are surfaced in the log

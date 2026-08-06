@@ -277,4 +277,95 @@ public class WebresourceWriterTests
 			Arg.Is<IEnumerable<Microsoft.Xrm.Sdk.Messages.DeleteRequest>>(list => !list.Any())
 		);
 	}
+
+	[Fact]
+	public void CreateAssignsReturnedIdToDefinition()
+	{
+		// Arrange
+		var createdId = Guid.NewGuid();
+		var webresources = new List<WebresourceDefinition>
+		{
+			new("test_solution/test.js", "Test Script", WebresourceType.JS, "dGVzdA==")
+		};
+		_dataverseWriter.Create(Arg.Any<WebResource>(), Arg.Any<Dictionary<string, object>>()).Returns(createdId);
+
+		// Act
+		_writer.Create(webresources);
+
+		// Assert
+		Assert.Equal(createdId, webresources[0].Id);
+	}
+
+	[Fact]
+	public void PublishSendsIdsAsImportExportXml()
+	{
+		// Arrange
+		var firstId = Guid.NewGuid();
+		var secondId = Guid.NewGuid();
+		var webresources = new List<WebresourceDefinition>
+		{
+			new("test_solution/a.js", "A", WebresourceType.JS, "dGVzdA==") { Id = firstId },
+			new("test_solution/b.js", "B", WebresourceType.JS, "dGVzdA==") { Id = secondId }
+		};
+
+		string? capturedXml = null;
+		_dataverseWriter.PublishXml(Arg.Do<string>(x => capturedXml = x));
+
+		// Act
+		_writer.Publish(webresources);
+
+		// Assert
+		Assert.Equal(
+			$"<importexportxml><webresources><webresource>{firstId:B}</webresource><webresource>{secondId:B}</webresource></webresources></importexportxml>",
+			capturedXml);
+	}
+
+	[Fact]
+	public void PublishHandlesEmptyList()
+	{
+		// Act
+		_writer.Publish([]);
+
+		// Assert
+		_dataverseWriter.DidNotReceive().PublishXml(Arg.Any<string>());
+	}
+
+	[Fact]
+	public void PublishSkipsWebresourcesWithoutId()
+	{
+		// Arrange
+		var webresources = new List<WebresourceDefinition>
+		{
+			new("test_solution/test.js", "Test Script", WebresourceType.JS, "dGVzdA==")
+		};
+
+		// Act
+		_writer.Publish(webresources);
+
+		// Assert
+		_dataverseWriter.DidNotReceive().PublishXml(Arg.Any<string>());
+	}
+
+	[Fact]
+	public void PublishDeduplicatesIds()
+	{
+		// Arrange
+		var id = Guid.NewGuid();
+		var webresources = new List<WebresourceDefinition>
+		{
+			new("test_solution/a.js", "A", WebresourceType.JS, "dGVzdA==") { Id = id },
+			new("test_solution/a.js", "A", WebresourceType.JS, "dGVzdA==") { Id = id }
+		};
+
+		string? capturedXml = null;
+		_dataverseWriter.PublishXml(Arg.Do<string>(x => capturedXml = x));
+
+		// Act
+		_writer.Publish(webresources);
+
+		// Assert
+		Assert.Equal(
+			$"<importexportxml><webresources><webresource>{id:B}</webresource></webresources></importexportxml>",
+			capturedXml);
+	}
 }

@@ -1,3 +1,6 @@
+### v1.0.0-preview.23 - 6 August 2026
+* Add: Webresources synced during a watch session are published automatically, so a saved file goes live without a manual publish in the maker portal. One-shot syncs are unchanged and never publish
+
 ### v1.0.0-preview.22 - 5 August 2026
 * Add: Watch mode — `--watch` on the `plugins` and `webresources` commands, or `"Watch": true` per sync item, keeps XrmSync running and re-syncs automatically when the plugin assembly is rebuilt or a webresource file changes. Tune the quiet period with the global `WatchDebounceMs` setting (default 500 ms)
 

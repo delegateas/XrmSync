@@ -28,7 +28,7 @@ namespace XrmSync.Commands
 		public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 		{
 			if (syncItem is not WebresourceSyncItem webresource) return null;
-			return await RunCore(webresource.FolderPath, ctx.SolutionName ?? string.Empty, webresource.FileExtensions, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
+			return await RunCore(webresource.FolderPath, ctx.SolutionName ?? string.Empty, webresource.FileExtensions, ctx.WatchSession, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
 		}
 
 		private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
@@ -53,7 +53,9 @@ namespace XrmSync.Commands
 
 			var watchSettings = ResolveWatchSettings(watch, item?.Watch ?? false, ciMode);
 
-			var initialResult = await RunCore(finalFolderPath, finalSolutionName, finalExtensions, dryRun, ciMode, logLevel, profileName, cancellationToken);
+			// The whole watch session publishes, including the initial pass — otherwise files uploaded at
+			// startup would stay unpublished until they happen to be touched again
+			var initialResult = await RunCore(finalFolderPath, finalSolutionName, finalExtensions, watchSettings.Enabled, dryRun, ciMode, logLevel, profileName, cancellationToken);
 
 			if (!watchSettings.Enabled)
 				return initialResult;
@@ -63,7 +65,7 @@ namespace XrmSync.Commands
 				return initialResult;
 
 			await CreateWatchLoop(watchSettings, dryRun, ciMode, logLevel, profileName)
-				.RunAsync([target], (_, ct) => RunCore(finalFolderPath, finalSolutionName, finalExtensions, dryRun, ciMode, logLevel, profileName, ct), cancellationToken);
+				.RunAsync([target], (_, ct) => RunCore(finalFolderPath, finalSolutionName, finalExtensions, true, dryRun, ciMode, logLevel, profileName, ct), cancellationToken);
 
 			return initialResult;
 		}
@@ -72,6 +74,7 @@ namespace XrmSync.Commands
 			string folderPath,
 			string solutionName,
 			List<string>? fileExtensionsList,
+			bool publish,
 			bool? dryRun,
 			bool? ciMode,
 			LogLevel? logLevel,
@@ -87,7 +90,7 @@ namespace XrmSync.Commands
 			var serviceProvider = GetWebresourceSyncServices()
 				.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, profileName))
 				.AddOptions(dryRun, ciMode, logLevel)
-				.AddSingleton(MSOptions.Create(new WebresourceSyncCommandOptions(folderPath, solutionName, fileExtensionsList)))
+				.AddSingleton(MSOptions.Create(new WebresourceSyncCommandOptions(folderPath, solutionName, fileExtensionsList, publish)))
 				.AddLogger()
 				.BuildServiceProvider();
 

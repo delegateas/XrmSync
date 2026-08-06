@@ -69,6 +69,11 @@ internal class DryRunDataverseWriter : IDataverseWriter
 		PerformAsBulk([.. deleteRequests]);
 	}
 
+	public void PublishXml(string parameterXml)
+	{
+		logger.LogTrace("Publish operation would be performed with parameters: {xml}", TruncateValue(parameterXml));
+	}
+
 	private void LogOperation(Entity entity, IDictionary<string, object>? parameters = null, [CallerMemberName] string operation = "")
 	{
 		logger.LogTrace("{Operation} operation would be performed for entity of type '{EntityType}'.",
