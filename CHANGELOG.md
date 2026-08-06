@@ -1,4 +1,4 @@
-### Unreleased
+### v1.0.0-preview.24 - 6 August 2026
 * Add: Create/update-only syncing — `--no-delete` on the `plugins`, `webresources` and root commands, or `"NoDelete": true` per sync item, only ever appends and updates components in the target solution. Records that must be recreated because an immutable property changed are still replaced
 
 ### v1.0.0-preview.23 - 6 August 2026
