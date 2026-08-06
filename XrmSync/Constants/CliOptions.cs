@@ -22,6 +22,14 @@ internal static class CliOptions
 		Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
 
 	/// <summary>
+	/// Only create and update — never delete components that no longer exist locally
+	/// </summary>
+	public static readonly CliOptionDescriptor NoDelete = new(
+		"--no-delete", ["--additive", "--nd"],
+		"Only create and update components — never delete the ones that no longer exist locally. Records that must be recreated because an immutable property changed are still replaced.",
+		Arity: System.CommandLine.ArgumentArity.ZeroOrOne);
+
+	/// <summary>
 	/// Webresource folder options
 	/// </summary>
 	public static readonly CliOptionDescriptor Webresource = new(

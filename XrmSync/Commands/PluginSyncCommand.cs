@@ -19,6 +19,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		Add(CommandOptions.ClientId);
 		Add(CommandOptions.TenantId);
 		Add(CommandOptions.AllowEmptyTypes);
+		Add(CommandOptions.NoDelete);
 		Add(CommandOptions.Watch);
 
 		AddSharedOptions();
@@ -30,7 +31,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 	public override async Task<int?> ExecuteFromProfile(SyncItem syncItem, ExecutionContext ctx, CancellationToken ct)
 	{
 		if (syncItem is not PluginSyncItem plugin) return null;
-		return await RunCore(plugin.AssemblyPath ?? string.Empty, ctx.SolutionName ?? string.Empty, plugin.ManagedIdentityClientId, plugin.ManagedIdentityTenantId, plugin.AllowEmptyTypes, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
+		return await RunCore(plugin.AssemblyPath ?? string.Empty, ctx.SolutionName ?? string.Empty, plugin.ManagedIdentityClientId, plugin.ManagedIdentityTenantId, plugin.AllowEmptyTypes, plugin.NoDelete, ctx.DryRun, ctx.CiMode, ctx.LogLevel, ctx.ProfileName, ct);
 	}
 
 	private async Task<int> ExecuteAsync(ParseResult parseResult, CancellationToken cancellationToken)
@@ -40,6 +41,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		var clientId = parseResult.GetValue(CommandOptions.ClientId);
 		var tenantId = parseResult.GetValue(CommandOptions.TenantId);
 		var allowEmptyTypes = parseResult.GetValue(CommandOptions.AllowEmptyTypes);
+		var noDelete = parseResult.GetValue(CommandOptions.NoDelete);
 		var watch = parseResult.GetValue(CommandOptions.Watch);
 		var (dryRun, ciMode, logLevel, profileName) = ReadExecutionOverrides(parseResult);
 
@@ -56,10 +58,11 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		var finalClientId = clientId.GetValueOrDefault(item?.ManagedIdentityClientId ?? string.Empty);
 		var finalTenantId = tenantId.GetValueOrDefault(item?.ManagedIdentityTenantId ?? string.Empty);
 		var finalAllowEmptyTypes = allowEmptyTypes ?? item?.AllowEmptyTypes ?? false;
+		var finalNoDelete = noDelete ?? item?.NoDelete ?? false;
 
 		var watchSettings = ResolveWatchSettings(watch, item?.Watch ?? false, ciMode);
 
-		var initialResult = await RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, dryRun, ciMode, logLevel, profileName, cancellationToken);
+		var initialResult = await RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, finalNoDelete, dryRun, ciMode, logLevel, profileName, cancellationToken);
 
 		if (!watchSettings.Enabled)
 			return initialResult;
@@ -69,7 +72,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 			return initialResult;
 
 		await CreateWatchLoop(watchSettings, dryRun, ciMode, logLevel, profileName)
-			.RunAsync([target], (_, ct) => RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, dryRun, ciMode, logLevel, profileName, ct), cancellationToken);
+			.RunAsync([target], (_, ct) => RunCore(finalAssemblyPath, finalSolutionName, finalClientId, finalTenantId, finalAllowEmptyTypes, finalNoDelete, dryRun, ciMode, logLevel, profileName, ct), cancellationToken);
 
 		return initialResult;
 	}
@@ -80,6 +83,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		string? managedIdentityClientId,
 		string? managedIdentityTenantId,
 		bool allowEmptyTypes,
+		bool noDelete,
 		bool? dryRun,
 		bool? ciMode,
 		LogLevel? logLevel,
@@ -105,7 +109,7 @@ internal class PluginSyncCommand : XrmSyncCommandBase
 		var serviceProvider = GetPluginSyncServices()
 			.AddXrmSyncConfiguration(new ExecutionContext(null, null, null, null, profileName))
 			.AddOptions(dryRun, ciMode, logLevel)
-			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(assemblyPath, solutionName, managedIdentityClientId, managedIdentityTenantId, allowEmptyTypes)))
+			.AddSingleton(MSOptions.Create(new PluginSyncCommandOptions(assemblyPath, solutionName, managedIdentityClientId, managedIdentityTenantId, allowEmptyTypes, noDelete)))
 			.AddLogger()
 			.BuildServiceProvider();
 

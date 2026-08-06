@@ -19,18 +19,19 @@ internal class DifferenceCalculator(
 	IOptions<PluginSyncCommandOptions> options) : IDifferenceCalculator
 {
 	private readonly bool allowEmptyTypes = options.Value.AllowEmptyTypes;
+	private readonly bool noDelete = options.Value.NoDelete;
 
 	public Differences CalculateDifferences(AssemblyInfo localData, AssemblyInfo? remoteData)
 	{
 		var pluginTypes = ComputePluginTypeDiffs(localData, remoteData);
 		var pluginSteps = ComputePluginStepDiffs(localData, remoteData);
-		ResetChildIdsForRecreatedSteps(localData, pluginSteps);
-		var pluginImages = ComputePluginImageDiffs(localData, remoteData);
+		var recreatedStepIds = ResetChildIdsForRecreatedSteps(localData, pluginSteps);
+		var pluginImages = ComputePluginImageDiffs(localData, remoteData, recreatedStepIds);
 
 		var customApis = ComputeCustomApiDiffs(localData, remoteData);
-		ResetChildIdsForRecreatedApis(localData, customApis);
-		var customApiRequestParams = ComputeRequestParameterDiffs(localData, remoteData);
-		var customApiResponseProps = ComputeResponsePropertyDiffs(localData, remoteData);
+		var recreatedApiIds = ResetChildIdsForRecreatedApis(localData, customApis);
+		var customApiRequestParams = ComputeRequestParameterDiffs(localData, remoteData, recreatedApiIds);
+		var customApiResponseProps = ComputeResponsePropertyDiffs(localData, remoteData, recreatedApiIds);
 
 		return new(pluginTypes, pluginSteps, pluginImages, customApis, customApiRequestParams, customApiResponseProps);
 	}
@@ -47,11 +48,12 @@ internal class DifferenceCalculator(
 			// have any steps locally. Their steps are still removed (as orphaned step deletes),
 			// leaving an empty type behind. This avoids forcing a full upgrade of a managed solution,
 			// where deleting a component would otherwise require one.
+			// NoDelete supersedes this for types — it keeps them for the same reason, but across every
+			// entity type and without discarding recreates.
 			result = result with { Deletes = [] };
 		}
 
-		printer.Print(result, "Types", x => x.Name);
-		return result;
+		return FinalizeDiff(result, "Types", x => x.Name);
 	}
 
 	private Difference<Step, PluginDefinition> ComputePluginStepDiffs(AssemblyInfo localData, AssemblyInfo? remoteData)
@@ -60,15 +62,15 @@ internal class DifferenceCalculator(
 			getParents: d => d?.Plugins,
 			getChildren: plugin => plugin?.PluginSteps.Select(step => new ParentReference<Step, PluginDefinition>(step, plugin)),
 			pluginStepComparer);
-		printer.Print(result, "Plugin Steps", x => x.Entity.Name);
-		return result;
+		return FinalizeDiff(result, "Plugin Steps", x => x.Entity.Name);
 	}
 
 	/// <summary>
 	/// When a step is recreated (delete + create), its images must also be re-created.
 	/// Reset image IDs to Guid.Empty so they flow through the diff as new creates.
+	/// Returns the IDs of the recreated steps.
 	/// </summary>
-	private static void ResetChildIdsForRecreatedSteps(AssemblyInfo localData, Difference<Step, PluginDefinition> stepDiffs)
+	private static HashSet<Guid> ResetChildIdsForRecreatedSteps(AssemblyInfo localData, Difference<Step, PluginDefinition> stepDiffs)
 	{
 		var recreatedStepIds = stepDiffs.Creates
 			.Where(c => c.Remote != null)
@@ -79,9 +81,11 @@ internal class DifferenceCalculator(
 			foreach (var step in plugin.PluginSteps.Where(s => recreatedStepIds.Contains(s.Id)))
 				foreach (var image in step.PluginImages)
 					image.Id = Guid.Empty;
+
+		return recreatedStepIds;
 	}
 
-	private Difference<Image, Step> ComputePluginImageDiffs(AssemblyInfo localData, AssemblyInfo? remoteData)
+	private Difference<Image, Step> ComputePluginImageDiffs(AssemblyInfo localData, AssemblyInfo? remoteData, IReadOnlySet<Guid> recreatedStepIds)
 	{
 		// For each local plugin, compute image diffs against the matching remote plugin
 		var imageDiffsPerPlugin = localData.Plugins
@@ -99,22 +103,21 @@ internal class DifferenceCalculator(
 				step => step.PluginImages.Select(img => new ParentReference<Image, Step>(img, step))));
 
 		var result = imageDiffsPerPlugin.Concat(orphanedImageDeletes).Flatten();
-		printer.Print(result, "Plugin Images", x => $"[{x.Entity.Name}] {x.Parent.Name}");
-		return result;
+		return FinalizeDiff(result, "Plugin Images", x => $"[{x.Entity.Name}] {x.Parent.Name}", recreatedStepIds);
 	}
 
 	private Difference<CustomApiDefinition> ComputeCustomApiDiffs(AssemblyInfo localData, AssemblyInfo? remoteData)
 	{
 		var result = CompareFlatEntities(localData.CustomApis, remoteData?.CustomApis ?? [], customApiComparer);
-		printer.Print(result, "Custom APIs", x => x.Name);
-		return result;
+		return FinalizeDiff(result, "Custom APIs", x => x.Name);
 	}
 
 	/// <summary>
 	/// When a CustomAPI is recreated (delete + create), its children must also be re-created.
 	/// Reset child IDs to Guid.Empty so they flow through the diff as new creates.
+	/// Returns the IDs of the recreated custom APIs.
 	/// </summary>
-	private static void ResetChildIdsForRecreatedApis(AssemblyInfo localData, Difference<CustomApiDefinition> apiDiffs)
+	private static HashSet<Guid> ResetChildIdsForRecreatedApis(AssemblyInfo localData, Difference<CustomApiDefinition> apiDiffs)
 	{
 		var recreatedApiIds = apiDiffs.Creates
 			.Where(c => c.Remote != null)
@@ -128,25 +131,63 @@ internal class DifferenceCalculator(
 			foreach (var prop in api.ResponseProperties)
 				prop.Id = Guid.Empty;
 		}
+
+		return recreatedApiIds;
 	}
 
-	private Difference<RequestParameter, CustomApiDefinition> ComputeRequestParameterDiffs(AssemblyInfo localData, AssemblyInfo? remoteData)
+	private Difference<RequestParameter, CustomApiDefinition> ComputeRequestParameterDiffs(AssemblyInfo localData, AssemblyInfo? remoteData, IReadOnlySet<Guid> recreatedApiIds)
 	{
 		var result = CompareChildrenAcrossParents(localData, remoteData,
 			getParents: d => d?.CustomApis,
 			getChildren: api => api?.RequestParameters.Select(param => new ParentReference<RequestParameter, CustomApiDefinition>(param, api)),
 			requestComparer);
-		printer.Print(result, "Custom API Request Parameters", x => x.Entity.Name);
-		return result;
+		return FinalizeDiff(result, "Custom API Request Parameters", x => x.Entity.Name, recreatedApiIds);
 	}
 
-	private Difference<ResponseProperty, CustomApiDefinition> ComputeResponsePropertyDiffs(AssemblyInfo localData, AssemblyInfo? remoteData)
+	private Difference<ResponseProperty, CustomApiDefinition> ComputeResponsePropertyDiffs(AssemblyInfo localData, AssemblyInfo? remoteData, IReadOnlySet<Guid> recreatedApiIds)
 	{
 		var result = CompareChildrenAcrossParents(localData, remoteData,
 			getParents: d => d?.CustomApis,
 			getChildren: api => api?.ResponseProperties.Select(prop => new ParentReference<ResponseProperty, CustomApiDefinition>(prop, api)),
 			responseComparer);
-		printer.Print(result, "Custom API Response Properties", x => x.Entity.Name);
+		return FinalizeDiff(result, "Custom API Response Properties", x => x.Entity.Name, recreatedApiIds);
+	}
+
+	/// <summary>
+	/// Applies no-delete mode — dropping deletes that only exist because the remote item is absent locally,
+	/// while keeping the ones paired with a recreate — and reports the resulting difference.
+	/// </summary>
+	private Difference<TEntity> FinalizeDiff<TEntity>(Difference<TEntity> result, string title, Func<TEntity, string> namePicker)
+		where TEntity : EntityBase
+	{
+		if (noDelete)
+		{
+			var (filtered, suppressed) = result.WithoutOrphanDeletes();
+			printer.PrintSuppressedDeletes(title, suppressed, namePicker);
+			result = filtered;
+		}
+
+		printer.Print(result, title, namePicker);
+		return result;
+	}
+
+	/// <inheritdoc cref="FinalizeDiff{TEntity}(Difference{TEntity}, string, Func{TEntity, string})"/>
+	private Difference<TEntity, TParent> FinalizeDiff<TEntity, TParent>(
+		Difference<TEntity, TParent> result,
+		string title,
+		Func<ParentReference<TEntity, TParent>, string> namePicker,
+		IReadOnlySet<Guid>? recreatedParentIds = null)
+		where TEntity : EntityBase
+		where TParent : EntityBase
+	{
+		if (noDelete)
+		{
+			var (filtered, suppressed) = result.WithoutOrphanDeletes(recreatedParentIds);
+			printer.PrintSuppressedDeletes(title, suppressed, namePicker);
+			result = filtered;
+		}
+
+		printer.Print(result, title, namePicker);
 		return result;
 	}
 

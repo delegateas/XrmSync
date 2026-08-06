@@ -499,4 +499,53 @@ public class WebresourceSyncServiceTests
 		// Assert
 		_webresourceWriter.DidNotReceive().Publish(Arg.Any<IEnumerable<WebresourceDefinition>>());
 	}
+
+	/// <summary>
+	/// Builds a service in no-delete mode — webresources missing locally are left in Dataverse.
+	/// </summary>
+	private WebresourceSyncService CreateNoDeleteService() => new(
+		Options.Create(_options with { NoDelete = true, PublishAfterSync = true }),
+		_logger,
+		_localReader,
+		_solutionReader,
+		_webresourceReader,
+		_webresourceWriter,
+		_webresourceValidator
+	);
+
+	[Fact]
+	public async Task SyncKeepsRemoteOnlyWebresourcesWhenNoDelete()
+	{
+		// Arrange — one webresource exists only remotely, one is new locally, one differs and needs updating
+		var solutionId = Guid.NewGuid();
+		var solutionPrefix = "test";
+		var updatedId = Guid.NewGuid();
+		var goneId = Guid.NewGuid();
+		_solutionReader.RetrieveSolution(_options.SolutionName).Returns((solutionId, solutionPrefix));
+
+		_localReader.ReadWebResourceFolder(_options.FolderPath, $"{solutionPrefix}_{_options.SolutionName}")
+			.Returns(new List<WebresourceDefinition>
+			{
+				new("test_TestSolution/new.js", "New Script", WebresourceType.JS, "bmV3"),
+				new("test_TestSolution/updated.js", "Updated Script", WebresourceType.JS, "bmV3Q29kZQ==")
+			});
+
+		_webresourceReader.GetWebresources(solutionId).Returns(new List<WebresourceDefinition>
+		{
+			new("test_TestSolution/updated.js", "Updated Script", WebresourceType.JS, "b2xkQ29kZQ==") { Id = updatedId },
+			new("test_TestSolution/gone.js", "Gone Script", WebresourceType.JS, "Z29uZQ==") { Id = goneId }
+		});
+
+		// Act
+		await CreateNoDeleteService().Sync(CancellationToken.None);
+
+		// Assert — nothing is deleted, while creates and updates are unaffected
+		_webresourceWriter.Received(1).Delete(Arg.Is<IEnumerable<WebresourceDefinition>>(list => !list.Any()));
+		_webresourceWriter.Received(1).Create(Arg.Is<IEnumerable<WebresourceDefinition>>(
+			list => list.Count() == 1 && list.First().Name == "test_TestSolution/new.js"));
+		_webresourceWriter.Received(1).Update(Arg.Is<IEnumerable<WebresourceDefinition>>(
+			list => list.Count() == 1 && list.First().Name == "test_TestSolution/updated.js"));
+		_webresourceWriter.Received(1).Publish(Arg.Is<IEnumerable<WebresourceDefinition>>(
+			list => list.Count() == 2 && !list.Any(wr => wr.Name == "test_TestSolution/gone.js")));
+	}
 }

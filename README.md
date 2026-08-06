@@ -175,6 +175,7 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--client-id` | Plugin sync, Identity (Ensure) |
 | `--tenant-id` | Plugin sync, Identity (Ensure) |
 | `--allow-empty-types` | Plugin sync |
+| `--no-delete` | Plugin sync, Webresource sync |
 | `--watch` | Plugin sync, Webresource sync |
 
 ### Command Line Options
@@ -188,6 +189,7 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--client-id` | `--cid` | Azure AD application (client) ID for the managed identity to ensure on the assembly | No** |
 | `--tenant-id` | `--tid` | Azure AD tenant ID for the managed identity to ensure on the assembly | No** |
 | `--allow-empty-types` | `--allow-empty`, `--aet` | Keep plugin types registered when they no longer have steps instead of deleting them (avoids forcing a full upgrade of managed solutions) | No |
+| `--no-delete` | `--additive`, `--nd` | Only create and update — never delete plugins, steps, images or custom APIs that no longer exist locally. Records that must be recreated because an immutable property changed are still replaced. | No |
 | `--watch` | `--watch-mode` | Keep running and re-sync whenever the assembly changes. Overrides the per-item `Watch` setting. Ignored in CI mode. | No |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
@@ -204,6 +206,7 @@ The root command accepts the following override options in addition to `--dry-ru
 | `--folder` | `-w`, `--path` | Path to the root folder containing the webresources to sync | Yes* |
 | `--file-extensions` | `-e`, `--ext` | File extensions to include (e.g. js css). When omitted, all supported types are synced. | No |
 | `--solution-name` | `-n` | Name of the target Dataverse solution | Yes* |
+| `--no-delete` | `--additive`, `--nd` | Only create and update — never delete webresources that no longer exist in the local folder | No |
 | `--watch` | `--watch-mode` | Keep running and re-sync whenever a webresource file changes. Overrides the per-item `Watch` setting. Ignored in CI mode. | No |
 | `--dry-run` | | Perform a dry run without making changes | No |
 | `--log-level` | `-l` | Set the minimum log level (Trace, Debug, Information, Warning, Error, Critical) | No |
@@ -509,6 +512,7 @@ Each sync item must have a `Type` property indicating the sync type. In addition
 | `ManagedIdentityClientId` | string | Azure AD application (client) ID (GUID). When set, a managed identity is ensured on the assembly as part of the sync | null |
 | `ManagedIdentityTenantId` | string | Azure AD tenant ID (GUID). Required together with `ManagedIdentityClientId` | null |
 | `AllowEmptyTypes` | boolean | Keep plugin types registered when they no longer have steps instead of deleting them (avoids forcing a full upgrade of managed solutions) | false |
+| `NoDelete` | boolean | Only create and update — never delete plugin types, steps, images or custom APIs that no longer exist locally. Records that must be recreated because an immutable property changed are still replaced. | false |
 | `Watch` | boolean | Re-sync automatically whenever the assembly changes. See [Watch Mode](#watch-mode) | false |
 
 **Webresource Sync Item (Type: "Webresource")**
@@ -519,6 +523,7 @@ Each sync item must have a `Type` property indicating the sync type. In addition
 | `FolderPath` | string | Path to the root folder containing webresources | Required |
 | `SolutionName` | string | Target Dataverse solution for this item | Profile-level `SolutionName` |
 | `FileExtensions` | string[] | File extensions to include (e.g. `["js", "css"]`). When omitted, all supported types are synced. | null |
+| `NoDelete` | boolean | Only create and update — never delete webresources that no longer exist in the local folder | false |
 | `Watch` | boolean | Re-sync automatically whenever a file under `FolderPath` changes. See [Watch Mode](#watch-mode) | false |
 
 **Plugin Analysis Item (Type: "PluginAnalysis")**

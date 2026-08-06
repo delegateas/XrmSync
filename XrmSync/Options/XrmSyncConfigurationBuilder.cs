@@ -81,7 +81,8 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 					itemSection.GetValue<string>(nameof(PluginSyncItem.AssemblyPath)),
 					itemSection.GetValue<string>(nameof(PluginSyncItem.ManagedIdentityClientId)),
 					itemSection.GetValue<string>(nameof(PluginSyncItem.ManagedIdentityTenantId)),
-					itemSection.GetValue<bool>(nameof(PluginSyncItem.AllowEmptyTypes))
+					itemSection.GetValue<bool>(nameof(PluginSyncItem.AllowEmptyTypes)),
+					itemSection.GetValue<bool>(nameof(PluginSyncItem.NoDelete))
 				),
 				PluginAnalysisSyncItem.TypeName => new PluginAnalysisSyncItem(
 					itemSection.GetValue<string>(nameof(PluginAnalysisSyncItem.AssemblyPath)),
@@ -90,7 +91,8 @@ internal class XrmSyncConfigurationBuilder(IConfiguration configuration) : IConf
 				),
 				WebresourceSyncItem.TypeName => new WebresourceSyncItem(
 					itemSection.GetValue<string>(nameof(WebresourceSyncItem.FolderPath)) ?? string.Empty,
-					itemSection.GetSection(nameof(WebresourceSyncItem.FileExtensions)).Get<List<string>>()
+					itemSection.GetSection(nameof(WebresourceSyncItem.FileExtensions)).Get<List<string>>(),
+					itemSection.GetValue<bool>(nameof(WebresourceSyncItem.NoDelete))
 				),
 				IdentitySyncItem.TypeName => BuildIdentitySyncItem(itemSection),
 				_ => null

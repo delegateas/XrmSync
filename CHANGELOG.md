@@ -1,3 +1,6 @@
+### Unreleased
+* Add: Create/update-only syncing — `--no-delete` on the `plugins`, `webresources` and root commands, or `"NoDelete": true` per sync item, only ever appends and updates components in the target solution. Records that must be recreated because an immutable property changed are still replaced
+
 ### v1.0.0-preview.23 - 6 August 2026
 * Add: Webresources synced during a watch session are published automatically, so a saved file goes live without a manual publish in the maker portal. One-shot syncs are unchanged and never publish
 

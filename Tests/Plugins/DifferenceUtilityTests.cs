@@ -22,7 +22,7 @@ public class DifferenceUtilityTests
 		differenceUtility = CreateCalculator();
 	}
 
-	private static DifferenceCalculator CreateCalculator(bool allowEmptyTypes = false)
+	private static DifferenceCalculator CreateCalculator(bool allowEmptyTypes = false, bool noDelete = false)
 	{
 		var logger = new LoggerFactory().CreateLogger<PrintService>();
 		var description = new Description();
@@ -35,7 +35,7 @@ public class DifferenceUtilityTests
 			new RequestParameterComparer(),
 			new ResponsePropertyComparer(),
 			new PrintService(logger, Options.Create(options)),
-			Options.Create(PluginSyncCommandOptions.Empty with { AllowEmptyTypes = allowEmptyTypes })
+			Options.Create(PluginSyncCommandOptions.Empty with { AllowEmptyTypes = allowEmptyTypes, NoDelete = noDelete })
 		);
 	}
 
@@ -592,4 +592,316 @@ public class DifferenceUtilityTests
 		Assert.Single(differences.PluginImages.Deletes);
 		Assert.Equal("TestImage", differences.PluginImages.Deletes[0].Entity.Name);
 	}
+
+	#region NoDelete
+
+	[Fact]
+	public void CalculateDifferencesSuppressesOrphanDeletesWhenNoDelete()
+	{
+		// Arrange — every remote entity is an orphan: a type (with a step and an image) and a
+		// custom API (with a request parameter and a response property) that no longer exist locally
+		var remoteImage = new Image("RemoteImage")
+		{
+			Id = Guid.NewGuid(),
+			ImageType = ImageType.PreImage,
+			Attributes = string.Empty,
+			EntityAlias = "account"
+		};
+
+		var remoteStep = new Step("RemoteStep")
+		{
+			Id = Guid.NewGuid(),
+			ExecutionStage = ExecutionStage.PreValidation,
+			EventOperation = "Create",
+			LogicalName = "account",
+			Deployment = 0,
+			ExecutionMode = 0,
+			ExecutionOrder = 1,
+			FilteredAttributes = string.Empty,
+			UserContext = Guid.Empty,
+			AsyncAutoDelete = false,
+			PluginImages = [remoteImage]
+		};
+
+		var remoteType = new PluginDefinition("RemoteType") { Id = Guid.NewGuid(), PluginSteps = [remoteStep] };
+		var remoteApi = CreateCustomApi("orphan_api", [CreateRequestParameter("OrphanParam")], [CreateResponseProperty("OrphanProp")]);
+
+		var localData = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [],
+			CustomApis = []
+		};
+
+		var remoteData = localData with
+		{
+			Plugins = [remoteType],
+			CustomApis = [remoteApi]
+		};
+
+		// Act
+		var differences = CreateCalculator(noDelete: true).CalculateDifferences(localData, remoteData);
+
+		// Assert — nothing is deleted, across every entity type
+		Assert.Empty(differences.Types.Deletes);
+		Assert.Empty(differences.PluginSteps.Deletes);
+		Assert.Empty(differences.PluginImages.Deletes);
+		Assert.Empty(differences.CustomApis.Deletes);
+		Assert.Empty(differences.RequestParameters.Deletes);
+		Assert.Empty(differences.ResponseProperties.Deletes);
+
+		// Sanity check — the same input does produce deletes without NoDelete
+		var withDeletes = differenceUtility.CalculateDifferences(localData, remoteData);
+		Assert.Single(withDeletes.Types.Deletes);
+		Assert.Single(withDeletes.PluginSteps.Deletes);
+		Assert.Single(withDeletes.PluginImages.Deletes);
+		Assert.Single(withDeletes.CustomApis.Deletes);
+		Assert.Single(withDeletes.RequestParameters.Deletes);
+		Assert.Single(withDeletes.ResponseProperties.Deletes);
+	}
+
+	[Fact]
+	public void CalculateDifferencesKeepsRecreateDeletesWhenNoDelete()
+	{
+		// Arrange — an immutable property changed, so the custom API must be replaced rather than updated.
+		// NoDelete must not suppress that delete, or the change would silently never land.
+		var localApi = CreateCustomApi("test_custom_api", [], []);
+		var remoteApi = localApi with
+		{
+			PluginType = localApi.PluginType with { },
+			IsFunction = !localApi.IsFunction // Immutable — requires recreate
+		};
+
+		var localData = new AssemblyInfo("LocalAssembly")
+		{
+			DllPath = "local.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			CustomApis = [localApi],
+			Plugins = []
+		};
+
+		var remoteData = localData with { CustomApis = [remoteApi] };
+
+		// Act
+		var differences = CreateCalculator(noDelete: true).CalculateDifferences(localData, remoteData);
+
+		// Assert — the recreate survives intact
+		Assert.Equal([remoteApi], differences.CustomApis.Deletes);
+		Assert.Single(differences.CustomApis.Creates);
+		Assert.Equal(remoteApi, differences.CustomApis.Creates[0].Remote);
+	}
+
+	[Fact]
+	public void RecreatedStepStillDeletesItsImagesWhenNoDelete()
+	{
+		// Arrange — the step is recreated, which resets its images to fresh creates. The remote images then
+		// look like orphans, but they belong to the step version being deleted and must go with it.
+		var pluginId = Guid.NewGuid();
+		var stepId = Guid.NewGuid();
+
+		var localImage = new Image("TestImage")
+		{
+			Id = Guid.NewGuid(),
+			ImageType = ImageType.PreImage,
+			Attributes = "name",
+			EntityAlias = "preimage"
+		};
+
+		var localStep = new Step("TestStep")
+		{
+			Id = stepId,
+			ExecutionStage = ExecutionStage.PostOperation, // Immutable — differs from remote, triggers recreate
+			EventOperation = "Update",
+			LogicalName = "account",
+			Deployment = 0,
+			ExecutionMode = 0,
+			ExecutionOrder = 1,
+			FilteredAttributes = string.Empty,
+			UserContext = Guid.Empty,
+			AsyncAutoDelete = false,
+			PluginImages = [localImage]
+		};
+
+		var remoteStep = localStep with
+		{
+			ExecutionStage = ExecutionStage.PreOperation,
+			PluginImages = [localImage with { }]
+		};
+
+		var localData = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [new PluginDefinition("TestType") { Id = pluginId, PluginSteps = [localStep] }],
+			CustomApis = []
+		};
+
+		var remoteData = localData with
+		{
+			Plugins = [new PluginDefinition("TestType") { Id = pluginId, PluginSteps = [remoteStep] }]
+		};
+
+		// Act
+		var differences = CreateCalculator(noDelete: true).CalculateDifferences(localData, remoteData);
+
+		// Assert — both the step and its image are still replaced
+		Assert.Single(differences.PluginSteps.Deletes);
+		Assert.Single(differences.PluginSteps.Creates);
+		Assert.Single(differences.PluginImages.Deletes);
+		Assert.Equal("TestImage", differences.PluginImages.Deletes[0].Entity.Name);
+		Assert.Single(differences.PluginImages.Creates);
+	}
+
+	[Fact]
+	public void RecreatedCustomApiStillDeletesItsChildrenWhenNoDelete()
+	{
+		// Arrange — same reasoning as the recreated step, for a custom API's request parameters
+		// and response properties
+		var localApi = CreateCustomApi("test_custom_api",
+			[CreateRequestParameter("Param")],
+			[CreateResponseProperty("Prop")]);
+
+		var remoteApi = localApi with
+		{
+			PluginType = localApi.PluginType with { },
+			IsFunction = !localApi.IsFunction, // Immutable — requires recreate
+			RequestParameters = [localApi.RequestParameters[0] with { }],
+			ResponseProperties = [localApi.ResponseProperties[0] with { }]
+		};
+
+		var localData = new AssemblyInfo("LocalAssembly")
+		{
+			DllPath = "local.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			CustomApis = [localApi],
+			Plugins = []
+		};
+
+		var remoteData = localData with { CustomApis = [remoteApi] };
+
+		// Act
+		var differences = CreateCalculator(noDelete: true).CalculateDifferences(localData, remoteData);
+
+		// Assert — the children of the API version going away are still deleted and recreated
+		Assert.Single(differences.CustomApis.Deletes);
+		Assert.Single(differences.RequestParameters.Deletes);
+		Assert.Single(differences.RequestParameters.Creates);
+		Assert.Single(differences.ResponseProperties.Deletes);
+		Assert.Single(differences.ResponseProperties.Creates);
+	}
+
+	[Fact]
+	public void CalculateDifferencesSuppressesOrphanCustomApiChildrenWhenNoDelete()
+	{
+		// Arrange — the custom API is unchanged, but a request parameter and a response property
+		// were removed locally
+		var localApi = CreateCustomApi("test_custom_api", [], []);
+		var remoteApi = localApi with
+		{
+			PluginType = localApi.PluginType with { },
+			RequestParameters = [CreateRequestParameter("RemovedParam")],
+			ResponseProperties = [CreateResponseProperty("RemovedProp")]
+		};
+
+		var localData = new AssemblyInfo("LocalAssembly")
+		{
+			DllPath = "local.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			CustomApis = [localApi],
+			Plugins = []
+		};
+
+		var remoteData = localData with { CustomApis = [remoteApi] };
+
+		// Act
+		var differences = CreateCalculator(noDelete: true).CalculateDifferences(localData, remoteData);
+
+		// Assert — the API is untouched and its removed children are kept
+		Assert.Empty(differences.CustomApis.Deletes);
+		Assert.Empty(differences.RequestParameters.Deletes);
+		Assert.Empty(differences.ResponseProperties.Deletes);
+
+		// Sanity check — without NoDelete they would be deleted
+		var withDeletes = differenceUtility.CalculateDifferences(localData, remoteData);
+		Assert.Single(withDeletes.RequestParameters.Deletes);
+		Assert.Single(withDeletes.ResponseProperties.Deletes);
+	}
+
+	[Fact]
+	public void CalculateDifferencesKeepsOrphanTypeWhenNoDeleteAndAllowEmptyTypes()
+	{
+		// Arrange — the two flags overlap for plugin types; combining them must still keep the type
+		var remoteOrphanedType = new PluginDefinition("Namespace.OrphanedType") { Id = Guid.NewGuid(), PluginSteps = [] };
+		var sharedType = new PluginDefinition("Namespace.SharedPlugin") { Id = Guid.NewGuid(), PluginSteps = [] };
+
+		var localData = new AssemblyInfo("TestAssembly")
+		{
+			DllPath = "test.dll",
+			Hash = "hash",
+			Version = "1.0.0",
+			Plugins = [sharedType],
+			CustomApis = []
+		};
+
+		var remoteData = localData with { Plugins = [sharedType, remoteOrphanedType] };
+
+		// Act
+		var differences = CreateCalculator(allowEmptyTypes: true, noDelete: true).CalculateDifferences(localData, remoteData);
+
+		// Assert
+		Assert.Empty(differences.Types.Deletes);
+		Assert.Empty(differences.Types.Creates);
+	}
+
+	private static CustomApiDefinition CreateCustomApi(string name, List<RequestParameter> requestParameters, List<ResponseProperty> responseProperties) =>
+		new(name)
+		{
+			Id = Guid.NewGuid(),
+			PluginType = new PluginType($"{name}_Type") { Id = Guid.NewGuid() },
+			UniqueName = $"new_{name}",
+			IsFunction = false,
+			EnabledForWorkflow = true,
+			AllowedCustomProcessingStepType = AllowedCustomProcessingStepType.SyncAndAsync,
+			BindingType = BindingType.Entity,
+			BoundEntityLogicalName = "account",
+			IsCustomizable = true,
+			OwnerId = Guid.NewGuid(),
+			IsPrivate = false,
+			ExecutePrivilegeName = "new_execute_privilege",
+			Description = "Test Custom API",
+			DisplayName = "Test Custom API",
+			RequestParameters = requestParameters,
+			ResponseProperties = responseProperties
+		};
+
+	private static RequestParameter CreateRequestParameter(string name) =>
+		new(name)
+		{
+			Id = Guid.NewGuid(),
+			UniqueName = name,
+			DisplayName = name,
+			IsCustomizable = true,
+			IsOptional = false,
+			LogicalEntityName = "account",
+			Type = CustomApiParameterType.String
+		};
+
+	private static ResponseProperty CreateResponseProperty(string name) =>
+		new(name)
+		{
+			Id = Guid.NewGuid(),
+			UniqueName = name,
+			DisplayName = name,
+			IsCustomizable = true,
+			LogicalEntityName = "account",
+			Type = CustomApiParameterType.String
+		};
+
+	#endregion
 }
