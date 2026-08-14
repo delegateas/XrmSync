@@ -32,7 +32,15 @@ internal class LocalReader(ILogger<LocalReader> logger, IAssemblyAnalyzer analyz
 		}
 
 		logger.LogDebug("Reading assembly from {AssemblyDllPath}", assemblyDllPath);
-		var assemblyInfo = await Task.Run(() => analyzer.AnalyzeAssembly(assemblyDllPath, publisherPrefix), cancellationToken);
+
+		// Analysis runs arbitrary code from the analyzed assembly - plugin constructors and
+		// registration methods - which cannot be interrupted. Passing the token to Task.Run
+		// would therefore only cover the window before the delegate starts. WaitAsync is what
+		// makes cancellation observable: the caller stops waiting immediately, and an abandoned
+		// analysis is deliberately left to run to completion on the thread pool. It owns its
+		// load context, so that context is still unloaded when it finishes.
+		var analysis = Task.Run(() => analyzer.AnalyzeAssembly(assemblyDllPath, publisherPrefix), CancellationToken.None);
+		var assemblyInfo = await analysis.WaitAsync(cancellationToken);
 
 		logger.LogInformation("Local assembly read successfully: {AssemblyName} version {Version}", assemblyInfo.Name, assemblyInfo.Version);
 

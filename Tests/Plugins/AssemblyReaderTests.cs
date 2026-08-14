@@ -75,6 +75,32 @@ public class AssemblyReaderTests
 		analyzer.Received(1).AnalyzeAssembly(assemblyPath, "new");
 	}
 
+	[Fact]
+	public async Task ReadAssemblyAsyncStopsWaitingWhenCancelled()
+	{
+		// Arrange - an analysis that has started and cannot be interrupted
+		using var analysisStarted = new ManualResetEventSlim(false);
+		using var releaseAnalysis = new ManualResetEventSlim(false);
+		analyzer.AnalyzeAssembly("slow.dll", "new").Returns(_ =>
+		{
+			analysisStarted.Set();
+			releaseAnalysis.Wait(TimeSpan.FromSeconds(30));
+			return new AssemblyInfo("slow") { Version = "1.0.0.0", Hash = "ABC" };
+		});
+
+		using var cts = new CancellationTokenSource();
+		var read = assemblyReader.ReadAssemblyAsync("slow.dll", "new", cts.Token);
+		Assert.True(analysisStarted.Wait(TimeSpan.FromSeconds(10)), "Analysis never started");
+
+		// Act
+		await cts.CancelAsync();
+
+		// Assert - the caller stops waiting even though the analysis is still running
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => read);
+
+		releaseAnalysis.Set();
+	}
+
 	[Theory]
 	[InlineData("1-DAXIF")]
 	[InlineData("2-Hybrid")]
