@@ -1,4 +1,147 @@
 {
+  "Plugins": [
+    {
+      "PluginSteps": [
+        {
+          "ExecutionStage": 20,
+          "EventOperation": "Create",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "name,emailaddress1",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [],
+          "Name": "SamplePlugins.AccountDuplicatePlugin: Synchronous Pre Create of account"
+        },
+        {
+          "ExecutionStage": 40,
+          "EventOperation": "Update",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "telephone1,fax",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [
+            {
+              "EntityAlias": "PreImage",
+              "ImageType": 0,
+              "Attributes": "telephone1",
+              "Name": "PreImage"
+            },
+            {
+              "EntityAlias": "PostImage",
+              "ImageType": 1,
+              "Attributes": "telephone1,fax",
+              "Name": "PostImage"
+            }
+          ],
+          "Name": "SamplePlugins.AccountDuplicatePlugin: Synchronous Post Update of account"
+        }
+      ],
+      "Name": "SamplePlugins.AccountDuplicatePlugin"
+    },
+    {
+      "PluginSteps": [
+        {
+          "ExecutionStage": 40,
+          "EventOperation": "Update",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "name,accountnumber,telephone1",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [
+            {
+              "EntityAlias": "PreImage",
+              "ImageType": 0,
+              "Attributes": "name,accountnumber,telephone1",
+              "Name": "PreImage"
+            },
+            {
+              "EntityAlias": "PostImage",
+              "ImageType": 1,
+              "Attributes": "name,telephone1",
+              "Name": "PostImage"
+            }
+          ],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Post Update of account"
+        },
+        {
+          "ExecutionStage": 40,
+          "EventOperation": "Create",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Post Create of account"
+        },
+        {
+          "ExecutionStage": 20,
+          "EventOperation": "Create",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "accountnumber,websiteurl",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Create of account"
+        },
+        {
+          "ExecutionStage": 20,
+          "EventOperation": "Delete",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [
+            {
+              "EntityAlias": "PreImage",
+              "ImageType": 0,
+              "Attributes": "name,accountnumber",
+              "Name": "PreImage"
+            }
+          ],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Delete of account"
+        },
+        {
+          "ExecutionStage": 20,
+          "EventOperation": "Update",
+          "LogicalName": "account",
+          "Deployment": 0,
+          "ExecutionMode": 0,
+          "ExecutionOrder": 1,
+          "FilteredAttributes": "description",
+          "UserContext": "00000000-0000-0000-0000-000000000000",
+          "AsyncAutoDelete": false,
+          "PluginImages": [
+            {
+              "EntityAlias": "PreImage",
+              "ImageType": 0,
+              "Attributes": "description",
+              "Name": "PreImage"
+            }
+          ],
+          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Update of account"
+        }
+      ],
+      "Name": "SamplePlugins.AccountPlugin"
+    }
+  ],
   "CustomApis": [
     {
       "PluginType": {
@@ -176,149 +319,6 @@
         }
       ],
       "Name": "UpdateAccountApi"
-    }
-  ],
-  "Plugins": [
-    {
-      "PluginSteps": [
-        {
-          "ExecutionStage": 20,
-          "EventOperation": "Create",
-          "LogicalName": "account",
-          "Deployment": 0,
-          "ExecutionMode": 0,
-          "ExecutionOrder": 1,
-          "FilteredAttributes": "name,emailaddress1",
-          "UserContext": "00000000-0000-0000-0000-000000000000",
-          "AsyncAutoDelete": false,
-          "PluginImages": [],
-          "Name": "SamplePlugins.AccountDuplicatePlugin: Synchronous Pre Create of account"
-        },
-        {
-          "ExecutionStage": 40,
-          "EventOperation": "Update",
-          "LogicalName": "account",
-          "Deployment": 0,
-          "ExecutionMode": 0,
-          "ExecutionOrder": 1,
-          "FilteredAttributes": "telephone1,fax",
-          "UserContext": "00000000-0000-0000-0000-000000000000",
-          "AsyncAutoDelete": false,
-          "PluginImages": [
-            {
-              "EntityAlias": "PreImage",
-              "ImageType": 0,
-              "Attributes": "telephone1",
-              "Name": "PreImage"
-            },
-            {
-              "EntityAlias": "PostImage",
-              "ImageType": 1,
-              "Attributes": "telephone1,fax",
-              "Name": "PostImage"
-            }
-          ],
-          "Name": "SamplePlugins.AccountDuplicatePlugin: Synchronous Post Update of account"
-        }
-      ],
-      "Name": "SamplePlugins.AccountDuplicatePlugin"
-    },
-    {
-      "PluginSteps": [
-        {
-          "ExecutionStage": 40,
-          "EventOperation": "Update",
-          "LogicalName": "account",
-          "Deployment": 0,
-          "ExecutionMode": 0,
-          "ExecutionOrder": 1,
-          "FilteredAttributes": "name,accountnumber,telephone1",
-          "UserContext": "00000000-0000-0000-0000-000000000000",
-          "AsyncAutoDelete": false,
-          "PluginImages": [
-            {
-              "EntityAlias": "PreImage",
-              "ImageType": 0,
-              "Attributes": "name,accountnumber,telephone1",
-              "Name": "PreImage"
-            },
-            {
-              "EntityAlias": "PostImage",
-              "ImageType": 1,
-              "Attributes": "name,telephone1",
-              "Name": "PostImage"
-            }
-          ],
-          "Name": "SamplePlugins.AccountPlugin: Synchronous Post Update of account"
-        },
-        {
-          "ExecutionStage": 40,
-          "EventOperation": "Create",
-          "LogicalName": "account",
-          "Deployment": 0,
-          "ExecutionMode": 0,
-          "ExecutionOrder": 1,
-          "FilteredAttributes": "",
-          "UserContext": "00000000-0000-0000-0000-000000000000",
-          "AsyncAutoDelete": false,
-          "PluginImages": [],
-          "Name": "SamplePlugins.AccountPlugin: Synchronous Post Create of account"
-        },
-        {
-          "ExecutionStage": 20,
-          "EventOperation": "Create",
-          "LogicalName": "account",
-          "Deployment": 0,
-          "ExecutionMode": 0,
-          "ExecutionOrder": 1,
-          "FilteredAttributes": "accountnumber,websiteurl",
-          "UserContext": "00000000-0000-0000-0000-000000000000",
-          "AsyncAutoDelete": false,
-          "PluginImages": [],
-          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Create of account"
-        },
-        {
-          "ExecutionStage": 20,
-          "EventOperation": "Delete",
-          "LogicalName": "account",
-          "Deployment": 0,
-          "ExecutionMode": 0,
-          "ExecutionOrder": 1,
-          "FilteredAttributes": "",
-          "UserContext": "00000000-0000-0000-0000-000000000000",
-          "AsyncAutoDelete": false,
-          "PluginImages": [
-            {
-              "EntityAlias": "PreImage",
-              "ImageType": 0,
-              "Attributes": "name,accountnumber",
-              "Name": "PreImage"
-            }
-          ],
-          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Delete of account"
-        },
-        {
-          "ExecutionStage": 20,
-          "EventOperation": "Update",
-          "LogicalName": "account",
-          "Deployment": 0,
-          "ExecutionMode": 0,
-          "ExecutionOrder": 1,
-          "FilteredAttributes": "description",
-          "UserContext": "00000000-0000-0000-0000-000000000000",
-          "AsyncAutoDelete": false,
-          "PluginImages": [
-            {
-              "EntityAlias": "PreImage",
-              "ImageType": 0,
-              "Attributes": "description",
-              "Name": "PreImage"
-            }
-          ],
-          "Name": "SamplePlugins.AccountPlugin: Synchronous Pre Update of account"
-        }
-      ],
-      "Name": "SamplePlugins.AccountPlugin"
     }
   ]
 }

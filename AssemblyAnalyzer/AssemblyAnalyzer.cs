@@ -1,9 +1,11 @@
+using Microsoft.Extensions.Logging;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 using XrmSync.Model;
 using XrmSync.Analyzer.Extensions;
 using XrmSync.Analyzer.Analyzers;
+using XrmSync.Analyzer.Reader;
 using XrmSync.Model.Plugin;
 using XrmSync.Model.CustomApi;
 
@@ -11,7 +13,10 @@ using XrmSync.Model.CustomApi;
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace XrmSync.Analyzer;
 
-internal class AssemblyAnalyzer(IEnumerable<IAnalyzer<PluginDefinition>> pluginAnalyzers, IEnumerable<IAnalyzer<CustomApiDefinition>> customApiAnalyzers) : IAssemblyAnalyzer
+internal class AssemblyAnalyzer(
+	ILogger<AssemblyAnalyzer> logger,
+	IEnumerable<IAnalyzer<PluginDefinition>> pluginAnalyzers,
+	IEnumerable<IAnalyzer<CustomApiDefinition>> customApiAnalyzers) : IAssemblyAnalyzer
 {
 	public AssemblyInfo AnalyzeAssembly(string dllPath, string prefix)
 	{
@@ -23,9 +28,23 @@ internal class AssemblyAnalyzer(IEnumerable<IAnalyzer<PluginDefinition>> pluginA
 			throw new AnalysisException($"Invalid assembly file type: {Path.GetExtension(dllFullPath)}, expected DLL");
 
 		var dllName = Path.GetFileNameWithoutExtension(dllFullPath);
-		var hash = File.ReadAllBytes(dllFullPath).Sha1Checksum();
+		var bytes = File.ReadAllBytes(dllFullPath);
+		var hash = bytes.Sha1Checksum();
 
-		var assembly = Assembly.LoadFrom(dllFullPath);
+		var result = IsolatedAssemblyLoader.Run(dllFullPath, bytes, assembly => Analyze(assembly, dllName, dllFullPath, hash, prefix));
+
+		if (!result.Unloaded)
+		{
+			logger.LogWarning(
+				"The load context for {AssemblyName} could not be unloaded. Something in the analyzed assembly - a static field, an event subscription or a background thread created while reading its registrations - still references it, so it stays in memory until XrmSync exits. The analysis itself is unaffected.",
+				dllName);
+		}
+
+		return result.Value;
+	}
+
+	private AssemblyInfo Analyze(Assembly assembly, string dllName, string dllFullPath, string hash, string prefix)
+	{
 		var assemblyVersion = assembly.GetName()?.Version?.ToString() ?? throw new AnalysisException("Could not determine assembly version");
 
 		var types = assembly.GetLoadableTypes();

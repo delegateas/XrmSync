@@ -1,3 +1,8 @@
+### v1.0.0-preview.25 - 14 August 2026
+* Change: Plugin assemblies are now analyzed in-process in a collectible `AssemblyLoadContext` instead of by shelling out to `xrmsync analyze`. Sync no longer requires XrmSync to be discoverable as a local or global dotnet tool, and starts faster since it no longer spawns up to three child processes per assembly read
+* Fix: The analyzed assembly is loaded from memory, so XrmSync never holds a file handle on the DLL while watching
+* Fix: `Test-Samples.ps1` compared normalized output through an unordered hashtable, making the baseline check fail at random
+
 ### v1.0.0-preview.24 - 6 August 2026
 * Add: Create/update-only syncing — `--no-delete` on the `plugins`, `webresources` and root commands, or `"NoDelete": true` per sync item, only ever appends and updates components in the target solution. Records that must be recreated because an immutable property changed are still replaced
 
