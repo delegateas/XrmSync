@@ -1,3 +1,4 @@
+using DG.Tools.XrmMockup;
 using Microsoft.Xrm.Sdk;
 
 namespace Tests.Integration.Infrastructure;
@@ -9,10 +10,12 @@ namespace Tests.Integration.Infrastructure;
 public class TestDataProducer
 {
 	private readonly IOrganizationService service;
+	private readonly XrmMockupBase mockup;
 
-	public TestDataProducer(IOrganizationService service)
+	public TestDataProducer(IOrganizationService service, XrmMockupBase mockup)
 	{
 		this.service = service;
+		this.mockup = mockup;
 	}
 
 	/// <summary>
@@ -190,15 +193,21 @@ public class TestDataProducer
 	/// Creates a solution component linking an entity to a solution.
 	/// Component type constants: 91=PluginAssembly, 90=PluginType, 92=SDKMessageProcessingStep, 61=WebResource, 68=CustomAPI.
 	/// </summary>
+	/// <remarks>
+	/// solutionid/objectid/componenttype are all IsValidForCreate=false (the platform sets them
+	/// when a component is added to a solution), and XrmMockup silently drops such attributes on
+	/// Create. PopulateWith writes straight to the in-memory database instead.
+	/// </remarks>
 	public Guid ProduceSolutionComponent(Guid solutionId, Guid objectId, int componentType)
 	{
-		var component = new Entity("solutioncomponent")
+		var component = new Entity("solutioncomponent", Guid.NewGuid())
 		{
 			["solutionid"] = new EntityReference("solution", solutionId),
 			["objectid"] = objectId,
 			["componenttype"] = new OptionSetValue(componentType)
 		};
-		return service.Create(component);
+		mockup.PopulateWith(component);
+		return component.Id;
 	}
 
 	/// <summary>
