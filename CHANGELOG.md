@@ -4,6 +4,7 @@
 * Fix: The analyzed assembly is loaded from memory, so XrmSync never holds a file handle on the DLL while watching
 * Fix: `Test-Samples.ps1` compared normalized output through an unordered hashtable, making the baseline check fail at random
 * Change: Updated `DataverseConnection` to 1.2.4
+* Fix: Integration test seeding worked around two XrmMockup fidelity gaps: solution components are populated directly into the in-memory database (XrmMockup silently dropped `solutionid`/`objectid`/`componenttype`, which are not valid for create), and `EntityName` attributes are remapped to string attributes so `sdkmessagefilter.primaryobjecttypecode` round-trips as the entity logical name like it does in Dataverse
 
 ### v1.0.0-preview.24 - 6 August 2026
 * Add: Create/update-only syncing — `--no-delete` on the `plugins`, `webresources` and root commands, or `"NoDelete": true` per sync item, only ever appends and updates components in the target solution. Records that must be recreated because an immutable property changed are still replaced

@@ -27,7 +27,7 @@ public abstract class TestBase
 		Crm = XrmMockupFactory.CreateMockup();
 		Service = Crm.GetAdminService();
 		ServiceProvider = new MockOrganizationServiceProvider(Service);
-		Producer = new TestDataProducer(Service);
+		Producer = new TestDataProducer(Service, Crm);
 	}
 
 	/// <summary>
