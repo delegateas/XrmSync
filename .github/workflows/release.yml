@@ -16,6 +16,9 @@ jobs:
   publish:
     name: Build and Publish to NuGet
     runs-on: windows-latest
+    permissions:
+      contents: write      # For release asset upload
+      id-token: write      # Required for OIDC token (NuGet Trusted Publishing)
     steps:
       - uses: actions/checkout@v6
       
@@ -32,6 +35,13 @@ jobs:
           files: |
             ./XrmSync/nupkg/*.nupkg
             ./XrmSync/nupkg/*.snupkg
+
+      - name: 🔑 Login to NuGet (OIDC)
+        id: nuget-login
+        uses: nuget/login@v1
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run == 'false'
+        with:
+          user: ${{ secrets.NUGET_USER }}
 
       - name: Publish to NuGet
         shell: pwsh
@@ -60,6 +70,6 @@ jobs:
             Write-Host "Publishing to NuGet..."
             foreach ($file in $nupkgFiles) {
               Write-Host "Publishing: $($file.FullName)"
-              dotnet nuget push "$($file.FullName)" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+              dotnet nuget push "$($file.FullName)" --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
             }
           }
