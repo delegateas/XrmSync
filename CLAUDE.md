@@ -75,7 +75,7 @@ The solution is organized into distinct layers with clear separation of concerns
 ### Key Architectural Patterns
 
 **Plugin Synchronization Flow**:
-1. Read local assembly using `ILocalReader` and analyze it with `IAssemblyAnalyzer` to extract plugin/custom API metadata
+1. Read local assembly using `ILocalReader`, which analyzes it with `IAssemblyAnalyzer` (in an isolated load context, see **Assembly Loading**) to extract plugin/custom API metadata and caches the result per DLL path
 2. Read remote Dataverse state via `IPluginAssemblyReader`, `IPluginReader`, and `ICustomApiReader`
 3. Align IDs between local and remote entities by matching on unique names
 4. Calculate differences using `IDifferenceCalculator` (creates, updates, deletes)
@@ -175,6 +175,14 @@ The analyzer supports three plugin attribute patterns through strategy pattern:
 - **Hybrid**: Can analyze assemblies using multiple patterns simultaneously
 
 Each framework has dedicated analyzers (`DAXIFPluginAnalyzer`, `CorePluginAnalyzer`, etc.) implementing `IAnalyzer<T>`.
+
+**Assembly Loading**:
+- Analysis is not metadata-only: both frameworks expose their registrations through code (`PluginProcessingStepConfigs()` for DAXIF, `GetRegistrations()` for XrmPluginCore), so `Analyzer.GetRegistrationFromType` instantiates the plugin type and invokes the method. `MetadataLoadContext` is therefore not an option
+- `IsolatedAssemblyLoader.Run` loads the assembly into a collectible `PluginLoadContext`, runs the analyzers, and unloads the context again. `AssemblyAnalyzer` never sees the `Assembly` outside that callback, and `AssemblyInfo` only carries strings, so nothing keeps the context alive
+- `PluginLoadContext` resolves assemblies the host can already load (XrmPluginCore.Abstractions, framework facades) from the **default** context. The analyzers fall back to comparing against the host's `typeof(IPluginDefinition)`/`typeof(ICustomApiDefinition)` when the interface isn't embedded in the analyzed assembly (i.e. it wasn't ILMerged), which only works if that type identity is shared. Everything else is probed for next to the analyzed assembly
+- Assemblies are always loaded from a `byte[]`, never a path — a path-based load holds a file handle on the DLL, which would block rebuilds in watch mode
+- Unloading is cooperative. Plugin code that runs during analysis can pin the context via a static field, event subscription or background thread; `IsolatedAssemblyLoader` detects this with a `WeakReference` after collect/finalize rounds and `AssemblyAnalyzer` logs a warning. It is a memory leak, not a correctness problem, so it never fails the sync
+- The `analyze` command is a user-facing feature only; sync calls `IAssemblyAnalyzer` directly and no longer requires XrmSync to be installed as a dotnet tool
 
 ### Validation Rules
 

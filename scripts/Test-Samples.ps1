@@ -199,8 +199,10 @@ function Compare-JsonObjects {
 function Normalize-AssemblyInfo {
     param($AssemblyInfo)
 
-    # Create a normalized copy excluding assembly-specific properties
-    $normalized = @{
+    # Create a normalized copy excluding assembly-specific properties.
+    # Ordered, because an unordered hashtable serializes its keys in a per-process random
+    # order, which makes the string comparisons below fail at random.
+    $normalized = [ordered]@{
         Plugins    = $AssemblyInfo.Plugins
         CustomApis = $AssemblyInfo.CustomApis
     }

@@ -9,7 +9,9 @@ public static class ServiceColletionExtensions
 {
 	public static IServiceCollection AddLocalReader(this IServiceCollection services)
 	{
-		return services.AddSingleton<ILocalReader, LocalReader>();
+		return services
+			.AddAssemblyAnalyzer()
+			.AddSingleton<ILocalReader, LocalReader>();
 	}
 
 	public static IServiceCollection AddAssemblyAnalyzer(this IServiceCollection services)
