@@ -78,8 +78,8 @@
       },
       "DataverseConnection": {
         "type": "Transitive",
-        "resolved": "1.2.2",
-        "contentHash": "BhsgF3NfOst6vbwQg/DRsNNKePwxJtPWkflbvbgnWM7XwwTdgC86LJnA3Md8TYlmUUKnLCxbicBYEHxt4IGLlg==",
+        "resolved": "1.2.4",
+        "contentHash": "jZOKX+8b402dD4OO7EwZ4Rrvc6MQ67dDvw5aVIydRrt+P58vyGeqECf4yueP/F7W99KoO8STXTqVFnWEsVr+mg==",
         "dependencies": {
           "Azure.Identity": "1.13.2",
           "Microsoft.Extensions.Caching.Memory": "9.0.0",
@@ -349,7 +349,7 @@
       "XrmSync.Dataverse": {
         "type": "Project",
         "dependencies": {
-          "DataverseConnection": "[1.2.2, )",
+          "DataverseConnection": "[1.2.4, )",
           "Microsoft.PowerPlatform.Dataverse.Client": "[1.2.10, )",
           "System.Security.Cryptography.Xml": "[10.0.10, )",
           "XrmSync.Model": "[1.0.0, )"
