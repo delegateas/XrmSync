@@ -6,7 +6,7 @@
         "type": "Direct",
         "requested": "[1.2.5, )",
         "resolved": "1.2.5",
-        "contentHash": "ikQBsXtGd7iuC0Spy/fZpmjS50IESegDpb3lzA4fzWncK0wzXt9qMbLMN+P+llomKNpNyPB3pattOJg/7n6ECw==",
+        "contentHash": "3FRrm9CWitee49XhgAQBUni7deDQf3J8+2qhDUAt44ep4xsdJ8D/pxrNbW55KaGLpbVrD5csGgu2iYmpUskQeA==",
         "dependencies": {
           "Azure.Identity": "1.13.2",
           "Microsoft.Extensions.Caching.Memory": "9.0.0",
