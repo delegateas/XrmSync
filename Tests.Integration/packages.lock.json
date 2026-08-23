@@ -42,11 +42,11 @@
       },
       "System.Security.Cryptography.Xml": {
         "type": "Direct",
-        "requested": "[10.0.10, )",
-        "resolved": "10.0.10",
-        "contentHash": "Mz6Y+s+uMQKj1H2BUF0OhlmaOQkLgSG34/IrUaBDirYBQ6bgwcFvO/XtXWcoDlBLFoFB0uKqDNhybHOd+fQK1A==",
+        "requested": "[10.0.11, )",
+        "resolved": "10.0.11",
+        "contentHash": "TokfVsaU2fmcwvsU6ihLCkseVfwhLX6Tmbl3qh3nOBIqHSX4yqFllpslA+PuHERH/ENu3kwqo4deZiyT0Wvh3Q==",
         "dependencies": {
-          "System.Security.Cryptography.Pkcs": "10.0.10"
+          "System.Security.Cryptography.Pkcs": "10.0.11"
         }
       },
       "XrmMockup365": {
@@ -108,13 +108,14 @@
       },
       "DataverseConnection": {
         "type": "Transitive",
-        "resolved": "1.2.4",
-        "contentHash": "jZOKX+8b402dD4OO7EwZ4Rrvc6MQ67dDvw5aVIydRrt+P58vyGeqECf4yueP/F7W99KoO8STXTqVFnWEsVr+mg==",
+        "resolved": "1.2.5",
+        "contentHash": "3FRrm9CWitee49XhgAQBUni7deDQf3J8+2qhDUAt44ep4xsdJ8D/pxrNbW55KaGLpbVrD5csGgu2iYmpUskQeA==",
         "dependencies": {
           "Azure.Identity": "1.13.2",
           "Microsoft.Extensions.Caching.Memory": "9.0.0",
           "Microsoft.Extensions.DependencyInjection": "8.0.0",
-          "Microsoft.PowerPlatform.Dataverse.Client": "1.2.7"
+          "Microsoft.PowerPlatform.Dataverse.Client": "1.2.7",
+          "System.Security.Cryptography.Xml": "10.0.11"
         }
       },
       "Microsoft.Bcl.AsyncInterfaces": {
@@ -516,8 +517,8 @@
       },
       "System.Security.Cryptography.Pkcs": {
         "type": "Transitive",
-        "resolved": "10.0.10",
-        "contentHash": "KG8t5RHczdgB3IWvRndpI0nE1DSo7ikDYSDbITxfgRFyIvnYiKzuPjaZOsPnwFQ1aOGUl9sEulJul9wlHLEUoA=="
+        "resolved": "10.0.11",
+        "contentHash": "8IV+rI3xN/Mkq9MsSX7VZTv9T9Wt+tyhHLwBX9VNZBk8m8kknEs1JeTSjI2x9M2L/fSja+c2WSE5n5Yy0GXdoQ=="
       },
       "System.Security.Cryptography.ProtectedData": {
         "type": "Transitive",
@@ -633,9 +634,9 @@
       "XrmSync.Dataverse": {
         "type": "Project",
         "dependencies": {
-          "DataverseConnection": "[1.2.4, )",
+          "DataverseConnection": "[1.2.5, )",
           "Microsoft.PowerPlatform.Dataverse.Client": "[1.2.10, )",
-          "System.Security.Cryptography.Xml": "[10.0.10, )",
+          "System.Security.Cryptography.Xml": "[10.0.11, )",
           "XrmSync.Model": "[1.0.0, )"
         }
       },
@@ -653,7 +654,7 @@
           "Microsoft.Extensions.Logging": "[9.0.6, )",
           "Microsoft.Extensions.Logging.Console": "[9.0.6, )",
           "Microsoft.PowerPlatform.Dataverse.Client": "[1.2.10, )",
-          "System.Security.Cryptography.Xml": "[10.0.10, )",
+          "System.Security.Cryptography.Xml": "[10.0.11, )",
           "XrmSync.Dataverse": "[1.0.0, )",
           "XrmSync.Model": "[1.0.0, )"
         }

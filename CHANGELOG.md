@@ -1,3 +1,6 @@
+### v1.0.0-preview.26 - 23 August 2026
+* Change: Updated `DataverseConnection` to 1.2.5, which fixes the persistent token store on Linux
+
 ### v1.0.0-preview.25 - 17 August 2026
 * Change: The release workflow publishes to NuGet with OIDC (Trusted Publishing) via `nuget/login` instead of the deprecated static API key
 * Change: Plugin assemblies are now analyzed in-process in a collectible `AssemblyLoadContext` instead of by shelling out to `xrmsync analyze`. Sync no longer requires XrmSync to be discoverable as a local or global dotnet tool, and starts faster since it no longer spawns up to three child processes per assembly read
